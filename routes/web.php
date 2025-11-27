@@ -3,8 +3,12 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
+// Route::get('/', function () {
+//     return view('welcome');
+// });
+
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login');
 });
 
 Route::get('/dashboard', function () {
@@ -32,3 +36,31 @@ Route::middleware(['auth', 'role:admindapur'])
     });
 
 require __DIR__.'/auth.php';
+
+Route::get('/master/bahan-baku', function () {
+    return view('master.bahanbaku');
+})->name('master.bahanbaku');
+
+Route::get('/master/nama-menu', function () {
+    return view('master.namamenu');
+})->name('master.namamenu');
+
+Route::get('/master/dapur', function () {
+    return view('master.dapur');
+})->name('master.dapur');
+
+Route::get('/setup/user', function () {
+    return view('setup.user');
+})->name('setup.user');
+
+Route::get('/setup/racik-menu', function () {
+    return view('setup.racikmenu');
+})->name('setup.racikmenu');
+
+Route::get('/transaksi/pengajuan-menu', function () {
+    return view('transaksi.pengajuanmenu');
+})->name('transaksi.pengajuanmenu');
+
+Route::get('/laporan', function () {
+    return view('laporan.index');
+})->name('laporan.index');
