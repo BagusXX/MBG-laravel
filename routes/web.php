@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AdminController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -11,24 +12,23 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+// PROFILE
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// ROUTE SUPER ADMIN
+// SUPERADMIN ONLY – boleh tambah admin
+Route::middleware(['auth', 'role:superadmin'])->group(function () {
+    Route::get('/admin/create', [AdminController::class, 'create'])->name('admin.create');
+    Route::post('/admin/store', [AdminController::class, 'store'])->name('admin.store');
+});
 
-Route::middleware(['auth', 'role:superadmin'])
-    ->get('/superadmin', function () {
-        return 'Halo Super Admin';
-    });
-
-// ROUTE ADMIN DAPUR
-
-Route::middleware(['auth', 'role:admindapur'])
-    ->get('/admin-dapur', function () {
-        return 'Dashboard Admin Dapur';
+// ADMIN ONLY
+Route::middleware(['auth', 'role:admin'])
+    ->get('/admin', function () {
+        return 'Dashboard Admin';
     });
 
 require __DIR__.'/auth.php';
