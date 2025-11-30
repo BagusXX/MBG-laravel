@@ -329,19 +329,19 @@ return [
                 [
                     'text' => 'Bahan Baku',
                     'icon' => 'fas fa-fw fa-carrot',
-                    'route' => 'master.bahanbaku',
+                    'route' => 'master.materials',
                 ],
 
                 [
                     'text' => 'Nama Menu',
                     'icon' => 'fas fa-fw fa-book-open',
-                    'route' => 'master.namamenu',
+                    'route' => 'master.menu',
                 ],
 
                 [
                     'text' => 'Dapur',
                     'icon' => 'fas fa-fw fa-fire-alt',
-                    'route' => 'master.dapur',
+                    'route' => 'master.kitchen',
                 ],
             ],
         ],
@@ -361,7 +361,7 @@ return [
                 [
                     'text' => 'Racik Menu',
                     'icon' => 'fas fa-fw fa-blender',
-                    'route' => 'setup.racikmenu',
+                    'route' => 'setup.createmenu',
                 ],
 
             ],
@@ -376,7 +376,7 @@ return [
                 [
                     'text' => 'Pengajuan Menu',
                     'icon' => 'fas fa-fw fa-paper-plane',
-                    'route' => 'transaksi.pengajuanmenu',
+                    'route' => 'transaction.submission',
                 ],
 
             ],
@@ -386,7 +386,7 @@ return [
         [
             'text' => 'Laporan',
             'icon' => 'fas fa-fw fa-file-alt',
-            'route' => 'laporan.index',
+            'route' => 'report.index',
         ],
     ],
 

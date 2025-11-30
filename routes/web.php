@@ -16,6 +16,10 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+// Route::get('/dashboard/master/bahan-baku', function () {
+//     return view('master.materials');
+// })->middleware(['auth', 'verified'])->name('master.materials');
+
 // PROFILE
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -37,30 +41,30 @@ Route::middleware(['auth', 'role:admin'])
 
 require __DIR__.'/auth.php';
 
-Route::get('/master/bahan-baku', function () {
-    return view('master.bahanbaku');
-})->name('master.bahanbaku');
+Route::get('dashboard/master/bahan-baku', function () {
+    return view('master.materials');
+})->name('master.materials');
 
-Route::get('/master/nama-menu', function () {
-    return view('master.namamenu');
-})->name('master.namamenu');
+Route::get('dashboard/master/nama-menu', function () {
+    return view('master.menu');
+})->name('master.menu');
 
-Route::get('/master/dapur', function () {
-    return view('master.dapur');
-})->name('master.dapur');
+Route::get('dashboard/master/dapur', function () {
+    return view('master.kitchen');
+})->name('master.kitchen');
 
-Route::get('/setup/user', function () {
+Route::get('dashboard/setup/user', function () {
     return view('setup.user');
 })->name('setup.user');
 
-Route::get('/setup/racik-menu', function () {
-    return view('setup.racikmenu');
-})->name('setup.racikmenu');
+Route::get('dashboard/setup/racik-menu', function () {
+    return view('setup.createmenu');
+})->name('setup.createmenu');
 
-Route::get('/transaksi/pengajuan-menu', function () {
-    return view('transaksi.pengajuanmenu');
-})->name('transaksi.pengajuanmenu');
+Route::get('dashboard/transaksi/pengajuan-menu', function () {
+    return view('transaction.submission');
+})->name('transaction.submission');
 
-Route::get('/laporan', function () {
-    return view('laporan.index');
-})->name('laporan.index');
+Route::get('dashboard/laporan', function () {
+    return view('report.index');
+})->name('report.index');
