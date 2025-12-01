@@ -3,6 +3,11 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\BahanBakuController;
+use App\Http\Controllers\MenuController;
+use App\Http\Controllers\KitchenController;
+
+
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -41,17 +46,55 @@ Route::middleware(['auth', 'role:admin'])
 
 require __DIR__.'/auth.php';
 
-Route::get('dashboard/master/bahan-baku', function () {
-    return view('master.materials');
-})->name('master.materials');
+//BAHAN BAKU
+Route::middleware(['auth'])->group(function () {
+    // Tampilkan daftar bahan baku
+    Route::get('dashboard/master/bahan-baku', [BahanBakuController::class, 'index'])
+        ->name('master.materials');
 
-Route::get('dashboard/master/nama-menu', function () {
-    return view('master.menu');
-})->name('master.menu');
+    // Simpan bahan baku baru
+    Route::post('dashboard/master/bahan-baku', [BahanBakuController::class, 'store'])
+        ->name('master.materials.store');
 
-Route::get('dashboard/master/dapur', function () {
-    return view('master.kitchen');
-})->name('master.kitchen');
+    // Hapus bahan baku
+    Route::delete('dashboard/master/bahan-baku/{id}', [BahanBakuController::class, 'destroy'])
+        ->name('master.materials.destroy');
+});
+
+//MENU
+Route::middleware(['auth'])->group(function () {
+    // Tampilkan daftar menu
+    Route::get('dashboard/master/nama-menu', [MenuController::class, 'index'])
+        ->name('master.menu');
+
+    // Simpan menu baru
+    Route::post('dashboard/master/nama-menu', [MenuController::class, 'store'])
+        ->name('master.menu.store');
+
+    // Hapus menu
+    Route::delete('dashboard/master/nama-menu/{id}', [MenuController::class, 'destroy'])
+        ->name('master.menu.destroy');
+});
+
+// DAPUR – DATA KITCHEN
+Route::middleware(['auth'])->group(function () {
+
+    // Halaman daftar dapur
+    Route::get('dashboard/master/dapur', [KitchenController::class, 'index'])
+        ->name('master.kitchen');
+
+    // Simpan dapur baru
+    Route::post('dashboard/master/dapur', [KitchenController::class, 'store'])
+        ->name('master.kitchen.store');
+
+    // Hapus dapur
+    Route::delete('dashboard/master/dapur/{id}', [KitchenController::class, 'destroy'])
+        ->name('master.kitchen.destroy');
+
+    // Update dapur
+    Route::put('dashboard/master/dapur/{id}', [KitchenController::class, 'update'])
+        ->name('master.kitchen.update');
+});
 
 Route::get('dashboard/setup/user', function () {
     return view('setup.user');

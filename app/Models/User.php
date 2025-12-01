@@ -3,13 +3,28 @@
 namespace App\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class User extends Authenticatable
 {
+    use HasFactory;
+
     protected $fillable = [
-        'name',
-        'email',
+        'nama',
+        'username',
         'password',
-        'role', // tambahkan jika kamu pakai role
+        'dapur_id',
+        'role',
     ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    // relasi ke dapur
+    public function kitchen()
+    {
+        return $this->belongsTo(Kitchen::class, 'dapur_id');
+    }
 }

@@ -7,11 +7,20 @@
 @endsection
 
 @section('content')
+    {{-- Tombol Tambah --}}
     <x-button-add
         idTarget="#modalAddMenu"
-        text="Tambah Nama Menu"   
+        text="Tambah Nama Menu"
     />
-    <div class="card">
+
+    {{-- Alert sukses --}}
+    @if(session('success'))
+        <div class="alert alert-success mt-2">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    <div class="card mt-2">
         <div class="card-body">
             <table class="table table-bordered table-striped">
                 <thead>
@@ -22,14 +31,26 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>1</td>
-                        <td>Nasi Goreng</td>
-                        <td>
-                            <button class="btn btn-warning btn-sm">Edit</button>
-                            <button class="btn btn-danger btn-sm">Hapus</button>
-                        </td>
-                    </tr>
+                    @forelse($menus as $index => $menu)
+                        <tr>
+                            <td>{{ $index + 1 }}</td>
+                            <td>{{ $menu->nama }}</td>
+                            <td>
+                                <form action="{{ route('master.menu.destroy', $menu->id) }}"
+      method="POST"
+      style="display:inline;">
+    @csrf
+    @method('DELETE')
+    <button type="submit" class="btn btn-danger btn-sm">Hapus</button>
+</form>
+
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="3" class="text-center">Belum ada menu</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
@@ -39,12 +60,13 @@
     <x-modal-form
         id="modalAddMenu"
         title="Tambah Nama Menu"
-        action="#"
+        action="{{ route('master.menu.store') }}"
         submitText="Simpan"
     >
+        @csrf
         <div class="form-group">
             <label>Nama Menu</label>
-            <input type="text" placeholder="Mie Ayam" class="form-control" name="menu" required/>
+            <input type="text" placeholder="Mie Ayam" class="form-control" name="nama" required/>
         </div>
     </x-modal-form>
 @endsection

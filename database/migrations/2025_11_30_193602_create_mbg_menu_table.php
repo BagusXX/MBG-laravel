@@ -6,22 +6,20 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
 public function up(): void {
-Schema::create('recipe_items', function (Blueprint $table) {
+Schema::create('mbg_menus', function (Blueprint $table) {
 $table->id();
+$table->unsignedBigInteger('mbg_menu_id'); // Dapur ID? Jika tidak, rubah sesuai relasi
 $table->unsignedBigInteger('recipe_id');
-$table->unsignedBigInteger('item_id');
-$table->integer('quantity');
-$table->string('unit');
+$table->integer('porsi');
 $table->timestamps();
 
 
 $table->foreign('recipe_id')->references('id')->on('menus')->onDelete('cascade');
-$table->foreign('item_id')->references('id')->on('bahan_bakus')->onDelete('cascade');
 });
 }
 
 
 public function down(): void {
-Schema::dropIfExists('recipe_items');
+Schema::dropIfExists('mbg_menus');
 }
 };

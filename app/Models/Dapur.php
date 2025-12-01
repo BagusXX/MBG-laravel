@@ -6,12 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Kitchen extends Model
 {
-    protected $table = 'dapur'; // sesuaikan kalau beda
-
+    protected $table = 'dapur'; // ← ini wajib
     protected $fillable = [
         'nama',
         'alamat',
-        'nama_kepala',
-        'nomor_kepala',
+        'kepala_dapur',
+        'nomor_kepala_dapur',
     ];
 }

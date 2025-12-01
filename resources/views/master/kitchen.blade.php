@@ -1,69 +1,153 @@
 @extends('adminlte::page')
 
-@section('title', 'Dapur')
+@section('title', 'Data Dapur')
 
 @section('content_header')
-    <h1>Dapur</h1>
+    <h1>Data Dapur</h1>
 @endsection
 
 @section('content')
-    <x-button-add
-        idTarget="#modalAddKitchen"
-        text="Tambah Data Dapur"   
-    />
-    <div class="card">
-        <div class="card-body">
-            <table class="table table-bordered table-striped">
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Nama Dapur</th>
-                        <th>Alamat</th>
-                        <th>Kepala Dapur</th>
-                        <th>No. HP</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
 
-                <tbody>
+<x-button-add idTarget="#modalAddKitchen" text="Tambah Dapur" />
+
+@if(session('success'))
+    <div class="alert alert-success mt-2">{{ session('success') }}</div>
+@endif
+
+<div class="card mt-2">
+    <div class="card-body">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Nama Dapur</th>
+                    <th>Alamat</th>
+                    <th>Kepala Dapur</th>
+                    <th>Nomor Kepala Dapur</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                @forelse($kitchens as $index => $k)
                     <tr>
-                        <td>1</td>
-                        <td>Dapur A Tembalang</td>
-                        <td>Jalan Pahlawan No. 83</td>
-                        <td>Joko Anwar</td>
-                        <td>085724409045</td>
+                        <td>{{ $index + 1 }}</td>
+                        <td>{{ $k->nama }}</td>
+                        <td>{{ $k->alamat }}</td>
+                        <td>{{ $k->kepala_dapur }}</td>
+                        <td>{{ $k->nomor_kepala_dapur }}</td>
                         <td>
-                            <button type="button" class="btn btn-warning btn-sm">Edit</button>
-                            <button type="button" class="btn btn-danger btn-sm">Hapus</button>
+                            <button 
+                                class="btn btn-warning btn-sm btnEditKitchen"
+                                data-id="{{ $k->id }}"
+                                data-nama="{{ $k->nama }}"
+                                data-alamat="{{ $k->alamat }}"
+                                data-kepala="{{ $k->kepala_dapur }}"
+                                data-nomor="{{ $k->nomor_kepala_dapur }}"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalEditKitchen"
+                            >Edit</button>
+
+                            <form action="{{ route('master.kitchen.destroy', $k->id) }}"
+                                  method="POST" style="display:inline;">
+                                @csrf
+                                @method('DELETE')
+                                <button class="btn btn-danger btn-sm">Hapus</button>
+                            </form>
                         </td>
                     </tr>
-                </tbody>
-            </table>
-        </div>
+                @empty
+                    <tr><td colspan="6" class="text-center">Belum ada data dapur</td></tr>
+                @endforelse
+
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{{-- MODAL ADD --}}
+<x-modal-form
+    id="modalAddKitchen"
+    title="Tambah Dapur"
+    action="{{ route('master.kitchen.store') }}"
+    submitText="Simpan"
+>
+    @csrf
+    <div class="form-group">
+        <label>Nama Dapur</label>
+        <input type="text" name="nama" class="form-control" required>
     </div>
 
-    {{-- MODAL ADD KITCHEN --}}
-    <x-modal-form
-        id="modalAddKitchen"
-        title="Tambah Dapur"
-        action="#"
-        submitText="Simpan"
-    >
-        <div class="form-group">
-            <label>Nama Dapur</label>
-            <input type="text" placeholder="Dapur Cita Rasa Tembalang" class="form-control" name="dapur" required/>
-        </div>
-        <div class="form-group">
-            <label>Alamat</label>
-            <input type="text" placeholder="Jalan Pemuda No. 75" class="form-control" name="alamat" required/>
-        </div>
-        <div class="form-group">
-            <label>Kepala Dapur</label>
-            <input type="text" placeholder="Iko Uwais" class="form-control" name="kepala" required/>
-        </div>
-        <div class="form-group">
-            <label>No. HP</label>
-            <input type="text" placeholder="085732208835" class="form-control" name="nomor" required/>
-        </div>
-    </x-modal-form>
+    <div class="form-group mt-2">
+        <label>Alamat</label>
+        <input type="text" name="alamat" class="form-control" required>
+    </div>
+
+    <div class="form-group mt-2">
+        <label>Nama Kepala Dapur</label>
+        <input type="text" name="kepala_dapur" class="form-control" required>
+    </div>
+
+    <div class="form-group mt-2">
+        <label>Nomor Kepala Dapur</label>
+        <input type="text" name="nomor_kepala_dapur" class="form-control" required>
+    </div>
+</x-modal-form>
+
+{{-- MODAL EDIT --}}
+<x-modal-form
+    id="modalEditKitchen"
+    title="Edit Dapur"
+    action=""
+    submitText="Update"
+>
+    @csrf
+    @method('PUT')
+
+    <div class="form-group">
+        <label>Nama Dapur</label>
+        <input type="text" id="editNama" name="nama" class="form-control" required>
+    </div>
+
+    <div class="form-group mt-2">
+        <label>Alamat</label>
+        <input type="text" id="editAlamat" name="alamat" class="form-control" required>
+    </div>
+
+    <div class="form-group mt-2">
+        <label>Nama Kepala Dapur</label>
+        <input type="text" id="editKepala" name="kepala_dapur" class="form-control" required>
+    </div>
+
+    <div class="form-group mt-2">
+        <label>Nomor Kepala Dapur</label>
+        <input type="text" id="editNomor" name="nomor_kepala_dapur" class="form-control" required>
+    </div>
+</x-modal-form>
+
+@endsection
+
+@section('js')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        document.querySelectorAll('.btnEditKitchen').forEach(btn => {
+            btn.addEventListener('click', function () {
+
+                const id = this.dataset.id;
+
+                // Isi field modal edit
+                document.getElementById('editNama').value = this.dataset.nama;
+                document.getElementById('editAlamat').value = this.dataset.alamat;
+                document.getElementById('editKepala').value = this.dataset.kepala;
+                document.getElementById('editNomor').value = this.dataset.nomor;
+
+                // Set action form update
+                document.querySelector('#modalEditKitchen form').action =
+                    "{{ url('/dashboard/master/dapur') }}/" + id;
+            });
+        });
+
+    });
+</script>
 @endsection
