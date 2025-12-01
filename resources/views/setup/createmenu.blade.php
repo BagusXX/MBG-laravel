@@ -77,7 +77,7 @@
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <input type="number" name="jumlah[]" class="form-control" placeholder="20">
+                        <input type="number" name="jumlah[]" class="form-control" placeholder="12">
                     </div>
                     <div class="col-md-4">
                         <select name="satuan[]" class="form-control">
@@ -133,7 +133,7 @@
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <input type="number" name="jumlah[]" class="form-control" placeholder="20">
+                            <input type="number" name="jumlah[]" class="form-control" placeholder="12">
                         </div>
                         <div class="col-md-4">
                             <select name="satuan[]" class="form-control">

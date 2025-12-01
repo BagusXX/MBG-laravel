@@ -17,6 +17,7 @@
                 <thead>
                     <tr>
                         <th>No</th>
+                        <th>Kode</th>
                         <th>Nama Bahan</th>
                         <th>Stok</th>
                         <th>Satuan</th>
@@ -25,10 +26,11 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td>1</td>
-                        <td>Bawang Merah</td>
-                        <td>10</td>
-                        <td>Kg</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
                         <td>
                             <button class="btn btn-warning btn-sm">Edit</button>
                             <button class="btn btn-danger btn-sm">Hapus</button>

@@ -20,6 +20,7 @@
             <thead>
                 <tr>
                     <th>No</th>
+                    <th>Kode</th>
                     <th>Nama Dapur</th>
                     <th>Alamat</th>
                     <th>Kepala Dapur</th>
@@ -32,6 +33,7 @@
                 @forelse($kitchens as $index => $k)
                     <tr>
                         <td>{{ $index + 1 }}</td>
+                        <td></td>
                         <td>{{ $k->nama }}</td>
                         <td>{{ $k->alamat }}</td>
                         <td>{{ $k->kepala_dapur }}</td>
@@ -44,16 +46,10 @@
                                 data-alamat="{{ $k->alamat }}"
                                 data-kepala="{{ $k->kepala_dapur }}"
                                 data-nomor="{{ $k->nomor_kepala_dapur }}"
-                                data-bs-toggle="modal"
-                                data-bs-target="#modalEditKitchen"
+                                data-toggle="modal"
+                                data-target="#modalEditKitchen"
                             >Edit</button>
-
-                            <form action="{{ route('master.kitchen.destroy', $k->id) }}"
-                                  method="POST" style="display:inline;">
-                                @csrf
-                                @method('DELETE')
-                                <button class="btn btn-danger btn-sm">Hapus</button>
-                            </form>
+                            <button class="btn btn-danger btn-sm" data-delete-target="#modalDeleteKitchen" data-action="#" data-form-id="formDeleteKitchen">Hapus</button>
                         </td>
                     </tr>
                 @empty
@@ -101,7 +97,6 @@
     action=""
     submitText="Update"
 >
-    @csrf
     @method('PUT')
 
     <div class="form-group">
@@ -124,6 +119,14 @@
         <input type="text" id="editNomor" name="nomor_kepala_dapur" class="form-control" required>
     </div>
 </x-modal-form>
+
+<x-modal-delete 
+    id="modalDeleteKitchen"
+    formId="formDeleteKitchen"
+    title="Konfirmasi Hapus"
+    message="Apakah Anda yakin ingin menghapus data ini?"
+    confirmText="Hapus">
+</x-modal-delete>
 
 @endsection
 

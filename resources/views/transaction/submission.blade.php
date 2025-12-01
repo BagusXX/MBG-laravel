@@ -18,6 +18,7 @@
                     <tr>
                         <th>Kode</th>
                         <th>Tanggal</th>
+                        <th>Nama Dapur</th>
                         <th>Nama Menu</th>
                         <th>Porsi</th>
                         <th>Aksi</th>
@@ -28,6 +29,7 @@
                     <tr>
                         <td>A01</td>
                         <td>Senin, 24 November 2025</td>
+                        <td>Dapur A Tembalang</td>
                         <td>Nasi Goreng</td>
                         <td>1000</td>
                         <td>

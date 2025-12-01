@@ -327,6 +327,12 @@ return [
             'icon' => 'fas fa-fw fa-utensils',
             'submenu' => [
                 [
+                    'text' => 'Dapur',
+                    'icon' => 'fas fa-fw fa-fire-alt',
+                    'route' => 'master.kitchen',
+                ],
+
+                [
                     'text' => 'Bahan Baku',
                     'icon' => 'fas fa-fw fa-carrot',
                     'route' => 'master.materials',
@@ -336,12 +342,6 @@ return [
                     'text' => 'Nama Menu',
                     'icon' => 'fas fa-fw fa-book-open',
                     'route' => 'master.menu',
-                ],
-
-                [
-                    'text' => 'Dapur',
-                    'icon' => 'fas fa-fw fa-fire-alt',
-                    'route' => 'master.kitchen',
                 ],
             ],
         ],

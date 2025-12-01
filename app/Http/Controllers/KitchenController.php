@@ -31,7 +31,7 @@ class KitchenController extends Controller
             'nomor_kepala_dapur' => $request->nomor_kepala_dapur,
         ]);
 
-        return redirect()->route('master.kitchen.index')
+        return redirect()->route('master.kitchen')
                          ->with('success', 'Data dapur berhasil ditambahkan!');
     }
 
@@ -54,7 +54,7 @@ class KitchenController extends Controller
             'nomor_kepala_dapur' => $request->nomor_kepala_dapur,
         ]);
 
-        return redirect()->route('master.kitchen.index')
+        return redirect()->route('master.kitchen')
                          ->with('success', 'Data dapur berhasil diperbarui!');
     }
 
@@ -64,7 +64,7 @@ class KitchenController extends Controller
         $kitchen = Kitchen::findOrFail($id);
         $kitchen->delete();
 
-        return redirect()->route('master.kitchen.index')
+        return redirect()->route('master.kitchen')
                          ->with('success', 'Data dapur berhasil dihapus!');
     }
 }

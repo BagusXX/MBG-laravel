@@ -36,14 +36,7 @@
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $menu->nama }}</td>
                             <td>
-                                <form action="{{ route('master.menu.destroy', $menu->id) }}"
-      method="POST"
-      style="display:inline;">
-    @csrf
-    @method('DELETE')
-    <button type="submit" class="btn btn-danger btn-sm">Hapus</button>
-</form>
-
+                                <button class="btn btn-danger btn-sm" data-delete-target="#modalDeleteMenu" data-action="#" data-form-id="formDeleteMenu">Hapus</button>
                             </td>
                         </tr>
                     @empty
@@ -69,4 +62,12 @@
             <input type="text" placeholder="Mie Ayam" class="form-control" name="nama" required/>
         </div>
     </x-modal-form>
+
+    <x-modal-delete 
+        id="modalDeleteMenu"
+        formId="formDeleteMenu"
+        title="Konfirmasi Hapus"
+        message="Apakah Anda yakin ingin menghapus data ini?"
+        confirmText="Hapus">
+    </x-modal-delete>
 @endsection

@@ -11,7 +11,7 @@ class Kitchen extends Model
     protected $fillable = [
         'nama',
         'alamat',
-        'nama_kepala',
-        'nomor_kepala',
+        'kepala_dapur',
+        'nomor_kepala_dapur',
     ];
 }
