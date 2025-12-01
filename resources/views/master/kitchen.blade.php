@@ -70,6 +70,11 @@
 >
     @csrf
     <div class="form-group">
+        <label>Kode</label>
+        <input type="text" name="kode" class="form-control" required>
+    </div>
+   
+    <div class="form-group">
         <label>Nama Dapur</label>
         <input type="text" name="nama" class="form-control" required>
     </div>
