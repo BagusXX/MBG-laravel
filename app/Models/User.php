@@ -11,20 +11,14 @@ class User extends Authenticatable
 
     protected $fillable = [
         'nama',
-        'username',
+        'email',
         'password',
-        'dapur_id',
         'role',
+        'kitchen_id',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
     ];
-
-    // relasi ke dapur
-    public function kitchen()
-    {
-        return $this->belongsTo(Kitchen::class, 'dapur_id');
-    }
 }
