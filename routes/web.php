@@ -7,12 +7,6 @@ use App\Http\Controllers\BahanBakuController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\KitchenController;
 
-
-
-// Route::get('/', function () {
-//     return view('welcome');
-// });
-
 Route::get('/', function () {
     return redirect()->route('login');
 });

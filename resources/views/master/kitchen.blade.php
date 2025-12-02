@@ -68,10 +68,17 @@
     action="{{ route('master.kitchen.store') }}"
     submitText="Simpan"
 >
-    @csrf
+    {{-- @csrf --}}
     <div class="form-group">
         <label>Kode</label>
-        <input type="text" name="kode" class="form-control" required>
+        <input 
+            type="text" 
+            name="kode" 
+            class="form-control"
+            value="{{ $kodeBaru }}"
+            readonly
+            required
+        >
     </div>
    
     <div class="form-group">

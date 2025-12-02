@@ -56,7 +56,7 @@
         action="{{ route('master.menu.store') }}"
         submitText="Simpan"
     >
-        @csrf
+        {{-- @csrf --}}
         <div class="form-group">
             <label>Nama Menu</label>
             <input type="text" placeholder="Mie Ayam" class="form-control" name="nama" required/>
