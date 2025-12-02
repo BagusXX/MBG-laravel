@@ -1,4 +1,4 @@
-@extends('adminlte::page')
+{{-- @extends('adminlte::page')
 
 @section('title', 'Bahan Baku')
 
@@ -41,7 +41,7 @@
         </div>
     </div>
 
-    {{-- MODAL ADD MATERIALS --}}
+    MODAL ADD MATERIALS
     <x-modal-form 
         id="modalAddMaterials" 
         title="Tambah Bahan Baku" 
@@ -74,4 +74,4 @@
 
 </div>
 
-@endsection
+@endsection --}}

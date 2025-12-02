@@ -1,4 +1,4 @@
-@extends('layouts.app')
+{{-- @extends('layouts.app')
 
 @section('content')
 <h1>Data Dapur</h1>
@@ -23,4 +23,4 @@
         @endforeach
     </tbody>
 </table>
-@endsection
+@endsection --}}
