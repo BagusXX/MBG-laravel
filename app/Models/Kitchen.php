@@ -14,5 +14,8 @@ class Kitchen extends Model
         'alamat',
         'kepala_dapur',
         'nomor_kepala_dapur',
+
+        
     ];
 }
+

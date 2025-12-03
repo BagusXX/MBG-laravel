@@ -20,30 +20,31 @@ class MenuController extends Controller
 
 
 
-    // Generate kode menu: MNDPR11 + 001
-    private function generateKodeMenu($kodeDapur)
-    {
-        // Cari menu terakhir untuk dapur tertentu
-        $lastMenu = Menu::where('kode', 'LIKE', 'MN' . $kodeDapur . '%')
-                        ->orderBy('kode', 'desc')
-                        ->first();
+    // Generate kode menu: MN + KODE_DAPUR + 2 digit unik
+private function generateKodeMenu($kodeDapur)
+{
+    // Cari menu terakhir untuk dapur tertentu
+    $lastMenu = Menu::where('kode', 'LIKE', 'MN' . $kodeDapur . '%')
+                    ->orderBy('kode', 'desc')
+                    ->first();
 
-        // Jika belum ada → mulai dari 001
-        if (!$lastMenu) {
-            return "MN{$kodeDapur}001";
-        }
-
-        // Ambil nomor terakhir 3 digit (ambil 3 digit paling belakang)
-        $lastNumber = (int) substr($lastMenu->kode, -3);
-
-        // Increment
-        $nextNumber = $lastNumber + 1;
-
-        // Format jadi 3 digit
-        $nextNumberFormatted = str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
-
-        return "MN{$kodeDapur}{$nextNumberFormatted}";
+    // Jika belum ada menu → mulai dari 01
+    if (!$lastMenu) {
+        return "MN{$kodeDapur}01";
     }
+
+    // Ambil 2 digit terakhir
+    $lastNumber = (int) substr($lastMenu->kode, -2);
+
+    // Increment
+    $nextNumber = $lastNumber + 1;
+
+    // Format jadi 2 digit
+    $nextNumberFormatted = str_pad($nextNumber, 2, '0', STR_PAD_LEFT);
+
+    return "MN{$kodeDapur}{$nextNumberFormatted}";
+}
+
 
     // Simpan menu baru
     public function store(Request $request)

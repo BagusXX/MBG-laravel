@@ -9,6 +9,11 @@ class BahanBaku extends Model
 {
     use HasFactory;
 
-    protected $table = 'bahan_baku'; // nama tabel sesuai database
-    protected $fillable = ['nama', 'stok', 'satuan'];
+    protected $table = 'bahan_baku'; // pastikan sesuai nama tabel di database
+    protected $fillable = ['kode', 'nama', 'stok', 'satuan', 'kitchen_id'];
+
+    public function kitchen()
+    {
+        return $this->belongsTo(Kitchen::class);
+    }
 }

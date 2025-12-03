@@ -20,35 +20,38 @@
             <thead>
                 <tr>
                     <th>No</th>
+                    <th>Kode</th> {{-- Tambah kolom kode bahan baku --}}
                     <th>Nama Bahan</th>
                     <th>Stok</th>
                     <th>Satuan</th>
+                    <th>Dapur</th> {{-- Tambah kolom dapur --}}
                     <th>Aksi</th>
                 </tr>
             </thead>
             <tbody>
-    @forelse($items as $index => $item)
-        <tr>
-            <td>{{ $index + 1 }}</td>
-            <td>{{ $item->nama }}</td>
-            <td>{{ $item->stok }}</td>
-            <td>{{ $item->satuan }}</td>
-            <td>
-                {{-- Tombol Hapus --}}
-                <form action="{{ route('master.materials.destroy', $item->id) }}" method="POST" style="display:inline-block;">
-                    @csrf
-                    @method('DELETE')
-                    <button class="btn btn-danger btn-sm">Hapus</button>
-                </form>
-            </td>
-        </tr>
-    @empty
-        <tr>
-            <td colspan="5" class="text-center">Belum ada data</td>
-        </tr>
-    @endforelse
-</tbody>
-
+                @forelse($items as $index => $item)
+                    <tr>
+                        <td>{{ $index + 1 }}</td>
+                        <td>{{ $item->kode }}</td>
+                        <td>{{ $item->nama }}</td>
+                        <td>{{ $item->stok }}</td>
+                        <td>{{ $item->satuan }}</td>
+                        <td>{{ $item->kitchen->nama ?? '-' }}</td> {{-- Nama dapur --}}
+                        <td>
+                            {{-- Tombol Hapus --}}
+                            <form action="{{ route('master.materials.destroy', $item->id) }}" method="POST" style="display:inline-block;">
+                                @csrf
+                                @method('DELETE')
+                                <button class="btn btn-danger btn-sm">Hapus</button>
+                            </form>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="7" class="text-center">Belum ada data</td>
+                    </tr>
+                @endforelse
+            </tbody>
         </table>
     </div>
 </div>
@@ -81,6 +84,16 @@
             <option value="pack">Pack</option>
             <option value="botol">Botol</option>
             <option value="bungkus">Bungkus</option>
+        </select>
+    </div>
+
+    <div class="form-group mt-2">
+        <label>Pilih Dapur</label>
+        <select name="kitchen_id" class="form-control" required>
+            <option value="" disabled selected>-- Pilih Dapur --</option>
+            @foreach($kitchens as $kitchen)
+                <option value="{{ $kitchen->id }}">{{ $kitchen->nama }} ({{ $kitchen->kode }})</option>
+            @endforeach
         </select>
     </div>
 </x-modal-form>
