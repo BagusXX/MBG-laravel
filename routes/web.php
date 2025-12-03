@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\BahanBakuController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\KitchenController;
+use App\Http\Controllers\UserController;
+
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -90,9 +92,26 @@ Route::middleware(['auth'])->group(function () {
         ->name('master.kitchen.update');
 });
 
-Route::get('dashboard/setup/user', function () {
-    return view('setup.user');
-})->name('setup.user');
+// USER SETUP
+Route::middleware(['auth'])->group(function () {
+
+    // Tampilkan daftar user
+    Route::get('dashboard/setup/user', [UserController::class, 'index'])
+        ->name('setup.user');
+
+    // Simpan user baru
+    Route::post('dashboard/setup/user', [UserController::class, 'store'])
+        ->name('setup.user.store');
+
+    // Hapus user
+    Route::delete('dashboard/setup/user/{id}', [UserController::class, 'destroy'])
+        ->name('setup.user.destroy');
+
+    // Edit user
+    Route::put('dashboard/setup/user/{id}', [UserController::class, 'update'])
+        ->name('setup.user.update');
+});
+
 
 Route::get('dashboard/setup/racik-menu', function () {
     return view('setup.createmenu');

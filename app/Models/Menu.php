@@ -9,5 +9,14 @@ class Menu extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nama']; // agar bisa mass assign
+    protected $fillable = [
+        'kode',
+        'nama',
+        'kitchen_id',
+    ];
+
+    public function kitchen()
+    {
+        return $this->belongsTo(Kitchen::class);
+    }
 }

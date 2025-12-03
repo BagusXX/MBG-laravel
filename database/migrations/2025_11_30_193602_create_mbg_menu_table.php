@@ -8,7 +8,7 @@ return new class extends Migration {
 public function up(): void {
 Schema::create('mbg_menus', function (Blueprint $table) {
 $table->id();
-$table->unsignedBigInteger('mbg_menu_id'); // Dapur ID? Jika tidak, rubah sesuai relasi
+$table->unsignedBigInteger('mbg_menu_id'); 
 $table->unsignedBigInteger('recipe_id');
 $table->integer('porsi');
 $table->timestamps();

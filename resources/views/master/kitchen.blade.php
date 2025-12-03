@@ -33,7 +33,7 @@
                 @forelse($kitchens as $index => $k)
                     <tr>
                         <td>{{ $index + 1 }}</td>
-                        <td></td>
+                        <td>{{ $k->kode }}</td>
                         <td>{{ $k->nama }}</td>
                         <td>{{ $k->alamat }}</td>
                         <td>{{ $k->kepala_dapur }}</td>

@@ -6,9 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class Kitchen extends Model
 {
-    protected $table = 'dapur'; // sesuaikan kalau beda
+    protected $table = 'kitchens'; // sesuaikan kalau beda
 
     protected $fillable = [
+        'kode',
         'nama',
         'alamat',
         'kepala_dapur',

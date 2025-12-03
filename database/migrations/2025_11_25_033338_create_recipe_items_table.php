@@ -15,8 +15,8 @@ $table->string('unit');
 $table->timestamps();
 
 
-$table->foreign('recipe_id')->references('id')->on('menus')->onDelete('cascade');
-$table->foreign('item_id')->references('id')->on('bahan_bakus')->onDelete('cascade');
+$table->foreign('recipe_id')->references('id')->on('recipes')->onDelete('cascade');
+$table->foreign('item_id')->references('id')->on('bahan_baku')->onDelete('cascade');
 });
 }
 

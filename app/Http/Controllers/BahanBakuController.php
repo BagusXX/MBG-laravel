@@ -10,8 +10,38 @@ class BahanBakuController extends Controller
     public function index()
     {
         $items = BahanBaku::all();
+        // $kodeBaru = $this->generateKode();
+        
         return view('dashboard.master.bahan-baku.index', compact('items'));
     }
+
+    // private function generateKode()
+    // {
+    //     $lastKitchen = Kitchen::orderBy('id', 'desc')->first();
+
+    //     if (!$lastKitchen || !$lastKitchen->kode) {
+    //         // Jika belum ada data → langsung DPR11
+    //         return 'DPR11';
+    //     }
+
+    //     // Ambil angka setelah "DPR", misal "DPR15" → 15
+    //     $lastNumber = (int) substr($lastKitchen->kode, 3);
+
+    //     // Jika angka terlalu kecil (misal DPR1), paksa kembali ke 11
+    //     if ($lastNumber < 11) {
+    //         $nextNumber = 11;
+    //     } else {
+    //         // Normal increment
+    //         $nextNumber = $lastNumber + 1;
+    //     }
+
+    //     // Batas maksimum 99
+    //     if ($nextNumber > 99) {
+    //         $nextNumber = 99;
+    //     }
+
+    //     return 'DPR' . $nextNumber;
+    // }
 
     public function store(Request $request)
     {
@@ -22,6 +52,8 @@ class BahanBakuController extends Controller
         ]);
 
         BahanBaku::create([
+            // 'kode' => $this->generateKode(), // auto-generate dari backend
+
             'nama' => $request->nama,
             'stok' => $request->stok,
             'satuan' => $request->satuan,

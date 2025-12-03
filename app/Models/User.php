@@ -21,4 +21,9 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+    public function kitchen()
+    {
+        return $this->belongsTo(Kitchen::class);
+    }
 }
