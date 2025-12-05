@@ -17,10 +17,6 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-// Route::get('/dashboard/master/bahan-baku', function () {
-//     return view('master.materials');
-// })->middleware(['auth', 'verified'])->name('master.materials');
-
 // PROFILE
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
