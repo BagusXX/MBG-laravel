@@ -18,13 +18,13 @@ class AdminController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|min:3',
+            'nama' => 'required|min:3',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:6',
         ]);
 
         User::create([
-            'name' => $request->name,
+            'nama' => $request->nama,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => 'admin', // Wajib: Superadmin hanya membuat admin

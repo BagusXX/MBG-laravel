@@ -4,20 +4,20 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::create('recipes', function (Blueprint $table) {
-    $table->id();
-    $table->string('nama');
-    $table->string('deskripsi')->nullable();
-    $table->timestamps();
-});
-
+            $table->id();
+            $table->foreignId('kitchen_id')->constrained('kitchens')->onDelete('cascade');
+            $table->foreignId('menu_id')->constrained('menus')->onDelete('cascade');
+            $table->timestamps();
+        });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('menus');
+        Schema::dropIfExists('recipes');
     }
 };

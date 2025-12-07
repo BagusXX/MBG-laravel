@@ -71,7 +71,7 @@
                     <div class="col-md-5">
                         <select name="bahan[]" class="form-control">
                             <option value="" disabled selected>Pilih Bahan</option>
-                            <option value="bawang merah">Bawang Merah</option>
+                            <option value="bawang merah">Bawang</option>
                             <option value="bawang putih">Bawang Putih</option>
                             <option value="cabe merah">Cabe Merah</option>
                         </select>

@@ -7,7 +7,7 @@ use App\Http\Controllers\BahanBakuController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\KitchenController;
 use App\Http\Controllers\UserController;
-
+use App\Http\Controllers\RecipeController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -112,10 +112,19 @@ Route::middleware(['auth'])->group(function () {
         ->name('setup.user.update');
 });
 
+// RUTE RACIK MENU
+Route::middleware(['auth'])->group(function () {
 
-Route::get('dashboard/setup/racik-menu', function () {
-    return view('setup.createmenu');
-})->name('setup.createmenu');
+    // Tampilkan daftar racik menu
+    Route::get('dashboard/setup/racik-menu', [RecipeController::class, 'index'])
+        ->name('setup.racikmenu');
+
+    // Simpan racik menu
+    Route::post('dashboard/setup/racik-menu', [RecipeController::class, 'store'])
+        ->name('setup.racikmenu.store');
+});
+
+
 
 Route::get('dashboard/transaksi/pengajuan-menu', function () {
     return view('transaction.submission');
@@ -124,3 +133,4 @@ Route::get('dashboard/transaksi/pengajuan-menu', function () {
 Route::get('dashboard/laporan', function () {
     return view('report.index');
 })->name('report.index');
+

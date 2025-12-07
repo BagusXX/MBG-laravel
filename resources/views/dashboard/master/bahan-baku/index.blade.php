@@ -22,9 +22,9 @@
                     <th>No</th>
                     <th>Kode</th> {{-- Tambah kolom kode bahan baku --}}
                     <th>Nama Bahan</th>
-                    <th>Stok</th>
+                    {{-- <th>Stok</th> --}}
                     <th>Satuan</th>
-                    <th>Dapur</th> {{-- Tambah kolom dapur --}}
+                    {{-- <th>Dapur</th> Tambah kolom dapur --}}
                     <th>Aksi</th>
                 </tr>
             </thead>
@@ -34,9 +34,9 @@
                         <td>{{ $index + 1 }}</td>
                         <td>{{ $item->kode }}</td>
                         <td>{{ $item->nama }}</td>
-                        <td>{{ $item->stok }}</td>
+                        {{-- <td>{{ $item->stok }}</td> --}}
                         <td>{{ $item->satuan }}</td>
-                        <td>{{ $item->kitchen->nama ?? '-' }}</td> {{-- Nama dapur --}}
+                        {{-- <td>{{ $item->kitchen->nama ?? '-' }}</td> Nama dapur --}}
                         <td>
                             {{-- Tombol Hapus --}}
                             <form action="{{ route('master.materials.destroy', $item->id) }}" method="POST" style="display:inline-block;">
@@ -68,10 +68,10 @@
         <label>Nama Bahan</label>
         <input type="text" placeholder="Bawang Merah" class="form-control" name="nama" required>
     </div>
-    <div class="form-group">
+    {{-- <div class="form-group">
         <label>Jumlah</label>
         <input type="number" placeholder="20" class="form-control" name="stok" required>
-    </div>
+    </div> --}}
     <div class="form-group">
         <label>Satuan</label>
         <select class="form-control" name="satuan" required>

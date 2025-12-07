@@ -22,39 +22,44 @@ class UserController extends Controller
     public function store(Request $request)
 {
     $request->validate([
-        'name' => 'required|string',
-        'username' => 'required|string|unique:users,username',
-        'password' => 'required|string',
-        'kitchen_id' => 'required|exists:kitchens,id',
-        'role' => 'required|in:admin,superadmin',
+        'nama' => 'required',
+        'email' => 'required|email|unique:users,email',
+        'password' => 'required',
+        'kitchen_id' => 'required',
+        'role' => 'required',
+    ], [
+        'email.unique' => 'Email sudah digunakan! Mohon gunakan nama lain.',
     ]);
 
     User::create([
-        'name' => $request->name,
-        'username' => $request->username,
+        'nama' => $request->nama,
+        'email' => $request->email,
         'password' => Hash::make($request->password),
         'kitchen_id' => $request->kitchen_id,
         'role' => $request->role,
     ]);
 
-    return back()->with('success', 'User berhasil ditambahkan!');
+    return redirect()->back()->with('success', 'User berhasil ditambahkan.');
 }
+
+
+
 
 public function update(Request $request, $id)
 {
     $user = User::findOrFail($id);
 
     $request->validate([
-        'name' => 'required|string',
-        'username' => 'required|string|unique:users,username,' . $id,
+        'nama' => 'required|string',
+        'email' => 'required|email|unique:users,email,' . $id,
         'password' => 'nullable|string',
         'kitchen_id' => 'required|exists:kitchens,id',
         'role' => 'required|in:admin,superadmin',
     ]);
 
     $data = [
-        'name' => $request->name,
-        'username' => $request->username,
+        'nama' => $request->nama,
+        'email' => $request->email,
         'kitchen_id' => $request->kitchen_id,
         'role' => $request->role,
     ];
@@ -67,6 +72,7 @@ public function update(Request $request, $id)
 
     return back()->with('success', 'User berhasil diperbarui!');
 }
+
 
 
     // hapus user

@@ -28,7 +28,7 @@
                         <th>No</th>
                         <th>Kode Menu</th> {{-- Tambah kolom kode menu --}}
                         <th>Nama Menu</th>
-                        <th>Dapur</th> {{-- Tampilkan dapur terkait --}}
+                        {{-- <th>Dapur</th> --}}
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -38,7 +38,7 @@
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $menu->kode }}</td> {{-- Kode menu --}}
                             <td>{{ $menu->nama }}</td>
-                            <td>{{ $menu->kitchen->nama ?? '-' }}</td> {{-- Nama dapur --}}
+                            {{-- <td>{{ $menu->kitchen->nama ?? '-' }}</td> Nama dapur --}}
                             <td>
                                 <button 
                                     class="btn btn-danger btn-sm" 
