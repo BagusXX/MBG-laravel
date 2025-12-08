@@ -6,6 +6,7 @@ use App\Models\Recipe;
 use App\Models\Menu;
 use App\Models\Kitchen;
 use App\Models\BahanBaku;
+use App\Models\Unit; 
 use Illuminate\Http\Request;
 
 class RecipeController extends Controller
@@ -16,8 +17,9 @@ class RecipeController extends Controller
         $menus = Menu::all();
         $kitchens = Kitchen::all();
         $bahanBaku = BahanBaku::all();
+        $units = Unit::all();
 
-        return view('setup.createmenu', compact('recipes', 'menus', 'kitchens', 'bahanBaku'));
+        return view('setup.createmenu', compact('recipes', 'menus', 'kitchens', 'bahanBaku', 'units'));
     }
 
     public function store(Request $request)

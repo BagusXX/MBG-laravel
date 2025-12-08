@@ -9,6 +9,7 @@ use App\Http\Controllers\MenuController;
 use App\Http\Controllers\KitchenController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RecipeController;
+use App\Http\Controllers\SupplierController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -152,3 +153,25 @@ Route::get('dashboard/laporan', function () {
     return view('report.index');
 })->name('report.index');
 
+Route::get('/dashboard/master/supplier', function () {
+    return view('master.supplier');
+})->name('master.supplier');
+
+Route::prefix('dashboard/setup')->middleware('auth')->group(function () {
+    Route::get('/racik-menu', [App\Http\Controllers\RecipeController::class, 'index'])
+        ->name('setup.createmenu');
+
+    Route::post('/racik-menu/store', [App\Http\Controllers\RecipeController::class, 'store'])
+        ->name('recipe.store');
+});
+
+Route::get('/dashboard/master/supplier', [\App\Http\Controllers\SupplierController::class, 'index'])
+    ->name('master.supplier');
+
+Route::prefix('dashboard/master')->name('master.')->group(function () {
+    Route::get('supplier', [SupplierController::class, 'index'])->name('supplier');
+    Route::post('supplier', [SupplierController::class, 'store'])->name('supplier.store');
+    Route::get('supplier/{supplier}/edit', [SupplierController::class, 'edit'])->name('supplier.edit');
+    Route::put('supplier/{supplier}', [SupplierController::class, 'update'])->name('supplier.update');
+    Route::delete('supplier/{supplier}', [SupplierController::class, 'destroy'])->name('supplier.destroy');
+});

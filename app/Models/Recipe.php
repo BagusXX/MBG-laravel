@@ -22,8 +22,9 @@ class Recipe extends Model
     }
 
     public function bahanBaku()
-    {
-        return $this->belongsToMany(BahanBaku::class)
-                    ->withPivot('jumlah', 'satuan');
-    }
+{
+    return $this->belongsToMany(BahanBaku::class, 'recipe_bahan_baku')
+                ->withPivot('jumlah', 'satuan');
+}
+
 }

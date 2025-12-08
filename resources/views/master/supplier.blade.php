@@ -13,6 +13,13 @@
         text="Tambah Supplier"
     />
 
+    {{-- ALERT SUCCESS --}}
+    @if(session('success'))
+        <div class="alert alert-success mt-2">
+            {{ session('success') }}
+        </div>
+    @endif
+
     {{-- TABLE --}}
     <div class="card mt-2">
         <div class="card-body">
@@ -29,22 +36,30 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td>
-                            <x-button-delete 
-                                idTarget="#modalDeleteSupplier" 
-                                formId="formDeleteSupplier"
-                                action="#"
-                                text="Hapus" 
-                            />
-                        </td>
-                    </tr>
+                    @forelse($suppliers as $index => $supplier)
+                        <tr>
+                            <td>{{ $index + 1 }}</td>
+                            <td>{{ $supplier->kode }}</td>
+                            <td>{{ $supplier->nama }}</td>
+                            <td>{{ $supplier->alamat }}</td>
+                            <td>{{ $supplier->kontak_person }}</td>
+                            <td>{{ $supplier->nomor }}</td>
+                            <td>
+                                {{-- Tombol Hapus --}}
+                                <x-button-delete 
+    idTarget="#modalDeleteSupplier" 
+    formId="formDeleteSupplier"
+    action="{{ route('master.supplier.destroy', $supplier->id) }}"
+    text="Hapus" 
+/>
+
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="text-center">Belum ada supplier</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
@@ -52,40 +67,42 @@
 
     {{-- MODAL ADD SUPPLIER --}}
     <x-modal-form
-        id="modalAddSupplier"
-        title="Tambah Supplier"
-        action="#"
-        submitText="Simpan"
-    >
+    id="modalAddSupplier"
+    title="Tambah Supplier"
+    action="{{ route('master.supplier.store') }}"
+    submitText="Simpan"
+>
+
         <div class="form-group">
             <label>Kode</label>
             <input 
                 type="text" 
                 name="kode" 
                 class="form-control" 
+                id="kode_supplier"
                 readonly 
                 required 
             />
         </div>
         
         <div class="form-group mt-2">
-            <label for="nama">Nama</label>
-            <input id="nama" type="text" name="nama" class="form-control" required />
+            <label for="nama_supplier">Nama</label>
+            <input id="nama_supplier" type="text" name="nama" class="form-control" required />
         </div>
         
         <div class="form-group mt-2">
-            <label for="nama">Alamat</label>
-            <input id="nama" type="text" name="nama" class="form-control" required />
+            <label for="alamat_supplier">Alamat</label>
+            <input id="alamat_supplier" type="text" name="alamat" class="form-control" required />
         </div>
         
         <div class="form-group mt-2">
-            <label for="nama">Kontak Person</label>
-            <input id="nama" type="text" name="nama" class="form-control" required />
+            <label for="kontak_supplier">Kontak Person</label>
+            <input id="kontak_supplier" type="text" name="kontak_person" class="form-control" required />
         </div>
         
         <div class="form-group mt-2">
-            <label for="nama">Nomor</label>
-            <input id="nama" type="text" name="nama" class="form-control" required />
+            <label for="nomor_supplier">Nomor</label>
+            <input id="nomor_supplier" type="text" name="nomor" class="form-control" required />
         </div>
     </x-modal-form>
 
@@ -97,5 +114,19 @@
         message="Apakah Anda yakin ingin menghapus data ini?" 
         confirmText="Hapus" 
     />  
-
 @endsection
+
+@push('js')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const kodeInput = document.getElementById('kode_supplier');
+
+        // Generate kode SPR11-SPR99
+        const generatedCodes = @json($generatedCodes);
+
+        // Ambil kode terakhir yang ada di database
+        const kodeTerakhir = Object.values(generatedCodes).pop();
+        kodeInput.value = kodeTerakhir; // set default kode saat tambah supplier
+    });
+</script>
+@endpush

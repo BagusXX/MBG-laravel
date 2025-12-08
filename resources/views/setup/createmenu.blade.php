@@ -25,41 +25,60 @@
                 </thead>
 
                 <tbody>
-                    <tr>
-                        <td>1</td>
-                        <td>Dapur A Tembalang</td>
-                        <td>Nasi Goreng</td>
-                        <td>
-                            <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modalDetail">Detail</button>
-                            <button type="button" class="btn btn-warning btn-sm">Edit</button>
-                            <button type="button" class="btn btn-danger btn-sm">Hapus</button>
-                        </td>
-                    </tr>
+                    @forelse ($recipes as $key => $recipe)
+                        <tr>
+                            <td>{{ $key + 1 }}</td>
+                            <td>{{ $recipe->kitchen->nama }}</td>
+                            <td>{{ $recipe->menu->nama }}</td>
+                            <td>
+                                <button 
+                                    type="button" 
+                                    class="btn btn-primary btn-sm" 
+                                    data-toggle="modal" 
+                                    data-target="#modalDetail{{ $recipe->id }}">
+                                    Detail
+                                </button>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="4" class="text-center">Belum ada racikan menu</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
     </div>
 
-    {{-- MODAL ADD --}}
+    {{-- MODAL ADD RECIPE --}}
     <x-modal-form
         id="modalAddRecipe"
         title="Racik Menu"
-        action="#"
+        action="{{ route('recipe.store') }}"
         submitText="Simpan"
     >
+        @csrf
+
         <div class="form-group">
             <label>Nama Dapur</label>
-            <input type="text" placeholder="Dapur A Tembalang" class="form-control" name="dapur" required/>
-        </div>
-        <div class="form-group">
-            <label>Nama Menu</label>
-            <select type="text" class="form-control" name="dapur" required>
-                <option value="" disabled selected>Pilih Nama Menu</option>
-                <option value="nasi goreng">Nasi Goreng</option>
-                <option value="mie ayam">Mie Ayam</option>
-                <option value="rica-rica ayam">Rica-Rica Ayam</option>
+            <select class="form-control" name="kitchen_id" required>
+                <option value="" disabled selected>Pilih Dapur</option>
+                @foreach ($kitchens as $k)
+                    <option value="{{ $k->id }}">{{ $k->nama }}</option>
+                @endforeach
             </select>
         </div>
+
+        <div class="form-group">
+            <label>Nama Menu</label>
+            <select class="form-control" name="menu_id" required>
+                <option value="" disabled selected>Pilih Menu</option>
+                @foreach ($menus as $m)
+                    <option value="{{ $m->id }}">{{ $m->nama }}</option>
+                @endforeach
+            </select>
+        </div>
+
         <div class="form-group">
             <div class="form-row mb-2">
                 <div class="col-md-5 font-weight-bold">Bahan</div>
@@ -67,53 +86,52 @@
                 <div class="col-md-4 font-weight-bold">Satuan</div>
                 <div class="col-md-1"></div>
             </div>
+
             <div id="bahan-wrapper">
                 <div class="form-row mb-3 bahan-group">
                     <div class="col-md-5">
-                        <select name="bahan[]" class="form-control">
+                        <select name="bahan[]" class="form-control" required>
                             <option value="" disabled selected>Pilih Bahan</option>
-                            <option value="bawang merah">Bawang</option>
-                            <option value="bawang putih">Bawang Putih</option>
-                            <option value="cabe merah">Cabe Merah</option>
+                            @foreach ($bahanBaku as $b)
+                                <option value="{{ $b->id }}">{{ $b->nama }}</option>
+                            @endforeach
                         </select>
                     </div>
+
                     <div class="col-md-2">
-                        <input type="number" name="jumlah[]" class="form-control" placeholder="12">
+                        <input type="number" name="jumlah[]" class="form-control" placeholder="12" required>
                     </div>
+
                     <div class="col-md-4">
-                        <select name="satuan[]" class="form-control">
+                        <select name="satuan[]" class="form-control" required>
                             <option value="" disabled selected>Pilih Satuan</option>
-                            <option value="kg">Kilogram (kg)</option>
-                            <option value="g">Gram (g)</option>
-                            <option value="L">Liter (L)</option>
-                            <option value="mL">Mililiter (mL)</option>
+                            @foreach ($units as $u)
+                                <option value="{{ $u->satuan }}">{{ $u->satuan }}</option>
+                            @endforeach
                         </select>
                     </div>
-                    <div class="col-md-1 d-flex align-items-end h-100">
-                        <button type="button" class="btn btn-outline-danger btn-sm remove-bahan d-none" style="height: 38px; width: 100%;">
+
+                    <div class="col-md-1">
+                        <button type="button" class="btn btn-outline-danger btn-sm remove-bahan d-none">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
                 </div>
             </div>
-            <button type="button" id="add-bahan" class="btn btn-outline-primary btn-block">
+
+            <button type="button" id="add-bahan" class="btn btn-outline-primary btn-block mt-2">
                 <i class="fas fa-plus mr-1"></i>Tambah Bahan
             </button>
         </div>
     </x-modal-form>
 
-    {{-- MODAL DETAIL --}}
-    <x-modal-detail id="modalDetail" size="modal-lg" title="Detail Menu">
-        <div>
+    {{-- MODAL DETAIL PER RECIPE --}}
+    @foreach($recipes as $recipe)
+        <x-modal-detail id="modalDetail{{ $recipe->id }}" size="modal-lg" title="Detail Menu">
             <div>
-                <p class="font-weight-bold">Dapur:</p>
-                <p>Dapur A Tembalang (Data Sampel)</p>
-            </div>
-            <div>
-                <p class="font-weight-bold">Nama Menu:</p>
-                <p>Nasi Goreng (Data Sampel)</p>
-            </div>
-            <div>
+                <p><strong>Dapur:</strong> {{ $recipe->kitchen->nama }}</p>
+                <p><strong>Nama Menu:</strong> {{ $recipe->menu->nama }}</p>
+
                 <table class="table table-bordered table-striped">
                     <thead>
                         <tr>
@@ -122,136 +140,54 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>Bawang Merah (Data Sampel) </td>
-                            <td>2 g</td>
-                        </tr>
-                        <tr>
-                            <td>Bawang Putih (Data Sampel)</td>
-                            <td>5 g</td>
-                        </tr>
-                        <tr>
-                            <td>Cabe (Data Sampel)</td>
-                            <td>2 g</td>
-                        </tr>
-                        <tr>
-                            <td>Cabe (Data Sampel)</td>
-                            <td>2 g</td>
-                        </tr>
-                        <tr>
-                            <td>Cabe (Data Sampel)</td>
-                            <td>2 g</td>
-                        </tr>
-                        <tr>
-                            <td>Cabe (Data Sampel)</td>
-                            <td>2 g</td>
-                        </tr>
-                        <tr>
-                            <td>Cabe (Data Sampel)</td>
-                            <td>2 g</td>
-                        </tr>
-                        <tr>
-                            <td>Cabe (Data Sampel)</td>
-                            <td>2 g</td>
-                        </tr>
-                        <tr>
-                            <td>Cabe (Data Sampel)</td>
-                            <td>2 g</td>
-                        </tr>
-                        <tr>
-                            <td>Cabe (Data Sampel)</td>
-                            <td>2 g</td>
-                        </tr>
-                        <tr>
-                            <td>Cabe (Data Sampel)</td>
-                            <td>2 g</td>
-                        </tr>
-                        <tr>
-                            <td>Cabe (Data Sampel)</td>
-                            <td>2 g</td>
-                        </tr>
-                        <tr>
-                            <td>Cabe (Data Sampel)</td>
-                            <td>2 g</td>
-                        </tr>
-                        <tr>
-                            <td>Cabe (Data Sampel)</td>
-                            <td>2 g</td>
-                        </tr>
+                        @foreach ($recipe->bahanBaku as $b)
+                            <tr>
+                                <td>{{ $b->nama }}</td>
+                                <td>{{ $b->pivot->jumlah }} {{ $b->pivot->satuan }}</td>
+                            </tr>
+                        @endforeach
                     </tbody>
                 </table>
             </div>
-        </div>
-    </x-modal-detail>
+        </x-modal-detail>
+    @endforeach
 @endsection
 
 @push('js')
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const btnAdd = document.getElementById("add-bahan");
-        const container = document.getElementById("bahan-wrapper");
+document.addEventListener('DOMContentLoaded', function () {
+    const wrapper = document.getElementById('bahan-wrapper');
+    const addBtn = document.getElementById('add-bahan');
 
-        function updateRemoveButtons() {
-            const rows = container.querySelectorAll(".bahan-group");
-            const removeButtons = container.querySelectorAll(".remove-bahan");
+    addBtn.addEventListener('click', function () {
+        const firstRow = wrapper.querySelector('.bahan-group');
+        const newRow = firstRow.cloneNode(true);
 
-            if (rows.length === 1) {
-                removeButtons.forEach((btn) => btn.classList.add("d-none"));
-            } else {
-                removeButtons.forEach((btn) => btn.classList.remove("d-none"));
-            }
-        }
-
-        btnAdd.addEventListener("click", () => {
-            const row = document.createElement("div");
-            row.classList.add("form-row", "mb-3", "bahan-group");
-
-            row.innerHTML = `
-                        <div class="col-md-5">
-                            <select name="bahan[]" class="form-control">
-                                <option value="" disabled selected>Pilih Bahan</option>
-                                <option value="bawang merah">Bawang Merah</option>
-                                <option value="bawang putih">Bawang Putih</option>
-                                <option value="cabe merah">Cabe Merah</option>
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <input type="number" name="jumlah[]" class="form-control" placeholder="12">
-                        </div>
-                        <div class="col-md-4">
-                            <select name="satuan[]" class="form-control">
-                                <option value="" disabled selected>Pilih Satuan</option>
-                                <option value="kg">Kilogram (kg)</option>
-                                <option value="g">Gram (g)</option>
-                                <option value="L">Liter (L)</option>
-                                <option value="mL">Mililiter (mL)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-1 d-flex align-items-end h-100">
-                            <button type="button" class="btn btn-outline-danger btn-sm remove-bahan d-none" style="height: 38px; width: 100%;">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                    `;
-
-            container.appendChild(row);
-
-            updateRemoveButtons();
+        // Reset value input/select
+        newRow.querySelectorAll('input, select').forEach(input => {
+            input.value = '';
         });
 
-        document.addEventListener("click", (e) => {
-            const btn = e.target.closest(".remove-bahan");
-            if (!btn) return;
+        // Tampilkan tombol hapus
+        const removeBtn = newRow.querySelector('.remove-bahan');
+        removeBtn.classList.remove('d-none');
 
-            const row = btn.closest(".bahan-group");
-            if (!row) return;
-
-            row.remove();
-            updateRemoveButtons();
+        // Tambahkan event hapus
+        removeBtn.addEventListener('click', function () {
+            newRow.remove();
         });
 
-        updateRemoveButtons();
+        // Tambahkan row baru
+        wrapper.appendChild(newRow);
     });
 
+    // Event hapus untuk row pertama (opsional)
+    const firstRemoveBtn = wrapper.querySelector('.remove-bahan');
+    if(firstRemoveBtn){
+        firstRemoveBtn.addEventListener('click', function () {
+            firstRemoveBtn.closest('.bahan-group').remove();
+        });
+    }
+});
 </script>
 @endpush
