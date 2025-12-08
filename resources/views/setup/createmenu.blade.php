@@ -30,7 +30,7 @@
                         <td>Dapur A Tembalang</td>
                         <td>Nasi Goreng</td>
                         <td>
-                            <button type="button" class="btn btn-primary btn-sm">Detail</button>
+                            <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modalDetail">Detail</button>
                             <button type="button" class="btn btn-warning btn-sm">Edit</button>
                             <button type="button" class="btn btn-danger btn-sm">Hapus</button>
                         </td>
@@ -40,6 +40,7 @@
         </div>
     </div>
 
+    {{-- MODAL ADD --}}
     <x-modal-form
         id="modalAddRecipe"
         title="Racik Menu"
@@ -100,6 +101,88 @@
             </button>
         </div>
     </x-modal-form>
+
+    {{-- MODAL DETAIL --}}
+    <x-modal-detail id="modalDetail" size="modal-lg" title="Detail Menu">
+        <div>
+            <div>
+                <p class="font-weight-bold">Dapur:</p>
+                <p>Dapur A Tembalang (Data Sampel)</p>
+            </div>
+            <div>
+                <p class="font-weight-bold">Nama Menu:</p>
+                <p>Nasi Goreng (Data Sampel)</p>
+            </div>
+            <div>
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>Bahan Baku</th>
+                            <th>Jumlah</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Bawang Merah (Data Sampel) </td>
+                            <td>2 g</td>
+                        </tr>
+                        <tr>
+                            <td>Bawang Putih (Data Sampel)</td>
+                            <td>5 g</td>
+                        </tr>
+                        <tr>
+                            <td>Cabe (Data Sampel)</td>
+                            <td>2 g</td>
+                        </tr>
+                        <tr>
+                            <td>Cabe (Data Sampel)</td>
+                            <td>2 g</td>
+                        </tr>
+                        <tr>
+                            <td>Cabe (Data Sampel)</td>
+                            <td>2 g</td>
+                        </tr>
+                        <tr>
+                            <td>Cabe (Data Sampel)</td>
+                            <td>2 g</td>
+                        </tr>
+                        <tr>
+                            <td>Cabe (Data Sampel)</td>
+                            <td>2 g</td>
+                        </tr>
+                        <tr>
+                            <td>Cabe (Data Sampel)</td>
+                            <td>2 g</td>
+                        </tr>
+                        <tr>
+                            <td>Cabe (Data Sampel)</td>
+                            <td>2 g</td>
+                        </tr>
+                        <tr>
+                            <td>Cabe (Data Sampel)</td>
+                            <td>2 g</td>
+                        </tr>
+                        <tr>
+                            <td>Cabe (Data Sampel)</td>
+                            <td>2 g</td>
+                        </tr>
+                        <tr>
+                            <td>Cabe (Data Sampel)</td>
+                            <td>2 g</td>
+                        </tr>
+                        <tr>
+                            <td>Cabe (Data Sampel)</td>
+                            <td>2 g</td>
+                        </tr>
+                        <tr>
+                            <td>Cabe (Data Sampel)</td>
+                            <td>2 g</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </x-modal-detail>
 @endsection
 
 @push('js')

@@ -333,6 +333,18 @@ return [
                 ],
 
                 [
+                    'text' => 'Supplier',
+                    'icon' => 'fas fa-store',
+                    'route' => 'master.supplier',
+                ],
+                
+                [
+                    'text' => 'Satuan',
+                    'icon' => 'fas fa-sort-numeric-up',
+                    'route' => 'master.unit',
+                ],
+
+                [
                     'text' => 'Bahan Baku',
                     'icon' => 'fas fa-fw fa-carrot',
                     'route' => 'master.materials',

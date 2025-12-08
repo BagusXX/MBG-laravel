@@ -4,13 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class BahanBaku extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'bahan_baku'; // pastikan sesuai nama tabel di database
-    protected $fillable = ['kode', 'nama', 'stok', 'satuan', 'kitchen_id'];
+    protected $fillable = ['kode', 'nama', 'satuan', 'kitchen_id'];
 
     public function kitchen()
     {

@@ -6,18 +6,19 @@ use Illuminate\Support\Facades\Schema;
 
 
 return new class extends Migration {
-public function up(): void {
-Schema::create('bahan_baku', function (Blueprint $table) {
-$table->id();
-$table->string('nama');
-$table->integer('stok');
-$table->string('satuan');
-$table->timestamps();
-});
-}
+    public function up(): void {
+        Schema::create('bahan_baku', function (Blueprint $table) {
+            $table->id();
+            $table->string('kode');
+            $table->string('nama');
+            // $table->integer('stok');
+            $table->string('satuan');
+            $table->timestamps();
+        });
+    }
 
 
 public function down(): void {
-Schema::dropIfExists('bahan_baku');
+    Schema::dropIfExists('bahan_baku');
 }
 };

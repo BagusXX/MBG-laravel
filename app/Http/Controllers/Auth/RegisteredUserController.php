@@ -32,16 +32,26 @@ class RegisteredUserController extends Controller
         $request->validate([
             'nama' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'password' => ['required', Rules\Password::defaults()],
+            'password_confirmation' => ['required', 'same:password']
+        ], [
+            'name.required' => 'Nama wajib diisi.',
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'email.unique' => 'Email sudah terdaftar.',
+            'password.required' => 'Password wajib diisi.',
+            'password.min' => 'Password minimal 8 karakter.',
+            'password_confirmation.required' => 'Konfirmasi password wajib diisi.',
+            'password_confirmation.same' => 'Konfirmasi password tidak sesuai.',
         ]);
 
         $user = User::create([
-    'nama' => $request->name,        // sesuai DB
-    'email' => $request->email,      // sesuai DB
-    'password' => Hash::make($request->password),
-    'role' => 'user',                // kolom role wajib ada isinya
-    'kitchen_id' => null,            // jika tidak pakai dulu
-]);
+            'name' => $request->name,        // sesuai DB
+            'email' => $request->email,      // sesuai DB
+            'password' => Hash::make($request->password),
+            'role' => 'user',                // kolom role wajib ada isinya
+            'kitchen_id' => null,            // jika tidak pakai dulu
+        ]);
 
 
         event(new Registered($user));

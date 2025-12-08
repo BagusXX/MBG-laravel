@@ -8,94 +8,229 @@
 
 @section('content')
 
-<x-button-add idTarget="#modalAddMaterials" text="Tambah Bahan Baku" />
+    <x-button-add idTarget="#modalAddMaterials" text="Tambah Bahan Baku" />
 
-@if(session('success'))
-    <div class="alert alert-success">{{ session('success') }}</div>
-@endif
+    @if(session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
 
-<div class="card">
-    <div class="card-body">
-        <table class="table table-bordered table-striped">
-            <thead>
-                <tr>
-                    <th>No</th>
-                    <th>Kode</th> {{-- Tambah kolom kode bahan baku --}}
-                    <th>Nama Bahan</th>
-                    {{-- <th>Stok</th> --}}
-                    <th>Satuan</th>
-                    {{-- <th>Dapur</th> Tambah kolom dapur --}}
-                    <th>Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($items as $index => $item)
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-bordered table-striped">
+                <thead>
                     <tr>
-                        <td>{{ $index + 1 }}</td>
-                        <td>{{ $item->kode }}</td>
-                        <td>{{ $item->nama }}</td>
-                        {{-- <td>{{ $item->stok }}</td> --}}
-                        <td>{{ $item->satuan }}</td>
-                        {{-- <td>{{ $item->kitchen->nama ?? '-' }}</td> Nama dapur --}}
-                        <td>
-                            {{-- Tombol Hapus --}}
-                            <form action="{{ route('master.materials.destroy', $item->id) }}" method="POST" style="display:inline-block;">
-                                @csrf
-                                @method('DELETE')
-                                <button class="btn btn-danger btn-sm">Hapus</button>
-                            </form>
-                        </td>
+                        <th>No</th>
+                        <th>Kode</th> {{-- Tambah kolom kode bahan baku --}}
+                        <th>Nama Bahan</th>
+                        {{-- <th>Stok</th> --}}
+                        <th>Satuan</th>
+                        {{-- <th>Dapur</th> Tambah kolom dapur --}}
+                        <th>Aksi</th>
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="7" class="text-center">Belum ada data</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @forelse($items as $index => $item)
+                        <tr>
+                            <td>{{ $index + 1 }}</td>
+                            <td>{{ $item->kode }}</td>
+                            <td>{{ $item->nama }}</td>
+                            {{-- <td>{{ $item->stok }}</td> --}}
+                            <td>{{ $item->satuan }}</td>
+                            {{-- <td>{{ $item->kitchen->nama ?? '-' }}</td> Nama dapur --}}
+                            <td>
+                                {{-- BUTTON EDIT --}}
+                                <button
+                                    type="button"
+                                    class="btn btn-warning btn-sm btnEditMaterials"
+                                    data-id="{{ $item->id }}"
+                                    data-kode="{{ $item->kode }}"
+                                    data-nama="{{ $item->nama }}"
+                                    data-satuan="{{ $item->satuan }}"
+                                    data-dapur-id="{{ $item->kitchen_id }}"
+                                    data-old-kode="{{ $item->kode }}"
+                                    data-old-dapur-id="{{ $item->kitchen_id }}"
+                                    data-toggle="modal"
+                                    data-target="#modalEditMaterials"
+                                >
+                                    Edit
+                                </button>
+                                {{-- Tombol Hapus --}}
+                                <x-button-delete 
+                                    idTarget="#modalDeleteMaterials"
+                                    formId="formDeleteMaterials"
+                                    action="{{ route('master.materials.destroy', $item->id) }}"
+                                    text="Hapus"
+                                />
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="text-center">Belum ada data</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
-</div>
 
-{{-- MODAL ADD MATERIALS --}}
-<x-modal-form 
-    id="modalAddMaterials" 
-    title="Tambah Bahan Baku" 
-    action="{{ route('master.materials.store') }}"
-    submitText="Simpan"
->
-    @csrf
-    <div class="form-group">
-        <label>Nama Bahan</label>
-        <input type="text" placeholder="Bawang Merah" class="form-control" name="nama" required>
-    </div>
-    {{-- <div class="form-group">
-        <label>Jumlah</label>
-        <input type="number" placeholder="20" class="form-control" name="stok" required>
-    </div> --}}
-    <div class="form-group">
-        <label>Satuan</label>
-        <select class="form-control" name="satuan" required>
-            <option value="" disabled selected>Pilih Satuan</option>
-            <option value="kg">Kilogram (kg)</option>
-            <option value="g">Gram (g)</option>
-            <option value="L">Liter (L)</option>
-            <option value="mL">Mili Liter (mL)</option>
-            <option value="pcs">Pieces (pcs)</option>
-            <option value="pack">Pack</option>
-            <option value="botol">Botol</option>
-            <option value="bungkus">Bungkus</option>
-        </select>
-    </div>
+    <form id="reloadForm" method="GET" action="">
+        <input type="hidden" name="kitchen_id" id="reloadKitchenId">
+    </form>
 
-    <div class="form-group mt-2">
-        <label>Pilih Dapur</label>
-        <select name="kitchen_id" class="form-control" required>
-            <option value="" disabled selected>-- Pilih Dapur --</option>
-            @foreach($kitchens as $kitchen)
-                <option value="{{ $kitchen->id }}">{{ $kitchen->nama }} ({{ $kitchen->kode }})</option>
-            @endforeach
-        </select>
-    </div>
-</x-modal-form>
+    {{-- MODAL ADD MATERIALS --}}
+    <x-modal-form 
+        id="modalAddMaterials" 
+        title="Tambah Bahan Baku" 
+        action="{{ route('master.materials.store') }}"
+        submitText="Simpan"
+    >
+        <div class="form-group">
+            <label>Kode</label>
+            <input 
+                id="kode_bahan" 
+                type="text" 
+                class="form-control" 
+                name="kode" 
+                readonly 
+                required>
+        </div>
+        <div class="form-group">
+            <label>Nama Bahan</label>
+            <input type="text" placeholder="Bawang Merah" class="form-control" name="nama" required>
+        </div>
+        {{-- <div class="form-group">
+            <label>Jumlah</label>
+            <input type="number" placeholder="20" class="form-control" name="stok" required>
+        </div> --}}
+        <div class="form-group">
+            <label>Satuan</label>
+            <select class="form-control" name="satuan" required>
+                <option value="" disabled selected>-- Pilih Satuan --</option>
+                @foreach($units as $unit)
+                    <option value="{{ $unit->satuan }}">{{ $unit->satuan }}</option>
+                @endforeach
+            </select>
+            
+        </div>
 
+        <div class="form-group mt-2">
+            <label>Dapur</label>
+            <select name="kitchen_id" class="form-control" required>
+                <option value="" disabled selected>-- Pilih Dapur --</option>
+                @foreach($kitchens as $kitchen)
+                    <option value="{{ $kitchen->id }}">{{ $kitchen->nama }} ({{ $kitchen->kode }})</option>
+                @endforeach
+            </select>
+        </div>
+    </x-modal-form>
+
+    {{-- MODAL EDIT --}}
+    <x-modal-form
+        id="modalEditMaterials"
+        title="Edit Bahan Baku"
+        action=""
+        submitText="Update"
+    >
+        @method('PUT')
+
+        <div class="form-group">
+            <label>Kode</label>
+            <input 
+                id="editKodeBahan" 
+                type="text" 
+                class="form-control" 
+                name="kode" 
+                readonly 
+                required>
+        </div>
+
+        <div class="form-group">
+            <label>Nama Bahan</label>
+            <input id="editBahan" type="text" placeholder="Bawang Merah" class="form-control" name="nama" required>
+        </div>
+
+        <div class="form-group">
+            <label>Satuan</label>
+            <select id="editSatuan" class="form-control" name="satuan" required>
+                <option value="" disabled selected>-- Pilih Satuan --</option>
+                @foreach($units as $unit)
+                    <option value="{{ $unit->satuan }}">{{ $unit->satuan }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="form-group mt-2">
+            <label>Dapur</label>
+            <select id="editDapur" name="kitchen_id" class="form-control" required>
+                <option value="" disabled selected>-- Pilih Dapur --</option>
+                @foreach($kitchens as $kitchen)
+                    <option value="{{ $kitchen->id }}">{{ $kitchen->nama }} ({{ $kitchen->kode }})</option>
+                @endforeach
+            </select>
+        </div>
+    </x-modal-form>
+
+    {{-- MODAL DELETE --}}
+    <x-modal-delete 
+        id="modalDeleteMaterials"
+        formId="formDeleteMaterials"
+        title="Konfirmasi Hapus"
+        message="Apakah Anda yakin ingin menghapus data ini?"
+        confirmText="Hapus"
+    />
 @endsection
+
+@push('js')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const kodeInput = document.getElementById('kode_bahan');
+            const kitchenSelect = document.querySelector('select[name="kitchen_id"]');
+
+            const generatedCodes = @json($generatedCodes);
+
+            kitchenSelect.addEventListener('change', function () {
+                const kitchenId = this.value;
+                kodeInput.value = generatedCodes[kitchenId] || "";
+            });
+
+            let oldKitchenId = null;
+            let oldKode = null;
+
+            document.querySelectorAll('.btnEditMaterials').forEach(btn => {
+                btn.addEventListener('click', function () {
+
+                    const id = this.dataset.id;
+
+                    // Simpan dapur lama & kode lama
+                    oldKitchenId = this.dataset.oldDapurId;
+                    oldKode = this.dataset.oldKode;
+
+                    // Isi field pertama kali
+                    document.getElementById('editKodeBahan').value = oldKode;
+                    document.getElementById('editBahan').value = this.dataset.nama;
+                    document.getElementById('editSatuan').value = this.dataset.satuan;
+                    document.getElementById('editDapur').value = oldKitchenId;
+
+                    // Update action
+                    document.querySelector('#modalEditMaterials form').action =
+                        "{{ url('/dashboard/master/bahan-baku') }}/" + id;
+                });
+            });
+
+            // Ubah kode ketika dapur berubah
+            document.getElementById('editDapur').addEventListener('change', function () {
+                const selectedKitchenId = this.value;
+
+                // Jika user memilih kembali dapur awal → kembalikan kode lama
+                if (selectedKitchenId == oldKitchenId) {
+                    document.getElementById('editKodeBahan').value = oldKode;
+                    return;
+                }
+
+                // Jika dapur berbeda → generate kode baru
+                const kodeBaru = generatedCodes[selectedKitchenId] || "";
+                document.getElementById('editKodeBahan').value = kodeBaru;
+            });
+        });
+    </script>
+@endpush

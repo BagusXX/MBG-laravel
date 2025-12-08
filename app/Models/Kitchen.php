@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Kitchen extends Model
 {
-    protected $table = 'kitchens'; // sesuaikan kalau beda
+    use SoftDeletes;
+    
+    protected $table = 'kitchens';
 
     protected $fillable = [
         'kode',
@@ -14,8 +17,6 @@ class Kitchen extends Model
         'alamat',
         'kepala_dapur',
         'nomor_kepala_dapur',
-
-        
     ];
 }
 

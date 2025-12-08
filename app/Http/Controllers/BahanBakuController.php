@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BahanBaku;
 use App\Models\Kitchen;
+use App\Models\Unit;
 use Illuminate\Http\Request;
 
 class BahanBakuController extends Controller
@@ -11,32 +12,44 @@ class BahanBakuController extends Controller
     // Tampilkan halaman bahan baku
     public function index()
     {
-        // Ambil semua bahan beserta relasi dapur
         $items = BahanBaku::with('kitchen')->get();
-        $kitchens = Kitchen::all(); // Untuk dropdown pilih dapur saat tambah
+        $kitchens = Kitchen::all();
+        $units = Unit::all();
 
-        return view('dashboard.master.bahan-baku.index', compact('items', 'kitchens'));
+        // Pre-generate kode untuk semua dapur
+        $generatedCodes = [];
+        foreach ($kitchens as $k) {
+            $generatedCodes[$k->id] = $this->generateKode($k->kode);
+        }
+
+        return view('dashboard.master.bahan-baku.index', compact('items', 'kitchens', 'units', 'generatedCodes'));
     }
 
     // Generate kode bahan baku: 2 digit + kode dapur
     private function generateKode($kodeDapur)
     {
-        // Cari kode terakhir untuk dapur tertentu
-        $lastItem = BahanBaku::where('kode', 'LIKE', "%{$kodeDapur}")
-                              ->orderBy('kode', 'desc')
-                              ->first();
+        // Cari kode terakhir khusus dapur tertentu
+        $lastItem = BahanBaku::where('kode', 'LIKE', "BN{$kodeDapur}%")
+                            ->orderBy('kode', 'desc')
+                            ->first();
 
+        // Jika belum ada data, mulai dari 111
         if (!$lastItem) {
-            return '01'.$kodeDapur; // mulai dari 01
+            return 'BN' . $kodeDapur . '111';
         }
 
-        // Ambil 2 digit pertama dari kode terakhir
-        $lastNumber = (int) substr($lastItem->kode, 0, 2);
+        // Ambil 3 digit angka terakhir
+        // Contoh kode: BNDPR11555 → ambil '555'
+        $lastNumber = (int) substr($lastItem->kode, -3);
         $nextNumber = $lastNumber + 1;
 
-        if ($nextNumber > 99) $nextNumber = 99; // batas maksimum 99
+        // Batas maksimum 999
+        if ($nextNumber > 999) $nextNumber = 999;
 
-        return str_pad($nextNumber, 2, '0', STR_PAD_LEFT) . $kodeDapur;
+        // Format angka menjadi tiga digit
+        $num = str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+
+        return 'BN' . $kodeDapur . $num;
     }
 
     // Simpan bahan baku baru

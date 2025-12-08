@@ -6,18 +6,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Menu extends Model
+class Unit extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = [
-        'kode',
-        'nama',
-        'kitchen_id',
-    ];
+    protected $table = 'units';
 
-    public function kitchen()
-    {
-        return $this->belongsTo(Kitchen::class);
-    }
+    protected $fillable = [
+        'satuan',
+        'keterangan',
+    ];
 }

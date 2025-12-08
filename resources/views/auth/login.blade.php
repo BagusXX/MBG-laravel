@@ -1,44 +1,26 @@
 <x-guest-layout>
-    <div class="p-2 flex justify-center items-center bg-white rounded-lg">
-        <div class="px-8 py-6 flex justify-center items-center">
-            <div class="space-y-10">
-                <div class="space-y-3 text-center">
+    <div class="w-[480px] p-2 flex justify-center items-center bg-white rounded-lg">
+        <div class="w-full px-8 py-6 flex justify-center items-center">
+            <div class="w-full">
+                <div class="mb-9 space-y-3 text-center">
                     <h1 class="font-semibold text-3xl text-black">Login</h1>
                     <p class="font-normal text-sm text-gray-400/70">
                         Masukkan email dan password untuk masuk ke akun Anda
                     </p>
                 </div>
 
-                <form method="POST" action="{{ route('login') }}" class="space-y-4">
+                <form method="POST" action="{{ route('login') }}" class="mb-6 space-y-6" novalidate>
                     @csrf
-                    <div class="flex flex-col gap-1">
-                        <label for="email" class="font-normal text-sm text-black">Email</label>
-                        <input 
-                            id="email" 
-                            type="email" 
-                            name="email"
-                            value="{{ old('email') }}"
-                            required 
-                            autofocus
-                            class="px-3 py-2 font-normal text-sm text-black border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-400"
-                        >
-                        @error('email')
-                            <span class="text-red-500 text-xs">{{ $message }}</span>
-                        @enderror
+                    <div class="relative flex flex-col gap-1">
+                        <x-input-label for="email" text="Email" required />
+                        <x-text-input id="email" type="email" name="email" :value="old('email')" autofocus />
+                        <x-input-error :messages="$errors->get('email')" />
                     </div>
 
-                    <div class="flex flex-col gap-1">
-                        <label for="password" class="font-normal text-sm text-black">Password</label>
-                        <input 
-                            id="password" 
-                            type="password" 
-                            name="password"
-                            required
-                            class="px-3 py-2 font-normal text-sm text-black border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-400"
-                        >
-                        @error('password')
-                            <span class="text-red-500 text-xs">{{ $message }}</span>
-                        @enderror
+                    <div class="relative flex flex-col gap-1">
+                        <x-input-label id="password" text="Password" required/>
+                        <x-text-input id="password" type="password" name="password" />
+                        <x-input-error :messages="$errors->get('password')" />
                     </div>
 
                     <div class="flex justify-between items-center">
@@ -79,15 +61,16 @@
                             </a>
                         @endif
                     </div>
-                    <div class="pt-3">
+                    <div class="pt-1">
                         <button
                             type="submit"
-                            class="mt-2 py-2 w-full bg-blue-500 font-normal text-sm text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:bg-blue-600 active:bg-blue-700"
+                            class="py-2 w-full bg-blue-500 font-normal text-base text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:bg-blue-600 active:bg-blue-700"
                         >
                             Login
                         </button>
                     </div>
                 </form>
+                <p class="font-normal text-sm text-center text-black">Belum punya akun? <a href="{{ route('register') }}" class="text-blue-500 cursor-pointer hover:underline focus:outline-none focus:underline">Daftar disini</a></p>
             </div>
         </div>
     </div>
