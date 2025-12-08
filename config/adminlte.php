@@ -390,6 +390,18 @@ return [
                     'icon' => 'fas fa-fw fa-paper-plane',
                     'route' => 'transaction.submission',
                 ],
+                
+                [
+                    'text' => 'Beli Bahan Baku',
+                    'icon' => 'fas fa-cart-plus',
+                    'route' => 'transaction.purchase-materials',
+                ],
+                
+                [
+                    'text' => 'Jual Bahan Baku',
+                    'icon' => 'fas fa-money-bill-wave',
+                    'route' => 'transaction.sales-materials',
+                ],
 
             ],
         ],

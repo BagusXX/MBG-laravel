@@ -94,7 +94,7 @@
         <div class="form-group mt-2">
             <label>Pilih Dapur</label>
             <select name="kitchen_id" class="form-control" required>
-                <option value="" disabled selected>-- Pilih Dapur --</option>
+                <option value="" disabled selected>Pilih Dapur</option>
                 @foreach($kitchens as $kitchen)
                     <option value="{{ $kitchen->id }}">{{ $kitchen->nama }} ({{ $kitchen->kode }})</option>
                 @endforeach
@@ -136,7 +136,7 @@
         <div class="form-group">
             <label>Dapur</label>
             <select id="editDapur" class="form-control" name="kitchen_id" required>
-                <option value="" disabled selected>-- Pilih Dapur --</option>
+                <option value="" disabled selected>Pilih Dapur</option>
                 @foreach($kitchens as $kitchen)
                     <option value="{{ $kitchen->id }}">{{ $kitchen->nama }} ({{ $kitchen->kode }})</option>
                 @endforeach

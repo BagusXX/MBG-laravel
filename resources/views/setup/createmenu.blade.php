@@ -38,6 +38,18 @@
                                     data-target="#modalDetail{{ $recipe->id }}">
                                     Detail
                                 </button>
+                                <button
+                                    type="button"
+                                    class="btn btn-warning btn-sm btnEditRecipe"
+                                >
+                                    Edit
+                                </button>
+                                <x-button-delete 
+                                    idTarget="#modalDeleteRecipe"
+                                    formId="formDeleteRecipe"
+                                    action="#"
+                                    text="Hapus"
+                                />
                             </td>
                         </tr>
                     @empty
@@ -57,8 +69,6 @@
         action="{{ route('recipe.store') }}"
         submitText="Simpan"
     >
-        @csrf
-
         <div class="form-group">
             <label>Nama Dapur</label>
             <select class="form-control" name="kitchen_id" required>
@@ -112,7 +122,7 @@
                     </div>
 
                     <div class="col-md-1">
-                        <button type="button" class="btn btn-outline-danger btn-sm remove-bahan d-none">
+                        <button type="button" class="btn btn-outline-danger btn-sm remove-bahan d-none h-100" style="width: 100%">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
@@ -129,8 +139,14 @@
     @foreach($recipes as $recipe)
         <x-modal-detail id="modalDetail{{ $recipe->id }}" size="modal-lg" title="Detail Menu">
             <div>
-                <p><strong>Dapur:</strong> {{ $recipe->kitchen->nama }}</p>
-                <p><strong>Nama Menu:</strong> {{ $recipe->menu->nama }}</p>
+                <div>
+                    <p class="font-weight-bold mb-0">Dapur:</p>
+                    <p>$recipe->kitchen->nama</p>
+                </div>
+                <div>
+                    <p class="font-weight-bold mb-0">Nama Menu:</p>
+                    <p>$recipe->menu->nama</p>
+                </div>
 
                 <table class="table table-bordered table-striped">
                     <thead>

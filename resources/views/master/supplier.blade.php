@@ -45,13 +45,16 @@
                             <td>{{ $supplier->kontak_person }}</td>
                             <td>{{ $supplier->nomor }}</td>
                             <td>
+                                <button class="btn btn-warning btn-sm btnEditSupplier">
+                                    Edit
+                                </button>
                                 {{-- Tombol Hapus --}}
                                 <x-button-delete 
-    idTarget="#modalDeleteSupplier" 
-    formId="formDeleteSupplier"
-    action="{{ route('master.supplier.destroy', $supplier->id) }}"
-    text="Hapus" 
-/>
+                                    idTarget="#modalDeleteSupplier" 
+                                    formId="formDeleteSupplier"
+                                    action="{{ route('master.supplier.destroy', $supplier->id) }}"
+                                    text="Hapus" 
+                                />
 
                             </td>
                         </tr>

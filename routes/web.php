@@ -149,6 +149,14 @@ Route::get('dashboard/transaksi/pengajuan-menu', function () {
     return view('transaction.submission');
 })->name('transaction.submission');
 
+Route::get('dashboard/transaksi/pembelian-bahan-baku', function () {
+    return view('transaction.purchase-materials');
+})->name('transaction.purchase-materials');
+
+Route::get('dashboard/transaksi/penjualan-bahan-baku', function () {
+    return view('transaction.sales-materials');
+})->name('transaction.sales-materials');
+
 Route::get('dashboard/laporan', function () {
     return view('report.index');
 })->name('report.index');

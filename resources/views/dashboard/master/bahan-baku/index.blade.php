@@ -24,6 +24,7 @@
                         <th>Nama Bahan</th>
                         {{-- <th>Stok</th> --}}
                         <th>Satuan</th>
+                        <th>Harga Dasar</th>
                         {{-- <th>Dapur</th> Tambah kolom dapur --}}
                         <th>Aksi</th>
                     </tr>
@@ -36,6 +37,7 @@
                             <td>{{ $item->nama }}</td>
                             {{-- <td>{{ $item->stok }}</td> --}}
                             <td>{{ $item->satuan }}</td>
+                            <td></td>
                             {{-- <td>{{ $item->kitchen->nama ?? '-' }}</td> Nama dapur --}}
                             <td>
                                 {{-- BUTTON EDIT --}}
@@ -65,7 +67,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center">Belum ada data</td>
+                            <td colspan="7" class="text-center">Belum ada data bahan baku</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -105,18 +107,22 @@
         <div class="form-group">
             <label>Satuan</label>
             <select class="form-control" name="satuan" required>
-                <option value="" disabled selected>-- Pilih Satuan --</option>
+                <option value="" disabled selected>Pilih Satuan</option>
                 @foreach($units as $unit)
                     <option value="{{ $unit->satuan }}">{{ $unit->satuan }}</option>
                 @endforeach
             </select>
-            
+        </div>
+
+        <div class="form-group">
+            <label>Harga Dasar</label>
+            <input type="number" placeholder="10000" class="form-control" name="harga" required>
         </div>
 
         <div class="form-group mt-2">
             <label>Dapur</label>
             <select name="kitchen_id" class="form-control" required>
-                <option value="" disabled selected>-- Pilih Dapur --</option>
+                <option value="" disabled selected>Pilih Dapur</option>
                 @foreach($kitchens as $kitchen)
                     <option value="{{ $kitchen->id }}">{{ $kitchen->nama }} ({{ $kitchen->kode }})</option>
                 @endforeach
@@ -152,7 +158,7 @@
         <div class="form-group">
             <label>Satuan</label>
             <select id="editSatuan" class="form-control" name="satuan" required>
-                <option value="" disabled selected>-- Pilih Satuan --</option>
+                <option value="" disabled selected>Pilih Satuan</option>
                 @foreach($units as $unit)
                     <option value="{{ $unit->satuan }}">{{ $unit->satuan }}</option>
                 @endforeach
@@ -162,7 +168,7 @@
         <div class="form-group mt-2">
             <label>Dapur</label>
             <select id="editDapur" name="kitchen_id" class="form-control" required>
-                <option value="" disabled selected>-- Pilih Dapur --</option>
+                <option value="" disabled selected>Pilih Dapur</option>
                 @foreach($kitchens as $kitchen)
                     <option value="{{ $kitchen->id }}">{{ $kitchen->nama }} ({{ $kitchen->kode }})</option>
                 @endforeach

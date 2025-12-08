@@ -60,16 +60,12 @@
                             </button>
 
                             {{-- Tombol Hapus --}}
-                            <form action="{{ route('setup.user.destroy', $user->id) }}" 
-                                  method="POST" style="display:inline-block;">
-                                @csrf
-                                @method('DELETE')
-                                <button class="btn btn-danger btn-sm"
-                                    onclick="return confirm('Hapus user ini?')">
-                                    Hapus
-                                </button>
-                            </form>
-
+                            <x-button-delete
+                                idTarget="#modalDeleteUser"
+                                formId="formDeleteUser"
+                                action="{{ route('setup.user.destroy', $user->id) }}"
+                                text="Hapus"
+                            />
                         </td>
                     </tr>
                     @endforeach
@@ -179,8 +175,15 @@
                 <option value="superadmin" {{ $user->role == 'superadmin' ? 'selected' : '' }}>Superadmin</option>
             </select>
         </div>
-
     </x-modal-form>
+
+    <x-modal-delete 
+        id="modalDeleteUser"
+        formId="formDeleteUser"
+        title="Konfirmasi Hapus"
+        message="Apakah Anda yakin ingin menghapus data ini?"
+        confirmText="Hapus"
+    />
     @endforeach
 
 @endsection
