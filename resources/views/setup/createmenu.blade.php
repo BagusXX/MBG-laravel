@@ -141,11 +141,11 @@
             <div>
                 <div>
                     <p class="font-weight-bold mb-0">Dapur:</p>
-                    <p>$recipe->kitchen->nama</p>
+                    <p>{{ $recipe->kitchen->nama }}</p>
                 </div>
                 <div>
                     <p class="font-weight-bold mb-0">Nama Menu:</p>
-                    <p>$recipe->menu->nama</p>
+                    <p>{{ $recipe->menu->nama }}</p>
                 </div>
 
                 <table class="table table-bordered table-striped">
@@ -167,6 +167,15 @@
             </div>
         </x-modal-detail>
     @endforeach
+
+    {{-- MODAL DELETE --}}
+    <x-modal-delete 
+        id="modalDeleteRecipe"
+        formId="formDeleteRecipe"
+        title="Konfirmasi Hapus"
+        message="Apakah Anda yakin ingin menghapus data ini?"
+        confirmText="Hapus"
+    />
 @endsection
 
 @push('js')

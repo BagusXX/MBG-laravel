@@ -93,7 +93,7 @@
         </div>
 
         <div class="form-group">
-            <label>Email (Otomatis)</label>
+            <label>Email</label>
             <input type="text" id="autoEmail" class="form-control"
                 name="email" required>
         </div>
@@ -116,6 +116,7 @@
         <div class="form-group">
             <label>Role</label>
             <select class="form-control" name="role" required>
+                <option value="" disabled selected>Pilih Role</option>
                 <option value="admin">Admin</option>
                 <option value="superadmin">Superadmin</option>
             </select>
