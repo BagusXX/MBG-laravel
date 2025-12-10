@@ -26,24 +26,36 @@
                 </thead>
 
                 <tbody>
-                    <tr>
-                        <td>A01</td>
-                        <td>Senin, 24 November 2025</td>
-                        <td>Dapur A Tembalang</td>
-                        <td>Nasi Goreng</td>
-                        <td>1000</td>
-                        <td>
-                            <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#modalDetail">Detail</button>
-                            <button type="button" class="btn btn-warning btn-sm">Edit</button>
-                            <x-button-delete 
-                                idTarget="#modalDeleteSubmission"
-                                formId="formDeleteSubmission"
-                                action="#"
-                                text="Hapus"
-                            />
-                        </td>
-                    </tr>
-                </tbody>
+    @foreach ($submission as $item)
+    <tr>
+        <td>{{ $item->kode }}</td>
+        <td>{{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('l, d F Y') }}</td>
+        <td>{{ $item->kitchen->nama ?? '-' }}</td>
+        <td>{{ $item->menu->nama ?? '-' }}</td>
+        <td>{{ number_format($item->porsi) }}</td>
+        <td>
+            <button type="button" 
+                class="btn btn-primary btn-sm" 
+                data-toggle="modal" 
+                data-target="#modalDetail">
+                Detail
+            </button>
+
+            <a href="{{ route('submissions.edit', $item->id) }}" class="btn btn-warning btn-sm">
+                Edit
+            </a>
+
+            <x-button-delete 
+                idTarget="#modalDeleteSubmission"
+                formId="formDeleteSubmission"
+                action="{{ route('submissions.destroy', $item->id) }}"
+                text="Hapus"
+            />
+        </td>
+    </tr>
+    @endforeach
+</tbody>
+
             </table>
         </div>
     </div>

@@ -10,6 +10,7 @@ use App\Http\Controllers\KitchenController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\SubmissionController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -145,9 +146,8 @@ Route::get('dashboard/master/supplier', function() {
     return view('master.supplier');
 })->name('master.supplier');
 
-Route::get('dashboard/transaksi/pengajuan-menu', function () {
-    return view('transaction.submission');
-})->name('transaction.submission');
+Route::get('/dashboard/transaksi/pengajuan-menu', [SubmissionController::class, 'index'])
+    ->name('transaction.submission');
 
 Route::get('dashboard/transaksi/pembelian-bahan-baku', function () {
     return view('transaction.purchase-materials');
