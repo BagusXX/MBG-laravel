@@ -157,9 +157,17 @@ Route::get('dashboard/transaksi/penjualan-bahan-baku', function () {
     return view('transaction.sales-materials');
 })->name('transaction.sales-materials');
 
-Route::get('dashboard/laporan', function () {
-    return view('report.index');
-})->name('report.index');
+Route::get('dashboard/laporan/pengajuan-menu', function () {
+    return view('report.submission');
+})->name('report.submission');
+
+Route::get('dashboard/laporan/pembelian-bahan-baku', function () {
+    return view('report.purchase-materials');
+})->name('report.purchase-materials');
+
+Route::get('dashboard/laporan/penjualan-bahan-baku', function () {
+    return view('report.sales-materials');
+})->name('report.sales-materials');
 
 Route::get('/dashboard/master/supplier', function () {
     return view('master.supplier');

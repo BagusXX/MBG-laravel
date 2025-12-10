@@ -51,7 +51,9 @@
                             </button>
                             <button 
                                 type="button" 
-                                class="btn btn-warning btn-sm btnEditSalesMaterials"
+                                class="btn btn-sm btn-warning btnEditSalesMaterials"
+                                data-toggle="modal"
+                                data-target="#modalEditSalesMaterials"
                             >
                                 Edit
                             </button>
@@ -146,6 +148,18 @@
                 <i class="fas fa-plus mr-1"></i>Tambah Penjualan
             </button>
         </div>
+    </x-modal-form>
+
+    {{-- MODAL EDIT SALES MATERIALS --}}
+    <x-modal-form
+        id="modalEditSalesMaterials"
+        size="modal-lg"
+        title="Edit Transaksi Penjualan Bahan Baku"
+        action=""
+        submitText="Update"
+    >
+        @method('PUT')
+        
     </x-modal-form>
 
     {{-- MODAL DETAIL --}}

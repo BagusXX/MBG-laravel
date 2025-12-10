@@ -35,12 +35,15 @@
                                     type="button" 
                                     class="btn btn-primary btn-sm" 
                                     data-toggle="modal" 
-                                    data-target="#modalDetail{{ $recipe->id }}">
+                                    data-target="#modalDetail{{ $recipe->id }}"
+                                >
                                     Detail
                                 </button>
                                 <button
                                     type="button"
                                     class="btn btn-warning btn-sm btnEditRecipe"
+                                    data-toggle="modal"
+                                    data-target="#modalEditRecipe"
                                 >
                                     Edit
                                 </button>
@@ -133,6 +136,17 @@
                 <i class="fas fa-plus mr-1"></i>Tambah Bahan
             </button>
         </div>
+    </x-modal-form>
+
+    {{-- MODAL EDIT RECIPE --}}
+    <x-modal-form
+        id="modalEditRecipe"
+        title="Edit Racik Menu"
+        action=""
+        submitText="Update"
+    >
+        @method('PUT')
+
     </x-modal-form>
 
     {{-- MODAL DETAIL PER RECIPE --}}

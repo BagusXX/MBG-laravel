@@ -158,6 +158,7 @@
         <div class="form-group">
             <label>Dapur</label>
             <select class="form-control" name="kitchen_id" required>
+                <option value="" disabled selected>Pilih Dapur</option>
                 @foreach($kitchens as $kitchen)
                     <option 
                         value="{{ $kitchen->id }}"
@@ -172,6 +173,7 @@
         <div class="form-group">
             <label>Role</label>
             <select class="form-control" name="role" required>
+                <option value="" disabled selected>Pilih Role</option>
                 <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>Admin</option>
                 <option value="superadmin" {{ $user->role == 'superadmin' ? 'selected' : '' }}>Superadmin</option>
             </select>

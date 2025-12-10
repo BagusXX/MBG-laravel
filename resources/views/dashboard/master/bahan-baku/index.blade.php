@@ -114,10 +114,10 @@
             </select>
         </div>
 
-        {{-- <div class="form-group">
+        <div class="form-group">
             <label>Harga Dasar</label>
             <input type="number" placeholder="10000" class="form-control" name="harga" required>
-        </div> --}}
+        </div>
 
         <div class="form-group mt-2">
             <label>Dapur</label>
@@ -163,6 +163,11 @@
                     <option value="{{ $unit->satuan }}">{{ $unit->satuan }}</option>
                 @endforeach
             </select>
+        </div>
+
+        <div class="form-group">
+            <label>Harga Dasar</label>
+            <input id="" type="number" class="form-control" name="harga" required>
         </div>
 
         <div class="form-group mt-2">

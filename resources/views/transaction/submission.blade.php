@@ -26,36 +26,46 @@
                 </thead>
 
                 <tbody>
-    @foreach ($submission as $item)
-    <tr>
-        <td>{{ $item->kode }}</td>
-        <td>{{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('l, d F Y') }}</td>
-        <td>{{ $item->kitchen->nama ?? '-' }}</td>
-        <td>{{ $item->menu->nama ?? '-' }}</td>
-        <td>{{ number_format($item->porsi) }}</td>
-        <td>
-            <button type="button" 
-                class="btn btn-primary btn-sm" 
-                data-toggle="modal" 
-                data-target="#modalDetail">
-                Detail
-            </button>
+                    @forelse ($submission as $index => $item)
+                        <tr>
+                            <td>{{ $item->kode }}</td>
+                            <td>{{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('l, d F Y') }}</td>
+                            <td>{{ $item->kitchen->nama ?? '-' }}</td>
+                            <td>{{ $item->menu->nama ?? '-' }}</td>
+                            <td>{{ number_format($item->porsi) }}</td>
+                            <td>
+                                <button 
+                                    type="button" 
+                                    class="btn btn-primary btn-sm" 
+                                    data-toggle="modal" 
+                                    data-target="#modalDetail"
+                                >
+                                    Detail
+                                </button>
 
-            <a href="{{ route('submissions.edit', $item->id) }}" class="btn btn-warning btn-sm">
-                Edit
-            </a>
+                                <button 
+                                    type="button" 
+                                    class="btn btn-warning btn-sm btnEditSubmission"
+                                    data-toggle="modal"
+                                    data-target="#modalEditSubmission"
+                                >
+                                    Edit
+                                </button>
 
-            <x-button-delete 
-                idTarget="#modalDeleteSubmission"
-                formId="formDeleteSubmission"
-                action="{{ route('submissions.destroy', $item->id) }}"
-                text="Hapus"
-            />
-        </td>
-    </tr>
-    @endforeach
-</tbody>
-
+                                <x-button-delete 
+                                    idTarget="#modalDeleteSubmission"
+                                    formId="formDeleteSubmission"
+                                    action="{{ route('submissions.destroy', $item->id) }}"
+                                    text="Hapus"
+                                />
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="text-center">Belum ada data dapur</td>
+                        </tr>
+                    @endforelse
+                </tbody>
             </table>
         </div>
     </div>
@@ -104,6 +114,17 @@
             <label>Porsi</label>
             <input type="number" placeholder="55" class="form-control" name="porsi" required>
         </div>
+    </x-modal-form>
+
+    {{-- MODAL EDIT --}}
+    <x-modal-form
+        id="modalEditSubmission"
+        title="Edit Pengajuan Menu"
+        action=""
+        submitText="Update"
+    >
+        @method('PUT')
+
     </x-modal-form>
 
     {{-- MODAL DETAIL --}}

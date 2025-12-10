@@ -410,7 +410,25 @@ return [
         [
             'text' => 'Laporan',
             'icon' => 'fas fa-fw fa-file-alt',
-            'route' => 'report.index',
+            'submenu' => [
+                [
+                    'text' => 'Pengajuan Menu',
+                    'icon' => 'fas fa-file-signature',
+                    'route' => 'report.submission'
+                ],
+                
+                [
+                    'text' => 'Beli Bahan Baku',
+                    'icon' => 'fas fa-file-signature',
+                    'route' => 'report.purchase-materials'
+                ],
+                
+                [
+                    'text' => 'Jual Bahan Baku',
+                    'icon' => 'fas fa-file-signature',
+                    'route' => 'report.sales-materials'
+                ],
+            ],
         ],
     ],
 

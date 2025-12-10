@@ -45,8 +45,13 @@
                             <td>{{ $supplier->kontak_person }}</td>
                             <td>{{ $supplier->nomor }}</td>
                             <td>
-                                <button class="btn btn-warning btn-sm btnEditSupplier">
-                                    Edit
+                                <button 
+                                    type="button" 
+                                    class="btn btn-sm btn-warning btnEditSupplier"
+                                    data-toggle="modal"
+                                    data-target="#modalEditSupplier"
+                                >
+                                    Edit    
                                 </button>
                                 {{-- Tombol Hapus --}}
                                 <x-button-delete 
@@ -75,7 +80,6 @@
     action="{{ route('master.supplier.store') }}"
     submitText="Simpan"
 >
-
         <div class="form-group">
             <label>Kode</label>
             <input 
@@ -106,6 +110,47 @@
         <div class="form-group mt-2">
             <label for="nomor_supplier">Nomor</label>
             <input id="nomor_supplier" type="text" name="nomor" class="form-control" required />
+        </div>
+    </x-modal-form>
+
+    {{-- MODAL EDIT SUPPLIER --}}
+    <x-modal-form
+        id="modalEditSupplier"
+        title="Edit Supplier"
+        action="#"
+        submitText="Update"
+    >
+        @method('PUT')
+
+        <div class="form-group">
+            <label>Kode</label>
+            <input 
+                type="text" 
+                name="kode" 
+                class="form-control" 
+                id=""
+                readonly
+                required />
+        </div>
+
+        <div class="form-group">
+            <label>Nama</label>
+            <input type="text" id="" name="nama" class="form-control" required />
+        </div>
+        
+        <div class="form-group">
+            <label>Alamat</label>
+            <input type="text" id="" name="alamat" class="form-control" required />
+        </div>
+        
+        <div class="form-group">
+            <label>Kontak Person</label>
+            <input type="text" id="" name="kontak_person" class="form-control" required />
+        </div>
+        
+        <div class="form-group">
+            <label>Nomor</label>
+            <input type="text" id="" name="nomor" class="form-control" required />
         </div>
     </x-modal-form>
 

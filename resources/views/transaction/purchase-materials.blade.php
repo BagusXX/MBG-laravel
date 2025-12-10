@@ -34,10 +34,6 @@
                         <td></td>
                         <td></td>
                         <td></td>
-                        {{-- <td></td> --}}
-                        {{-- <td></td>
-                        <td></td>
-                        <td></td> --}}
                         <td></td>
                         <td>
                             <button 
@@ -50,7 +46,9 @@
                             </button>
                             <button 
                                 type="button" 
-                                class="btn btn-warning btn-sm btnEditPurchaseMaterials"
+                                class="btn btn-sm btn-warning btnEditPurchaseMaterials"
+                                data-toggle="modal"
+                                data-target="#modalEditPurchaseMaterials"
                             >
                                 Edit
                             </button>
@@ -147,7 +145,19 @@
         </div>
     </x-modal-form>
 
-    {{-- MODAL DETAIL --}}
+    {{-- MODAL EDIT PURCHASE MATERIALS --}}
+    <x-modal-form
+        id="modalEditPurchaseMaterials"
+        size="modal-lg"
+        title="Edit Transaksi Pembelian Bahan Baku"
+        action=""
+        submitText="Update"
+    >
+        @method('PUT')
+
+    </x-modal-form>
+
+    {{-- MODAL DETAIL PURCHASE MATERIALS --}}
     <x-modal-detail
         id="modalDetailPurchase"
         size="modal-lg"
