@@ -64,7 +64,7 @@ return [
     */
 
     'logo' => '<b>Admin</b>LTE',
-    'logo_img' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
+    'logo_img' => 'vendor/adminlte/dist/img/Logo_mbg.png',
     'logo_img_class' => 'brand-image img-circle elevation-3',
     'logo_img_xl' => null,
     'logo_img_xl_class' => 'brand-image-xs',
@@ -113,11 +113,11 @@ return [
         'enabled' => true,
         'mode' => 'fullscreen',
         'img' => [
-            'path' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
+            'path' => 'vendor/adminlte/dist/img/Logo_mbg.png',
             'alt' => 'AdminLTE Preloader Image',
             'effect' => 'animation__shake',
-            'width' => 60,
-            'height' => 60,
+            'width' => 120,
+            'height' => 120,
         ],
     ],
 
@@ -320,7 +320,7 @@ return [
             'url' => 'admin/blog',
             'can' => 'manage-blog',
         ],
-        
+
         // MASTER
         [
             'text' => 'Master',
@@ -337,7 +337,7 @@ return [
                     'icon' => 'fas fa-store',
                     'route' => 'master.supplier',
                 ],
-                
+
                 [
                     'text' => 'Satuan',
                     'icon' => 'fas fa-sort-numeric-up',
@@ -390,13 +390,13 @@ return [
                     'icon' => 'fas fa-fw fa-paper-plane',
                     'route' => 'transaction.submission',
                 ],
-                
+
                 [
                     'text' => 'Beli Bahan Baku',
                     'icon' => 'fas fa-cart-plus',
                     'route' => 'transaction.purchase-materials',
                 ],
-                
+
                 [
                     'text' => 'Jual Bahan Baku',
                     'icon' => 'fas fa-money-bill-wave',
@@ -416,13 +416,13 @@ return [
                     'icon' => 'fas fa-file-signature',
                     'route' => 'report.submission'
                 ],
-                
+
                 [
                     'text' => 'Beli Bahan Baku',
                     'icon' => 'fas fa-file-signature',
                     'route' => 'report.purchase-materials'
                 ],
-                
+
                 [
                     'text' => 'Jual Bahan Baku',
                     'icon' => 'fas fa-file-signature',
