@@ -37,7 +37,7 @@
                             <td>{{ $item->nama }}</td>
                             {{-- <td>{{ $item->stok }}</td> --}}
                             <td>{{ $item->satuan }}</td>
-                            <td></td>
+                            <td>Rp {{ number_format($item->harga, 0, ',', '.') }}</td>
                             {{-- <td>{{ $item->kitchen->nama ?? '-' }}</td> Nama dapur --}}
                             <td>
                                 {{-- BUTTON EDIT --}}

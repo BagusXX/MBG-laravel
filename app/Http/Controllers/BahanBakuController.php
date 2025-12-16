@@ -57,8 +57,8 @@ class BahanBakuController extends Controller
     {
         $request->validate([
             'nama' => 'required|string|max:255',
-            // 'stok' => 'required|numeric',
             'satuan' => 'required|string|max:50',
+            'harga' => 'required|numeric|min:0',
             'kitchen_id' => 'required|exists:kitchens,id',
         ]);
 
@@ -67,14 +67,15 @@ class BahanBakuController extends Controller
         BahanBaku::create([
             'kode' => $this->generateKode($kitchen->kode),
             'nama' => $request->nama,
-            // 'stok' => $request->stok,
             'satuan' => $request->satuan,
+            'harga' => $request->harga,
             'kitchen_id' => $request->kitchen_id,
         ]);
 
         return redirect()->route('master.materials')
-                         ->with('success', 'Bahan baku berhasil ditambahkan');
+                        ->with('success', 'Bahan baku berhasil ditambahkan');
     }
+
 
     // Hapus bahan baku
     public function destroy($id)
