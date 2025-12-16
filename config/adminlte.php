@@ -347,7 +347,7 @@ return [
                 [
                     'text' => 'Bahan Baku',
                     'icon' => 'fas fa-fw fa-carrot',
-                    'route' => 'master.materials',
+                    'route' => 'dashboard.master.bahan-baku.index',
                 ],
 
                 [

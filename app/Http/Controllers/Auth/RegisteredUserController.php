@@ -30,7 +30,7 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'nama' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', Rules\Password::defaults()],
             'password_confirmation' => ['required', 'same:password']
@@ -49,7 +49,7 @@ class RegisteredUserController extends Controller
             'name' => $request->name,        // sesuai DB
             'email' => $request->email,      // sesuai DB
             'password' => Hash::make($request->password),
-            'role' => 'user',                // kolom role wajib ada isinya
+            'role' => 'admin',                // kolom role wajib ada isinya
             'kitchen_id' => null,            // jika tidak pakai dulu
         ]);
 
@@ -58,6 +58,6 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        return redirect(route('dashboard.master.bahan-baku.index', absolute: false));
     }
 }

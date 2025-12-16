@@ -1,6 +1,6 @@
 <x-guest-layout>
     <div class="w-[480px] p-2 flex justify-center items-center bg-white rounded-lg">
-        <div class="px-8 py-6 flex justify-center items-center">
+        <div class="flex justify-center items-center px-8 py-6">
             <div>
                 <div class="mb-9 space-y-3 text-center">
                     <h1 class="font-semibold text-3xl text-black">Register</h1>

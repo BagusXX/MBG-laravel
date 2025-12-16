@@ -17,8 +17,8 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+    return redirect()->route('dashboard.master.bahan-baku.index');
+})->middleware(['auth'])->name('dashboard');
 
 // PROFILE
 Route::middleware('auth')->group(function () {
@@ -45,19 +45,19 @@ require __DIR__.'/auth.php';
 Route::middleware(['auth'])->group(function () {
     // Tampilkan daftar bahan baku
     Route::get('dashboard/master/bahan-baku', [BahanBakuController::class, 'index'])
-        ->name('master.materials');
+        ->name('dashboard.master.bahan-baku.index');
 
     // Simpan bahan baku baru
     Route::post('dashboard/master/bahan-baku', [BahanBakuController::class, 'store'])
-        ->name('master.materials.store');
+        ->name('dashboard.master.bahan-baku.index.store');
 
     // Hapus bahan baku
     Route::delete('dashboard/master/bahan-baku/{id}', [BahanBakuController::class, 'destroy'])
-        ->name('master.materials.destroy');
+        ->name('dashboard.master.bahan-baku.index.destroy');
     
     Route::get('dashboard/master/bahan-baku/generate-code/{kitchenId}', 
         [BahanBakuController::class, 'generateKodeAjax']
-    )->name('master.materials.generateCode');
+    )->name('dashboard.master.bahan-baku.index.generateCode');
 });
 
 // UNIT <--> SATUAN
@@ -216,5 +216,5 @@ Route::middleware(['auth'])->group(function () {
     '/dashboard/transaksi/pengajuan-menu/menu-by-kitchen/{kitchen}',
     [SubmissionController::class, 'getMenuByKitchen']
     )->name('submissions.menu-by-kitchen');
-
 });
+
