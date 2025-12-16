@@ -72,7 +72,7 @@ class BahanBakuController extends Controller
             'kitchen_id' => $request->kitchen_id,
         ]);
 
-        return redirect()->route('master.materials')
+        return redirect()->route('dashboard.master.bahan-baku.index')
                         ->with('success', 'Bahan baku berhasil ditambahkan');
     }
 
@@ -83,7 +83,7 @@ class BahanBakuController extends Controller
         $item = BahanBaku::findOrFail($id);
         $item->delete();
 
-        return redirect()->route('master.materials')
+        return redirect()->route('dashboard.master.bahan-baku.index')
                          ->with('success', 'Bahan baku berhasil dihapus');
     }
 }
