@@ -16,10 +16,6 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
-Route::get('/dashboard', function () {
-    return redirect()->route('dashboard.master.bahan-baku.index');
-})->middleware(['auth'])->name('dashboard');
-
 // PROFILE
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

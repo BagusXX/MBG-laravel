@@ -256,7 +256,7 @@ return [
     |
     */
 
-    'use_route_url' => true,
+    'use_route_url' => false,
     'dashboard_url' => 'dashboard',
     'logout_url' => 'logout',
     'login_url' => 'login',
