@@ -18,5 +18,11 @@ class Kitchen extends Model
         'kepala_dapur',
         'nomor_kepala_dapur',
     ];
+
+    public function menus()
+    {
+        return $this->hasMany(Menu::class);
+    }
+
 }
 

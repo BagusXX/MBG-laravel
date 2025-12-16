@@ -27,7 +27,11 @@ class SubmissionController extends Controller
             'kode' => 'required',
             'tanggal' => 'required|date',
             'kitchen_id' => 'required|exists:kitchens,id',
-            'menu_id' => 'required|exists:menus,id',
+            'menu_id' => [
+    'required',
+    Rule::exists('menus', 'id')->where('kitchen_id', $request->kitchen_id),
+],
+
             'porsi' => 'required|numeric|min:1',
         ]);
 
@@ -50,4 +54,12 @@ class SubmissionController extends Controller
         return redirect()->back()
             ->with('success', 'Pengajuan menu berhasil dihapus');
     }
+
+    public function getMenuByKitchen($kitchenId)
+    {
+        $menus = Menu::where('kitchen_id', $kitchenId)->get();
+
+        return response()->json($menus);
+    }
+
 }

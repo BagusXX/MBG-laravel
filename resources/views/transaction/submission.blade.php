@@ -107,7 +107,7 @@
 
         <div class="form-group">
             <label>Nama Dapur</label>
-            <select class="form-control" name="kitchen_id" required>
+            <select class="form-control" name="kitchen_id" id="kitchen_id" required>
                 <option value="" disabled selected>Pilih Dapur</option>
                 @foreach ($kitchens as $kitchen)
                     <option value="{{ $kitchen->id }}">
@@ -115,17 +115,13 @@
                     </option>
                 @endforeach
             </select>
+
         </div>
 
         <div class="form-group">
             <label>Nama Menu</label>
-            <select class="form-control" name="menu_id" required>
+            <select class="form-control" name="menu_id" id="menu_id" required>
                 <option value="" disabled selected>Pilih Menu</option>
-                @foreach ($menus as $menu)
-                    <option value="{{ $menu->id }}">
-                        {{ $menu->nama }}
-                    </option>
-                @endforeach
             </select>
         </div>
 
@@ -177,12 +173,25 @@
 <script>
     document.getElementById('kitchen_id').addEventListener('change', function () {
         let kitchenId = this.value;
+        let menuSelect = document.getElementById('menu_id');
 
-        fetch(`/dashboard/transaksi/pengajuan-menu/generate-kode/${kitchenId}`)
+        // reset menu
+        menuSelect.innerHTML = '<option value="" disabled selected>Loading...</option>';
+
+        fetch(`/dashboard/transaksi/pengajuan-menu/menu-by-kitchen/${kitchenId}`)
             .then(response => response.json())
             .then(data => {
-                document.getElementById('kode_pengajuan').value = data.kode;
+                menuSelect.innerHTML = '<option value="" disabled selected>Pilih Menu</option>';
+
+                data.forEach(menu => {
+                    menuSelect.innerHTML += `
+                        <option value="${menu.id}">
+                            ${menu.nama}
+                        </option>
+                    `;
+                });
             });
     });
 </script>
+
 @endpush

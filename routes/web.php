@@ -211,4 +211,10 @@ Route::middleware(['auth'])->group(function () {
         '/dashboard/transaksi/pengajuan-menu/{id}',
         [SubmissionController::class, 'destroy']
     )->name('submissions.destroy');
+
+    Route::get(
+    '/dashboard/transaksi/pengajuan-menu/menu-by-kitchen/{kitchen}',
+    [SubmissionController::class, 'getMenuByKitchen']
+    )->name('submissions.menu-by-kitchen');
+
 });
