@@ -48,6 +48,7 @@
                                     data-kode="{{ $item->kode }}"
                                     data-nama="{{ $item->nama }}"
                                     data-satuan="{{ $item->satuan }}"
+                                    data-harga="{{ $item->harga }}"
                                     data-dapur-id="{{ $item->kitchen_id }}"
                                     data-old-kode="{{ $item->kode }}"
                                     data-old-dapur-id="{{ $item->kitchen_id }}"
@@ -167,7 +168,7 @@
 
         <div class="form-group">
             <label>Harga Dasar</label>
-            <input id="" type="number" class="form-control" name="harga" required>
+            <input id="editHarga" type="number" class="form-control" name="harga" required>
         </div>
 
         <div class="form-group mt-2">
@@ -220,6 +221,7 @@
                     document.getElementById('editKodeBahan').value = oldKode;
                     document.getElementById('editBahan').value = this.dataset.nama;
                     document.getElementById('editSatuan').value = this.dataset.satuan;
+                    document.getElementById('editHarga').value = this.dataset.harga;
                     document.getElementById('editDapur').value = oldKitchenId;
 
                     // Update action
