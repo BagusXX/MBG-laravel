@@ -44,7 +44,7 @@ class SubmissionController extends Controller
         ]);
 
         return redirect()->back()
-            ->with('success', 'Pengajuan menu berhasil ditambahkan');
+            ->with('success', 'Pengajuan menu berhasil ditambahkan.');
     }
 
     public function destroy($id)

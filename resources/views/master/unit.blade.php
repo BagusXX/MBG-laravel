@@ -2,6 +2,10 @@
 
 @section('title', 'Satuan')
 
+@section('css')
+    <link rel="stylesheet" href="{{ asset('css/notification-pop-up.css') }}">
+@endsection
+
 @section('content_header')
     <h1>Satuan</h1>
 @endsection
@@ -12,6 +16,8 @@
         idTarget="#modalAddUnit" 
         text="Tambah Satuan" 
     />
+
+    <x-notification-pop-up />
 
     {{-- TABLE --}}
     <div class="card mt-2">

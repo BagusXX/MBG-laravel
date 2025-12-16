@@ -94,7 +94,7 @@ class MenuController extends Controller
             'kitchen_id' => $request->kitchen_id,
         ]);
 
-        return redirect()->route('master.menu')->with('success', 'Menu berhasil ditambahkan!');
+        return redirect()->route('master.menu')->with('success', 'Menu berhasil ditambahkan.');
     }
 
     // Hapus menu
@@ -103,6 +103,6 @@ class MenuController extends Controller
         $menu = Menu::findOrFail($id);
         $menu->delete();
 
-        return redirect()->route('master.menu')->with('success', 'Menu berhasil dihapus!');
+        return redirect()->route('master.menu')->with('success', 'Menu berhasil dihapus.');
     }
 }

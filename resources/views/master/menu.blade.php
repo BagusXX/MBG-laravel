@@ -2,6 +2,10 @@
 
 @section('title', 'Nama Menu')
 
+@section('css')
+    <link rel="stylesheet" href="{{ asset('css/notification-pop-up.css') }}">
+@endsection
+
 @section('content_header')
     <h1>Nama Menu</h1>
 @endsection
@@ -14,11 +18,12 @@
     />
 
     {{-- ALERT SUCCESS --}}
-    @if(session('success'))
+    {{-- @if(session('success'))
         <div class="alert alert-success mt-2">
             {{ session('success') }}
         </div>
-    @endif
+    @endif --}}
+    <x-notification-pop-up />
     
     {{-- TABLE --}}
     <div class="card mt-2">

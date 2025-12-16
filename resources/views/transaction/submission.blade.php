@@ -2,6 +2,10 @@
 
 @section('title', 'Pengajuan Menu')
 
+@section('css')
+    <link rel="stylesheet" href="{{ asset('css/notification-pop-up.css') }}">
+@endsection
+
 @section('content_header')
     <h1>Pengajuan Menu</h1>
 @endsection
@@ -13,6 +17,8 @@
         idTarget="#modalAddSubmission"
         text="Tambah Pengajuan Menu"
     />
+
+    <x-notification-pop-up />
 
     {{-- TABLE --}}
     <div class="card">

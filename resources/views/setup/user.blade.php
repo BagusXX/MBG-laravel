@@ -2,6 +2,10 @@
 
 @section('title', 'User')
 
+@section('css')
+    <link rel="stylesheet" href="{{ asset('css/notification-pop-up.css') }}">
+@endsection
+
 @section('content_header')
     <h1>User</h1>
 @endsection
@@ -16,15 +20,10 @@
     </div>
 @endif
 
-@if (session('success'))
-    <div class="alert alert-success">
-        {{ session('success') }}
-    </div>
-@endif
-
-
 @section('content')
     <x-button-add idTarget="#modalAddUser" text="Tambah User" />
+    
+    <x-notification-pop-up />
 
     <div class="card mt-3">
         <div class="card-body">
@@ -45,7 +44,7 @@
                     @foreach ($users as $user)
                     <tr>
                         <td>{{ $loop->iteration }}</td>
-                        <td>{{ $user->nama }}</td>
+                        <td>{{ $user->name }}</td>
                         <td>{{ $user->email }}</td>
                         <td>•••••••</td>
                         <td>{{ $user->kitchen?->nama ?? '-' }}</td>
@@ -141,7 +140,7 @@
         <div class="form-group">
             <label>Nama</label>
             <input type="text" class="form-control" name="nama"
-                   value="{{ $user->nama }}" required>
+                   value="{{ $user->name }}" required>
         </div>
 
         <div class="form-group">

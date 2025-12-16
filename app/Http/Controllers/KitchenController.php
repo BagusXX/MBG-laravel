@@ -64,7 +64,7 @@ class KitchenController extends Controller
         ]);
 
         return redirect()->route('master.kitchen')
-                         ->with('success', 'Data dapur berhasil ditambahkan!');
+                         ->with('success', 'Data dapur berhasil ditambahkan.');
     }
 
     // Update data dapur
@@ -87,7 +87,7 @@ class KitchenController extends Controller
         ]);
 
         return redirect()->route('master.kitchen')
-                         ->with('success', 'Data dapur berhasil diperbarui!');
+                         ->with('success', 'Data dapur berhasil diperbarui.');
     }
 
     // Hapus data dapur
@@ -97,6 +97,6 @@ class KitchenController extends Controller
         $kitchen->delete();
 
         return redirect()->route('master.kitchen')
-                         ->with('success', 'Data dapur berhasil dihapus!');
+                         ->with('success', 'Data dapur berhasil dihapus.');
     }
 }

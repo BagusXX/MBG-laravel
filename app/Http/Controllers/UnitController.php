@@ -27,7 +27,7 @@ class UnitController extends Controller
         ]);
 
         return redirect()->route('master.unit')
-                         ->with('success', 'Data dapur berhasil ditambahkan!');
+                         ->with('success', 'Data satuan berhasil ditambahkan.');
     }
 
     public function update(Request $request, $id)
@@ -45,7 +45,7 @@ class UnitController extends Controller
         ]);
 
         return redirect()->route('master.unit')
-                         ->with('success', 'Data satuan berhasil diperbarui!');
+                         ->with('success', 'Data satuan berhasil diperbarui.');
     }
 
     public function destroy($id)
@@ -53,6 +53,6 @@ class UnitController extends Controller
         $unit = Unit::findOrFail($id);
         $unit->delete();
 
-        return redirect()->back()->with('success', 'Data satuan berhasil dihapus!');
+        return redirect()->back()->with('success', 'Data satuan berhasil dihapus.');
     }
 }

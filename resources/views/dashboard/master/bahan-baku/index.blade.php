@@ -2,6 +2,10 @@
 
 @section('title', 'Bahan Baku')
 
+@section('css')
+    <link rel="stylesheet" href="{{ asset('css/notification-pop-up.css') }}">
+@endsection
+
 @section('content_header')
     <h1>Bahan Baku</h1>
 @endsection
@@ -10,9 +14,10 @@
 
     <x-button-add idTarget="#modalAddMaterials" text="Tambah Bahan Baku" />
 
-    @if(session('success'))
+    {{-- @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
+    @endif --}}
+    <x-notification-pop-up />
 
     <div class="card">
         <div class="card-body">

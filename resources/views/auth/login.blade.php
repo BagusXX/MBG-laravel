@@ -47,8 +47,9 @@
                                     class="hidden"
                                 />
                                 <span 
-                                class="font-normal text-sm" 
-                                :class="checked ? 'text-black' : 'text-gray-400/70'">
+                                    class="font-normal text-sm" 
+                                    :class="checked ? 'text-black' : 'text-gray-400/70'"
+                                >
                                     Remember me
                                 </span>
                             </label>

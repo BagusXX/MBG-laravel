@@ -2,6 +2,10 @@
 
 @section('title', 'Racik Menu')
 
+@section('css')
+    <link rel="stylesheet" href="{{ asset('css/notification-pop-up.css') }}">
+@endsection
+
 @section('content_header')
     <h1>Racik Menu</h1>
 @endsection
@@ -11,6 +15,8 @@
         idTarget="#modalAddRecipe"
         text="Racik Menu"   
     />
+
+    <x-notification-pop-up />
 
     <div class="card">
         <div class="card-body">

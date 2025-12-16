@@ -47,6 +47,6 @@ class RecipeController extends Controller
             ]);
         }
 
-        return redirect()->route('setup.createmenu')->with('success', 'Menu berhasil diracik');
+        return redirect()->route('setup.createmenu')->with('success', 'Menu berhasil diracik.');
     }
 }

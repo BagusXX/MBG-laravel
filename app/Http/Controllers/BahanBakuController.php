@@ -73,7 +73,7 @@ class BahanBakuController extends Controller
         ]);
 
         return redirect()->route('dashboard.master.bahan-baku.index')
-                        ->with('success', 'Bahan baku berhasil ditambahkan');
+                        ->with('success', 'Bahan baku berhasil ditambahkan.');
     }
 
 
@@ -84,6 +84,6 @@ class BahanBakuController extends Controller
         $item->delete();
 
         return redirect()->route('dashboard.master.bahan-baku.index')
-                         ->with('success', 'Bahan baku berhasil dihapus');
+                         ->with('success', 'Bahan baku berhasil dihapus.');
     }
 }
