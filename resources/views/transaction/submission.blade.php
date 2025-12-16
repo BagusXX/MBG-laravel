@@ -1,16 +1,20 @@
 @extends('adminlte::page')
 
-@section('title', 'Bahan Baku')
+@section('title', 'Pengajuan Menu')
 
 @section('content_header')
     <h1>Pengajuan Menu</h1>
 @endsection
 
 @section('content')
+
+    {{-- BUTTON ADD --}}
     <x-button-add
         idTarget="#modalAddSubmission"
-        text="Tambah Pengajuan Menu"   
+        text="Tambah Pengajuan Menu"
     />
+
+    {{-- TABLE --}}
     <div class="card">
         <div class="card-body">
             <table class="table table-bordered table-striped">
@@ -21,12 +25,12 @@
                         <th>Nama Dapur</th>
                         <th>Nama Menu</th>
                         <th>Porsi</th>
-                        <th>Aksi</th>
+                        <th width="180">Aksi</th>
                     </tr>
                 </thead>
 
                 <tbody>
-                    @forelse ($submission as $index => $item)
+                    @forelse ($submission as $item)
                         <tr>
                             <td>{{ $item->kode }}</td>
                             <td>{{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('l, d F Y') }}</td>
@@ -36,8 +40,8 @@
                             <td>
                                 <button 
                                     type="button" 
-                                    class="btn btn-primary btn-sm" 
-                                    data-toggle="modal" 
+                                    class="btn btn-primary btn-sm"
+                                    data-toggle="modal"
                                     data-target="#modalDetail"
                                 >
                                     Detail
@@ -62,7 +66,9 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center">Belum ada data dapur</td>
+                            <td colspan="6" class="text-center">
+                                Belum ada data pengajuan
+                            </td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -70,11 +76,11 @@
         </div>
     </div>
 
-    {{-- MODAL ADD --}}
+    {{-- ================= MODAL ADD ================= --}}
     <x-modal-form
         id="modalAddSubmission"
         title="Tambah Pengajuan Menu"
-        action="#"
+        action="{{ route('submissions.store') }}"
         submitText="Simpan"
     >
         <div class="form-group">
@@ -91,32 +97,51 @@
 
         <div class="form-group">
             <label>Tanggal</label>
-            <input type="date" placeholder="Bawang Merah" class="form-control" name="tanggal" required>
+            <input 
+                type="date" 
+                class="form-control" 
+                name="tanggal" 
+                required
+            >
         </div>
-        
+
         <div class="form-group">
             <label>Nama Dapur</label>
-            <select class="form-control" name="" required>
+            <select class="form-control" name="kitchen_id" required>
                 <option value="" disabled selected>Pilih Dapur</option>
-                <option value=""></option>
+                @foreach ($kitchens as $kitchen)
+                    <option value="{{ $kitchen->id }}">
+                        {{ $kitchen->nama }}
+                    </option>
+                @endforeach
             </select>
         </div>
 
         <div class="form-group">
             <label>Nama Menu</label>
-            <select class="form-control" name="" required>
+            <select class="form-control" name="menu_id" required>
                 <option value="" disabled selected>Pilih Menu</option>
-                <option value=""></option>
+                @foreach ($menus as $menu)
+                    <option value="{{ $menu->id }}">
+                        {{ $menu->nama }}
+                    </option>
+                @endforeach
             </select>
         </div>
 
         <div class="form-group">
             <label>Porsi</label>
-            <input type="number" placeholder="55" class="form-control" name="porsi" required>
+            <input 
+                type="number" 
+                class="form-control" 
+                name="porsi" 
+                placeholder="100"
+                required
+            >
         </div>
     </x-modal-form>
 
-    {{-- MODAL EDIT --}}
+    {{-- ================= MODAL EDIT ================= --}}
     <x-modal-form
         id="modalEditSubmission"
         title="Edit Pengajuan Menu"
@@ -124,56 +149,20 @@
         submitText="Update"
     >
         @method('PUT')
-
     </x-modal-form>
 
-    {{-- MODAL DETAIL --}}
+    {{-- ================= MODAL DETAIL ================= --}}
     <x-modal-detail
         id="modalDetail"
         size="modal-lg"
         title="Detail Pengajuan Menu"
     >
-        <div>
-            <div>
-                <p class="font-weight-bold mb-0">Nama Dapur:</p>
-                <p>Dapur A Tembalang (Data Sampel)</p>
-            </div>
-            <div>
-                <p class="font-weight-bold mb-0">Nama Menu:</p>
-                <p>Nasi Goreng (Data Sampel)</p>
-            </div>
-            <div>
-                <p class="font-weight-bold mb-0">Porsi:</p>
-                <p>1000 (Data Sampel)</p>
-            </div>
-            <div>
-                <table class="table table-bordered table-striped">
-                    <thead>
-                        <tr>
-                            <th>Bahan Baku</th>
-                            <th>Jumlah Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Bawang Merah (Data Sampel)</td>
-                            <td>500 kg</td>
-                        </tr>
-                        <tr>
-                            <td>Bawang Merah (Data Sampel)</td>
-                            <td>500 kg</td>
-                        </tr>
-                        <tr>
-                            <td>Bawang Merah (Data Sampel)</td>
-                            <td>500 kg</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        <p class="text-muted">
+            Detail masih contoh, bisa dibuat dinamis dengan JS / AJAX
+        </p>
     </x-modal-detail>
 
-    {{-- MODAL DELETE --}}
+    {{-- ================= MODAL DELETE ================= --}}
     <x-modal-delete 
         id="modalDeleteSubmission"
         formId="formDeleteSubmission"
@@ -181,4 +170,19 @@
         message="Apakah Anda yakin ingin menghapus data ini?"
         confirmText="Hapus"
     />
+
 @endsection
+
+@push('js')
+<script>
+    document.getElementById('kitchen_id').addEventListener('change', function () {
+        let kitchenId = this.value;
+
+        fetch(`/dashboard/transaksi/pengajuan-menu/generate-kode/${kitchenId}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('kode_pengajuan').value = data.kode;
+            });
+    });
+</script>
+@endpush

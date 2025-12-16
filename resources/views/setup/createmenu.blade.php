@@ -20,6 +20,7 @@
                         <th>No</th>
                         <th>Dapur</th>
                         <th>Nama Menu</th>
+                        <th>Porsi</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -30,6 +31,7 @@
                             <td>{{ $key + 1 }}</td>
                             <td>{{ $recipe->kitchen->nama }}</td>
                             <td>{{ $recipe->menu->nama }}</td>
+                            <td>{{ $recipe->porsi }}</td>
                             <td>
                                 <button 
                                     type="button" 
@@ -65,7 +67,7 @@
         </div>
     </div>
 
-    {{-- MODAL ADD RECIPE --}}
+    {{-- FORM --}}
     <x-modal-form
         id="modalAddRecipe"
         title="Racik Menu"
@@ -93,6 +95,15 @@
         </div>
 
         <div class="form-group">
+            <label>Porsi</label>
+            <input type="number" name="porsi" class="form-control" placeholder="12">
+        </div>
+
+        {{-- <div class="col-md-5">
+            <input type="number" name="porsi" class="form-control" placeholder="12">
+        </div> --}}
+
+        <div class="form-group">
             <div class="form-row mb-2">
                 <div class="col-md-5 font-weight-bold">Bahan</div>
                 <div class="col-md-2 font-weight-bold">Jumlah</div>
@@ -100,7 +111,7 @@
                 <div class="col-md-1"></div>
             </div>
 
-            <div id="bahan-wrapper">
+            <div id="bahan-wrapper-add">
                 <div class="form-row mb-3 bahan-group">
                     <div class="col-md-5">
                         <select name="bahan[]" class="form-control" required>
@@ -124,6 +135,8 @@
                         </select>
                     </div>
 
+                    
+
                     <div class="col-md-1">
                         <button type="button" class="btn btn-outline-danger btn-sm remove-bahan d-none h-100" style="width: 100%">
                             <i class="fas fa-times"></i>
@@ -132,9 +145,12 @@
                 </div>
             </div>
 
-            <button type="button" id="add-bahan" class="btn btn-outline-primary btn-block mt-2">
+            <button type="button" id="add-bahan-add" class="btn btn-outline-primary btn-block mt-2">
                 <i class="fas fa-plus mr-1"></i>Tambah Bahan
             </button>
+
+            
+
         </div>
     </x-modal-form>
 
@@ -226,22 +242,31 @@
                     <p>{{ $recipe->menu->nama }}</p>
                 </div>
 
+                <div>
+                <p class="font-weight-bold mb-0">Porsi:</p>
+                    <p>{{ $recipe->porsi }}</p>
+
+                </div>
+                
                 <table class="table table-bordered table-striped">
-                    <thead>
-                        <tr>
-                            <th>Bahan Baku</th>
-                            <th>Jumlah</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($recipe->bahanBaku as $b)
-                            <tr>
-                                <td>{{ $b->nama }}</td>
-                                <td>{{ $b->pivot->jumlah }} {{ $b->pivot->satuan }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+    <thead>
+        <tr>
+            <th>Bahan Baku</th>
+            <th>Jumlah</th>
+            <th>Total dengan porsi</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach ($recipe->bahanBaku as $b)
+            <tr>
+                <td>{{ $b->nama }}</td>
+                <td>{{ $b->pivot->jumlah }} {{ $b->pivot->satuan }}</td>
+                <td>{{ $b->pivot->jumlah * $recipe->porsi }} {{ $b->pivot->satuan }}</td>
+            </tr>
+        @endforeach
+    </tbody>
+</table>
+
             </div>
         </x-modal-detail>
     @endforeach

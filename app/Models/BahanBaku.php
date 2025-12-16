@@ -10,7 +10,7 @@ class BahanBaku extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $table = 'bahan_baku'; // pastikan sesuai nama tabel di database
+    protected $table = 'bahan_baku';
     protected $fillable = ['kode', 'nama', 'satuan', 'kitchen_id'];
 
     public function kitchen()

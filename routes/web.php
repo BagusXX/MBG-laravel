@@ -191,3 +191,24 @@ Route::prefix('dashboard/master')->name('master.')->group(function () {
     Route::put('supplier/{supplier}', [SupplierController::class, 'update'])->name('supplier.update');
     Route::delete('supplier/{supplier}', [SupplierController::class, 'destroy'])->name('supplier.destroy');
 });
+
+Route::middleware(['auth'])->group(function () {
+
+    // HALAMAN PENGAJUAN MENU
+    Route::get(
+        '/dashboard/transaksi/pengajuan-menu',
+        [SubmissionController::class, 'index']
+    )->name('transaction.submission');
+
+    // SIMPAN PENGAJUAN MENU
+    Route::post(
+        '/dashboard/transaksi/pengajuan-menu',
+        [SubmissionController::class, 'store']
+    )->name('submissions.store');
+
+    // HAPUS PENGAJUAN MENU (opsional, tapi view kamu sudah pakai)
+    Route::delete(
+        '/dashboard/transaksi/pengajuan-menu/{id}',
+        [SubmissionController::class, 'destroy']
+    )->name('submissions.destroy');
+});

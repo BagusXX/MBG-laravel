@@ -56,7 +56,7 @@
                                 >
                                     Edit
                                 </button>
-                                {{-- Tombol Hapus --}}
+
                                 <x-button-delete 
                                     idTarget="#modalDeleteMaterials"
                                     formId="formDeleteMaterials"

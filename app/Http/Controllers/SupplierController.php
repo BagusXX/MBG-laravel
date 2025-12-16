@@ -7,9 +7,7 @@ use Illuminate\Http\Request;
 
 class SupplierController extends Controller
 {
-    /**
-     * Tampilkan daftar supplier.
-     */
+
     public function index()
     {
         $suppliers = Supplier::orderBy('id', 'asc')->get();
@@ -23,9 +21,7 @@ class SupplierController extends Controller
         return view('master.supplier', compact('suppliers', 'generatedCodes'));
     }
 
-    /**
-     * Simpan supplier baru.
-     */
+   
     public function store(Request $request)
     {
         // Validasi input
@@ -48,9 +44,7 @@ class SupplierController extends Controller
         return redirect()->route('master.supplier')->with('success', 'Supplier berhasil ditambahkan.');
     }
 
-    /**
-     * Tampilkan form edit supplier.
-     */
+    
     public function edit(Supplier $supplier)
     {
         $generatedCodes = [];
@@ -61,9 +55,7 @@ class SupplierController extends Controller
         return view('supplier.edit', compact('supplier', 'generatedCodes'));
     }
 
-    /**
-     * Update supplier.
-     */
+    
     public function update(Request $request, Supplier $supplier)
     {
         // Validasi input
@@ -86,9 +78,7 @@ class SupplierController extends Controller
         return redirect()->route('master.supplier')->with('success', 'Supplier berhasil diupdate.');
     }
 
-    /**
-     * Hapus supplier.
-     */
+   
     public function destroy(Supplier $supplier)
     {
         $supplier->delete();
@@ -96,9 +86,6 @@ class SupplierController extends Controller
         return redirect()->route('master.supplier')->with('success', 'Supplier berhasil dihapus.');
     }
 
-    /**
-     * Generate kode supplier berikutnya otomatis.
-     */
     public static function generateKode()
     {
         $lastSupplier = Supplier::orderBy('id', 'desc')->first();

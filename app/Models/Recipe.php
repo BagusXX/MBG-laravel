@@ -9,7 +9,7 @@ class Recipe extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['kitchen_id', 'menu_id'];
+    protected $fillable = ['kitchen_id', 'menu_id', 'porsi'];
 
     public function kitchen()
     {
@@ -24,7 +24,7 @@ class Recipe extends Model
     public function bahanBaku()
 {
     return $this->belongsToMany(BahanBaku::class, 'recipe_bahan_baku')
-                ->withPivot('jumlah', 'satuan');
+                ->withPivot('jumlah', 'satuan', 'porsi');
 }
 
 }

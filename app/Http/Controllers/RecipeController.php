@@ -30,17 +30,20 @@ class RecipeController extends Controller
             'bahan' => 'required|array',
             'jumlah' => 'required|array',
             'satuan' => 'required|array',
+            ''
         ]);
 
         $recipe = Recipe::create([
             'kitchen_id' => $request->kitchen_id,
             'menu_id' => $request->menu_id,
+            'porsi' => $request->porsi,
         ]);
 
         foreach($request->bahan as $index => $bahan_id) {
             $recipe->bahanBaku()->attach($bahan_id, [
                 'jumlah' => $request->jumlah[$index],
                 'satuan' => $request->satuan[$index],
+                'porsi' => $request->porsi ?? 1,
             ]);
         }
 

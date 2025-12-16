@@ -65,7 +65,7 @@ class BahanBakuController extends Controller
         $kitchen = Kitchen::findOrFail($request->kitchen_id);
 
         BahanBaku::create([
-            'kode' => $this->generateKode($kitchen->kode), // kode otomatis
+            'kode' => $this->generateKode($kitchen->kode),
             'nama' => $request->nama,
             // 'stok' => $request->stok,
             'satuan' => $request->satuan,
