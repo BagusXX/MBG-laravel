@@ -1,22 +1,22 @@
 @extends('adminlte::page')
 
-@section('title', 'Pengajuan Menu')
+@section('title', 'Daftar Permintaan')
 
 @section('css')
     <link rel="stylesheet" href="{{ asset('css/notification-pop-up.css') }}">
 @endsection
 
 @section('content_header')
-    <h1>Pengajuan Menu</h1>
+    <h1>Daftar Permintaan</h1>
 @endsection
 
 @section('content')
 
     {{-- BUTTON ADD --}}
-    <x-button-add
+    {{-- <x-button-add
         idTarget="#modalAddSubmission"
         text="Tambah Pengajuan Menu"
-    />
+    /> --}}
 
     <x-notification-pop-up />
 
@@ -37,13 +37,13 @@
                 </thead>
 
                 <tbody>
-                    @forelse ($submission as $item)
+                    {{-- @forelse ($submission as $item) --}}
                         <tr>
-                            <td>{{ $item->kode }}</td>
-                            <td>{{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('l, d F Y') }}</td>
-                            <td>{{ $item->kitchen->nama ?? '-' }}</td>
-                            <td>{{ $item->menu->nama ?? '-' }}</td>
-                            <td>{{ number_format($item->porsi) }}</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
                             <td></td>
                             <td>
                                 <button 
@@ -61,24 +61,24 @@
                                     data-toggle="modal"
                                     data-target="#modalEditSubmission"
                                 >
-                                    Edit
+                                    Update Status
                                 </button>
 
-                                <x-button-delete 
+                                {{-- <x-button-delete 
                                     idTarget="#modalDeleteSubmission"
                                     formId="formDeleteSubmission"
                                     action="{{ route('submissions.destroy', $item->id) }}"
                                     text="Hapus"
-                                />
+                                /> --}}
                             </td>
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="text-center">
+                    {{-- @empty --}}
+                        {{-- <tr>
+                            <td colspan="6" class="text-center">
                                 Belum ada data pengajuan
                             </td>
-                        </tr>
-                    @endforelse
+                        </tr> --}}
+                    {{-- @endforelse --}}
                 </tbody>
             </table>
         </div>
@@ -117,11 +117,11 @@
             <label>Nama Dapur</label>
             <select class="form-control" name="kitchen_id" id="kitchen_id" required>
                 <option value="" disabled selected>Pilih Dapur</option>
-                @foreach ($kitchens as $kitchen)
+                {{-- @foreach ($kitchens as $kitchen)
                     <option value="{{ $kitchen->id }}">
                         {{ $kitchen->nama }}
                     </option>
-                @endforeach
+                @endforeach --}}
             </select>
 
         </div>
@@ -148,21 +148,30 @@
     {{-- ================= MODAL EDIT ================= --}}
     <x-modal-form
         id="modalEditSubmission"
-        title="Edit Pengajuan Menu"
+        title="Update Status"
         action=""
         submitText="Update"
     >
         @method('PUT')
+
+        <div class="form-group">
+            <label>Status</label>
+            <select class="form-control" name="menu_id" id="menu_id" required>
+                <option value="" disabled selected>Pilih Status</option>
+                <option value="">Proses</option>
+                <option value="">Selesai</option>
+            </select>
+        </div>
     </x-modal-form>
 
     {{-- ================= MODAL DETAIL ================= --}}
     <x-modal-detail
         id="modalDetail"
         size="modal-lg"
-        title="Detail Pengajuan Menu"
+        title="Detail Permintaan"
     >
         <p class="text-muted">
-            Detail masih contoh, bisa dibuat dinamis dengan JS / AJAX
+            Detail ini masih hanya teks biasa, mekanisme segera akan dikembangkan menjadi dinamis.
         </p>
     </x-modal-detail>
 

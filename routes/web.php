@@ -145,13 +145,17 @@ Route::get('dashboard/master/supplier', function() {
 Route::get('/dashboard/transaksi/pengajuan-menu', [SubmissionController::class, 'index'])
     ->name('transaction.submission');
 
-Route::get('dashboard/transaksi/pembelian-bahan-baku', function () {
-    return view('transaction.purchase-materials');
-})->name('transaction.purchase-materials');
+Route::get('dashboard/transaksi/daftar-pemesanan', function () {
+    return view('transaction.request-materials');
+})->name('transaction.request-materials');
 
 Route::get('dashboard/transaksi/penjualan-bahan-baku', function () {
     return view('transaction.sales-materials');
 })->name('transaction.sales-materials');
+
+Route::get('dashboard/transaksi/pembelian-bahan-baku', function () {
+    return view('transaction.purchase-materials');
+})->name('transaction.purchase-materials');
 
 Route::get('dashboard/laporan/pengajuan-menu', function () {
     return view('report.submission');

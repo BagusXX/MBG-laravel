@@ -29,7 +29,7 @@ class SubmissionController extends Controller
             'kitchen_id' => 'required|exists:kitchens,id',
             'menu_id' => [
     'required',
-    Rule::exists('menus', 'id')->where('kitchen_id', $request->kitchen_id),
+    // Rule::exists('menus', 'id')->where('kitchen_id', $request->kitchen_id),
 ],
 
             'porsi' => 'required|numeric|min:1',

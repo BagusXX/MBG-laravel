@@ -1,16 +1,16 @@
 @extends('adminlte::page')
 
-@section('title', 'Pesan Bahan Baku')
+@section('title', 'Beli Bahan Baku')
 
 @section('content_header')
-    <h1>Pesan Bahan Baku</h1>
+    <h1>Pembelian Bahan Baku</h1>
 @endsection
 
 @section('content')
-    <x-button-add 
+    {{-- <x-button-add 
         idTarget="#modalAddPurchaseMaterials"
         text="Pesan Bahan Baku"
-    />
+    /> --}}
 
     {{-- TABLE --}}
     <div class="card">
@@ -26,7 +26,7 @@
                         {{-- <th>Jumlah</th>
                         <th>Satuan</th>
                         <th>Harga</th> --}}
-                        <th>Aksi</th>
+                        <th width="180">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -46,18 +46,18 @@
                             </button>
                             <button 
                                 type="button" 
-                                class="btn btn-sm btn-warning btnEditPurchaseMaterials"
+                                class="btn btn-sm btn-success btnEditPurchaseMaterials"
                                 data-toggle="modal"
                                 data-target="#modalEditPurchaseMaterials"
                             >
-                                Edit
+                                Beli
                             </button>
-                            <x-button-delete
+                            {{-- <x-button-delete
                                 idTarget="#modalDeletePurchaseMaterials"
                                 formId="formDeletePurchaseMaterials"
                                 action="#"
                                 text="Hapus"
-                            />
+                            /> --}}
                         </td>
                     </tr>
                 </tbody>
@@ -149,9 +149,9 @@
     <x-modal-form
         id="modalEditPurchaseMaterials"
         size="modal-lg"
-        title="Edit Pemesanan Bahan Baku"
+        title="Beli Bahan Baku"
         action=""
-        submitText="Update"
+        submitText="Beli"
     >
         @method('PUT')
 

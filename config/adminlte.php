@@ -390,17 +390,24 @@ return [
                     'icon' => 'fas fa-fw fa-paper-plane',
                     'route' => 'transaction.submission',
                 ],
-
+                
                 [
-                    'text' => 'Pesan Bahan Baku',
-                    'icon' => 'fas fa-cart-plus',
-                    'route' => 'transaction.purchase-materials',
+                    'text' => 'Daftar Permintaan',
+                    'icon' => 'fas fa-clipboard-list',
+                    'route' => 'transaction.request-materials',
                 ],
 
+                
                 [
                     'text' => 'Jual Bahan Baku',
                     'icon' => 'fas fa-money-bill-wave',
                     'route' => 'transaction.sales-materials',
+                ],
+                
+                [
+                    'text' => 'Beli Bahan Baku',
+                    'icon' => 'fas fa-cart-plus',
+                    'route' => 'transaction.purchase-materials',
                 ],
 
             ],

@@ -150,7 +150,7 @@
                     </div>
 
                     <div class="col-md-1">
-                        <button type="button" class="btn btn-outline-danger btn-sm remove-bahan d-none h-100 rounded-4xl" style="width: 100%">
+                        <button type="button" class="btn btn-outline-danger btn-sm remove-bahan d-none h-100 rounded-4xl" style="width: 65%">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>

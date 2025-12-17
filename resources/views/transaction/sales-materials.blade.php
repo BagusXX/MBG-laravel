@@ -10,7 +10,7 @@
     {{-- BUTTON ADD --}}
     <x-button-add 
         idTarget="#modalAddSalesMaterials"
-        text="Tambah Transaksi Penjualan Bahan Baku"
+        text="Jual Bahan Baku"
     />
 
     {{-- TABLE --}}
@@ -74,7 +74,7 @@
     <x-modal-form
         id="modalAddSalesMaterials"
         size="modal-lg"
-        title="Tambah Transaksi Penjualan Bahan Baku"
+        title="Tambah Penjualan Bahan Baku"
         action="#"
         submitText="Simpan"
     >
