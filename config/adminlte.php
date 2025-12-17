@@ -392,7 +392,7 @@ return [
                 ],
 
                 [
-                    'text' => 'Beli Bahan Baku',
+                    'text' => 'Pesan Bahan Baku',
                     'icon' => 'fas fa-cart-plus',
                     'route' => 'transaction.purchase-materials',
                 ],

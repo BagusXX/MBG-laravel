@@ -1,15 +1,15 @@
 @extends('adminlte::page')
 
-@section('title', 'Pembelian Bahan Baku')
+@section('title', 'Pesan Bahan Baku')
 
 @section('content_header')
-    <h1>Pembelian Bahan Baku</h1>
+    <h1>Pesan Bahan Baku</h1>
 @endsection
 
 @section('content')
     <x-button-add 
         idTarget="#modalAddPurchaseMaterials"
-        text="Tambah Transaksi Pembelian Bahan Baku"
+        text="Pesan Bahan Baku"
     />
 
     {{-- TABLE --}}
@@ -69,7 +69,7 @@
     <x-modal-form
         id="modalAddPurchaseMaterials"
         size="modal-lg"
-        title="Tambah Transaksi Pembelian Bahan Baku"
+        title="Tambah Pemesanan Bahan Baku"
         action="#"
         submitText="Simpan"
     >
@@ -149,7 +149,7 @@
     <x-modal-form
         id="modalEditPurchaseMaterials"
         size="modal-lg"
-        title="Edit Transaksi Pembelian Bahan Baku"
+        title="Edit Pemesanan Bahan Baku"
         action=""
         submitText="Update"
     >
@@ -161,7 +161,7 @@
     <x-modal-detail
         id="modalDetailPurchase"
         size="modal-lg"
-        title="Detail Pembelian Bahan Baku"
+        title="Pemesanan Bahan Baku"
     >
         <div>
             <div>

@@ -27,6 +27,7 @@
                         <th>Dapur</th>
                         <th>Nama Menu</th>
                         <th>Porsi</th>
+                        <th>Harga</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -38,6 +39,7 @@
                             <td>{{ $recipe->kitchen->nama }}</td>
                             <td>{{ $recipe->menu->nama }}</td>
                             <td>{{ $recipe->porsi }}</td>
+                            <td></td>
                             <td>
                                 <button 
                                     type="button" 
@@ -76,6 +78,7 @@
     {{-- FORM --}}
     <x-modal-form
         id="modalAddRecipe"
+        size="modal-lg"
         title="Racik Menu"
         action="{{ route('recipe.store') }}"
         submitText="Simpan"
@@ -111,15 +114,16 @@
 
         <div class="form-group">
             <div class="form-row mb-2">
-                <div class="col-md-5 font-weight-bold">Bahan</div>
+                <div class="col-md-3 font-weight-bold">Bahan</div>
                 <div class="col-md-2 font-weight-bold">Jumlah</div>
-                <div class="col-md-4 font-weight-bold">Satuan</div>
+                <div class="col-md-3 font-weight-bold">Satuan</div>
+                <div class="col-md-3 font-weight-bold">Harga</div>
                 <div class="col-md-1"></div>
             </div>
 
             <div id="bahan-wrapper-add">
                 <div class="form-row mb-3 bahan-group">
-                    <div class="col-md-5">
+                    <div class="col-md-3">
                         <select name="bahan[]" class="form-control" required>
                             <option value="" disabled selected>Pilih Bahan</option>
                             @foreach ($bahanBaku as $b)
@@ -132,7 +136,7 @@
                         <input type="number" name="jumlah[]" class="form-control" placeholder="12" required>
                     </div>
 
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <select name="satuan[]" class="form-control" required>
                             <option value="" disabled selected>Pilih Satuan</option>
                             @foreach ($units as $u)
@@ -140,11 +144,13 @@
                             @endforeach
                         </select>
                     </div>
-
                     
+                    <div class="col-md-3">
+                        <input type="number" name="harga" class="form-control" placeholder="12000">
+                    </div>
 
                     <div class="col-md-1">
-                        <button type="button" class="btn btn-outline-danger btn-sm remove-bahan d-none h-100" style="width: 100%">
+                        <button type="button" class="btn btn-outline-danger btn-sm remove-bahan d-none h-100 rounded-4xl" style="width: 100%">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>

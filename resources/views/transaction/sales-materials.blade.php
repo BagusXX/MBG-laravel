@@ -1,6 +1,6 @@
 @extends('adminlte::page')
 
-@section('title', 'Pernjualan Bahan Baku')
+@section('title', 'Penjualan Bahan Baku')
 
 @section('content_header')
     <h1>Penjualan Bahan Baku</h1>
