@@ -32,7 +32,7 @@
                         <th>Nama Menu</th>
                         <th>Porsi</th>
                         <th>Status</th>
-                        <th width="180">Aksi</th>
+                        <th width="250">Aksi</th>
                     </tr>
                 </thead>
 
