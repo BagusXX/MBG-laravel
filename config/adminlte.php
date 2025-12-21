@@ -329,19 +329,19 @@ return [
                 [
                     'text' => 'Dapur',
                     'icon' => 'fas fa-fw fa-fire-alt',
-                    'route' => 'master.kitchen',
+                    'route' => 'master.kitchen.index',
                 ],
 
                 [
                     'text' => 'Supplier',
                     'icon' => 'fas fa-store',
-                    'route' => 'master.supplier',
+                    'route' => 'master.supplier.index',
                 ],
 
                 [
                     'text' => 'Satuan',
                     'icon' => 'fas fa-sort-numeric-up',
-                    'route' => 'master.unit',
+                    'route' => 'master.unit.index',
                 ],
 
                 [
@@ -353,7 +353,7 @@ return [
                 [
                     'text' => 'Nama Menu',
                     'icon' => 'fas fa-fw fa-book-open',
-                    'route' => 'master.menu',
+                    'route' => 'master.menu.index',
                 ],
             ],
         ],
@@ -367,13 +367,13 @@ return [
                 [
                     'text' => 'User',
                     'icon' => 'fas fa-fw fa-users',
-                    'route' => 'setup.user',
+                    'route' => 'setup.user.index',
                 ],
 
                 [
                     'text' => 'Racik Menu',
                     'icon' => 'fas fa-fw fa-blender',
-                    'route' => 'setup.createmenu',
+                    'route' => 'recipe.index',
                 ],
 
             ],
@@ -388,7 +388,7 @@ return [
                 [
                     'text' => 'Pengajuan Menu',
                     'icon' => 'fas fa-fw fa-paper-plane',
-                    'route' => 'transaction.submission',
+                    'route' => 'transaction.submission.index',
                 ],
                 
                 [

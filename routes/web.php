@@ -70,15 +70,18 @@ Route::middleware(['auth', 'role:superAdmin'])->group(function () {
         });
 
     Route::prefix('dashboard/setup/racik-menu')
-        ->name('setup.createmenu.')
+        ->name('recipe.')
         ->controller(RecipeController::class)
         ->group(function () {
             Route::get('/', 'index')->name('index');
             Route::post('/', 'store')->name('store');
         });
 
+    
+
+    
     Route::prefix('dashboard/transaksi/pengajuan-menu')
-        ->name('subissions.')
+        ->name('transaction.submission.')
         ->controller(SubmissionController::class)
         ->group(function () {
             Route::get('/', 'index')->name('index');
@@ -98,42 +101,40 @@ Route::middleware(['auth', 'role:superAdmin'])->group(function () {
             Route::delete('/{supplier}', 'destroy')->name('destroy');
         });
 
-    Route::prefix('dashboard/setup')->group(function () {
-        Route::prefix('dashboard/master')
-            ->name('dashboard.master.')
-            ->group(function () {
-                Route::get('/supplier', function () {
-                    return view('master.supplier');
-                })->name('supplier');
-            });
+    // Route::prefix('dashboard/master')
+    //     ->name('dashboard.master.')
+    //     ->group(function () {
+    //         Route::get('/supplier', function () {
+    //             return view('master.supplier');
+    //         })->name('supplier');
+    //     });
 
-        Route::prefix('dashboard/transaksi')
-            ->name('transaction.')
-            ->group(function () {
-                Route::get('/daftar-pemesanan', function () {
-                    return view('transaction.request-materials');
-                })->name('request-materials');
-                Route::get('/penjualan-bahan-baku', function () {
-                    return view('transaction.sales-materials');
-                })->name('sales-materials');
-                Route::get('/pembelian-bahan-baku', function () {
-                    return view('transaction.purchase-materials');
-                })->name('purchase-materials');
-            });
+    Route::prefix('dashboard/transaksi')
+        ->name('transaction.')
+        ->group(function () {
+            Route::get('/daftar-pemesanan', function () {
+                return view('transaction.request-materials');
+            })->name('request-materials');
+            Route::get('/penjualan-bahan-baku', function () {
+                return view('transaction.sales-materials');
+            })->name('sales-materials');
+            Route::get('/pembelian-bahan-baku', function () {
+                return view('transaction.purchase-materials');
+            })->name('purchase-materials');
+        });
 
-        Route::prefix('dashboard/laporan')
-            ->name('report.')
-            ->group(function () {
-                Route::get('/pengajuan-menu', function () {
-                    return view('report.submission');
-                })->name('submission');
-                Route::get('/pembelian-bahan-baku', function () {
-                    return view('report.purchase-materials');
-                })->name('purchase-materials');
-                Route::get('/penjualan-bahan-baku', function () {
-                    return view('report.sales-materials');
-                })->name('sales-materials');
-            });
-    });
+    Route::prefix('dashboard/laporan')
+        ->name('report.')
+        ->group(function () {
+            Route::get('/pengajuan-menu', function () {
+                return view('report.submission');
+            })->name('submission');
+            Route::get('/pembelian-bahan-baku', function () {
+                return view('report.purchase-materials');
+            })->name('purchase-materials');
+            Route::get('/penjualan-bahan-baku', function () {
+                return view('report.sales-materials');
+            })->name('sales-materials');
+        });
 
 });
