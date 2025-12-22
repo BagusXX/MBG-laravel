@@ -36,4 +36,8 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Kitchen::class, 'kitchen_user', 'user_id', 'kitchen_kode', 'id', 'kode');
     }
+
+    public function juals(){
+        return $this->hasMany(jual::class);
+    }
 }

@@ -106,19 +106,34 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
     //         })->name('supplier');
     //     });
 
-    Route::prefix('dashboard/transaksi')
-        ->name('transaction.')
-        ->group(function () {
-            Route::get('/daftar-pemesanan', function () {
-                return view('transaction.request-materials');
-            })->name('request-materials');
-            Route::get('/penjualan-bahan-baku', function () {
-                return view('transaction.sales-materials');
-            })->name('sales-materials');
-            Route::get('/pembelian-bahan-baku', function () {
-                return view('transaction.purchase-materials');
-            })->name('purchase-materials');
-        });
+   Route::prefix('dashboard/transaksi')
+    ->name('transaction.')
+    ->controller(SubmissionController::class)
+    ->group(function () {
+
+        // submission
+        Route::get('/submission', 'index')->name('submission');
+        Route::post('/submission', 'store')->name('submission.store');
+        Route::delete('/submission/{submission}', 'destroy')->name('submission.destroy');
+
+        // ajax get menu by kitchen
+        Route::get('/submission/menu/{kitchen}', 'getMenuByKitchen')
+            ->name('submission.menu');
+
+        // halaman lain
+        Route::get('/daftar-pemesanan', [SubmissionController::class, 'index'])
+    ->name('request-materials');
+
+
+        Route::get('/penjualan-bahan-baku', fn () =>
+            view('transaction.sales-materials')
+        )->name('sales-materials');
+
+        Route::get('/pembelian-bahan-baku', fn () =>
+            view('transaction.purchase-materials')
+        )->name('purchase-materials');
+    });
+
 
     Route::prefix('dashboard/laporan')
         ->name('report.')

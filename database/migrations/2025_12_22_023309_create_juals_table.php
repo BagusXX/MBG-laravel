@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('juals', function (Blueprint $table) {
             $table->id();
+            $table->double('harga_mitra');
+            $table->double('harga_dapur');
+            $table->integer('bobot_jumlah');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('recipe_bahan_baku_id')->constrained('recipe_bahan_baku')->onDelete('cascade');
             $table->timestamps();
         });
     }

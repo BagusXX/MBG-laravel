@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('belis', function (Blueprint $table) {
             $table->id();
+            $table->string('kode');
+            $table->string('nama');
+            $table->double('harga');
+            $table->integer('jumlah');
+            $table->foreignId('supplier_id')->constrained('suppliers')->onDelete('cascade');
+            $table->foreignId('bahan_baku_id')->constrained('bahan_baku')->onDelete('cascade');
+
             $table->timestamps();
         });
     }

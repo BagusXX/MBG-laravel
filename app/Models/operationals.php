@@ -9,4 +9,11 @@ class operationals extends Model
     //
 
     protected $table = 'operationals';
+
+    protected $fillable = [
+        'kode',
+        'nama',
+        'harga',
+        'tempat-beli'
+    ];
 }

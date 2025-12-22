@@ -11,6 +11,11 @@ class Supplier extends Model
 
     protected $table = 'suppliers';
     protected $fillable = [
-        'kode', 'nama', 'alamat', 'kontak_person', 'nomor'
+         'nama', 'alamat', 'kontak', 'region_id'
     ];
+
+    public function region()
+    {
+        return $this->belongsTo(region::class);
+    }
 }

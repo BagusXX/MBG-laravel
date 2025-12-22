@@ -12,12 +12,6 @@
 
 @section('content')
 
-    {{-- BUTTON ADD --}}
-    {{-- <x-button-add
-        idTarget="#modalAddSubmission"
-        text="Tambah Pengajuan Menu"
-    /> --}}
-
     <x-notification-pop-up />
 
     {{-- TABLE --}}
@@ -37,14 +31,18 @@
                 </thead>
 
                 <tbody>
-                    {{-- @forelse ($submission as $item) --}}
+                    @forelse ($submissions as $item)
                         <tr>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
+                            <td>{{ $item->kode }}</td>
+                            <td>{{ $item->tanggal }}</td>
+                            <td>{{ $item->kitchen->nama ?? '-' }}</td>
+                            <td>{{ $item->menu->nama ?? '-' }}</td>
+                            <td>{{ $item->porsi }}</td>
+                            <td>
+                                <span class="badge badge-warning">
+                                    {{ $item->status ?? 'Proses' }}
+                                </span>
+                            </td>
                             <td>
                                 <button 
                                     type="button" 
@@ -60,25 +58,32 @@
                                     class="btn btn-warning btn-sm btnEditSubmission"
                                     data-toggle="modal"
                                     data-target="#modalEditSubmission"
+                                    data-id="{{ $item->id }}"
                                 >
                                     Update Status
                                 </button>
 
-                                {{-- <x-button-delete 
-                                    idTarget="#modalDeleteSubmission"
-                                    formId="formDeleteSubmission"
-                                    action="{{ route('submissions.destroy', $item->id) }}"
-                                    text="Hapus"
-                                /> --}}
+                                <form 
+                                    action="{{ route('transaction.submission.destroy', $item->id) }}" 
+                                    method="POST" 
+                                    class="d-inline"
+                                    onsubmit="return confirm('Yakin ingin menghapus data ini?')"
+                                >
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="btn btn-danger btn-sm">
+                                        Hapus
+                                    </button>
+                                </form>
                             </td>
                         </tr>
-                    {{-- @empty --}}
-                        {{-- <tr>
-                            <td colspan="6" class="text-center">
+                    @empty
+                        <tr>
+                            <td colspan="7" class="text-center">
                                 Belum ada data pengajuan
                             </td>
-                        </tr> --}}
-                    {{-- @endforelse --}}
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
@@ -88,18 +93,17 @@
     <x-modal-form
         id="modalAddSubmission"
         title="Tambah Pengajuan Menu"
-        action="{{ route('submissions.store') }}"
+        action="{{ route('transaction.submission.store') }}"
         submitText="Simpan"
     >
         <div class="form-group">
             <label>Kode</label>
             <input 
-                id="kode_pengajuan" 
                 type="text" 
                 class="form-control" 
                 name="kode" 
-                readonly 
-                required
+                value="{{ 'SUB-' . now()->format('YmdHis') }}"
+                readonly
             />
         </div>
 
@@ -117,13 +121,12 @@
             <label>Nama Dapur</label>
             <select class="form-control" name="kitchen_id" id="kitchen_id" required>
                 <option value="" disabled selected>Pilih Dapur</option>
-                {{-- @foreach ($kitchens as $kitchen)
+                @foreach ($kitchens as $kitchen)
                     <option value="{{ $kitchen->id }}">
                         {{ $kitchen->nama }}
                     </option>
-                @endforeach --}}
+                @endforeach
             </select>
-
         </div>
 
         <div class="form-group">
@@ -139,7 +142,7 @@
                 type="number" 
                 class="form-control" 
                 name="porsi" 
-                placeholder="100"
+                min="1"
                 required
             >
         </div>
@@ -149,17 +152,16 @@
     <x-modal-form
         id="modalEditSubmission"
         title="Update Status"
-        action=""
+        action="#"
         submitText="Update"
     >
         @method('PUT')
 
         <div class="form-group">
             <label>Status</label>
-            <select class="form-control" name="menu_id" id="menu_id" required>
-                <option value="" disabled selected>Pilih Status</option>
-                <option value="">Proses</option>
-                <option value="">Selesai</option>
+            <select class="form-control" name="status" required>
+                <option value="Proses">Proses</option>
+                <option value="Selesai">Selesai</option>
             </select>
         </div>
     </x-modal-form>
@@ -171,18 +173,9 @@
         title="Detail Permintaan"
     >
         <p class="text-muted">
-            Detail ini masih hanya teks biasa, mekanisme segera akan dikembangkan menjadi dinamis.
+            Detail pengajuan menu akan ditampilkan secara dinamis.
         </p>
     </x-modal-detail>
-
-    {{-- ================= MODAL DELETE ================= --}}
-    <x-modal-delete 
-        id="modalDeleteSubmission"
-        formId="formDeleteSubmission"
-        title="Konfirmasi Hapus"
-        message="Apakah Anda yakin ingin menghapus data ini?"
-        confirmText="Hapus"
-    />
 
 @endsection
 
@@ -192,14 +185,12 @@
         let kitchenId = this.value;
         let menuSelect = document.getElementById('menu_id');
 
-        // reset menu
         menuSelect.innerHTML = '<option value="" disabled selected>Loading...</option>';
 
-        fetch(`/dashboard/transaksi/pengajuan-menu/menu-by-kitchen/${kitchenId}`)
+        fetch(`/dashboard/transaksi/submission/menu/${kitchenId}`)
             .then(response => response.json())
             .then(data => {
                 menuSelect.innerHTML = '<option value="" disabled selected>Pilih Menu</option>';
-
                 data.forEach(menu => {
                     menuSelect.innerHTML += `
                         <option value="${menu.id}">
@@ -210,5 +201,4 @@
             });
     });
 </script>
-
 @endpush

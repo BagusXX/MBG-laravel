@@ -17,4 +17,10 @@ class BahanBaku extends Model
     {
         return $this->belongsTo(Kitchen::class);
     }
+
+    public function bahanBaku(){
+        return $this->hasMany(beli::class);
+    }
+    
+
 }
