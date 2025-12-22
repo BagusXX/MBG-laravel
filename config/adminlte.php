@@ -340,7 +340,7 @@ return [
                 [
                     'text' => 'Region',
                     'icon' => 'fas fa-map-marked-alt',
-                    'route' => 'master.region',
+                    'route' => 'master.region.index',
                 ],
 
                 [
@@ -354,11 +354,11 @@ return [
                     'icon' => 'fas fa-fw fa-carrot',
                     'route' => 'dashboard.master.bahan-baku.index',
                 ],
-                [
-                    'text' => 'Operasional',
-                    'icon' => 'fas fa-fw fa-clipboard-list',
-                    'route' => 'master.Operational',
-                ],
+                // [
+                //     'text' => 'Operasional',
+                //     'icon' => 'fas fa-fw fa-clipboard-list',
+                //     'route' => 'master.operational',
+                // ],
 
                 [
                     'text' => 'Nama Menu',
