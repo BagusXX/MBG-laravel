@@ -30,8 +30,8 @@ class BahanBakuController extends Controller
     {
         // Cari kode terakhir khusus dapur tertentu
         $lastItem = BahanBaku::where('kode', 'LIKE', "BN{$kodeDapur}%")
-                            ->orderBy('kode', 'desc')
-                            ->first();
+            ->orderBy('kode', 'desc')
+            ->first();
 
         // Jika belum ada data, mulai dari 111
         if (!$lastItem) {
@@ -44,7 +44,8 @@ class BahanBakuController extends Controller
         $nextNumber = $lastNumber + 1;
 
         // Batas maksimum 999
-        if ($nextNumber > 999) $nextNumber = 999;
+        if ($nextNumber > 999)
+            $nextNumber = 999;
 
         // Format angka menjadi tiga digit
         $num = str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
@@ -73,7 +74,7 @@ class BahanBakuController extends Controller
         ]);
 
         return redirect()->route('dashboard.master.bahan-baku.index')
-                        ->with('success', 'Bahan baku berhasil ditambahkan.');
+            ->with('success', 'Bahan baku berhasil ditambahkan.');
     }
 
 
@@ -84,6 +85,6 @@ class BahanBakuController extends Controller
         $item->delete();
 
         return redirect()->route('dashboard.master.bahan-baku.index')
-                         ->with('success', 'Bahan baku berhasil dihapus.');
+            ->with('success', 'Bahan baku berhasil dihapus.');
     }
 }

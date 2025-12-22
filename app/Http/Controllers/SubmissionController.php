@@ -6,60 +6,55 @@ use App\Models\Submission;
 use App\Models\Kitchen;
 use App\Models\Menu;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class SubmissionController extends Controller
 {
     public function index()
     {
-        $submission = Submission::with(['kitchen', 'menu'])->get();
-        $kitchens = Kitchen::all();
-        $menus = Menu::all();
-
-        return view(
-            'transaction.submission',
-            compact('submission', 'kitchens', 'menus')
-        );
+        return view('transaction.submission', [
+            'submissions' => Submission::with(['kitchen', 'menu'])->get(),
+            'kitchens'    => Kitchen::all(),
+            'menus'       => Menu::all(),
+        ]);
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'kode' => 'required',
+            'kode' => 'required|string',
             'tanggal' => 'required|date',
             'kitchen_id' => 'required|exists:kitchens,id',
             'menu_id' => [
-    'required',
-    // Rule::exists('menus', 'id')->where('kitchen_id', $request->kitchen_id),
-],
-
+                'required',
+                Rule::exists('menus', 'id')
+                    ->where('kitchen_id', $request->kitchen_id),
+            ],
             'porsi' => 'required|numeric|min:1',
         ]);
 
-        Submission::create([
-            'kode' => $request->kode,
-            'tanggal' => $request->tanggal,
-            'kitchen_id' => $request->kitchen_id,
-            'menu_id' => $request->menu_id,
-            'porsi' => $request->porsi,
-        ]);
+        Submission::create($request->only([
+            'kode',
+            'tanggal',
+            'kitchen_id',
+            'menu_id',
+            'porsi',
+        ]));
 
-        return redirect()->back()
-            ->with('success', 'Pengajuan menu berhasil ditambahkan.');
+        return back()->with('success', 'Pengajuan menu berhasil ditambahkan.');
     }
 
-    public function destroy($id)
+    public function destroy(Submission $submission)
     {
-        Submission::findOrFail($id)->delete();
+        $submission->delete();
 
-        return redirect()->back()
-            ->with('success', 'Pengajuan menu berhasil dihapus');
+        return back()->with('success', 'Pengajuan menu berhasil dihapus.');
     }
 
-    public function getMenuByKitchen($kitchenId)
+    public function getMenuByKitchen(Kitchen $kitchen)
     {
-        $menus = Menu::where('kitchen_id', $kitchenId)->get();
-
-        return response()->json($menus);
+        return response()->json(
+            $kitchen->menus()->select('id', 'nama')->get()
+        );
     }
-
 }

@@ -12,34 +12,35 @@ class UserController extends Controller
     // tampilkan halaman user
     public function index()
     {
-        $users = User::with('kitchen')->get();
+        $users = User::with(['kitchens','roles'])->get();
         $kitchens = Kitchen::all();
 
-        return view('setup.user', compact('users', 'kitchens'));
+        return view('setup.user', compact('users','kitchens'));
     }
 
     // simpan user baru
     public function store(Request $request)
 {
     $request->validate([
-        'nama' => 'required',
+        'nama' => 'required|string',
         'email' => 'required|email|unique:users,email',
-        'password' => 'required',
-        'kitchen_id' => 'required',
-        'role' => 'required',
+        'password' => 'required|string|min:6',
+        'kitchen_id' => 'required|exists:kitchens,id',
+        'role' => 'required|roles,name',
     ], [
         'email.unique' => 'Email sudah digunakan! Mohon gunakan nama lain.',
     ]);
 
-    User::create([
+    $user = User::create([
         'nama' => $request->nama,
         'email' => $request->email,
         'password' => Hash::make($request->password),
-        'kitchen_id' => $request->kitchen_id,
-        'role' => $request->role,
     ]);
 
-    return redirect()->back()->with('success', 'User berhasil ditambahkan.');
+    $user->assignRole($request->role);
+    $user->kitchens()->attach($request->kode);
+
+    return back()->with('success', 'User berhasil ditambahkan.');
 }
 
 
@@ -54,10 +55,10 @@ public function update(Request $request, $id)
         'email' => 'required|email|unique:users,email,' . $id,
         'password' => 'nullable|string',
         'kitchen_id' => 'required|exists:kitchens,id',
-        'role' => 'required|in:admin,superadmin',
+        'role' => 'required|exists:roles,name',
     ]);
 
-    $data = [
+    $user = [
         'nama' => $request->nama,
         'email' => $request->email,
         'kitchen_id' => $request->kitchen_id,

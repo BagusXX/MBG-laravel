@@ -16,21 +16,21 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Seed default roles
-        User::factory()->create([
-            'name' => 'Super Admin',
-            'email' => 'superadmin@example.com',
-            'password' => Hash::make('password'),
-            'role' => 'superadmin',
-        ]);
+        // // Seed default roles
+        // User::factory()->create([
+        //     'name' => 'Super Admin',
+        //     'email' => 'superadmin@example.com',
+        //     'password' => Hash::make('password'),
+        //     'role' => 'superadmin',
+        // ]);
 
-        User::factory()->create([
-            'name' => 'Admin',
-            'email' => 'admin@example.com',
-            'password' => Hash::make('password'),
-            'role' => 'admin',
-        ]);
-
-        $this->call(UserSeeder::class);
+        // User::factory()->create([
+        //     'name' => 'Admin',
+        //     'email' => 'admin@example.com',
+        //     'password' => Hash::make('password'),
+        //     'role' => 'admin',
+        // ]);
+        $this->call(KitchenSeeder::class);
+        $this->call(UserRoleSeeder::class);
     }
 }

@@ -37,7 +37,7 @@
                 </thead>
 
                 <tbody>
-                    @forelse ($submission as $item)
+                    @forelse ($submissions as $item)
                         <tr>
                             <td>{{ $item->kode }}</td>
                             <td>{{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('l, d F Y') }}</td>
@@ -67,7 +67,7 @@
                                 <x-button-delete 
                                     idTarget="#modalDeleteSubmission"
                                     formId="formDeleteSubmission"
-                                    action="{{ route('submissions.destroy', $item->id) }}"
+                                    action="{{ route('transaction.submission.destroy', $item->id) }}"
                                     text="Hapus"
                                 />
                             </td>
@@ -88,7 +88,7 @@
     <x-modal-form
         id="modalAddSubmission"
         title="Tambah Pengajuan Menu"
-        action="{{ route('submissions.store') }}"
+        action="{{ route('transaction.submission.store') }}"
         submitText="Simpan"
     >
         <div class="form-group">
@@ -186,7 +186,7 @@
         // reset menu
         menuSelect.innerHTML = '<option value="" disabled selected>Loading...</option>';
 
-        fetch(`/dashboard/transaksi/pengajuan-menu/menu-by-kitchen/${kitchenId}`)
+        fetch(`/dashboard/transaksi/submission/menu/${kitchenId}`)
             .then(response => response.json())
             .then(data => {
                 menuSelect.innerHTML = '<option value="" disabled selected>Pilih Menu</option>';

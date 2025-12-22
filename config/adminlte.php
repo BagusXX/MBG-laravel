@@ -86,7 +86,7 @@ return [
     'auth_logo' => [
         'enabled' => false,
         'img' => [
-            'path' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
+            'path' => 'vendor/adminlte/dist/img/Logo_mbg.png',
             'alt' => 'Auth Logo',
             'class' => '',
             'width' => 50,
@@ -329,19 +329,24 @@ return [
                 [
                     'text' => 'Dapur',
                     'icon' => 'fas fa-fw fa-fire-alt',
-                    'route' => 'master.kitchen',
+                    'route' => 'master.kitchen.index',
                 ],
 
                 [
                     'text' => 'Supplier',
                     'icon' => 'fas fa-store',
-                    'route' => 'master.supplier',
+                    'route' => 'master.supplier.index',
+                ],
+                [
+                    'text' => 'Region',
+                    'icon' => 'fas fa-map-marked-alt',
+                    'route' => 'master.region.index',
                 ],
 
                 [
                     'text' => 'Satuan',
                     'icon' => 'fas fa-sort-numeric-up',
-                    'route' => 'master.unit',
+                    'route' => 'master.unit.index',
                 ],
 
                 [
@@ -349,11 +354,16 @@ return [
                     'icon' => 'fas fa-fw fa-carrot',
                     'route' => 'dashboard.master.bahan-baku.index',
                 ],
+                // [
+                //     'text' => 'Operasional',
+                //     'icon' => 'fas fa-fw fa-clipboard-list',
+                //     'route' => 'master.operational',
+                // ],
 
                 [
                     'text' => 'Nama Menu',
                     'icon' => 'fas fa-fw fa-book-open',
-                    'route' => 'master.menu',
+                    'route' => 'master.menu.index',
                 ],
             ],
         ],
@@ -367,13 +377,13 @@ return [
                 [
                     'text' => 'User',
                     'icon' => 'fas fa-fw fa-users',
-                    'route' => 'setup.user',
+                    'route' => 'setup.user.index',
                 ],
 
                 [
                     'text' => 'Racik Menu',
                     'icon' => 'fas fa-fw fa-blender',
-                    'route' => 'setup.createmenu',
+                    'route' => 'recipe.index',
                 ],
 
             ],
@@ -388,22 +398,22 @@ return [
                 [
                     'text' => 'Pengajuan Menu',
                     'icon' => 'fas fa-fw fa-paper-plane',
-                    'route' => 'transaction.submission',
+                    'route' => 'transaction.submission.index',
                 ],
-                
+
                 [
                     'text' => 'Daftar Permintaan',
                     'icon' => 'fas fa-clipboard-list',
                     'route' => 'transaction.request-materials',
                 ],
 
-                
+
                 [
                     'text' => 'Jual Bahan Baku',
                     'icon' => 'fas fa-money-bill-wave',
                     'route' => 'transaction.sales-materials',
                 ],
-                
+
                 [
                     'text' => 'Beli Bahan Baku',
                     'icon' => 'fas fa-cart-plus',
