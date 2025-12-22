@@ -17,7 +17,7 @@ class UserRoleSeeder extends Seeder
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         // 1. Buat Roles
-        $roles = ['superAdmin', 'operatorkoperasi', 'operatorDapur', 'mitra', 'dirut'];
+        $roles = ['superadmin', 'operatorkoperasi', 'operatorDapur', 'mitra', 'dirut'];
         foreach ($roles as $role) {
             Role::firstOrCreate(['name' => $role, 'guard_name' => 'web']);
         }
@@ -25,9 +25,9 @@ class UserRoleSeeder extends Seeder
         // 2. Definisi Data User
         $userData = [
             [
-                'name' => 'SuperAdmin',
+                'name' => 'Superadmin',
                 'email' => 'superadmin@example.com',
-                'role' => 'superAdmin',
+                'role' => 'superadmin',
                 'access_kitchens' => ['KITCH-01', 'KITCH-02'], // Akses semua
             ],
             [

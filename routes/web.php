@@ -15,10 +15,10 @@ use App\Http\Controllers\SubmissionController;
 require __DIR__ . '/auth.php';
 
 Route::get('/', function () {
-    return redirect()->route('login');
+    return redirect()->route('dashboard.master.bahan-baku.index');
 });
 
-Route::middleware(['auth', 'role:superAdmin'])->group(function () {
+Route::middleware(['auth', 'role:superadmin'])->group(function () {
 
     Route::prefix('dashboard/master/bahan-baku')
         ->name('dashboard.master.bahan-baku.')
@@ -77,9 +77,6 @@ Route::middleware(['auth', 'role:superAdmin'])->group(function () {
             Route::post('/', 'store')->name('store');
         });
 
-    
-
-    
     Route::prefix('dashboard/transaksi/pengajuan-menu')
         ->name('transaction.submission.')
         ->controller(SubmissionController::class)
