@@ -11,8 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('regions', function (Blueprint $table) {
-            $table->string('kode_region', 5)->after('id')->unique();
+        Schema::create('regions', function (Blueprint $table) {
+            $table->id();
+            $table->string('kode_region', 5)->unique();
+            $table->string('nama_region');
+            $table->string('penanggung_jawab');
+            $table->timestamps();
         });
     }
 
@@ -21,8 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('regions', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('regions');
     }
 };
