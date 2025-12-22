@@ -35,7 +35,7 @@ Route::middleware(['auth', 'role:admin'])
         return 'Dashboard Admin';
     });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
 
 //BAHAN BAKU
 Route::middleware(['auth'])->group(function () {
@@ -50,8 +50,9 @@ Route::middleware(['auth'])->group(function () {
     // Hapus bahan baku
     Route::delete('dashboard/master/bahan-baku/{id}', [BahanBakuController::class, 'destroy'])
         ->name('dashboard.master.bahan-baku.index.destroy');
-    
-    Route::get('dashboard/master/bahan-baku/generate-code/{kitchenId}', 
+
+    Route::get(
+        'dashboard/master/bahan-baku/generate-code/{kitchenId}',
         [BahanBakuController::class, 'generateKodeAjax']
     )->name('dashboard.master.bahan-baku.index.generateCode');
 });
@@ -59,16 +60,16 @@ Route::middleware(['auth'])->group(function () {
 // UNIT <--> SATUAN
 Route::middleware(['auth'])->group(function () {
     Route::get('dashboard/master/satuan', [UnitController::class, 'index'])
-    ->name('master.unit');
-    
+        ->name('master.unit');
+
     Route::post('dashboard/master/satuan', [UnitController::class, 'store'])
-    ->name('master.unit.store');
+        ->name('master.unit.store');
 
     Route::put('dashboard/master/satuan/{id}', [UnitController::class, 'update'])
-    ->name('master.unit.update');
-    
+        ->name('master.unit.update');
+
     Route::delete('dashboard/master/satuan/{id}', [UnitController::class, 'destroy'])
-    ->name('master.unit.destroy');
+        ->name('master.unit.destroy');
 });
 
 //MENU
@@ -138,9 +139,17 @@ Route::middleware(['auth'])->group(function () {
         ->name('setup.createmenu.store');
 });
 
-Route::get('dashboard/master/supplier', function() {
+Route::get('dashboard/master/supplier', function () {
     return view('master.supplier');
 })->name('master.supplier');
+
+Route::get('dashboard/master/region', function () {
+    return view('master.region');
+})->name('master.region');
+
+Route::get('dashboard/master/operational', function () {
+    return view('master.Operational');
+})->name('master.Operational');
 
 Route::get('/dashboard/transaksi/pengajuan-menu', [SubmissionController::class, 'index'])
     ->name('transaction.submission');
@@ -213,8 +222,7 @@ Route::middleware(['auth'])->group(function () {
     )->name('submissions.destroy');
 
     Route::get(
-    '/dashboard/transaksi/pengajuan-menu/menu-by-kitchen/{kitchen}',
-    [SubmissionController::class, 'getMenuByKitchen']
+        '/dashboard/transaksi/pengajuan-menu/menu-by-kitchen/{kitchen}',
+        [SubmissionController::class, 'getMenuByKitchen']
     )->name('submissions.menu-by-kitchen');
 });
-

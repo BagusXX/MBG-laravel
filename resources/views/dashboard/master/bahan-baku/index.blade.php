@@ -25,12 +25,11 @@
                 <thead>
                     <tr>
                         <th>No</th>
-                        <th>Kode</th> {{-- Tambah kolom kode bahan baku --}}
+                        <th>Kode</th> 
                         <th>Nama Bahan</th>
-                        {{-- <th>Stok</th> --}}
                         <th>Satuan</th>
-                        <th>Harga Dasar</th>
-                        {{-- <th>Dapur</th> Tambah kolom dapur --}}
+                        <th>Harga Dapur</th>
+                        <th>Harga Mitra</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -40,10 +39,9 @@
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $item->kode }}</td>
                             <td>{{ $item->nama }}</td>
-                            {{-- <td>{{ $item->stok }}</td> --}}
                             <td>{{ $item->satuan }}</td>
-                            <td>Rp {{ number_format($item->harga, 0, ',', '.') }}</td>
-                            {{-- <td>{{ $item->kitchen->nama ?? '-' }}</td> Nama dapur --}}
+                            <td>Rp {{ number_format($item->harga_dapur, 0, ',', '.') }}</td>
+                            <td>Rp {{ number_format($item->harga_mitra, 0, ',', '.') }}</td>
                             <td>
                                 {{-- BUTTON EDIT --}}
                                 <button
@@ -53,7 +51,8 @@
                                     data-kode="{{ $item->kode }}"
                                     data-nama="{{ $item->nama }}"
                                     data-satuan="{{ $item->satuan }}"
-                                    data-harga="{{ $item->harga }}"
+                                    data-harga-dapur="{{ $item->harga_dapur }}"
+                                    data-harga-mitra="{{ $item->harga_mitra }}"
                                     data-dapur-id="{{ $item->kitchen_id }}"
                                     data-old-kode="{{ $item->kode }}"
                                     data-old-dapur-id="{{ $item->kitchen_id }}"
@@ -106,10 +105,6 @@
             <label>Nama Bahan</label>
             <input type="text" placeholder="Bawang Merah" class="form-control" name="nama" required>
         </div>
-        {{-- <div class="form-group">
-            <label>Jumlah</label>
-            <input type="number" placeholder="20" class="form-control" name="stok" required>
-        </div> --}}
         <div class="form-group">
             <label>Satuan</label>
             <select class="form-control" name="satuan" required>
@@ -121,8 +116,13 @@
         </div>
 
         <div class="form-group">
-            <label>Harga Dasar</label>
-            <input type="number" placeholder="10000" class="form-control" name="harga" required>
+            <label>Harga Dapur</label>
+            <input type="number" placeholder="10000" class="form-control" name="harga_dapur" required>
+        </div>
+
+        <div class="form-group">
+            <label>Harga Mitra</label>
+            <input type="number" placeholder="10000" class="form-control" name="harga_mitra" required>
         </div>
 
         <div class="form-group mt-2">
@@ -172,8 +172,13 @@
         </div>
 
         <div class="form-group">
-            <label>Harga Dasar</label>
-            <input id="editHarga" type="number" class="form-control" name="harga" required>
+            <label>Harga Dapur</label>
+            <input id="editHargaDapur" type="number" class="form-control" name="harga_dapur" required>
+        </div>
+
+        <div class="form-group">
+            <label>Harga Mitra</label>
+            <input id="editHargaMitra" type="number" class="form-control" name="harga_mitra" required>
         </div>
 
         <div class="form-group mt-2">
