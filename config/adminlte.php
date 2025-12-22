@@ -379,6 +379,12 @@ return [
                     'icon' => 'fas fa-fw fa-users',
                     'route' => 'setup.user.index',
                 ],
+                
+                [
+                    'text' => 'Role',
+                    'icon' => 'fas fa-user-cog',
+                    'route' => 'setup.role.index',
+                ],
 
                 [
                     'text' => 'Racik Menu',

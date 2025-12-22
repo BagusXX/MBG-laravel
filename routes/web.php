@@ -13,6 +13,7 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SubmissionController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\RoleController;
 
 require __DIR__ . '/auth.php';
 
@@ -78,6 +79,13 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
             Route::post('/', 'store')->name('store');
             Route::delete('/{id}', 'destroy')->name('destroy');
             Route::put('/{id}', 'update')->name('update');
+        });
+
+    Route::prefix('dashboard/setup/role')
+        ->name('setup.role.')
+        ->controller(RoleController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
         });
 
     Route::prefix('dashboard/setup/racik-menu')
