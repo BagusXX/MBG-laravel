@@ -65,7 +65,7 @@
                                 <x-button-delete 
                                     idTarget="#modalDeleteMaterials"
                                     formId="formDeleteMaterials"
-                                    action="{{ route('dashboard.master.bahan-baku.index.destroy', $item->id) }}"
+                                    action="{{ route('dashboard.master.bahan-baku.destroy', $item->id) }}"
                                     text="Hapus"
                                 />
                             </td>
@@ -88,7 +88,7 @@
     <x-modal-form 
         id="modalAddMaterials" 
         title="Tambah Bahan Baku" 
-        action="{{ route('dashboard.master.bahan-baku.index.store') }}"
+        action="{{ route('dashboard.master.bahan-baku.index') }}"
         submitText="Simpan"
     >
         <div class="form-group">

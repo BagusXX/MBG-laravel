@@ -6,17 +6,17 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 // use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
+use App\Models\Kitchen;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasRoles, HasFactory, Notifiable;
 
     protected $fillable = [
         'name',
         'email',
         'password',
-        'role',
-        'kitchen_id',
     ];
 
     protected $hidden = [
@@ -32,8 +32,8 @@ class User extends Authenticatable
         ];
     }
 
-    public function kitchen()
+    public function kitchens()
     {
-        return $this->belongsTo(Kitchen::class);
+        return $this->belongsToMany(Kitchen::class, 'kitchen_user', 'user_id', 'kitchen_kode', 'id', 'kode');
     }
 }
