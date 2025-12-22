@@ -13,6 +13,8 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SubmissionController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SaleMaterialsKitchenController;
+use App\Http\Controllers\SaleMaterialsPartnerController;
 
 require __DIR__ . '/auth.php';
 
@@ -103,6 +105,20 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
             Route::post('/', 'store')->name('store');
             Route::delete('/{id}', 'destroy')->name('destroy');
             Route::get('/menu-by-kitchen/{kitchen}', 'getMenuByKitchen')->name('menu-by-kitchen');
+        });
+    
+    Route::prefix('dashboard/transaksi/jual-bahan-baku-dapur')
+        ->name('transaction.sale-materials-kitchen.')
+        ->controller(SaleMaterialsKitchenController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+        });
+    
+    Route::prefix('dashboard/transaksi/jual-bahan-baku-mitra')
+        ->name('transaction.sale-materials-partner.')
+        ->controller(SaleMaterialsPartnerController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
         });
 
     Route::prefix('dashboard/master/supplier')
