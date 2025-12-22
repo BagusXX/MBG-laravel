@@ -8,14 +8,9 @@ class region extends Model
 {
     //
     protected $table = 'regions';
-
     protected $fillable = [
+        'kode_region',
         'nama_region',
-        'kode_region'
+        'penanggung_jawab',
     ];
-
-    public function suppliers()
-    {
-        return $this->hasMany(Supplier::class);
-    }
 }

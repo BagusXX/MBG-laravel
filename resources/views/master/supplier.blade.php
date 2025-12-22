@@ -35,6 +35,7 @@
                         <th>Kode</th>
                         <th>Nama</th>
                         <th>Alamat</th>
+                        <th>Region</th>
                         <th>Kontak Person</th>
                         <th>Nomor</th>
                         <th>Aksi</th>
@@ -47,6 +48,7 @@
                             <td>{{ $supplier->kode }}</td>
                             <td>{{ $supplier->nama }}</td>
                             <td>{{ $supplier->alamat }}</td>
+                            <td>{{ $supplier->region }}</td>
                             <td>{{ $supplier->kontak_person }}</td>
                             <td>{{ $supplier->nomor }}</td>
                             <td>
@@ -106,6 +108,10 @@
             <label for="alamat_supplier">Alamat</label>
             <input id="alamat_supplier" type="text" name="alamat" class="form-control" required />
         </div>
+        <div class="form-group mt-2">
+            <label for="alamat_supplier">Region</label>
+            <input id="alamat_supplier" type="text" name="region" class="form-control" required />
+        </div>
         
         <div class="form-group mt-2">
             <label for="kontak_supplier">Kontak Person</label>
@@ -146,6 +152,10 @@
         <div class="form-group">
             <label>Alamat</label>
             <input type="text" id="" name="alamat" class="form-control" required />
+        </div>
+        <div class="form-group">
+            <label>Region</label>
+            <input type="text" id="" name="region" class="form-control" required />
         </div>
         
         <div class="form-group">

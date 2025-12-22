@@ -86,7 +86,7 @@ return [
     'auth_logo' => [
         'enabled' => false,
         'img' => [
-            'path' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
+            'path' => 'vendor/adminlte/dist/img/Logo_mbg.png',
             'alt' => 'Auth Logo',
             'class' => '',
             'width' => 50,
@@ -337,6 +337,11 @@ return [
                     'icon' => 'fas fa-store',
                     'route' => 'master.supplier.index',
                 ],
+                [
+                    'text' => 'Region',
+                    'icon' => 'fas fa-map-marked-alt',
+                    'route' => 'master.region.index',
+                ],
 
                 [
                     'text' => 'Satuan',
@@ -349,6 +354,11 @@ return [
                     'icon' => 'fas fa-fw fa-carrot',
                     'route' => 'dashboard.master.bahan-baku.index',
                 ],
+                // [
+                //     'text' => 'Operasional',
+                //     'icon' => 'fas fa-fw fa-clipboard-list',
+                //     'route' => 'master.operational',
+                // ],
 
                 [
                     'text' => 'Nama Menu',
@@ -390,20 +400,20 @@ return [
                     'icon' => 'fas fa-fw fa-paper-plane',
                     'route' => 'transaction.submission.index',
                 ],
-                
+
                 [
                     'text' => 'Daftar Permintaan',
                     'icon' => 'fas fa-clipboard-list',
                     'route' => 'transaction.request-materials',
                 ],
 
-                
+
                 [
                     'text' => 'Jual Bahan Baku',
                     'icon' => 'fas fa-money-bill-wave',
                     'route' => 'transaction.sales-materials',
                 ],
-                
+
                 [
                     'text' => 'Beli Bahan Baku',
                     'icon' => 'fas fa-cart-plus',

@@ -11,6 +11,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SubmissionController;
+use App\Http\Controllers\RegionController;
 
 require __DIR__ . '/auth.php';
 
@@ -52,6 +53,15 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
     Route::prefix('dashboard/master/dapur')
         ->name('master.kitchen.')
         ->controller(KitchenController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'store')->name('store');
+            Route::delete('/{id}', 'destroy')->name('destroy');
+            Route::put('/{id}', 'update')->name('update');
+        });
+    Route::prefix('dashboard/master/region')
+        ->name('master.region.')
+        ->controller(RegionController::class)
         ->group(function () {
             Route::get('/', 'index')->name('index');
             Route::post('/', 'store')->name('store');
@@ -148,5 +158,4 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
                 return view('report.sales-materials');
             })->name('sales-materials');
         });
-
 });
