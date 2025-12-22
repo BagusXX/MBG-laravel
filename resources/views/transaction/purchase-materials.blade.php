@@ -36,21 +36,17 @@
                         <td></td>
                         <td></td>
                         <td>
-                            <button 
-                                type="button" 
-                                class="btn btn-primary btn-sm" 
-                                data-toggle="modal" 
-                                data-target="#modalDetailPurchase"
-                            >
+                            <button type="button" class="btn btn-primary btn-sm" data-toggle="modal"
+                                data-target="#modalDetailPurchase">
                                 Detail
                             </button>
-                            <button 
-                                type="button" 
-                                class="btn btn-sm btn-success btnEditPurchaseMaterials"
-                                data-toggle="modal"
-                                data-target="#modalEditPurchaseMaterials"
-                            >
-                                Beli
+                            <button type="button" class="btn btn-sm btn-success btnEditPurchaseMaterials" data-toggle="modal"
+                                data-target="#modalEditPurchaseMaterials">
+                                Edit
+                            </button>
+                            <button type="button" class="btn btn-sm btn-warning btnEditPurchaseMaterials"
+                                data-toggle="modal" data-target="#modalPrintPurchaseMaterials">
+                                Print Invoice
                             </button>
                             {{-- <x-button-delete
                                 idTarget="#modalDeletePurchaseMaterials"
@@ -66,26 +62,14 @@
     </div>
 
     {{-- MODAL ADD --}}
-    <x-modal-form
-        id="modalAddPurchaseMaterials"
-        size="modal-lg"
-        title="Tambah Pemesanan Bahan Baku"
-        action="#"
-        submitText="Simpan"
-    >
+    <x-modal-form id="modalAddPurchaseMaterials" size="modal-lg" title="Tambah Pemesanan Bahan Baku" action="#"
+        submitText="Simpan">
         <div class="d-flex align-items-center">
             <div class="form-group">
                 <label>Kode</label>
-                <input 
-                    id="kode_transaksi_beli"
-                    type="text"
-                    class="form-control"
-                    name="kode"
-                    readonly
-                    required
-                />
+                <input id="kode_transaksi_beli" type="text" class="form-control" name="kode" readonly required />
             </div>
-    
+
             <div class="form-group flex-fill ml-2">
                 <label>Tanggal Beli</label>
                 <input type="date" class="form-control" name="tanggal" required />
@@ -126,13 +110,14 @@
                             <option value="" disabled selected>Pilih Satuan</option>
                         </select>
                     </div>
-                    
+
                     <div class="col-md-3">
                         <input type="number" name="harga[]" class="form-control" required />
                     </div>
 
                     <div class="col-md-1">
-                        <button type="button" class="btn btn-outline-danger btn-sm remove-bahan d-none h-100" style="width: 35px;">
+                        <button type="button" class="btn btn-outline-danger btn-sm remove-bahan d-none h-100"
+                            style="width: 35px;">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
@@ -146,23 +131,13 @@
     </x-modal-form>
 
     {{-- MODAL EDIT PURCHASE MATERIALS --}}
-    <x-modal-form
-        id="modalEditPurchaseMaterials"
-        size="modal-lg"
-        title="Beli Bahan Baku"
-        action=""
-        submitText="Beli"
-    >
+    <x-modal-form id="modalEditPurchaseMaterials" size="modal-lg" title="Beli Bahan Baku" action="" submitText="Beli">
         @method('PUT')
 
     </x-modal-form>
 
     {{-- MODAL DETAIL PURCHASE MATERIALS --}}
-    <x-modal-detail
-        id="modalDetailPurchase"
-        size="modal-lg"
-        title="Pemesanan Bahan Baku"
-    >
+    <x-modal-detail id="modalDetailPurchase" size="modal-lg" title="Pemesanan Bahan Baku">
         <div>
             <div>
                 <p class="font-weight-bold mb-0">Kode:</p>
@@ -208,22 +183,17 @@
     </x-modal-detail>
 
     {{-- MODAL DELETE --}}
-    <x-modal-delete 
-        id="modalDeletePurchaseMaterials"
-        formId="formDeletePurchaseMaterials"
-        title="Konfirmasi Hapus"
-        message="Apakah Anda yakin ingin menghapus data ini?"
-        confirmText="Hapus"
-    />
+    <x-modal-delete id="modalDeletePurchaseMaterials" formId="formDeletePurchaseMaterials" title="Konfirmasi Hapus"
+        message="Apakah Anda yakin ingin menghapus data ini?" confirmText="Hapus" />
 @endsection
 
 @push('js')
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             const wrapper = document.getElementById('bahan-wrapper');
             const addBtn = document.getElementById('add-bahan');
 
-            addBtn.addEventListener('click', function () {
+            addBtn.addEventListener('click', function() {
                 const firstRow = wrapper.querySelector('.bahan-group');
                 const newRow = firstRow.cloneNode(true);
 
@@ -237,7 +207,7 @@
                 removeBtn.classList.remove('d-none');
 
                 // Tambahkan event hapus
-                removeBtn.addEventListener('click', function () {
+                removeBtn.addEventListener('click', function() {
                     newRow.remove();
                 });
 
@@ -247,8 +217,8 @@
 
             // Event hapus untuk row pertama (opsional)
             const firstRemoveBtn = wrapper.querySelector('.remove-bahan');
-            if(firstRemoveBtn){
-                firstRemoveBtn.addEventListener('click', function () {
+            if (firstRemoveBtn) {
+                firstRemoveBtn.addEventListener('click', function() {
                     firstRemoveBtn.closest('.bahan-group').remove();
                 });
             }

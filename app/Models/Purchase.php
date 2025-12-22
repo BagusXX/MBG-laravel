@@ -4,11 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class beli extends Model
+class Purchase extends Model
 {
     //
 
-    protected $table = 'belis';
+    protected $table = 'purchase';
 
     protected $fillable = [
         'harga_mitra',
@@ -18,13 +18,13 @@ class beli extends Model
         'recipe_bahan_baku_id'
     ];
 
-    public function supplier(){
+    public function supplier()
+    {
         return $this->belongsTo(Supplier::class);
     }
 
-    public function bahanBaku(){
+    public function bahanBaku()
+    {
         return $this->belongsTo(BahanBaku::class);
     }
-
-
 }
