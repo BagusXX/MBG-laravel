@@ -50,10 +50,12 @@
                             <td>{{ $region->penanggung_jawab }}</td>
                             <td>
                                 <button 
-                                    type="button" 
-                                    class="btn btn-sm btn-warning btnEditRegion"
-                                    data-toggle="modal"
-                                    data-target="#modalEditRegion"
+                                class="btn btn-warning btn-sm"
+                                onclick="editRegion(this)"
+                                data-id="{{ $region->id }}"
+                                data-kode="{{ $region->kode_region }}"
+                                data-nama="{{ $region->nama_region }}"
+                                data-pj="{{ $region->penanggung_jawab }}"
                                 >
                                     Edit    
                                 </button>
@@ -91,7 +93,7 @@
             <input 
                 type="text" 
                 name="kode_region" 
-                id="kode_region"
+                id="add_kode_region"
                 class="form-control"
                 value="{{ $nextKode }}" 
                 readonly 
@@ -114,7 +116,7 @@
     <x-modal-form
         id="modalEditRegion"
         title="Edit Region"
-        action="{{ route('master.region.update', $region->id) }}"
+        action=""
         submitText="Update"
     >
         @method('PUT')
@@ -126,7 +128,7 @@
                 type="text" 
                 name="kode_region" 
                 class="form-control" 
-                id="kode_region"
+                id="edit_kode_region"
                 readonly
                 required />
         </div>
@@ -151,3 +153,22 @@
         confirmText="Hapus" 
     />  
 @endsection
+
+<script>
+function editRegion(button) {
+    const id = button.dataset.id;
+
+    const form = document.querySelector('#modalEditRegion form');
+    form.action = `/dashboard/master/region/${id}`;
+
+    // isi input
+    document.getElementById('edit_id').value = id;
+    document.getElementById('edit_kode_region').value = button.dataset.kode;
+    document.getElementById('nama_region').value = button.dataset.nama;
+    document.getElementById('penanggung_jawab').value = button.dataset.pj;
+
+    // tampilkan modal
+    $('#modalEditRegion').modal('show');
+}
+</script>
+

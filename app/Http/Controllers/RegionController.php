@@ -68,6 +68,7 @@ class RegionController extends Controller
 
         $region = Region::findOrFail($id);
         $region->update([
+            'kode_region' => $request->kode_region,
             'nama_region' => $request->nama_region,
             'penanggung_jawab' => $request->penanggung_jawab,
         ]);
