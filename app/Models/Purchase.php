@@ -8,7 +8,7 @@ class Purchase extends Model
 {
     //
 
-    protected $table = 'purchase';
+    // protected $table = 'purchase';
 
     protected $fillable = [
         'harga_mitra',

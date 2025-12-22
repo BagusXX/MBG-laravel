@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Purchase;
 use Illuminate\Http\Request;
 
 class PurchaseController extends Controller
 {
     public function index()
     {
-        return view('transaction.purchase');
+        $purchases = Purchase::with('supplier')->get();
+        return view('transaction.purchase-materials', compact('purchases'));
     }
 }

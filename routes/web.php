@@ -12,6 +12,7 @@ use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SubmissionController;
 use App\Http\Controllers\RegionController;
+use App\Http\Controllers\PurchaseController;
 
 require __DIR__ . '/auth.php';
 
@@ -116,33 +117,36 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
     //         })->name('supplier');
     //     });
 
-   Route::prefix('dashboard/transaksi')
-    ->name('transaction.')
-    ->controller(SubmissionController::class)
-    ->group(function () {
+    Route::prefix('dashboard/transaksi')
+        ->name('transaction.')
+        ->controller(SubmissionController::class)
+        ->group(function () {
 
-        // submission
-        Route::get('/submission', 'index')->name('submission');
-        Route::post('/submission', 'store')->name('submission.store');
-        Route::delete('/submission/{submission}', 'destroy')->name('submission.destroy');
+            // submission
+            Route::get('/submission', 'index')->name('submission');
+            Route::post('/submission', 'store')->name('submission.store');
+            Route::delete('/submission/{submission}', 'destroy')->name('submission.destroy');
 
-        // ajax get menu by kitchen
-        Route::get('/submission/menu/{kitchen}', 'getMenuByKitchen')
-            ->name('submission.menu');
+            // ajax get menu by kitchen
+            Route::get('/submission/menu/{kitchen}', 'getMenuByKitchen')
+                ->name('submission.menu');
 
-        // halaman lain
-        Route::get('/daftar-pemesanan', [SubmissionController::class, 'index'])
-    ->name('request-materials');
+            // halaman lain
+            Route::get('/daftar-pemesanan', [SubmissionController::class, 'index'])
+                ->name('request-materials');
 
 
-        Route::get('/penjualan-bahan-baku', fn () =>
-            view('transaction.sales-materials')
-        )->name('sales-materials');
+            Route::get(
+                '/penjualan-bahan-baku',
+                fn() =>
+                view('transaction.sales-materials')
+            )->name('sales-materials');
 
-        Route::get('/pembelian-bahan-baku', fn () =>
-            view('transaction.purchase-materials')
-        )->name('purchase-materials');
-    });
+            Route::get(
+                '/pembelian-bahan-baku',
+                [PurchaseController::class, 'index']
+            )->name('purchase-materials');
+        });
 
 
     Route::prefix('dashboard/laporan')

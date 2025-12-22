@@ -30,32 +30,36 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td>
-                            <button type="button" class="btn btn-primary btn-sm" data-toggle="modal"
-                                data-target="#modalDetailPurchase">
-                                Detail
-                            </button>
-                            <button type="button" class="btn btn-sm btn-success btnEditPurchaseMaterials" data-toggle="modal"
-                                data-target="#modalEditPurchaseMaterials">
-                                Edit
-                            </button>
-                            <button type="button" class="btn btn-sm btn-warning btnEditPurchaseMaterials"
-                                data-toggle="modal" data-target="#modalPrintPurchaseMaterials">
-                                Print Invoice
-                            </button>
-                            {{-- <x-button-delete
+                    @foreach ($purchases as $purchase)
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td>
+                                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal"
+                                    data-target="#modalDetailPurchase" data-id="{{ $purchase->id }}">
+                                    Detail
+                                </button>
+                                <button type="button" class="btn btn-sm btn-success btnEditPurchaseMaterials"
+                                    data-toggle="modal" data-target="#modalEditPurchaseMaterials"
+                                    data-id="{{ $purchase->id }}>
+                                    Edit
+                                </button>
+                                <button type="button"
+                                    class="btn btn-sm btn-warning btnEditPurchaseMaterials" data-toggle="modal"
+                                    data-target="#modalPrintPurchaseMaterials" data-id="{{ $purchase->id }}">
+                                    Print Invoice
+                                </button>
+                                {{-- <x-button-delete
                                 idTarget="#modalDeletePurchaseMaterials"
                                 formId="formDeletePurchaseMaterials"
                                 action="#"
                                 text="Hapus"
                             /> --}}
-                        </td>
-                    </tr>
+                            </td>
+                        </tr>
+                    @endforeach
                 </tbody>
             </table>
         </div>
