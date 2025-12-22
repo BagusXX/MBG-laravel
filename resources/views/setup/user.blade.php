@@ -10,19 +10,20 @@
     <h1>User</h1>
 @endsection
 
-@if ($errors->any())
-    <div class="alert alert-danger">
-        <ul class="mb-0">
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
-
 @section('content')
+    {{-- Notifikasi Error Validasi --}}
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <x-button-add idTarget="#modalAddUser" text="Tambah User" />
-    
+
     <x-notification-pop-up />
 
     <div class="card mt-3">
@@ -33,7 +34,6 @@
                         <th>No</th>
                         <th>Nama</th>
                         <th>Email</th>
-                        <th>Password</th>
                         <th>Dapur</th>
                         <th>Role</th>
                         <th>Aksi</th>
@@ -42,34 +42,46 @@
 
                 <tbody>
                     @foreach ($users as $user)
-                    <tr>
-                        <td>{{ $loop->iteration }}</td>
-                        <td>{{ $user->name }}</td>
-                        <td>{{ $user->email }}</td>
-                        <td>•••••••</td>
-                        <td>{{ $user->kitchen?->nama ?? '-' }}</td>
-                        <td>{{ $user->role }}</td>
-                        <td>
+                        <tr>
+                            <td>{{ $loop->iteration }}</td>
+                            <td>{{ $user->name }}</td>
+                            <td>{{ $user->email }}</td>
 
-                            {{-- Tombol Edit --}}
-                            <button class="btn btn-warning btn-sm"
-                                data-toggle="modal"
-                                data-target="#modalEditUser{{ $user->id }}">
-                                Edit
-                            </button>
+                            {{-- MENAMPILKAN KITCHEN --}}
+                            <td>
+                                @if($user->kitchens->isNotEmpty())
+                                    @foreach($user->kitchens as $k)
+                                        <span class="badge badge-info">{{ $k->nama }}</span>
+                                    @endforeach
+                                @else
+                                    <span class="badge badge-secondary">Tidak ada</span>
+                                @endif
+                            </td>
 
-                            {{-- Tombol Hapus --}}
-                            <x-button-delete
-                                idTarget="#modalDeleteUser"
-                                formId="formDeleteUser"
-                                action="{{ route('setup.user.destroy', $user->id) }}"
-                                text="Hapus"
-                            />
-                        </td>
-                    </tr>
+                            {{-- MENAMPILKAN ROLE --}}
+                            <td>
+                                @if(!empty($user->getRoleNames()))
+                                    @foreach($user->getRoleNames() as $roleName)
+                                        <span class="badge badge-primary">{{ $roleName }}</span>
+                                    @endforeach
+                                @endif
+                            </td>
+
+                            <td>
+                                {{-- Tombol Edit --}}
+                                <button class="btn btn-warning btn-sm" data-toggle="modal"
+                                    data-target="#modalEditUser{{ $user->id }}">
+                                    Edit
+                                </button>
+
+                                {{-- Tombol Hapus --}}
+                                <x-button-delete idTarget="#modalDeleteUser{{ $user->id }}"
+                                    formId="formDeleteUser{{ $user->id }}" action="{{ route('setup.user.destroy', $user->id) }}"
+                                    text="Hapus" />
+                            </td>
+                        </tr>
                     @endforeach
                 </tbody>
-
             </table>
         </div>
     </div>
@@ -77,24 +89,17 @@
     {{-- ===========================
          MODAL TAMBAH USER
        =========================== --}}
-    <x-modal-form
-        id="modalAddUser"
-        title="Tambah User"
-        action="{{ route('setup.user.store') }}"
-        submiText="Simpan"
-    >
+    <x-modal-form id="modalAddUser" title="Tambah User" action="{{ route('setup.user.store') }}" submiText="Simpan">
         @csrf
 
         <div class="form-group">
             <label>Nama</label>
-            <input type="text" placeholder="Nama User"
-                class="form-control" name="nama" id="namaInput" required>
+            <input type="text" placeholder="Nama User" class="form-control" name="name" id="namaInput" required>
         </div>
 
         <div class="form-group">
             <label>Email</label>
-            <input type="text" id="autoEmail" class="form-control"
-                name="email" required>
+            <input type="email" id="autoEmail" class="form-control" name="email" required>
         </div>
 
         <div class="form-group">
@@ -102,22 +107,33 @@
             <input type="password" placeholder="Masukkan password" class="form-control" name="password" required>
         </div>
 
+        {{-- AREA INPUT DAPUR DINAMIS (ADD) --}}
         <div class="form-group">
             <label>Dapur</label>
-            <select class="form-control" name="kitchen_id" required>
-                <option value="" disabled selected>Pilih Dapur</option>
-                @foreach($kitchens as $kitchen)
-                    <option value="{{ $kitchen->id }}">{{ $kitchen->nama }}</option>
-                @endforeach
-            </select>
+            <div id="kitchen-wrapper-add">
+                {{-- Default 1 Input --}}
+                <div class="input-group mb-2">
+                    <select class="form-control" name="kitchen_kode[]" required>
+                        <option value="" disabled selected>Pilih Dapur</option>
+                        @foreach($kitchens as $kitchen)
+                            <option value="{{ $kitchen->kode }}">{{ $kitchen->nama }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            {{-- Tombol Tambah --}}
+            <button type="button" class="btn btn-success btn-sm mt-1" onclick="addKitchenRow('kitchen-wrapper-add')">
+                <i class="fas fa-plus"></i> Tambah Dapur Lain
+            </button>
         </div>
 
         <div class="form-group">
             <label>Role</label>
             <select class="form-control" name="role" required>
                 <option value="" disabled selected>Pilih Role</option>
-                <option value="admin">Admin</option>
-                <option value="superadmin">Superadmin</option>
+                @foreach($roles as $role)
+                    <option value="{{ $role->name }}">{{ $role->name }}</option>
+                @endforeach
             </select>
         </div>
 
@@ -125,96 +141,150 @@
 
 
     {{-- ===========================
-         MODAL EDIT USER
+         LOOPING MODAL EDIT & DELETE
        =========================== --}}
     @foreach ($users as $user)
-    <x-modal-form
-        id="modalEditUser{{ $user->id }}"
-        title="Edit User"
-        action="{{ route('setup.user.update', $user->id) }}"
-        submiText="Update"
-    >
-        @csrf
-        @method('PUT')
 
-        <div class="form-group">
-            <label>Nama</label>
-            <input type="text" class="form-control" name="nama"
-                   value="{{ $user->name }}" required>
-        </div>
+        {{-- MODAL EDIT --}}
+        <x-modal-form id="modalEditUser{{ $user->id }}" title="Edit User" action="{{ route('setup.user.update', $user->id) }}"
+            submiText="Update">
+            @csrf
+            @method('PUT')
 
-        <div class="form-group">
-            <label>Email</label>
-            <input type="text" class="form-control" name="email"
-                   value="{{ $user->email }}" required>
-        </div>
+            <div class="form-group">
+                <label>Nama</label>
+                <input type="text" class="form-control" name="name" value="{{ $user->name }}" required>
+            </div>
 
-        <div class="form-group">
-            <label>Password (kosongkan jika tidak diganti)</label>
-            <input type="password" class="form-control" name="password">
-        </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" class="form-control" name="email" value="{{ $user->email }}" required>
+            </div>
 
-        <div class="form-group">
-            <label>Dapur</label>
-            <select class="form-control" name="kitchen_id" required>
-                <option value="" disabled selected>Pilih Dapur</option>
-                @foreach($kitchens as $kitchen)
-                    <option 
-                        value="{{ $kitchen->id }}"
-                        {{ $user->kitchen_id == $kitchen->id ? 'selected' : '' }}
-                    >
-                        {{ $kitchen->nama }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
+            <div class="form-group">
+                <label>Password <small>(Kosongkan jika tidak ingin mengganti)</small></label>
+                <input type="password" class="form-control" name="password">
+            </div>
 
-        <div class="form-group">
-            <label>Role</label>
-            <select class="form-control" name="role" required>
-                <option value="" disabled selected>Pilih Role</option>
-                <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>Admin</option>
-                <option value="superadmin" {{ $user->role == 'superadmin' ? 'selected' : '' }}>Superadmin</option>
-            </select>
-        </div>
-    </x-modal-form>
+            {{-- AREA INPUT DAPUR DINAMIS (EDIT) --}}
+            <div class="form-group">
+                <label>Dapur</label>
+                <div id="kitchen-wrapper-edit-{{ $user->id }}">
+                    
+                    {{-- Loop data dapur yang sudah ada --}}
+                    @foreach($user->kitchens as $userKitchen)
+                        <div class="input-group mb-2">
+                            <select class="form-control" name="kitchen_kode[]" required>
+                                @foreach($kitchens as $kitchen)
+                                    <option value="{{ $kitchen->kode }}" 
+                                        {{ $userKitchen->kode == $kitchen->kode ? 'selected' : '' }}>
+                                        {{ $kitchen->nama }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            {{-- Tombol Hapus Baris --}}
+                            <div class="input-group-append">
+                                <button class="btn btn-danger" type="button" onclick="removeRow(this)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    @endforeach
 
-    <x-modal-delete 
-        id="modalDeleteUser"
-        formId="formDeleteUser"
-        title="Konfirmasi Hapus"
-        message="Apakah Anda yakin ingin menghapus data ini?"
-        confirmText="Hapus"
-    />
+                    {{-- Jika user belum punya dapur, tampilkan 1 kosong --}}
+                    @if($user->kitchens->isEmpty())
+                        <div class="input-group mb-2">
+                            <select class="form-control" name="kitchen_kode[]" required>
+                                <option value="" disabled selected>Pilih Dapur</option>
+                                @foreach($kitchens as $kitchen)
+                                    <option value="{{ $kitchen->kode }}">{{ $kitchen->nama }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
+
+                </div>
+                
+                {{-- Tombol Tambah --}}
+                <button type="button" class="btn btn-success btn-sm mt-1" 
+                        onclick="addKitchenRow('kitchen-wrapper-edit-{{ $user->id }}')">
+                    <i class="fas fa-plus"></i> Tambah Dapur Lain
+                </button>
+            </div>
+
+            <div class="form-group">
+                <label>Role</label>
+                <select class="form-control" name="role" required>
+                    <option value="" disabled selected>Pilih Role</option>
+                    @foreach($roles as $role)
+                        <option value="{{ $role->name }}" {{ $user->hasRole($role->name) ? 'selected' : '' }}>
+                            {{ $role->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        </x-modal-form>
+
+        {{-- MODAL DELETE --}}
+        <x-modal-delete id="modalDeleteUser{{ $user->id }}" formId="formDeleteUser{{ $user->id }}" title="Konfirmasi Hapus"
+            message="Apakah Anda yakin ingin menghapus user {{ $user->name }}?" confirmText="Hapus" />
     @endforeach
 
 @endsection
 
-
-{{-- ===========================
-     SCRIPT AUTO GENERATE EMAIL
-   =========================== --}}
 @section('js')
-<script>
-function generateEmail(name) {
-    let email = name.toLowerCase()
-        .replace(/[^a-z0-9 ]/g, '')  // hapus karakter selain huruf/angka/spasi
-        .replace(/\s+/g, '.');       // spasi menjadi titik
+    <script>
+        // ==========================================
+        // 1. LOGIKA DYNAMIC INPUT DAPUR
+        // ==========================================
+        
+        // Simpan opsi select ke variabel JS agar mudah dicopy
+        const kitchenOptions = `
+            <option value="" disabled selected>Pilih Dapur</option>
+            @foreach($kitchens as $kitchen)
+                <option value="{{ $kitchen->kode }}">{{ $kitchen->nama }}</option>
+            @endforeach
+        `;
 
-    return email + '@gmail.com';
-}
+        function addKitchenRow(wrapperId) {
+            let newRow = `
+                <div class="input-group mb-2">
+                    <select class="form-control" name="kitchen_kode[]" required>
+                        ${kitchenOptions}
+                    </select>
+                    <div class="input-group-append">
+                        <button class="btn btn-danger" type="button" onclick="removeRow(this)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.getElementById(wrapperId).insertAdjacentHTML('beforeend', newRow);
+        }
 
-document.addEventListener("DOMContentLoaded", function () {
+        function removeRow(button) {
+            button.closest('.input-group').remove();
+        }
 
-    const namaInput = document.getElementById("namaInput");
-    const emailInput = document.getElementById("autoEmail");
+        // ==========================================
+        // 2. LOGIKA AUTO EMAIL GENERATOR
+        // ==========================================
+        function generateEmail(name) {
+            let email = name.toLowerCase()
+                .replace(/[^a-z0-9 ]/g, '')  // hapus karakter aneh
+                .replace(/\s+/g, '.');       // spasi jadi titik
+            return email + '@gmail.com';
+        }
 
-    if (namaInput && emailInput) {
-        namaInput.addEventListener("input", function() {
-            emailInput.value = generateEmail(this.value);
+        document.addEventListener("DOMContentLoaded", function () {
+            const namaInput = document.getElementById("namaInput");
+            const emailInput = document.getElementById("autoEmail");
+
+            if (namaInput && emailInput) {
+                namaInput.addEventListener("input", function () {
+                    emailInput.value = generateEmail(this.value);
+                });
+            }
         });
-    }
-
-});
-</script>
+    </script>
 @endsection

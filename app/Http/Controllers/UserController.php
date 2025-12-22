@@ -6,77 +6,91 @@ use App\Models\User;
 use App\Models\Kitchen;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
+use Illuminate\Validation\Rule; // Tambahkan ini untuk validasi update unique
 
 class UserController extends Controller
 {
-    // tampilkan halaman user
+    // 1. TAMPILKAN HALAMAN USER
     public function index()
     {
         $users = User::with(['kitchens','roles'])->get();
         $kitchens = Kitchen::all();
+        $roles = Role::all();
 
-        return view('setup.user', compact('users','kitchens'));
+        return view('setup.user', compact('users','kitchens','roles'));
     }
 
-    // simpan user baru
+    // 2. SIMPAN USER BARU
     public function store(Request $request)
-{
-    $request->validate([
-        'nama' => 'required|string',
-        'email' => 'required|email|unique:users,email',
-        'password' => 'required|string|min:6',
-        'kitchen_id' => 'required|exists:kitchens,id',
-        'role' => 'required|roles,name',
-    ], [
-        'email.unique' => 'Email sudah digunakan! Mohon gunakan nama lain.',
-    ]);
+    {
+        $request->validate([
+            'name' => 'required|string',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:6',
+            // Validasi apakah KODE dapur ada di tabel kitchens kolom kode
+            'kitchen_kode' => 'required|array',
+            'kitchen_kode.*' => 'required|exists:kitchens,kode', 
+            // Validasi apakah role ada di tabel roles
+            'role' => 'required|exists:roles,name', 
+        ]);
 
-    $user = User::create([
-        'nama' => $request->nama,
-        'email' => $request->email,
-        'password' => Hash::make($request->password),
-    ]);
+        $user = User::create([
+            'name' => $request->name, // PERBAIKAN: Gunakan 'name' bukan 'nama'
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+        ]);
 
-    $user->assignRole($request->role);
-    $user->kitchens()->attach($request->kode);
+        // Assign Role (Spatie)
+        $user->assignRole($request->role);
 
-    return back()->with('success', 'User berhasil ditambahkan.');
-}
+        // Attach Kitchen (Simpan ke pivot kitchen_user menggunakan kode)
+        $user->kitchens()->attach($request->kitchen_kode);
 
-
-
-
-public function update(Request $request, $id)
-{
-    $user = User::findOrFail($id);
-
-    $request->validate([
-        'nama' => 'required|string',
-        'email' => 'required|email|unique:users,email,' . $id,
-        'password' => 'nullable|string',
-        'kitchen_id' => 'required|exists:kitchens,id',
-        'role' => 'required|exists:roles,name',
-    ]);
-
-    $user = [
-        'nama' => $request->nama,
-        'email' => $request->email,
-        'kitchen_id' => $request->kitchen_id,
-        'role' => $request->role,
-    ];
-
-    if ($request->password) {
-        $data['password'] = Hash::make($request->password);
+        return back()->with('success', 'User berhasil ditambahkan.');
     }
 
-    $user->update($data);
+    // 3. UPDATE USER
+    public function update(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
 
-    return back()->with('success', 'User berhasil diperbarui!');
-}
+        $request->validate([
+            'name' => 'required|string',
+            // Validasi unique email kecuali punya user ini sendiri
+            'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
+            'password' => 'nullable|string|min:6',
+            // PERBAIKAN: Validasi ke kolom 'kode', bukan 'id'
+            'kitchen_kode' => 'required|array',
+            'kitchen_kode.*' => 'required|exists:kitchens,kode', 
+            'role' => 'required|exists:roles,name',
+        ]);
 
+        $userData = [
+            'name' => $request->name, // PERBAIKAN: Gunakan 'name' bukan 'nama'
+            'email' => $request->email,
+        ];
 
+        // Hanya update password jika diisi
+        if ($request->filled('password')) {
+            $userData['password'] = Hash::make($request->password);
+        }
 
-    // hapus user
+        $user->update($userData);
+
+        // Update Role (Ganti role lama dengan yang baru)
+        $user->syncRoles([$request->role]);
+
+        // Update Kitchen (Ganti dapur lama dengan yang baru)
+        // Kita bungkus dalam array [] agar aman
+
+        $user->kitchens()->detach();
+        $user->kitchens()->attach(array_unique($request->kitchen_kode));
+        
+        return back()->with('success', 'User berhasil diperbarui!');
+    }
+
+    // 4. HAPUS USER
     public function destroy($id)
     {
         User::findOrFail($id)->delete();
