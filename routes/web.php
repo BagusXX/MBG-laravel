@@ -15,7 +15,8 @@ use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\OperationalController;
-use SalesMat
+use App\Http\Controllers\SaleMaterialsKitchenController;
+use App\Http\Controllers\SaleMaterialsPartnerController;
 
 require __DIR__ . '/auth.php';
 
