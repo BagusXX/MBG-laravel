@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
         //     'password' => Hash::make('password'),
         //     'role' => 'admin',
         // ]);
+        $this->call(RegionSeeder::class);
         $this->call(KitchenSeeder::class);
         $this->call(UserRoleSeeder::class);
         $this->call(PurchaseSeeder::class);

@@ -84,7 +84,6 @@
     <x-modal-form
     id="modalAddRegion"
     title="Tambah Region"
-    {{-- action="#" --}}
     action="{{ route('master.region.store') }}"
     submitText="Simpan"
 >

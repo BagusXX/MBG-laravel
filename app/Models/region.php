@@ -9,8 +9,14 @@ class region extends Model
     //
     protected $table = 'regions';
     protected $fillable = [
-        'kode_region',
         'nama_region',
         'penanggung_jawab',
+        'kode_region',
     ];
+
+    public function kitchen(){
+        return $this->hasMany(Kitchen::class);
+    }
+
+
 }

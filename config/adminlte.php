@@ -354,11 +354,11 @@ return [
                     'icon' => 'fas fa-fw fa-carrot',
                     'route' => 'dashboard.master.bahan-baku.index',
                 ],
-                // [
-                //     'text' => 'Operasional',
-                //     'icon' => 'fas fa-fw fa-clipboard-list',
-                //     'route' => 'master.operational',
-                // ],
+                [
+                    'text' => 'Operasional',
+                    'icon' => 'fas fa-fw fa-clipboard-list',
+                    'route' => 'master.operational.index',
+                ],
 
                 [
                     'text' => 'Nama Menu',

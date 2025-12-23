@@ -14,6 +14,6 @@ class operationals extends Model
         'kode',
         'nama',
         'harga',
-        'tempat-beli'
+        'tempat_beli'
     ];
 }

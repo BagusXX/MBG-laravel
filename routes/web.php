@@ -11,9 +11,11 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SubmissionController;
-use App\Http\Controllers\RegionController;
 use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\RegionController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\OperationalController;
+use SalesMat
 
 require __DIR__ . '/auth.php';
 
@@ -70,6 +72,15 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
             Route::delete('/{id}', 'destroy')->name('destroy');
             Route::put('/{id}', 'update')->name('update');
         });
+    Route::prefix('dashboard/master/operational')
+        ->name('master.operational.')
+        ->controller(OperationalController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'store')->name('store');
+            Route::delete('/{id}', 'destroy')->name('destroy');
+            Route::put('/{id}', 'update')->name('update');
+        });
 
     Route::prefix('dashboard/setup/user')
         ->name('setup.user.')
@@ -106,6 +117,20 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
             Route::get('/menu-by-kitchen/{kitchen}', 'getMenuByKitchen')->name('menu-by-kitchen');
         });
 
+    Route::prefix('dashboard/transaksi/jual-bahan-baku-dapur')
+        ->name('transaction.sale-materials-kitchen.')
+        ->controller(SaleMaterialsKitchenController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+        });
+
+    Route::prefix('dashboard/transaksi/jual-bahan-baku-mitra')
+        ->name('transaction.sale-materials-partner.')
+        ->controller(SaleMaterialsPartnerController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+        });
+
     Route::prefix('dashboard/master/supplier')
         ->name('master.supplier.')
         ->controller(SupplierController::class)
@@ -130,8 +155,6 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
         ->controller(SubmissionController::class)
         ->group(function () {
 
-            Route::post('/purchase-materials', [PurchaseController::class, 'store'])->name('purchase-materias.store');
-
             // submission
             Route::get('/submission', 'index')->name('submission');
             Route::post('/submission', 'store')->name('submission.store');
@@ -154,7 +177,8 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
 
             Route::get(
                 '/pembelian-bahan-baku',
-                [PurchaseController::class, 'index']
+                fn() =>
+                view('transaction.purchase-materials')
             )->name('purchase-materials');
         });
 
