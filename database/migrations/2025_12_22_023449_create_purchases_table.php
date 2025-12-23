@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('purchases', function (Blueprint $table) {
-            $table->id();
+            $table->id()->autoIncrement(true);
             $table->string('kode');
-            $table->string('nama');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->double('harga');
             $table->integer('jumlah');
             $table->foreignId('supplier_id')->constrained('suppliers')->onDelete('cascade');
@@ -29,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('belis');
+        Schema::dropIfExists('purchases');
     }
 };

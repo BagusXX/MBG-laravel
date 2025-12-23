@@ -130,6 +130,8 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
         ->controller(SubmissionController::class)
         ->group(function () {
 
+            Route::post('/purchase-materials', [PurchaseController::class, 'store'])->name('purchase-materias.store');
+
             // submission
             Route::get('/submission', 'index')->name('submission');
             Route::post('/submission', 'store')->name('submission.store');

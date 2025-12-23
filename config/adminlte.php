@@ -379,7 +379,7 @@ return [
                     'icon' => 'fas fa-fw fa-users',
                     'route' => 'setup.user.index',
                 ],
-                
+
                 [
                     'text' => 'Role',
                     'icon' => 'fas fa-user-cog',
@@ -417,7 +417,19 @@ return [
                 [
                     'text' => 'Jual Bahan Baku',
                     'icon' => 'fas fa-money-bill-wave',
-                    'route' => 'transaction.sales-materials',
+                    'submenu' => [
+                        [
+                            'text' => 'Jual Bahan Baku Dapur',
+                            'icon' => 'fas fa-store',
+                            // 'route' => 'transaction.sale-materials-kitchen.index',
+                        ],
+
+                        [
+                            'text' => 'Jual Bahan Baku Mitra',
+                            'icon' => 'fas fa-handshake',
+                            // 'route' => 'transaction.sale-materials-partner.index',
+                        ],
+                    ]
                 ],
 
                 [

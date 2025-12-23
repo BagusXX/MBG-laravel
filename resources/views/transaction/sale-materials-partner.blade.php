@@ -1,13 +1,23 @@
 @extends('adminlte::page')
 
-@section('title', 'Beli Bahan Baku')
+@section('title', 'Penjualan Bahan Baku')
+
+@section('css')
+    <link rel="stylesheet" href="{{ asset('css/notification-pop-up.css') }}">
+@endsection
 
 @section('content_header')
-    <h1>Pembelian Bahan Baku</h1>
+    <h1>Penjualan Bahan Baku</h1>
 @endsection
 
 @section('content')
-    <x-button-add idTarget="#modalAddPurchaseMaterials" text="Tambah Pembelian" />
+    {{-- BUTTON ADD --}}
+    <x-button-add 
+        idTarget="#modalAddSalesMaterials"
+        text="Jual Bahan Baku"
+    />
+
+    <x-notification-pop-up />
 
     {{-- TABLE --}}
     <div class="card">
@@ -17,69 +27,85 @@
                     <tr>
                         <th>No</th>
                         <th>Kode</th>
-                        <th>Tanggal Beli</th>
-                        <th>Supplier</th>
+                        <th>Tanggal Jual</th>
+                        <th>Dapur</th>
                         {{-- <th>Bahan Baku</th> --}}
-                        {{-- <th>Jumlah</th>
-                        <th>Satuan</th>
-                        <th>Harga</th> --}}
-                        <th width="220">Aksi</th>
+                        {{-- <th>Jumlah</th> --}}
+                        {{-- <th>Satuan</th> --}}
+                        {{-- <th>Harga</th> --}}
+                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {{-- @foreach ($purchases as $purchase) --}}
                     <tr>
-                        <td>1</td>
-                        <td>PRC11</td>
-                        <td>10-12-2025</td>
-                        <td>Supplier A</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        {{-- <td></td> --}}
+                        {{-- <td></td> --}}
+                        {{-- <td></td> --}}
+                        {{-- <td></td> --}}
                         <td>
-                            <button type="button" class="btn btn-primary btn-sm" data-toggle="modal"
-                                data-target="#modalDetailPurchase">
+                            <button
+                                type="button"
+                                class="btn btn-primary btn-sm"
+                                data-toggle="modal"
+                                data-target="#modalDetailSales"
+                            >
                                 Detail
                             </button>
-                            <button type="button" class="btn btn-sm btn-success btnEditPurchaseMaterials"
-                                data-toggle="modal" data-target="#modalEditPurchaseMaterials">
+                            <button 
+                                type="button" 
+                                class="btn btn-sm btn-warning btnEditSalesMaterials"
+                                data-toggle="modal"
+                                data-target="#modalEditSalesMaterials"
+                            >
                                 Edit
                             </button>
-                            <button type="button" class="btn btn-sm btn-warning btnEditPurchaseMaterials"
-                                data-toggle="modal" data-target="#modalPrintPurchaseMaterials">
-                                Print Invoice
-                            </button>
-                            {{-- <x-button-delete
-                                idTarget="#modalDeletePurchaseMaterials"
-                                formId="formDeletePurchaseMaterials"
+                            <x-button-delete
+                                idTarget="#modalDeleteSalesMaterials"
+                                formId="formDeleteSalesMaterials"
                                 action="#"
                                 text="Hapus"
-                            /> --}}
+                            />
                         </td>
                     </tr>
-                    {{-- @endforeach --}}
                 </tbody>
             </table>
         </div>
     </div>
 
     {{-- MODAL ADD --}}
-    <x-modal-form id="modalAddPurchaseMaterials" size="modal-lg" title="Tambah Pembelian Bahan Baku" action="{#"
-        submitText="Simpan">
-        @csrf
-
+    <x-modal-form
+        id="modalAddSalesMaterials"
+        size="modal-lg"
+        title="Tambah Penjualan Bahan Baku"
+        action="#"
+        submitText="Simpan"
+    >
         <div class="d-flex align-items-center">
             <div class="form-group">
                 <label>Kode</label>
-                <input id="kode_transaksi_beli" type="text" class="form-control" name="kode" readonly required />
+                <input 
+                    id="kode_transaksi_beli"
+                    type="text"
+                    class="form-control"
+                    name="kode"
+                    readonly
+                    required
+                />
             </div>
-
+    
             <div class="form-group flex-fill ml-2">
                 <label>Tanggal Beli</label>
                 <input type="date" class="form-control" name="tanggal" required />
             </div>
 
             <div class="form-group flex-fill ml-2">
-                <label>Supplier</label>
-                <select class="form-control" name="supplier" required>
-                    <option value="" disabled selected>Pilih Supplier</option>
+                <label>Dapur</label>
+                <select class="form-control" name="dapur" required>
+                    <option value="" disabled selected>Pilih Dapur</option>
                     <option value=""></option>
                 </select>
             </div>
@@ -111,14 +137,13 @@
                             <option value="" disabled selected>Pilih Satuan</option>
                         </select>
                     </div>
-
+                    
                     <div class="col-md-3">
                         <input type="number" name="harga[]" class="form-control" required />
                     </div>
 
                     <div class="col-md-1">
-                        <button type="button" class="btn btn-outline-danger btn-sm remove-bahan d-none h-100"
-                            style="width: 35px;">
+                        <button type="button" class="btn btn-outline-danger btn-sm remove-bahan d-none h-100" style="width: 35px;">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
@@ -126,19 +151,29 @@
             </div>
 
             <button type="button" id="add-bahan" class="btn btn-outline-primary btn-block mt-2">
-                <i class="fas fa-plus mr-1"></i>Tambah Pembelian
+                <i class="fas fa-plus mr-1"></i>Tambah Penjualan
             </button>
         </div>
     </x-modal-form>
 
-    {{-- MODAL EDIT PURCHASE MATERIALS --}}
-    <x-modal-form id="modalEditPurchaseMaterials" size="modal-lg" title="Beli Bahan Baku" action="" submitText="Beli">
+    {{-- MODAL EDIT SALES MATERIALS --}}
+    <x-modal-form
+        id="modalEditSalesMaterials"
+        size="modal-lg"
+        title="Edit Transaksi Penjualan Bahan Baku"
+        action=""
+        submitText="Update"
+    >
         @method('PUT')
-
+        
     </x-modal-form>
 
-    {{-- MODAL DETAIL PURCHASE MATERIALS --}}
-    <x-modal-detail id="modalDetailPurchase" size="modal-lg" title="Pemesanan Bahan Baku">
+    {{-- MODAL DETAIL --}}
+    <x-modal-detail
+        id="modalDetailSales"
+        size="modal-lg"
+        title="Detail Penjualan Bahan Baku"
+    >
         <div>
             <div>
                 <p class="font-weight-bold mb-0">Kode:</p>
@@ -149,8 +184,8 @@
                 <p>Senin, 08 Desember 2025</p>
             </div>
             <div>
-                <p class="font-weight-bold mb-0">Supplier:</p>
-                <p>Fresh Mart</p>
+                <p class="font-weight-bold mb-0">Dapur:</p>
+                <p>Dapur A Tembalang</p>
             </div>
             <div>
                 <table class="table table-bordered table-striped">
@@ -184,17 +219,22 @@
     </x-modal-detail>
 
     {{-- MODAL DELETE --}}
-    <x-modal-delete id="modalDeletePurchaseMaterials" formId="formDeletePurchaseMaterials" title="Konfirmasi Hapus"
-        message="Apakah Anda yakin ingin menghapus data ini?" confirmText="Hapus" />
+    <x-modal-delete 
+        id="modalDeleteSalesMaterials"
+        formId="formDeleteSalesMaterials"
+        title="Konfirmasi Hapus"
+        message="Apakah Anda yakin ingin menghapus data ini?"
+        confirmText="Hapus"
+    />
 @endsection
 
 @push('js')
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const wrapper = document.getElementById('bahan-wrapper');
             const addBtn = document.getElementById('add-bahan');
 
-            addBtn.addEventListener('click', function() {
+            addBtn.addEventListener('click', function () {
                 const firstRow = wrapper.querySelector('.bahan-group');
                 const newRow = firstRow.cloneNode(true);
 
@@ -208,7 +248,7 @@
                 removeBtn.classList.remove('d-none');
 
                 // Tambahkan event hapus
-                removeBtn.addEventListener('click', function() {
+                removeBtn.addEventListener('click', function () {
                     newRow.remove();
                 });
 
@@ -218,8 +258,8 @@
 
             // Event hapus untuk row pertama (opsional)
             const firstRemoveBtn = wrapper.querySelector('.remove-bahan');
-            if (firstRemoveBtn) {
-                firstRemoveBtn.addEventListener('click', function() {
+            if(firstRemoveBtn){
+                firstRemoveBtn.addEventListener('click', function () {
                     firstRemoveBtn.closest('.bahan-group').remove();
                 });
             }

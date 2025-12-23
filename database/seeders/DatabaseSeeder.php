@@ -32,5 +32,6 @@ class DatabaseSeeder extends Seeder
         // ]);
         $this->call(KitchenSeeder::class);
         $this->call(UserRoleSeeder::class);
+        $this->call(PurchaseSeeder::class);
     }
 }
