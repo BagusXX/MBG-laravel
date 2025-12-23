@@ -26,7 +26,6 @@
                         <th>No</th>
                         <th>Dapur</th>
                         <th>Nama Menu</th>
-                        {{-- <th>Porsi</th> --}}
                         <th>Harga</th>
                         <th>Aksi</th>
                     </tr>
@@ -38,7 +37,6 @@
                             <td>{{ $key + 1 }}</td>
                             <td>{{ $recipe->kitchen->nama }}</td>
                             <td>{{ $recipe->menu->nama }}</td>
-                            {{-- <td>{{ $recipe->porsi }}</td> --}}
                             <td></td>
                             <td>
                                 <button 
@@ -67,7 +65,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="text-center">Belum ada racikan menu</td>
+                            <td colspan="6" class="text-center">Belum ada racikan menu</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -289,41 +287,6 @@
 
 @push('js')
     <script>
-        // document.addEventListener('DOMContentLoaded', function () {
-        //     const wrapper = document.getElementById('bahan-wrapper');
-        //     const addBtn = document.getElementById('add-bahan');
-
-        //     addBtn.addEventListener('click', function () {
-        //         const firstRow = wrapper.querySelector('.bahan-group');
-        //         const newRow = firstRow.cloneNode(true);
-
-        //         // Reset value input/select
-        //         newRow.querySelectorAll('input, select').forEach(input => {
-        //             input.value = '';
-        //         });
-
-        //         // Tampilkan tombol hapus
-        //         const removeBtn = newRow.querySelector('.remove-bahan');
-        //         removeBtn.classList.remove('d-none');
-
-        //         // Tambahkan event hapus
-        //         removeBtn.addEventListener('click', function () {
-        //             newRow.remove();
-        //         });
-
-        //         // Tambahkan row baru
-        //         wrapper.appendChild(newRow);
-        //     });
-
-        //     // Event hapus untuk row pertama (opsional)
-        //     const firstRemoveBtn = wrapper.querySelector('.remove-bahan');
-        //     if(firstRemoveBtn){
-        //         firstRemoveBtn.addEventListener('click', function () {
-        //             firstRemoveBtn.closest('.bahan-group').remove();
-        //         });
-        //     }
-        // });
-
         document.addEventListener('DOMContentLoaded', function () {
             function initDynamicForm(wrapperId, addBtnId) {
                 const wrapper = document.getElementById(wrapperId);

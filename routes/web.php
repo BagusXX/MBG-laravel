@@ -11,9 +11,10 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SubmissionController;
+use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\RegionController;
-use App\Http\Controllers\OperationalController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\OperationalController;
 use App\Http\Controllers\SaleMaterialsKitchenController;
 use App\Http\Controllers\SaleMaterialsPartnerController;
 

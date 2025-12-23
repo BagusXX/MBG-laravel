@@ -10,30 +10,31 @@ use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
+        use WithoutModelEvents;
 
-    /**
-     * Seed the application's database.
-     */
-    public function run(): void
-    {
-        // // Seed default roles
-        // User::factory()->create([
-        //     'name' => 'Super Admin',
-        //     'email' => 'superadmin@example.com',
-        //     'password' => Hash::make('password'),
-        //     'role' => 'superadmin',
-        // ]);
+        /**
+         * Seed the application's database.
+         */
+        public function run(): void
+        {
+                // // Seed default roles
+                // User::factory()->create([
+                //     'name' => 'Super Admin',
+                //     'email' => 'superadmin@example.com',
+                //     'password' => Hash::make('password'),
+                //     'role' => 'superadmin',
+                // ]);
 
-        // User::factory()->create([
-        //     'name' => 'Admin',
-        //     'email' => 'admin@example.com',
-        //     'password' => Hash::make('password'),
-        //     'role' => 'admin',
-        // ]);
-        $this->call(RegionSeeder::class);
-        $this->call(KitchenSeeder::class);
-        $this->call(UserRoleSeeder::class);
-        $this->call(OperationalSeeder::class);
-    }
+                // User::factory()->create([
+                //     'name' => 'Admin',
+                //     'email' => 'admin@example.com',
+                //     'password' => Hash::make('password'),
+                //     'role' => 'admin',
+                // ]);
+                $this->call(RegionSeeder::class);
+                $this->call(KitchenSeeder::class);
+                $this->call(UserRoleSeeder::class);
+                $this->call(OperationalSeeder::class);
+                $this->call(PurchaseSeeder::class);
+        }
 }
