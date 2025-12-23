@@ -34,37 +34,40 @@
                         <th>No</th>
                         <th>Kode</th>
                         <th>Nama Biaya</th>
-                        <th>Kategori</th>
+                        <th>Harga</th>
+                        <th>Tempat Beli</th>
                         <th>Tanggal</th>
-                        <th>Jumlah (Rp)</th>
-                        <th>Keterangan</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {{-- @forelse($regions as $index => $region)
+                    @forelse($operationals as $index => $operational)
                         <tr>
                             <td>{{ $index + 1 }}</td>
-                            <td>{{ $region->kode }}</td>
-                            <td>{{ $region->nama }}</td>
-                            <td>{{ $region->alamat }}</td>
-                            <td>{{ $region->region }}</td>
-                            <td>{{ $region->kontak_person }}</td>
-                            <td>{{ $region->nomor }}</td>
+                            <td>{{ $operational->kode }}</td>
+                            <td>{{ $operational->nama }}</td>
+                            <td>{{ $operational->harga }}</td>
+                            <td>{{ $operational->tempat_beli }}</td>
+                            <td>{{ $operational->created_at }}</td>
                             <td>
                                 <button 
                                     type="button" 
-                                    class="btn btn-sm btn-warning btnEditRegion"
-                                    data-toggle="modal"
-                                    data-target="#modalEditRegion"
+                                    class="btn btn-sm btn-warning"
+                                    onclick="editOperational(this)"
+                                    data-id="{{ $operational->id }}"
+                                    data-kode="{{ $operational->kode }}"
+                                    data-nama="{{ $operational->nama }}"
+                                    data-harga="{{ $operational->harga }}"
+                                    data-tempat_beli="{{ $operational->tempat_beli }}"
+                                    data-tanggal="{{ $operational->created_at->format('Y-m-d') }}"
                                 >
                                     Edit    
-                                </button> --}}
+                                </button>
                                 {{-- Tombol Hapus --}}
-                                {{-- <x-button-delete 
-                                    idTarget="#modalDeleteRegion" 
-                                    formId="formDeleteRegion"
-                                    action="{{ route('master.region.destroy', $region->id) }}"
+                                <x-button-delete 
+                                    idTarget="#modalDeleteOperational" 
+                                    formId="formDeleteOperational"
+                                    action="{{ route('master.operational.destroy', $operational->id) }}"
                                     text="Hapus" 
                                 />
 
@@ -72,81 +75,9 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center">Belum ada Region</td>
+                            <td colspan="7" class="text-center">Belum ada Biaya Operational</td>
                         </tr>
-                    @endforelse --}}
-                    {{-- DATA DUMMY 1 --}}
-                    {{-- DATA DUMMY 1 --}}
-                    <tr>
-                        <td>1</td>
-                        <td>OPS-001</td>
-                        <td>Tagihan Listrik & Air</td>
-                        <td>Utilitas</td>
-                        <td>2023-10-01</td>
-                        <td class="text-right">Rp 2.500.000</td>
-                        <td>Pembayaran PLN & PDAM Pusat</td>
-                        <td>
-                            <button 
-                                type="button" 
-                                class="btn btn-sm btn-warning"
-                                data-toggle="modal"
-                                data-target="#modalEditOperasional"
-                            >
-                                Edit    
-                            </button>
-                            <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalDeleteOperasional">
-                                Hapus
-                            </button>
-                        </td>
-                    </tr>
-
-                    {{-- DATA DUMMY 2 --}}
-                    <tr>
-                        <td>2</td>
-                        <td>OPS-002</td>
-                        <td>Internet Bulanan</td>
-                        <td>Komunikasi</td>
-                        <td>2023-10-05</td>
-                        <td class="text-right">Rp 550.000</td>
-                        <td>Wifi IndiHome 100Mbps</td>
-                        <td>
-                            <button 
-                                type="button" 
-                                class="btn btn-sm btn-warning"
-                                data-toggle="modal"
-                                data-target="#modalEditOperasional"
-                            >
-                                Edit    
-                            </button>
-                            <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalDeleteOperasional">
-                                Hapus
-                            </button>
-                        </td>
-                    </tr>
-
-                     {{-- DATA DUMMY 3 --}}
-                     <tr>
-                        <td>3</td>
-                        <td>OPS-003</td>
-                        <td>Service AC Kantor</td>
-                        <td>Maintenance</td>
-                        <td>2023-10-10</td>
-                        <td class="text-right">Rp 750.000</td>
-                        <td>Cuci AC 5 Unit</td>
-                        <td>
-                            <button 
-                                type="button" 
-                                class="btn btn-sm btn-warning"
-                                data-toggle="modal"
-                                data-target="#modalEditOperasional"
-                            >
-                                Edit    
-                            </button>
-                            <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#modalDeleteOperasional">
-                                Hapus
-                            </button>
-                        </td>
-                    </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
@@ -156,8 +87,7 @@
     <x-modal-form
     id="modalAddOperasional"
     title="Tambah Biaya Operasional"
-    {{-- action="{{ route('master.region.store') }}" --}}
-    action="#"
+    action="{{ route('master.operational.store') }}"
     submitText="Simpan"
 >
         <div class="form-group">
@@ -176,120 +106,114 @@
             <label for="nama_operasional">Nama Biaya</label>
             <input id="nama_operasional" type="text" name="nama" class="form-control" required />
         </div>
-        
         <div class="form-group mt-2">
-            <label>Kategori</label>
-            <select name="kategori" class="form-control">
-                <option value="Utilitas">Utilitas (Listrik/Air/Internet)</option>
-                <option value="Maintenance">Maintenance/Perbaikan</option>
-                <option value="ATK">Perlengkapan Kantor (ATK)</option>
-                <option value="Lainnya">Lainnya</option>
-            </select>
+            <label>Harga (Rp)</label>
+            <input type="number" name="harga" class="form-control" placeholder="0" required />
+        </div>
+        <div class="form-group mt-2">
+            <label>Tempat Beli</label>
+            <textarea name="tempat_beli" class="form-control" rows="2" placeholder="Detail pengeluaran..."></textarea>
         </div>
         <div class="form-group mt-2">
             <label>Tanggal</label>
             <input type="date" name="tanggal" class="form-control" required />
         </div>
         
-        <div class="form-group mt-2">
-            <label>Jumlah Biaya (Rp)</label>
-            <input type="number" name="jumlah" class="form-control" placeholder="0" required />
-        </div>
-        
-        <div class="form-group mt-2">
-            <label>Keterangan</label>
-            <textarea name="keterangan" class="form-control" rows="2" placeholder="Detail pengeluaran..."></textarea>
-        </div>
     </x-modal-form>
 
     {{-- MODAL EDIT OPERATIONAL --}}
     <x-modal-form
         id="modalEditOperasional"
         title="Edit Operasional"
-        action="#"
+        action=""
         submitText="Update"
     >
         @method('PUT')
+        <input type="hidden" name="id" id="edit_id">
 
         <div class="form-group">
             <label>Kode Transaksi</label>
             <input 
                 type="text" 
                 name="kode" 
-                class="form-control" 
-                id=""
+                id="edit_kode"
+                class="form-control"
                 readonly
-                required />
+            />
         </div>
 
-        <div class="form-group">
-            <label>Nama Biaya</label>
-            <input type="text" id="" name="nama" class="form-control" required />
-        </div>
-        
         <div class="form-group mt-2">
-            <label>Kategori</label>
-            <select name="kategori" class="form-control">
-                <option value="Utilitas" selected>Utilitas (Listrik/Air/Internet)</option>
-                <option value="Maintenance">Maintenance/Perbaikan</option>
-                <option value="ATK">Perlengkapan Kantor (ATK)</option>
-                <option value="Lainnya">Lainnya</option>
-            </select>
+            <label>Nama Biaya</label>
+            <input 
+                type="text" 
+                name="nama" 
+                id="edit_nama"
+                class="form-control" 
+                required
+            />
+        </div>
+
+        <div class="form-group mt-2">
+            <label>Harga</label>
+            <input 
+                type="number" 
+                name="harga" 
+                id="edit_harga"
+                class="form-control" 
+                required
+            />
+        </div>
+
+        <div class="form-group mt-2">
+            <label>Tempat Beli</label>
+            <textarea 
+                name="tempat_beli" 
+                id="edit_tempat_beli"
+                class="form-control"
+            ></textarea>
         </div>
 
         <div class="form-group mt-2">
             <label>Tanggal</label>
-            <input type="date" name="tanggal" class="form-control" value="2023-10-01" required />
+            <input 
+                type="date" 
+                name="tanggal" 
+                id="edit_tanggal"
+                class="form-control" 
+                required
+            />
         </div>
-        
-        <div class="form-group mt-2">
-            <label>Jumlah Biaya (Rp)</label>
-            <input type="number" name="jumlah" class="form-control" value="2500000" required />
-        </div>
-        
-       <div class="form-group mt-2">
-            <label>Keterangan</label>
-            <textarea name="keterangan" class="form-control" rows="2">Pembayaran PLN & PDAM Pusat</textarea>
-        </div>
+
     </x-modal-form>
 
     {{-- MODAL DELETE --}}
     <x-modal-delete 
-        id="modalDeleteOperasional" 
-        formId="formDeleteOperasional" 
+        id="modalDeleteOperational" 
+        formId="formDeleteOperational" 
         title="Konfirmasi Hapus" 
         message="Apakah Anda yakin ingin menghapus data ini?" 
         confirmText="Hapus" 
     />  
 @endsection
 
-{{-- @push('js')
+@section('js')
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const kodeInput = document.getElementById('kode_operasional');
+function editOperational(button) {
+    const id = button.dataset.id;
 
-        // Generate kode SPR11-SPR99
-        const generatedCodes = @json($generatedCodes);
+    const form = document.querySelector('#modalEditOperasional form');
+    form.action = `/dashboard/master/operational/${id}`;
 
-        // Ambil kode terakhir yang ada di database
-        const kodeTerakhir = Object.values(generatedCodes).pop();
-        kodeInput.value = kodeTerakhir; // set default kode saat tambah supplier
-    });
+    // isi input
+    document.getElementById('edit_id').value = id;
+    document.getElementById('edit_kode').value = button.dataset.kode;
+    document.getElementById('edit_nama').value = button.dataset.nama;
+    document.getElementById('edit_harga').value = button.dataset.harga;
+    document.getElementById('edit_tempat_beli').value = button.dataset.tempat_beli;
+    document.getElementById('edit_tanggal').value = button.dataset.tanggal;
+
+    // tampilkan modal
+    $('#modalEditOperasional').modal('show');
+}
 </script>
-@endpush --}}
-
-@push('js')
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const kodeInput = document.getElementById('kode_operasional'); 
-
-        if(kodeInput) {
-            // Kita set manual prefix OPS (Operasional)
-            kodeInput.value = "OPS-001"; 
-            console.log('Kode otomatis di-set ke OPS-001');
-        } else {
-            console.warn('Input kode tidak ditemukan! Cek ID input HTML Anda.');
-        }
-    });
-</script>
-@endpush
+@endsection

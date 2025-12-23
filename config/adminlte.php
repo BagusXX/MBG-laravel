@@ -354,11 +354,11 @@ return [
                     'icon' => 'fas fa-fw fa-carrot',
                     'route' => 'dashboard.master.bahan-baku.index',
                 ],
-                // [
-                //     'text' => 'Operasional',
-                //     'icon' => 'fas fa-fw fa-clipboard-list',
-                //     'route' => 'master.operational',
-                // ],
+                [
+                    'text' => 'Operasional',
+                    'icon' => 'fas fa-fw fa-clipboard-list',
+                    'route' => 'master.operational.index',
+                ],
 
                 [
                     'text' => 'Nama Menu',
@@ -379,7 +379,7 @@ return [
                     'icon' => 'fas fa-fw fa-users',
                     'route' => 'setup.user.index',
                 ],
-                
+
                 [
                     'text' => 'Role',
                     'icon' => 'fas fa-user-cog',
@@ -423,7 +423,7 @@ return [
                             'icon' => 'fas fa-store',
                             'route' => 'transaction.sale-materials-kitchen.index',
                         ],
-                        
+
                         [
                             'text' => 'Jual Bahan Baku Mitra',
                             'icon' => 'fas fa-handshake',

@@ -12,6 +12,7 @@ use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SubmissionController;
 use App\Http\Controllers\RegionController;
+use App\Http\Controllers\OperationalController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SaleMaterialsKitchenController;
 use App\Http\Controllers\SaleMaterialsPartnerController;
@@ -71,6 +72,15 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
             Route::delete('/{id}', 'destroy')->name('destroy');
             Route::put('/{id}', 'update')->name('update');
         });
+    Route::prefix('dashboard/master/operational')
+        ->name('master.operational.')
+        ->controller(OperationalController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'store')->name('store');
+            Route::delete('/{id}', 'destroy')->name('destroy');
+            Route::put('/{id}', 'update')->name('update');
+        });
 
     Route::prefix('dashboard/setup/user')
         ->name('setup.user.')
@@ -86,7 +96,7 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
         ->name('setup.role.')
         ->controller(RoleController::class)
         ->group(function () {
-            Route::get('/', 'index') ->name('index');
+            Route::get('/', 'index')->name('index');
         });
 
     Route::prefix('dashboard/setup/racik-menu')
@@ -106,14 +116,14 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
             Route::delete('/{id}', 'destroy')->name('destroy');
             Route::get('/menu-by-kitchen/{kitchen}', 'getMenuByKitchen')->name('menu-by-kitchen');
         });
-    
+
     Route::prefix('dashboard/transaksi/jual-bahan-baku-dapur')
         ->name('transaction.sale-materials-kitchen.')
         ->controller(SaleMaterialsKitchenController::class)
         ->group(function () {
             Route::get('/', 'index')->name('index');
         });
-    
+
     Route::prefix('dashboard/transaksi/jual-bahan-baku-mitra')
         ->name('transaction.sale-materials-partner.')
         ->controller(SaleMaterialsPartnerController::class)
@@ -140,33 +150,37 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
     //         })->name('supplier');
     //     });
 
-   Route::prefix('dashboard/transaksi')
-    ->name('transaction.')
-    ->controller(SubmissionController::class)
-    ->group(function () {
+    Route::prefix('dashboard/transaksi')
+        ->name('transaction.')
+        ->controller(SubmissionController::class)
+        ->group(function () {
 
-        // submission
-        Route::get('/submission', 'index')->name('submission');
-        Route::post('/submission', 'store')->name('submission.store');
-        Route::delete('/submission/{submission}', 'destroy')->name('submission.destroy');
+            // submission
+            Route::get('/submission', 'index')->name('submission');
+            Route::post('/submission', 'store')->name('submission.store');
+            Route::delete('/submission/{submission}', 'destroy')->name('submission.destroy');
 
-        // ajax get menu by kitchen
-        Route::get('/submission/menu/{kitchen}', 'getMenuByKitchen')
-            ->name('submission.menu');
+            // ajax get menu by kitchen
+            Route::get('/submission/menu/{kitchen}', 'getMenuByKitchen')
+                ->name('submission.menu');
 
-        // halaman lain
-        Route::get('/daftar-pemesanan', [SubmissionController::class, 'index'])
-    ->name('request-materials');
+            // halaman lain
+            Route::get('/daftar-pemesanan', [SubmissionController::class, 'index'])
+                ->name('request-materials');
 
 
-        Route::get('/penjualan-bahan-baku', fn () =>
-            view('transaction.sales-materials')
-        )->name('sales-materials');
+            Route::get(
+                '/penjualan-bahan-baku',
+                fn() =>
+                view('transaction.sales-materials')
+            )->name('sales-materials');
 
-        Route::get('/pembelian-bahan-baku', fn () =>
-            view('transaction.purchase-materials')
-        )->name('purchase-materials');
-    });
+            Route::get(
+                '/pembelian-bahan-baku',
+                fn() =>
+                view('transaction.purchase-materials')
+            )->name('purchase-materials');
+        });
 
 
     Route::prefix('dashboard/laporan')
