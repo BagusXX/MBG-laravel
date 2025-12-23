@@ -26,8 +26,8 @@ class UnitController extends Controller
             'keterangan' => $request->keterangan,
         ]);
 
-        return redirect()->route('master.unit')
-                         ->with('success', 'Data satuan berhasil ditambahkan.');
+        return redirect()->route('master.unit.index')
+            ->with('success', 'Data satuan berhasil ditambahkan.');
     }
 
     public function update(Request $request, $id)
@@ -44,8 +44,8 @@ class UnitController extends Controller
             'keterangan' => $request->keterangan,
         ]);
 
-        return redirect()->route('master.unit')
-                         ->with('success', 'Data satuan berhasil diperbarui.');
+        return redirect()->route('master.unit.index')
+            ->with('success', 'Data satuan berhasil diperbarui.');
     }
 
     public function destroy($id)

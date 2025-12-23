@@ -48,8 +48,8 @@
                             <td>{{ $supplier->kode }}</td>
                             <td>{{ $supplier->nama }}</td>
                             <td>{{ $supplier->alamat }}</td>
-                            <td>{{ $supplier->region }}</td>
-                            <td>{{ $supplier->kontak_person }}</td>
+                            <td>{{ $supplier->region->nama_region ?? '-' }}</td>
+                            <td>{{ $supplier->kontak }}</td>
                             <td>{{ $supplier->nomor }}</td>
                             <td>
                                 <button 
@@ -108,14 +108,22 @@
             <label for="alamat_supplier">Alamat</label>
             <input id="alamat_supplier" type="text" name="alamat" class="form-control" required />
         </div>
-        <div class="form-group mt-2">
-            <label for="alamat_supplier">Region</label>
-            <input id="alamat_supplier" type="text" name="region" class="form-control" required />
+       <div class="form-group mt-2">
+            <label>Region</label>
+            <select name="region_id" class="form-control" required>
+                <option value="">-- Pilih Region --</option>
+                @foreach($regions as $region)
+                    <option value="{{ $region->id }}">
+                        {{ $region->nama_region }}
+                    </option>
+                @endforeach
+            </select>
         </div>
+
         
         <div class="form-group mt-2">
             <label for="kontak_supplier">Kontak Person</label>
-            <input id="kontak_supplier" type="text" name="kontak_person" class="form-control" required />
+            <input id="kontak_supplier" type="text" name="kontak" class="form-control" required />
         </div>
         
         <div class="form-group mt-2">
@@ -153,14 +161,21 @@
             <label>Alamat</label>
             <input type="text" id="" name="alamat" class="form-control" required />
         </div>
-        <div class="form-group">
+        <div class="form-group mt-2">
             <label>Region</label>
-            <input type="text" id="" name="region" class="form-control" required />
+            <select name="region_id" class="form-control" required>
+                <option value="">-- Pilih Region --</option>
+                @foreach($regions as $region)
+                    <option value="{{ $region->id }}">
+                        {{ $region->nama_region }}
+                    </option>
+                @endforeach
+            </select>
         </div>
-        
+
         <div class="form-group">
             <label>Kontak Person</label>
-            <input type="text" id="" name="kontak_person" class="form-control" required />
+            <input type="text" id="" name="kontak" class="form-control" required />
         </div>
         
         <div class="form-group">

@@ -26,7 +26,7 @@
                         <th>No</th>
                         <th>Dapur</th>
                         <th>Nama Menu</th>
-                        <th>Porsi</th>
+                        {{-- <th>Porsi</th> --}}
                         <th>Harga</th>
                         <th>Aksi</th>
                     </tr>
@@ -38,7 +38,7 @@
                             <td>{{ $key + 1 }}</td>
                             <td>{{ $recipe->kitchen->nama }}</td>
                             <td>{{ $recipe->menu->nama }}</td>
-                            <td>{{ $recipe->porsi }}</td>
+                            {{-- <td>{{ $recipe->porsi }}</td> --}}
                             <td></td>
                             <td>
                                 <button 
@@ -103,10 +103,10 @@
             </select>
         </div>
 
-        <div class="form-group">
+        {{-- <div class="form-group">
             <label>Porsi</label>
             <input type="number" name="porsi" class="form-control" placeholder="12">
-        </div>
+        </div> --}}
 
         {{-- <div class="col-md-5">
             <input type="number" name="porsi" class="form-control" placeholder="12">
@@ -252,12 +252,6 @@
                 <div>
                     <p class="font-weight-bold mb-0">Nama Menu:</p>
                     <p>{{ $recipe->menu->nama }}</p>
-                </div>
-
-                <div>
-                <p class="font-weight-bold mb-0">Porsi:</p>
-                    <p>{{ $recipe->porsi }}</p>
-
                 </div>
                 
                 <table class="table table-bordered table-striped">

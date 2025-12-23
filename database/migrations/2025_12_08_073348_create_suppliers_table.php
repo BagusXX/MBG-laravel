@@ -9,9 +9,11 @@ return new class extends Migration {
     {
         Schema::create('suppliers', function (Blueprint $table) {
             $table->id();
+            $table->string('kode')->unique();
             $table->string('nama');
             $table->string('alamat');
             $table->string('kontak');
+            $table->string('nomor', 20);
             $table->foreignId('region_id')->constrained('regions')->onDelete('cascade');
             $table->timestamps();
         });
