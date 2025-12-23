@@ -72,7 +72,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center">Belum ada supplier</td>
+                            <td colspan="8" class="text-center">Belum ada supplier</td>
                         </tr>
                     @endforelse
                 </tbody>
