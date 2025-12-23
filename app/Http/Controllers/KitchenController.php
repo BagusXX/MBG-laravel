@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Kitchen;
+use App\Models\region;
 use Illuminate\Http\Request;
 
 class KitchenController extends Controller
@@ -10,10 +11,11 @@ class KitchenController extends Controller
     // Tampilkan halaman dapur
     public function index()
     {
-        $kitchens = Kitchen::all();
+        $kitchens = Kitchen::with('region')->get();
         $kodeBaru = $this->generateKode();
+        $regions = region::all();
 
-        return view('master.kitchen', compact('kitchens', 'kodeBaru'));
+        return view('master.kitchen', compact('kitchens', 'kodeBaru', 'regions'));
     }
 
     private function generateKode()
@@ -53,6 +55,7 @@ class KitchenController extends Controller
             'alamat' => 'required',
             'kepala_dapur' => 'required',
             'nomor_kepala_dapur' => 'required',
+            'region_id' => 'required|exists:regions,id',
         ]);
 
         Kitchen::create([
@@ -61,6 +64,7 @@ class KitchenController extends Controller
             'alamat' => $request->alamat,
             'kepala_dapur' => $request->kepala_dapur,
             'nomor_kepala_dapur' => $request->nomor_kepala_dapur,
+            'region_id' => $request->region_id,
         ]);
 
         return redirect()->route('master.kitchen')
@@ -75,6 +79,7 @@ class KitchenController extends Controller
             'alamat' => 'required',
             'kepala_dapur' => 'required',
             'nomor_kepala_dapur' => 'required',
+            'region_id' => 'required|exists:regions,id',
         ]);
 
         $kitchen = Kitchen::findOrFail($id);
@@ -84,6 +89,7 @@ class KitchenController extends Controller
             'alamat' => $request->alamat,
             'kepala_dapur' => $request->kepala_dapur,
             'nomor_kepala_dapur' => $request->nomor_kepala_dapur,
+            'region_id' => $request->region_id,
         ]);
 
         return redirect()->route('master.kitchen')
