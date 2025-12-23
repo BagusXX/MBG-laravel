@@ -199,12 +199,6 @@
     document.addEventListener('DOMContentLoaded', function () {
         const kodeInput = document.getElementById('kode_supplier');
 
-        // Generate kode SPR11-SPR99
-        const generatedCodes = @json($generatedCodes);
-
-        // Ambil kode terakhir yang ada di database
-        const kodeTerakhir = Object.values(generatedCodes).pop();
-        kodeInput.value = kodeTerakhir; // set default kode saat tambah supplier
     });
 </script>
 @endpush

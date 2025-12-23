@@ -28,7 +28,6 @@ class SupplierController extends Controller
     {
         // Validasi input
         $request->validate([
-            'kode' => 'required|unique:suppliers,kode',
             'nama' => 'required|string|max:255',
             'alamat' => 'required|string|max:255',
             'region_id' => 'required|exists:regions,id',
@@ -37,7 +36,7 @@ class SupplierController extends Controller
         ]);
 
         Supplier::create([
-            'kode' => $request->kode,
+            'kode' => self::generateKode(),
             'nama' => $request->nama,
             'alamat' => $request->alamat,
             'region_id' => $request->region_id,
@@ -81,7 +80,7 @@ class SupplierController extends Controller
             'nomor' => $request->nomor,
         ]);
 
-        return redirect()->route('master.supplier')->with('success', 'Supplier berhasil diupdate.');
+        return redirect()->route('master.supplier.index')->with('success', 'Supplier berhasil diupdate.');
     }
 
 
@@ -89,17 +88,21 @@ class SupplierController extends Controller
     {
         $supplier->delete();
 
-        return redirect()->route('master.supplier')->with('success', 'Supplier berhasil dihapus.');
+        return redirect()->route('master.supplier.index')->with('success', 'Supplier berhasil dihapus.');
     }
 
     public static function generateKode()
     {
-        $lastSupplier = Supplier::orderBy('id', 'desc')->first();
-        $lastNumber = $lastSupplier ? intval(substr($lastSupplier->kode, 3)) : 10; // SPR11 awal
+        $lastSupplier = Supplier::orderByRaw('CAST(SUBSTRING(kode, 4) AS UNSIGNED) DESC')->first();
+
+        $lastNumber = $lastSupplier
+            ? (int) substr($lastSupplier->kode, 3)
+            : 10;
+
         $nextNumber = $lastNumber + 1;
 
         if ($nextNumber > 99) {
-            $nextNumber = 11; // reset jika sudah SPR99
+            throw new \Exception('Kode supplier sudah mencapai batas SPR99');
         }
 
         return 'SPR' . $nextNumber;

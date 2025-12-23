@@ -20,6 +20,6 @@ class BahanBaku extends Model
 
     public function bahanBaku()
     {
-        return $this->hasMany(beli::class);
+        return $this->hasMany(Purchase::class);
     }
 }

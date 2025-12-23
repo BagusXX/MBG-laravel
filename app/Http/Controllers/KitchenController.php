@@ -67,8 +67,8 @@ class KitchenController extends Controller
             'region_id' => $request->region_id,
         ]);
 
-        return redirect()->route('master.kitchen')
-                         ->with('success', 'Data dapur berhasil ditambahkan.');
+        return redirect()->route('master.kitchen.index')
+            ->with('success', 'Data dapur berhasil ditambahkan.');
     }
 
     // Update data dapur
@@ -92,8 +92,8 @@ class KitchenController extends Controller
             'region_id' => $request->region_id,
         ]);
 
-        return redirect()->route('master.kitchen')
-                         ->with('success', 'Data dapur berhasil diperbarui.');
+        return redirect()->route('master.kitchen.index')
+            ->with('success', 'Data dapur berhasil diperbarui.');
     }
 
     // Hapus data dapur
@@ -102,7 +102,7 @@ class KitchenController extends Controller
         $kitchen = Kitchen::findOrFail($id);
         $kitchen->delete();
 
-        return redirect()->route('master.kitchen')
-                         ->with('success', 'Data dapur berhasil dihapus.');
+        return redirect()->route('master.kitchen.index')
+            ->with('success', 'Data dapur berhasil dihapus.');
     }
 }

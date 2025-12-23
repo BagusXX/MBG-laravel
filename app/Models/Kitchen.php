@@ -18,6 +18,7 @@ class Kitchen extends Model
         'alamat',
         'kepala_dapur',
         'nomor_kepala_dapur',
+        'region_id'
     ];
 
     public function menus()
@@ -30,9 +31,8 @@ class Kitchen extends Model
         return $this->belongsToMany(User::class, 'kitchen_user', 'kitchen_code', 'user_id', 'kode', 'id');
     }
 
-    public function region(){
+    public function region()
+    {
         return $this->belongsTo(region::class);
     }
-
 }
-
