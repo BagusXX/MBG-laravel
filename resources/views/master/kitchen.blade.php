@@ -24,6 +24,7 @@
                         <th>No</th>
                         <th>Kode</th>
                         <th>Nama Dapur</th>
+                        <th>Region</th>
                         <th>Alamat</th>
                         <th>Kepala Dapur</th>
                         <th>Nomor Kepala Dapur</th>
@@ -37,6 +38,7 @@
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $k->kode }}</td>
                             <td>{{ $k->nama }}</td>
+                            <td>{{ $k->region->nama_region }}</td>
                             <td>{{ $k->alamat }}</td>
                             <td>{{ $k->kepala_dapur }}</td>
                             <td>{{ $k->nomor_kepala_dapur }}</td>
@@ -47,6 +49,7 @@
                                     data-id="{{ $k->id }}"
                                     data-nama="{{ $k->nama }}"
                                     data-alamat="{{ $k->alamat }}"
+                                    data-region="{{ $k->region_id }}"
                                     data-kepala="{{ $k->kepala_dapur }}"
                                     data-nomor="{{ $k->nomor_kepala_dapur }}"
                                     data-toggle="modal"
@@ -95,6 +98,16 @@
         </div>
 
         <div class="form-group mt-2">
+            <label> Region </label>
+            <select name="region_id" class="form-control" required>
+                <option value="">-- Pilih Region --</option>
+                @foreach($regions as $region)
+                    <option value="{{ $region->id }}">{{ $region->nama_region }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="form-group mt-2">
             <label>Alamat</label>
             <input type="text" name="alamat" class="form-control" required>
         </div>
@@ -123,6 +136,16 @@
             <label>Nama Dapur</label>
             <input type="text" id="editNama" name="nama" class="form-control" required>
         </div>
+
+        <div class="form-group mt-2">
+    <label>Region</label>
+    <select id="editRegion" name="region_id" class="form-control" required>
+        <option value="">-- Pilih Region --</option>
+        @foreach($regions as $r)
+            <option value="{{ $r->id }}">{{ $r->nama_region }}</option>
+        @endforeach
+    </select>
+</div>
 
         <div class="form-group mt-2">
             <label>Alamat</label>
@@ -166,6 +189,7 @@
                     document.getElementById('editAlamat').value = this.dataset.alamat;
                     document.getElementById('editKepala').value = this.dataset.kepala;
                     document.getElementById('editNomor').value = this.dataset.nomor;
+                    document.getElementById('editRegion').value = this.dataset.region;
 
                     // Set action form update
                     document.querySelector('#modalEditKitchen form').action =

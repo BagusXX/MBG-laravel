@@ -13,6 +13,7 @@ return new class extends Migration {
             $table->string('alamat');
             $table->string('kepala_dapur');
             $table->string('nomor_kepala_dapur');
+            $table->foreignId('region_id')->constrained('regions')->onDelete('cascade');
             $table->timestamps();
         });
     }
