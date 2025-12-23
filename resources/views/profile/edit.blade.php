@@ -1,29 +1,72 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Profile') }}
-        </h2>
-    </x-slot>
+@extends('adminlte::page')
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-profile-information-form')
-                </div>
-            </div>
+@section('title', 'Profile')
 
-            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-password-form')
-                </div>
-            </div>
+@section('content_header')
+    <h1>Profile</h1>
+@endsection
 
-            <div class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.delete-user-form')
-                </div>
-            </div>
-        </div>
+@section('content')
+
+{{-- UPDATE PROFILE --}}
+<div class="card mb-3">
+    <div class="card-header">
+        <strong>Informasi Profil</strong>
     </div>
-</x-app-layout>
+    <div class="card-body">
+        <form method="POST" action="{{ route('profile.update') }}">
+            @csrf
+            @method('PATCH')
+
+            <div class="form-group mb-2">
+                <label>Nama</label>
+                <input type="text"
+                       name="name"
+                       class="form-control"
+                       value="{{ old('name', $user->name) }}"
+                       required>
+            </div>
+
+            <div class="form-group mb-2">
+                <label>Email</label>
+                <input type="email"
+                       name="email"
+                       class="form-control"
+                       value="{{ old('email', $user->email) }}"
+                       required>
+            </div>
+
+            <button class="btn btn-primary mt-2">
+                Simpan Perubahan
+            </button>
+        </form>
+    </div>
+</div>
+
+{{-- DELETE ACCOUNT --}}
+<div class="card border-danger">
+    <div class="card-header bg-danger text-white">
+        Hapus Akun
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ route('profile.destroy') }}">
+            @csrf
+            @method('DELETE')
+
+            <div class="form-group mb-2">
+                <label>Konfirmasi Password</label>
+                <input type="password"
+                       name="password"
+                       class="form-control"
+                       placeholder="Password saat ini"
+                       required>
+            </div>
+
+            <button class="btn btn-danger">
+                Hapus Akun
+            </button>
+        </form>
+    </div>
+</div>
+
+@endsection

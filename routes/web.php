@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\BahanBakuController;
@@ -216,6 +217,19 @@ Route::middleware(['auth'])->group(function () {
                 ->middleware('permission:report.sales.view')
                 ->name('sales-materials');
         });
+
+    Route::prefix('dashboard/profile')
+        ->name('profile.')
+        ->controller(ProfileController::class)
+        ->group(function () {
+            Route::get('/', 'edit')->name('edit');
+            Route::patch('/', 'update')->name('update');
+            Route::delete('/', 'destroy')->name('destroy');
+        });
+
+        Route::get('/dashboard', function () {
+    return redirect()->route('dashboard.master.bahan-baku.index');
+})->middleware('auth')->name('dashboard');
 
     
 });

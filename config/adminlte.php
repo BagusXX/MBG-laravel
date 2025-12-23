@@ -138,7 +138,21 @@ return [
     'usermenu_header_class' => 'bg-primary',
     'usermenu_image' => false,
     'usermenu_desc' => false,
-    'usermenu_profile_url' => false,
+    'usermenu_profile_url' => 'dashboard/profile',
+
+    'usermenu_links' => [
+            [
+                'text' => 'Profile',
+                'url' => 'dashboard/profile',
+                'icon' => 'fas fa-fw fa-user',
+            ],
+            [
+                'text' => 'Logout',
+                'url' => 'logout',
+                'icon' => 'fas fa-fw fa-sign-out-alt',
+                'logout' => true,
+            ],
+        ],
 
     /*
     |--------------------------------------------------------------------------
@@ -299,6 +313,8 @@ return [
     */
 
     'menu' => [
+        
+
         // Navbar items:
         [
             'type' => 'navbar-search',

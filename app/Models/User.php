@@ -40,4 +40,8 @@ class User extends Authenticatable
     public function juals(){
         return $this->hasMany(jual::class);
     }
+
+    public function adminlte_profile_url(){
+        return url('dashboard/profile');
+    }
 }
