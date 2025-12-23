@@ -14,8 +14,8 @@ class UserController extends Controller
     // 1. TAMPILKAN HALAMAN USER
     public function index()
     {
-        $users = User::with(['kitchens','roles'])->get();
-        $kitchens = Kitchen::all();
+        $users = User::with(['kitchens.region','roles'])->get();
+        $kitchens = Kitchen::with('region')->get();
         $roles = Role::all();
 
         return view('setup.user', compact('users','kitchens','roles'));
