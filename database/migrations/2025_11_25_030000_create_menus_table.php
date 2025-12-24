@@ -13,6 +13,7 @@ return new class extends Migration {
             $table->string('nama');
             $table->foreignId('kitchen_id')->constrained('kitchens')->onDelete('cascade');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

@@ -21,6 +21,7 @@ return new class extends Migration
             $table->foreignId('bahan_baku_id')->constrained('bahan_baku')->onDelete('cascade');
 
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

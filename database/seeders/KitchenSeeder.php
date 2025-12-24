@@ -12,7 +12,7 @@ class KitchenSeeder extends Seeder
     {
         $kitchens = [
             [
-                'kode' => 'KITCH-01',
+                'kode' => 'DPR11',
                 'nama' => 'Dapur Utama (Central)',
                 'alamat' => 'Jl. Sudirman No. 123, Jakarta',
                 'kepala_dapur' => 'Budi Santoso',
@@ -20,7 +20,7 @@ class KitchenSeeder extends Seeder
                 'region_id' =>1,
             ],
             [
-                'kode' => 'KITCH-02',
+                'kode' => 'DPR12',
                 'nama' => 'Dapur Cabang Bandung',
                 'alamat' => 'Jl. Merdeka No. 45, Bandung',
                 'kepala_dapur' => 'Siti Aminah',
@@ -28,7 +28,7 @@ class KitchenSeeder extends Seeder
                 'region_id' => 2,
             ],
             [
-                'kode' => 'KITCH-03',
+                'kode' => 'DPR13',
                 'nama' => 'Dapur Cabang Surabaya',
                 'alamat' => 'Jl. Basuki Rahmat No. 88, Surabaya',
                 'kepala_dapur' => 'Agus Wijaya',

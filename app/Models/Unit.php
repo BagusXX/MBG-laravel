@@ -3,9 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Unit extends Model
 {
+    use HasFactory, SoftDeletes;
     protected $table = 'units';
-    protected $fillable = ['satuan', 'keterangan', 'kitchen_id'];
+    protected $fillable = ['satuan', 'keterangan'];
+
+    public function recipe_bahan_baku(){
+        return $this->hasMany(RecipeBahanBaku::class);
+    }
 }

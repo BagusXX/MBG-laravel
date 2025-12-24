@@ -4,20 +4,18 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up()
     {
         Schema::create('recipe_bahan_baku', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('recipe_id')->constrained()->onDelete('cascade');
+            $table->foreignId('menu_id')->constrained('menus')->onDelete('cascade');
             $table->foreignId('bahan_baku_id')->constrained('bahan_baku')->onDelete('cascade'); // <- perbaikan
 
             $table->decimal('jumlah', 10, 2);
-            $table->string('satuan');
-            $table->decimal('harga', 15, 2);
 
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
