@@ -18,6 +18,7 @@ return new class extends Migration
             $table->double('harga');
             $table->string('tempat_beli');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

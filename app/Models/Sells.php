@@ -1,13 +1,16 @@
 <?php
 
 namespace App\Models;
-
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Model;
 
-class jual extends Model
+class Sells extends Model
 {
     //
-    protected $table = 'juals';
+
+    use HasFactory, SoftDeletes;
+    protected $table = 'sells';
 
     protected $fillable = [
         'harga_mitra',

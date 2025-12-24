@@ -16,6 +16,7 @@ return new class extends Migration {
             $table->string('nomor', 20);
             $table->foreignId('region_id')->constrained('regions')->onDelete('cascade');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

@@ -13,10 +13,12 @@ return new class extends Migration
         $table->id();
         $table->string('kode');
         $table->date('tanggal');
-        $table->foreignId('kitchen_id')->constrained()->onDelete('cascade');
-        $table->foreignId('menu_id')->constrained()->onDelete('cascade');
+        $table->foreignId('kitchen_id')->constrained('kitchens')->onDelete('cascade');
+        $table->foreignId('recipe_bahan_baku_id')->constrained('recipe_bahan_baku')->onDelete('cascade');
+        $table->double('total_harga');
         $table->integer('porsi');
         $table->timestamps();
+        $table->softDeletes();
     });
 }
 
