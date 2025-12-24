@@ -28,8 +28,7 @@
                         <th>Kode</th> 
                         <th>Nama Bahan</th>
                         <th>Satuan</th>
-                        <th>Harga Dapur</th>
-                        <th>Harga Mitra</th>
+                        <th>Harga</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -40,8 +39,7 @@
                             <td>{{ $item->kode }}</td>
                             <td>{{ $item->nama }}</td>
                             <td>{{ $item->satuan }}</td>
-                            <td>Rp {{ number_format($item->harga_dapur, 0, ',', '.') }}</td>
-                            <td>Rp {{ number_format($item->harga_mitra, 0, ',', '.') }}</td>
+                            <td>Rp {{ number_format($item->harga, 0, ',', '.') }}</td>
                             <td>
                                 {{-- BUTTON EDIT --}}
                                 <button
@@ -51,8 +49,7 @@
                                     data-kode="{{ $item->kode }}"
                                     data-nama="{{ $item->nama }}"
                                     data-satuan="{{ $item->satuan }}"
-                                    data-harga-dapur="{{ $item->harga_dapur }}"
-                                    data-harga-mitra="{{ $item->harga_mitra }}"
+                                    data-harga-dapur="{{ $item->harga }}"
                                     data-dapur-id="{{ $item->kitchen_id }}"
                                     data-old-kode="{{ $item->kode }}"
                                     data-old-dapur-id="{{ $item->kitchen_id }}"
@@ -116,13 +113,8 @@
         </div>
 
         <div class="form-group">
-            <label>Harga Dapur</label>
-            <input type="number" placeholder="10000" class="form-control" name="harga_dapur" required>
-        </div>
-
-        <div class="form-group">
-            <label>Harga Mitra</label>
-            <input type="number" placeholder="10000" class="form-control" name="harga_mitra" required>
+            <label>Harga</label>
+            <input type="number" placeholder="10000" class="form-control" name="harga" required>
         </div>
 
         <div class="form-group mt-2">
@@ -172,13 +164,8 @@
         </div>
 
         <div class="form-group">
-            <label>Harga Dapur</label>
-            <input id="editHargaDapur" type="number" class="form-control" name="harga_dapur" required>
-        </div>
-
-        <div class="form-group">
-            <label>Harga Mitra</label>
-            <input id="editHargaMitra" type="number" class="form-control" name="harga_mitra" required>
+            <label>Harga</label>
+            <input id="editHarga" type="number" class="form-control" name="harga" required>
         </div>
 
         <div class="form-group mt-2">

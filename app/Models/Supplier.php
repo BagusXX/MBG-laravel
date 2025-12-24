@@ -11,7 +11,13 @@ class Supplier extends Model
 
     protected $table = 'suppliers';
     protected $fillable = [
-         'nama', 'alamat', 'kontak', 'region_id'
+        'kode',
+        'nama',
+        'alamat',
+        'region_id',
+        'kontak',
+        'nomor',
+        'region_id'
     ];
 
     public function region()

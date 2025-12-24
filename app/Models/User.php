@@ -37,8 +37,14 @@ class User extends Authenticatable
         return $this->belongsToMany(Kitchen::class, 'kitchen_user', 'user_id', 'kitchen_kode', 'id', 'kode');
     }
 
-    public function juals(){
+    public function juals()
+    {
         return $this->hasMany(jual::class);
+    }
+
+    public function purchases()
+    {
+        return $this->hasMany(Purchase::class);
     }
 
     public function adminlte_profile_url(){

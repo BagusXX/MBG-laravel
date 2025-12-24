@@ -215,5 +215,21 @@ function editOperational(button) {
     // tampilkan modal
     $('#modalEditOperasional').modal('show');
 }
+
+function capitalizeWords(text) {
+    return text
+        .toLowerCase()
+        .replace(/\b\w/g, char => char.toUpperCase());
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const inputs = document.querySelectorAll('input[name="nama"]');
+
+    inputs.forEach(input => {
+        input.addEventListener('input', function () {
+            this.value = capitalizeWords(this.value);
+        });
+    });
+});
 </script>
 @endsection
