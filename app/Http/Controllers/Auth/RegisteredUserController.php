@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Kitchen;
+use App\Models\region;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -19,7 +21,9 @@ class RegisteredUserController extends Controller
      */
     public function create(): View
     {
-        return view('auth.register');
+        $regions = region::all();
+        $kitchens = Kitchen::all();
+        return view('auth.register', compact('kitchens','regions'));
     }
 
     /**
@@ -33,7 +37,9 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', Rules\Password::defaults()],
-            'password_confirmation' => ['required', 'same:password']
+            'password_confirmation' => ['required', 'same:password'],
+            'kitchens' => ['required','array','min:1'],
+            'kitchens.*' => ['exists:kitchens,kode'],
         ], [
             'name.required' => 'Nama wajib diisi.',
             'email.required' => 'Email wajib diisi.',
@@ -43,19 +49,22 @@ class RegisteredUserController extends Controller
             'password.min' => 'Password minimal 8 karakter.',
             'password_confirmation.required' => 'Konfirmasi password wajib diisi.',
             'password_confirmation.same' => 'Konfirmasi password tidak sesuai.',
+            'kitchens.required' => 'Dapur wajib dipilih.',
         ]);
 
         $user = User::create([
             'name' => $request->name,        // sesuai DB
             'email' => $request->email,      // sesuai DB
-            'password' => Hash::make($request->password),
-            'role' => 'admin',                // kolom role wajib ada isinya
-            'kitchen_id' => null,            // jika tidak pakai dulu
+            'password' => Hash::make($request->password),       
         ]);
+         // ✅ DEFAULT ROLE (Spatie)
+        $user->assignRole('operatorDapur');
+
+        // ✅ RELASI DAPUR (pivot)
+        $user->kitchens()->attach($request->kitchens);
 
 
         event(new Registered($user));
-
         Auth::login($user);
 
         return redirect(route('dashboard.master.bahan-baku.index', absolute: false));

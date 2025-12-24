@@ -4,17 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Submission extends Model
 {
 
-    protected $table = 'submission';
+    use HasFactory, SoftDeletes;
+    protected $table = 'submissions';
 
     protected $fillable = [
         'kode',
         'tanggal',
         'kitchen_id',
-        'menu_id',
+        'recipe_bahan_baku_id',
         'porsi'
     ];
 
@@ -23,8 +25,12 @@ class Submission extends Model
         return $this->belongsTo(Kitchen::class);
     }
 
-    public function menu()
+    public function recipe_bahan_baku()
     {
-        return $this->belongsTo(Menu::class);
+        return $this->belongsTo(RecipeBahanBaku::class);
+    }
+
+    public function submission_detail(){
+        return $this->hasMany(SubmissionDetails::class);
     }
 }

@@ -12,11 +12,10 @@ return new class extends Migration {
             $table->string('kode');
             $table->string('nama');
             $table->double('harga');
-            $table->string('satuan');
+            $table->foreignId('satuan_id')->constrained('units')->onDelete('cascade');
             $table->foreignId('kitchen_id')->constrained('kitchens')->onDelete('cascade');
             $table->timestamps();
-
-            // $table->foreignId('harga_id')->constrained('belis')->onDelete('cascade');
+            $table->softDeletes();
         });
     }
 

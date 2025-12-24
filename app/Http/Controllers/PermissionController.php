@@ -3,10 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 
-class RoleController extends Controller
+class PermissionController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -14,8 +13,7 @@ class RoleController extends Controller
     public function index()
     {
         //
-        return view('setup.role', [
-            'roles' => Role::with('permissions')->get(),
+        return view('setup.permission', [
             'permissions' => Permission::orderBy('name')->get()
         ]);
     }
@@ -34,10 +32,16 @@ class RoleController extends Controller
     public function store(Request $request)
     {
         //
-        $role = Role::create(['name' => $request->name]);
-        $role->syncPermissions($request->permissions ?? []);
+        $request->validate([
+            'name' => 'required|unique:permissions,name'
+        ]);
 
-        return back()->with('success', 'Role berhasil dibuat');
+        Permission::create([
+            'name' => $request->name,
+            'guard_name' => 'web'
+        ]);
+
+        return back()->with('success', 'Permission berhasil ditambahkan');
     }
 
     /**
@@ -46,7 +50,6 @@ class RoleController extends Controller
     public function show(string $id)
     {
         //
-
     }
 
     /**
@@ -62,12 +65,18 @@ class RoleController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $role = Role::findOrFail($id);
-        $role->update(['name' => $request->name]);
-        $role->syncPermissions($request->permissions ?? []);
+        //
+        $permission = Permission::findOrFail($id);
 
-        return back()->with('success', 'Role berhasil diperbarui');
+        $request->validate([
+            'name' => 'required|unique:permissions,name,' . $permission->id
+        ]);
 
+        $permission->update([
+            'name' => $request->name
+        ]);
+
+        return back()->with('success', 'Permission berhasil diperbarui');
     }
 
     /**
@@ -76,7 +85,7 @@ class RoleController extends Controller
     public function destroy(string $id)
     {
         //
-        Role::findOrFail($id)->delete();
-        return back()->with('success', 'Role berhasil dihapus');
+        Permission::findOrFail($id)->delete();
+        return back()->with('success', 'Permission berhasil dihapus');
     }
 }

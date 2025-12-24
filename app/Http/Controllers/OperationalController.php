@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\operationals;
+use App\Models\Recipe;
 use Illuminate\Http\Request;
 
 class OperationalController extends Controller
@@ -55,12 +56,19 @@ class OperationalController extends Controller
 
     public function destroy($id)
     {
-        operationals::findOrFail($id)->delete();
+        $recipe = Recipe::findOrFail($id);
+
+        // hapus relasi pivot dulu
+        $recipe->bahanBaku()->detach();
+
+        // baru hapus recipe
+        $recipe->delete();
 
         return redirect()
-            ->route('master.operational.index')
-            ->with('success', 'Biaya Operasional berhasil dihapus');
+            ->route('master.recipe.index')
+            ->with('success', 'Recipe berhasil dihapus');
     }
+
     public function update(Request $request, $id)
     {
         $request->validate([

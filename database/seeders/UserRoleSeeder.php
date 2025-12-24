@@ -28,19 +28,19 @@ class UserRoleSeeder extends Seeder
                 'name' => 'Superadmin',
                 'email' => 'superadmin@example.com',
                 'role' => 'superadmin',
-                'access_kitchens' => ['KITCH-01', 'KITCH-02'], // Akses semua
+                'access_kitchens' => ['DPR11', 'DPR12'], // Akses semua
             ],
             [
                 'name' => 'Operator Dapur Pusat',
                 'email' => 'dapur.pusat@example.com',
                 'role' => 'operatorDapur',
-                'access_kitchens' => ['KITCH-01'], // Hanya Jakarta
+                'access_kitchens' => ['DPR12'], // Hanya Jakarta
             ],
             [
                 'name' => 'Operator Dapur Bandung',
                 'email' => 'dapur.bandung@example.com',
                 'role' => 'operatorDapur',
-                'access_kitchens' => ['KITCH-02'], // Hanya Bandung
+                'access_kitchens' => ['DPR13'], // Hanya Bandung
             ],
         ];
 

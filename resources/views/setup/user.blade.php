@@ -35,6 +35,7 @@
                         <th>Nama</th>
                         <th>Email</th>
                         <th>Dapur</th>
+                        <th>Region</th>
                         <th>Role</th>
                         <th>Aksi</th>
                     </tr>
@@ -57,6 +58,19 @@
                                     <span class="badge badge-secondary">Tidak ada</span>
                                 @endif
                             </td>
+
+                            {{-- REGION --}}
+                            {{-- REGION --}}
+                            <td>
+                                @if($user->kitchens->isNotEmpty())
+                                    @foreach($user->kitchens->pluck('region.nama_region')->unique() as $region)
+                                        <span class="badge badge-success">{{ $region }}</span>
+                                    @endforeach
+                                @else
+                                    <span class="badge badge-secondary">Tidak ada</span>
+                                @endif
+                            </td>
+
 
                             {{-- MENAMPILKAN ROLE --}}
                             <td>
@@ -87,8 +101,8 @@
     </div>
 
     {{-- ===========================
-         MODAL TAMBAH USER
-       =========================== --}}
+    MODAL TAMBAH USER
+    =========================== --}}
     <x-modal-form id="modalAddUser" title="Tambah User" action="{{ route('setup.user.store') }}" submiText="Simpan">
         @csrf
 
@@ -141,8 +155,8 @@
 
 
     {{-- ===========================
-         LOOPING MODAL EDIT & DELETE
-       =========================== --}}
+    LOOPING MODAL EDIT & DELETE
+    =========================== --}}
     @foreach ($users as $user)
 
         {{-- MODAL EDIT --}}
@@ -170,14 +184,13 @@
             <div class="form-group">
                 <label>Dapur</label>
                 <div id="kitchen-wrapper-edit-{{ $user->id }}">
-                    
+
                     {{-- Loop data dapur yang sudah ada --}}
                     @foreach($user->kitchens as $userKitchen)
                         <div class="input-group mb-2">
                             <select class="form-control" name="kitchen_kode[]" required>
                                 @foreach($kitchens as $kitchen)
-                                    <option value="{{ $kitchen->kode }}" 
-                                        {{ $userKitchen->kode == $kitchen->kode ? 'selected' : '' }}>
+                                    <option value="{{ $kitchen->kode }}" {{ $userKitchen->kode == $kitchen->kode ? 'selected' : '' }}>
                                         {{ $kitchen->nama }}
                                     </option>
                                 @endforeach
@@ -204,10 +217,10 @@
                     @endif
 
                 </div>
-                
+
                 {{-- Tombol Tambah --}}
-                <button type="button" class="btn btn-success btn-sm mt-1" 
-                        onclick="addKitchenRow('kitchen-wrapper-edit-{{ $user->id }}')">
+                <button type="button" class="btn btn-success btn-sm mt-1"
+                    onclick="addKitchenRow('kitchen-wrapper-edit-{{ $user->id }}')">
                     <i class="fas fa-plus"></i> Tambah Dapur Lain
                 </button>
             </div>
@@ -237,28 +250,28 @@
         // ==========================================
         // 1. LOGIKA DYNAMIC INPUT DAPUR
         // ==========================================
-        
+
         // Simpan opsi select ke variabel JS agar mudah dicopy
         const kitchenOptions = `
-            <option value="" disabled selected>Pilih Dapur</option>
-            @foreach($kitchens as $kitchen)
-                <option value="{{ $kitchen->kode }}">{{ $kitchen->nama }}</option>
-            @endforeach
-        `;
+                    <option value="" disabled selected>Pilih Dapur</option>
+                    @foreach($kitchens as $kitchen)
+                        <option value="{{ $kitchen->kode }}">{{ $kitchen->nama }}</option>
+                    @endforeach
+                `;
 
         function addKitchenRow(wrapperId) {
             let newRow = `
-                <div class="input-group mb-2">
-                    <select class="form-control" name="kitchen_kode[]" required>
-                        ${kitchenOptions}
-                    </select>
-                    <div class="input-group-append">
-                        <button class="btn btn-danger" type="button" onclick="removeRow(this)">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
+                        <div class="input-group mb-2">
+                            <select class="form-control" name="kitchen_kode[]" required>
+                                ${kitchenOptions}
+                            </select>
+                            <div class="input-group-append">
+                                <button class="btn btn-danger" type="button" onclick="removeRow(this)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
             document.getElementById(wrapperId).insertAdjacentHTML('beforeend', newRow);
         }
 

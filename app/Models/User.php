@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 // use Illuminate\Database\Eloquent\SoftDeletes;
@@ -11,7 +12,7 @@ use App\Models\Kitchen;
 
 class User extends Authenticatable
 {
-    use HasRoles, HasFactory, Notifiable;
+    use HasRoles, HasFactory, Notifiable, SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -45,5 +46,9 @@ class User extends Authenticatable
     public function purchases()
     {
         return $this->hasMany(Purchase::class);
+    }
+
+    public function adminlte_profile_url(){
+        return url('dashboard/profile');
     }
 }

@@ -1,8 +1,8 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\AdminController;
 use Illuminate\Support\Facades\Route;
+
 use App\Http\Controllers\BahanBakuController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\MenuController;
@@ -15,158 +15,178 @@ use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\OperationalController;
+use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\SaleMaterialsKitchenController;
 use App\Http\Controllers\SaleMaterialsPartnerController;
 
 require __DIR__ . '/auth.php';
 
-Route::get('/', function () {
-    return redirect()->route('dashboard.master.bahan-baku.index');
-});
+Route::get('/', fn() => redirect()->route('dashboard.master.bahan-baku.index'));
 
-Route::middleware(['auth', 'role:superadmin'])->group(function () {
+Route::middleware(['auth'])->group(function () {
+
+    /*
+    |------------------------------------------------------------------
+    | MASTER DATA
+    |------------------------------------------------------------------
+    */
 
     Route::prefix('dashboard/master/bahan-baku')
         ->name('dashboard.master.bahan-baku.')
         ->controller(BahanBakuController::class)
         ->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::post('/', 'store')->name('store');
-            Route::delete('/{id}', 'destroy')->name('destroy');
-            Route::get('/generate-code/{kitchenId}', 'generateKodeAjax')->name('generateCode');
+            Route::get('/', 'index')->middleware('permission:master.bahan-baku.view')->name('index');
+            Route::post('/', 'store')->middleware('permission:master.bahan-baku.create')->name('store');
+            Route::delete('/{id}', 'destroy')->middleware('permission:master.bahan-baku.delete')->name('destroy');
+            Route::get('/generate-code/{kitchenId}', 'generateKodeAjax')
+                ->middleware('permission:master.bahan-baku.create')
+                ->name('generateCode');
         });
 
     Route::prefix('dashboard/master/satuan')
         ->name('master.unit.')
         ->controller(UnitController::class)
         ->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::post('/', 'store')->name('store');
-            Route::put('/{id}', 'update')->name('update');
-            Route::delete('/{id}', 'destroy')->name('destroy');
+            Route::get('/', 'index')->middleware('permission:master.unit.view')->name('index');
+            Route::post('/', 'store')->middleware('permission:master.unit.create')->name('store');
+            Route::put('/{id}', 'update')->middleware('permission:master.unit.update')->name('update');
+            Route::delete('/{id}', 'destroy')->middleware('permission:master.unit.delete')->name('destroy');
         });
 
     Route::prefix('dashboard/master/nama-menu')
         ->name('master.menu.')
         ->controller(MenuController::class)
         ->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::post('/', 'store')->name('store');
-            Route::delete('/{id}', 'destroy')->name('destroy');
+            Route::get('/', 'index')->middleware('permission:master.menu.view')->name('index');
+            Route::post('/', 'store')->middleware('permission:master.menu.create')->name('store');
+            Route::delete('/{id}', 'destroy')->middleware('permission:master.menu.delete')->name('destroy');
         });
 
     Route::prefix('dashboard/master/dapur')
         ->name('master.kitchen.')
         ->controller(KitchenController::class)
         ->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::post('/', 'store')->name('store');
-            Route::delete('/{id}', 'destroy')->name('destroy');
-            Route::put('/{id}', 'update')->name('update');
+            Route::get('/', 'index')->middleware('permission:master.kitchen.view')->name('index');
+            Route::post('/', 'store')->middleware('permission:master.kitchen.create')->name('store');
+            Route::put('/{id}', 'update')->middleware('permission:master.kitchen.update')->name('update');
+            Route::delete('/{id}', 'destroy')->middleware('permission:master.kitchen.delete')->name('destroy');
         });
+
     Route::prefix('dashboard/master/region')
         ->name('master.region.')
         ->controller(RegionController::class)
         ->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::post('/', 'store')->name('store');
-            Route::delete('/{id}', 'destroy')->name('destroy');
-            Route::put('/{id}', 'update')->name('update');
+            Route::get('/', 'index')->middleware('permission:master.region.view')->name('index');
+            Route::post('/', 'store')->middleware('permission:master.region.create')->name('store');
+            Route::put('/{id}', 'update')->middleware('permission:master.region.update')->name('update');
+            Route::delete('/{id}', 'destroy')->middleware('permission:master.region.delete')->name('destroy');
         });
+
     Route::prefix('dashboard/master/operational')
         ->name('master.operational.')
         ->controller(OperationalController::class)
         ->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::post('/', 'store')->name('store');
-            Route::delete('/{id}', 'destroy')->name('destroy');
-            Route::put('/{id}', 'update')->name('update');
-        });
-
-    Route::prefix('dashboard/setup/user')
-        ->name('setup.user.')
-        ->controller(UserController::class)
-        ->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::post('/', 'store')->name('store');
-            Route::delete('/{id}', 'destroy')->name('destroy');
-            Route::put('/{id}', 'update')->name('update');
-        });
-
-    Route::prefix('dashboard/setup/role')
-        ->name('setup.role.')
-        ->controller(RoleController::class)
-        ->group(function () {
-            Route::get('/', 'index')->name('index');
-        });
-
-    Route::prefix('dashboard/setup/racik-menu')
-        ->name('recipe.')
-        ->controller(RecipeController::class)
-        ->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::post('/', 'store')->name('store');
-        });
-
-    Route::prefix('dashboard/transaksi/pengajuan-menu')
-        ->name('transaction.submission.')
-        ->controller(SubmissionController::class)
-        ->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::post('/', 'store')->name('store');
-            Route::delete('/{id}', 'destroy')->name('destroy');
-            Route::get('/menu-by-kitchen/{kitchen}', 'getMenuByKitchen')->name('menu-by-kitchen');
-        });
-
-    Route::prefix('dashboard/transaksi/jual-bahan-baku-dapur')
-        ->name('transaction.sale-materials-kitchen.')
-        ->controller(SaleMaterialsKitchenController::class)
-        ->group(function () {
-            Route::get('/', 'index')->name('index');
-        });
-
-    Route::prefix('dashboard/transaksi/jual-bahan-baku-mitra')
-        ->name('transaction.sale-materials-partner.')
-        ->controller(SaleMaterialsPartnerController::class)
-        ->group(function () {
-            Route::get('/', 'index')->name('index');
+            Route::get('/', 'index')->middleware('permission:master.operational.view')->name('index');
+            Route::post('/', 'store')->middleware('permission:master.operational.create')->name('store');
+            Route::put('/{id}', 'update')->middleware('permission:master.operational.update')->name('update');
+            Route::delete('/{id}', 'destroy')->middleware('permission:master.operational.delete')->name('destroy');
         });
 
     Route::prefix('dashboard/master/supplier')
         ->name('master.supplier.')
         ->controller(SupplierController::class)
         ->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::post('/', 'store')->name('store');
-            Route::get('/{supplier}/edit', 'edit')->name('edit');
-            Route::put('/{supplier}', 'update')->name('update');
-            Route::delete('/{supplier}', 'destroy')->name('destroy');
+            Route::get('/', 'index')->middleware('permission:master.supplier.view')->name('index');
+            Route::post('/', 'store')->middleware('permission:master.supplier.create')->name('store');
+            Route::get('/{supplier}/edit')->middleware('permission:master.supplier.update')->name('edit');
+            Route::put('/{supplier}', 'update')->middleware('permission:master.supplier.update')->name('update');
+            Route::delete('/{supplier}', 'destroy')->middleware('permission:master.supplier.delete')->name('destroy');
         });
 
-    // Route::prefix('dashboard/master')
-    //     ->name('dashboard.master.')
-    //     ->group(function () {
-    //         Route::get('/supplier', function () {
-    //             return view('master.supplier');
-    //         })->name('supplier');
-    //     });
+    /*
+    |------------------------------------------------------------------
+    | SETUP
+    |------------------------------------------------------------------
+    */
+
+    Route::prefix('dashboard/setup/user')
+        ->name('setup.user.')
+        ->controller(UserController::class)
+        ->group(function () {
+            Route::get('/', 'index')->middleware('permission:setup.user.view')->name('index');
+            Route::post('/', 'store')->middleware('permission:setup.user.create')->name('store');
+            Route::put('/{id}', 'update')->middleware('permission:setup.user.update')->name('update');
+            Route::delete('/{id}', 'destroy')->middleware('permission:setup.user.delete')->name('destroy');
+        });
+
+    Route::prefix('dashboard/setup/role')
+        ->name('setup.role.')
+        ->controller(RoleController::class)
+        ->group(function () {
+            Route::get('/', 'index')->middleware('permission:setup.role.view')->name('index');
+            Route::post('/', 'store')->middleware('permission:setup.role.create')->name('store');
+            Route::put('/{id}', 'update')->middleware('permission:setup.role.update')->name('update');
+            Route::delete('/{id}', 'destroy')->middleware('permission:setup.role.delete')->name('destroy');
+        });
+
+    Route::prefix('dashboard/setup/permission')
+        ->name('setup.permission.')
+        ->middleware('role:superadmin')
+        ->controller(PermissionController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'store')->name('store');
+            Route::put('/{id}', 'update')->name('update');
+            Route::delete('/{id}', 'destroy')->name('destroy');
+        });
+
+    Route::prefix('dashboard/setup/racik-menu')
+        ->name('recipe.')
+        ->controller(RecipeController::class)
+        ->group(function () {
+            Route::get('/', 'index')->middleware('permission:recipe.view')->name('index');
+            Route::post('/', 'store')->middleware('permission:recipe.create')->name('store');
+            Route::delete('/{id}', 'destroy')->middleware('permission:recipe.delete')->name('destroy');
+        });
+
+    /*
+    |------------------------------------------------------------------
+    | TRANSAKSI
+    |------------------------------------------------------------------
+    */
+
+    Route::prefix('dashboard/transaksi/pengajuan-menu')
+        ->name('transaction.submission.')
+        ->controller(SubmissionController::class)
+        ->group(function () {
+            Route::get('/', 'index')->middleware('permission:transaction.submission.view')->name('index');
+            Route::post('/', 'store')->middleware('permission:transaction.submission.create')->name('store');
+            Route::delete('/{id}', 'destroy')->middleware('permission:transaction.submission.delete')->name('destroy');
+            Route::get('/menu-by-kitchen/{kitchen}', 'getMenuByKitchen')
+                ->middleware('permission:transaction.submission.view')
+                ->name('menu-by-kitchen');
+        });
+
+    Route::prefix('dashboard/transaksi/jual-bahan-baku-dapur')
+        ->name('transaction.sale-materials-kitchen.')
+        ->controller(SaleMaterialsKitchenController::class)
+        ->group(function () {
+            Route::get('/', 'index')->middleware('permission:transaction.sale-kitchen.view')->name('index');
+        });
+
+    Route::prefix('dashboard/transaksi/jual-bahan-baku-mitra')
+        ->name('transaction.sale-materials-partner.')
+        ->controller(SaleMaterialsPartnerController::class)
+        ->group(function () {
+            Route::get('/', 'index')->middleware('permission:transaction.sale-partner.view')->name('index');
+        });
 
     Route::prefix('dashboard/transaksi')
         ->name('transaction.')
         ->controller(SubmissionController::class)
         ->group(function () {
-
-            // submission
-            Route::get('/submission', 'index')->name('submission');
-            Route::post('/submission', 'store')->name('submission.store');
-            Route::delete('/submission/{submission}', 'destroy')->name('submission.destroy');
-
-            // ajax get menu by kitchen
-            Route::get('/submission/menu/{kitchen}', 'getMenuByKitchen')
-                ->name('submission.menu');
-
-            // halaman lain
-            Route::get('/daftar-pemesanan', [SubmissionController::class, 'index'])
+            Route::get('/daftar-pemesanan', 'index')
+                ->middleware('permission:transaction.request-materials.view')
                 ->name('request-materials');
 
 
@@ -174,31 +194,64 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
                 '/penjualan-bahan-baku',
                 fn() =>
                 view('transaction.sales-materials')
+                ->middleware('permission:transaction.sales.view')
+                ->name('sales-materials');
+                
             )->name('sales-materials');
+
+            Route::get(
+                '/pembelian-bahan-baku',
+                fn() =>
+                view('transaction.purchase-materials')
+            )->name('purchase-materials');
         });
 
-    Route::prefix('dashboard/transaksi/pembelian-bahan-baku')
+
+        Route::prefix('dashboard/transaksi/pembelian-bahan-baku')
         ->name('transaction.purchase-materials.')
         ->controller(PurchaseController::class)
         ->group(function () {
 
             Route::get('/', 'index')->name('index');
             Route::post('/', 'store')->name('store');
-        });
+
+    
 
 
+
+    /*
+    |------------------------------------------------------------------
+    | LAPORAN
+    |------------------------------------------------------------------
+    */
 
     Route::prefix('dashboard/laporan')
         ->name('report.')
         ->group(function () {
-            Route::get('/pengajuan-menu', function () {
-                return view('report.submission');
-            })->name('submission');
-            Route::get('/pembelian-bahan-baku', function () {
-                return view('report.purchase-materials');
-            })->name('purchase-materials');
-            Route::get('/penjualan-bahan-baku', function () {
-                return view('report.sales-materials');
-            })->name('sales-materials');
+            Route::get('/pengajuan-menu', fn() => view('report.submission'))
+                ->middleware('permission:report.submission.view')
+                ->name('submission');
+
+            Route::get('/pembelian-bahan-baku', fn() => view('report.purchase-materials'))
+                ->middleware('permission:report.purchase.view')
+                ->name('purchase-materials');
+
+            Route::get('/penjualan-bahan-baku', fn() => view('report.sales-materials'))
+                ->middleware('permission:report.sales.view')
+                ->name('sales-materials');
         });
+
+    Route::prefix('dashboard/profile')
+        ->name('profile.')
+        ->controller(ProfileController::class)
+        ->group(function () {
+            Route::get('/', 'edit')->name('edit');
+            Route::patch('/', 'update')->name('update');
+            Route::delete('/', 'destroy')->name('destroy');
+            Route::patch('/password', 'updatePassword')->name('password.update');
+        });
+
+    Route::get('/dashboard', function () {
+        return redirect()->route('dashboard.master.bahan-baku.index');
+    })->middleware('auth')->name('dashboard');
 });

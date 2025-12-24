@@ -3,16 +3,33 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class RecipeBahanBaku extends Model
 {
     //
+    use HasFactory, SoftDeletes;
 
     protected $table = 'recipe_bahan_baku';
     protected $fillable = [
-        'recipe_id',
+        'menu_id',
         'bahan_baku_id',
         'jumlah',
-        'satuan'
     ];
+
+    public function menu(){
+        return $this->belongsTo(Menu::class);
+    }
+
+    public function bahan_baku(){
+        return $this->hasMany(BahanBaku::class);
+    }
+
+    public function detail_submission(){
+        return $this->hasMany(SubmissionDetails::class);
+    }
+
+    
+
 }
