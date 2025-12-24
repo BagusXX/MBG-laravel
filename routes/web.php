@@ -21,7 +21,7 @@ use App\Http\Controllers\SaleMaterialsPartnerController;
 
 require __DIR__ . '/auth.php';
 
-Route::get('/', fn () => redirect()->route('dashboard.master.bahan-baku.index'));
+Route::get('/', fn() => redirect()->route('dashboard.master.bahan-baku.index'));
 
 Route::middleware(['auth'])->group(function () {
 
@@ -146,6 +146,7 @@ Route::middleware(['auth'])->group(function () {
         ->group(function () {
             Route::get('/', 'index')->middleware('permission:recipe.view')->name('index');
             Route::post('/', 'store')->middleware('permission:recipe.create')->name('store');
+            Route::delete('/{id}', 'destroy')->middleware('permission:recipe.delete')->name('destroy');
         });
 
     /*
@@ -188,11 +189,11 @@ Route::middleware(['auth'])->group(function () {
                 ->middleware('permission:transaction.request-materials.view')
                 ->name('request-materials');
 
-            Route::get('/penjualan-bahan-baku', fn () => view('transaction.sales-materials'))
+            Route::get('/penjualan-bahan-baku', fn() => view('transaction.sales-materials'))
                 ->middleware('permission:transaction.sales.view')
                 ->name('sales-materials');
 
-            Route::get('/pembelian-bahan-baku', fn () => view('transaction.purchase-materials'))
+            Route::get('/pembelian-bahan-baku', fn() => view('transaction.purchase-materials'))
                 ->middleware('permission:transaction.purchase.view')
                 ->name('purchase-materials');
         });
@@ -206,15 +207,15 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('dashboard/laporan')
         ->name('report.')
         ->group(function () {
-            Route::get('/pengajuan-menu', fn () => view('report.submission'))
+            Route::get('/pengajuan-menu', fn() => view('report.submission'))
                 ->middleware('permission:report.submission.view')
                 ->name('submission');
 
-            Route::get('/pembelian-bahan-baku', fn () => view('report.purchase-materials'))
+            Route::get('/pembelian-bahan-baku', fn() => view('report.purchase-materials'))
                 ->middleware('permission:report.purchase.view')
                 ->name('purchase-materials');
 
-            Route::get('/penjualan-bahan-baku', fn () => view('report.sales-materials'))
+            Route::get('/penjualan-bahan-baku', fn() => view('report.sales-materials'))
                 ->middleware('permission:report.sales.view')
                 ->name('sales-materials');
         });
@@ -229,9 +230,7 @@ Route::middleware(['auth'])->group(function () {
             Route::patch('/password', 'updatePassword')->name('password.update');
         });
 
-        Route::get('/dashboard', function () {
-    return redirect()->route('dashboard.master.bahan-baku.index');
-})->middleware('auth')->name('dashboard');
-
-    
+    Route::get('/dashboard', function () {
+        return redirect()->route('dashboard.master.bahan-baku.index');
+    })->middleware('auth')->name('dashboard');
 });

@@ -27,6 +27,7 @@
                         <th>Dapur</th>
                         <th>Nama Menu</th>
                         <th>Harga</th>
+                        <th>Subtotal</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -37,7 +38,10 @@
                             <td>{{ $key + 1 }}</td>
                             <td>{{ $recipe->kitchen->nama }}</td>
                             <td>{{ $recipe->menu->nama }}</td>
-                            <td></td>
+                            <td class="text-muted">-</td>
+                            <td>
+                                Rp {{ number_format($recipe->total_harga, 0, ',', '.') }}
+                            </td>                            
                             <td>
                                 <button 
                                     type="button" 
@@ -58,7 +62,7 @@
                                 <x-button-delete 
                                     idTarget="#modalDeleteRecipe"
                                     formId="formDeleteRecipe"
-                                    action="#"
+                                    action="{{ route('recipe.destroy', $recipe->id) }}"
                                     text="Hapus"
                                 />
                             </td>
@@ -144,7 +148,7 @@
                     </div>
                     
                     <div class="col-md-3">
-                        <input type="number" name="harga" class="form-control" placeholder="12000">
+                        <input type="number" name="harga[]" class="form-control" placeholder="12000">
                     </div>
 
                     <div class="col-md-1">
@@ -257,7 +261,8 @@
         <tr>
             <th>Bahan Baku</th>
             <th>Jumlah</th>
-            <th>Total dengan porsi</th>
+            <th>Harga</th>
+            <th>Subtotal</th>
         </tr>
     </thead>
     <tbody>
@@ -265,11 +270,23 @@
             <tr>
                 <td>{{ $b->nama }}</td>
                 <td>{{ $b->pivot->jumlah }} {{ $b->pivot->satuan }}</td>
-                <td>{{ $b->pivot->jumlah * $recipe->porsi }} {{ $b->pivot->satuan }}</td>
+                <td>Rp {{ number_format($b->pivot->harga, 0, ',', '.') }}</td>
+                <td>
+                    Rp {{ number_format($b->pivot->harga * $b->pivot->jumlah, 0, ',', '.') }}
+                </td>
             </tr>
         @endforeach
     </tbody>
 </table>
+<tfoot>
+    <tr class="font-weight-bold">
+        <td colspan="3" class="text-right">Total</td>
+        <td>
+            Rp {{ number_format($recipe->total_harga, 0, ',', '.') }}
+        </td>
+    </tr>
+</tfoot>
+
 
             </div>
         </x-modal-detail>
@@ -309,6 +326,17 @@
                     wrapper.appendChild(newRow);
                 });
             }
+
+            document.querySelectorAll('.btn-delete').forEach(button => {
+            button.addEventListener('click', function () {
+                const action = this.getAttribute('data-action');
+                const form = document.getElementById('formDeleteRecipe');
+
+                if (form && action) {
+                    form.setAttribute('action', action);
+                }
+            });
+        });
 
             // Init untuk kedua modal
             initDynamicForm('bahan-wrapper-add', 'add-bahan-add');

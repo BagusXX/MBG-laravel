@@ -15,6 +15,7 @@ return new class extends Migration
 
             $table->decimal('jumlah', 10, 2);
             $table->string('satuan');
+            $table->decimal('harga', 15, 2);
 
             $table->timestamps();
         });

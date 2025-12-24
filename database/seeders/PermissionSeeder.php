@@ -64,6 +64,8 @@ class PermissionSeeder extends Seeder
             // RACIK MENU
             'recipe.view',
             'recipe.create',
+            'recipe.update',
+            'recipe.delete',
 
             // TRANSAKSI
             'transaction.submission.view',
@@ -87,6 +89,5 @@ class PermissionSeeder extends Seeder
         foreach ($permissions as $permission) {
             Permission::firstOrCreate(['name' => $permission]);
         }
-
     }
 }
