@@ -26,6 +26,10 @@ class Kitchen extends Model
     {
         return $this->hasMany(Menu::class);
     }
+    public function recipe_bahan_baku()
+    {
+        return $this->hasMany(RecipeBahanBaku::class);
+    }
 
     public function users()
     {
