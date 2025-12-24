@@ -14,40 +14,36 @@ class RecipeBahanBakuSeeder extends Seeder
     public function run(): void
     {
         //
-        $data =[
+        $data = [
             [
-                'recipe_id' => 1,
+                'menu_id' => 1,
                 'bahan_baku_id' => 1, // Beras
                 'jumlah' => 0.2, // 200 gram
-                'satuan' => 'kg',
-                'porsi' => 1,
-                'created_at' => now(), 'updated_at' => now()
+                'created_at' => now(),
+                'updated_at' => now()
             ],
             [
-                'recipe_id' => 1,
+                'menu_id' => 1,
                 'bahan_baku_id' => 2, // Telur
-                'jumlah' => 1, 
-                'satuan' => 'kg', // Atau pcs sesuai master data
-                'porsi' => 1,
-                'created_at' => now(), 'updated_at' => now()
+                'jumlah' => 1,
+                'created_at' => now(),
+                'updated_at' => now()
             ],
             [
-                'recipe_id' => 1,
+                'menu_id' => 1,
                 'bahan_baku_id' => 3, // Minyak
-                'jumlah' => 0.05, 
-                'satuan' => 'l',
-                'porsi' => 1,
-                'created_at' => now(), 'updated_at' => now()
+                'jumlah' => 0.05,
+                'created_at' => now(),
+                'updated_at' => now()
             ],
 
-             // --- Bahan untuk Resep 2 ---
+            // --- Bahan untuk Resep 2 ---
             [
-                'recipe_id' => 2,
-                'bahan_baku_id' => 4, 
-                'jumlah' => 0.5, 
-                'satuan' => 'kg',
-                'porsi' => 5, // Untuk 5 porsi
-                'created_at' => now(), 'updated_at' => now()
+                'menu_id' => 2,
+                'bahan_baku_id' => 4,
+                'jumlah' => 0.5,
+                'created_at' => now(),
+                'updated_at' => now()
             ],
 
         ];

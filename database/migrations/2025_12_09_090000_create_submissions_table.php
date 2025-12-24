@@ -9,7 +9,7 @@ return new class extends Migration
     
     public function up()
 {
-    Schema::create('submission', function (Blueprint $table) {
+    Schema::create('submissions', function (Blueprint $table) {
         $table->id();
         $table->string('kode');
         $table->date('tanggal');

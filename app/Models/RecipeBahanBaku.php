@@ -32,4 +32,9 @@ class RecipeBahanBaku extends Model
     {
         return $this->hasMany(BahanBaku::class);
     }
+
+    public function detail_submission()
+    {
+        return $this->hasMany(SubmissionDetails::class);
+    }
 }

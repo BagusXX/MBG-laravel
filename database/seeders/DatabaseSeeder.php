@@ -23,12 +23,16 @@ class DatabaseSeeder extends Seeder
         $this->call(PermissionSeeder::class);
         $this->call(SuperAdminPermissionSeeder::class);
         $this->call(OperationalSeeder::class);
-        // $this->call(BahanBakuSeeder::class);
+        $this->call(UnitsSeeder::class);
+        $this->call(MenuSeeder::class);
+        $this->call(BahanBakuSeeder::class);
+        $this->call(RecipeBahanBakuSeeder::class);
+        $this->call(SubmissionsSeeder::class);
+        $this->call(SuppliersSeeder::class);
+        $this->call(SubmissionsDetailSeeder::class);
+
         
-        // $this->call(RecipeBahanBakuSeeder::class);
         // $this->call(SellsSeeder::class);
-        // $this->call(SubmissionsSeeder::class);
-        // $this->call(SuppliersSeeder::class);
         // $this->call(PurchaseSeeder::class);
     }
 }
