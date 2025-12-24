@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Purchase;
+use App\Models\PurchaseBahanBaku;
 use Carbon\Carbon;
 
 class PurchaseSeeder extends Seeder
@@ -47,6 +48,6 @@ class PurchaseSeeder extends Seeder
                     'updated_at' => Carbon::now(),
                 ]
             ];
-        Purchase::insert($purchases);
+        PurchaseBahanBaku::insert($purchases);
     }
 }

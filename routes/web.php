@@ -175,13 +175,17 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
                 fn() =>
                 view('transaction.sales-materials')
             )->name('sales-materials');
-
-            Route::get(
-                '/pembelian-bahan-baku',
-                fn() =>
-                view('transaction.purchase-materials')
-            )->name('purchase-materials');
         });
+
+    Route::prefix('dashboard/transaksi/pembelian-bahan-baku')
+        ->name('transaction.purchase-materials.')
+        ->controller(PurchaseController::class)
+        ->group(function () {
+
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'store')->name('store');
+        });
+
 
 
     Route::prefix('dashboard/laporan')

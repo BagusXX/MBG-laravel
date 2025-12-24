@@ -11,14 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('purchases', function (Blueprint $table) {
+        Schema::create('purchase_bahan_bakus', function (Blueprint $table) {
             $table->id()->autoIncrement(true);
-            $table->string('kode');
+            $table->string('kode')->unique();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->double('harga');
-            $table->integer('jumlah');
             $table->foreignId('supplier_id')->constrained('suppliers')->onDelete('cascade');
-            $table->foreignId('bahan_baku_id')->constrained('bahan_baku')->onDelete('cascade');
 
             $table->timestamps();
         });
