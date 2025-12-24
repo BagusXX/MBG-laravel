@@ -225,6 +225,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/', 'edit')->name('edit');
             Route::patch('/', 'update')->name('update');
             Route::delete('/', 'destroy')->name('destroy');
+            Route::patch('/password', 'updatePassword')->name('password.update');
         });
 
         Route::get('/dashboard', function () {
