@@ -10,7 +10,14 @@ class Recipe extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['kitchen_id', 'menu_id', 'porsi'];
+    protected $fillable = ['kitchen_id', 'menu_id'];
+
+    public function getTotalHargaAttribute()
+    {
+        return $this->bahanBaku->sum(function ($b) {
+            return $b->pivot->harga * $b->pivot->jumlah;
+        });
+    }
 
     public function kitchen()
     {
@@ -23,9 +30,8 @@ class Recipe extends Model
     }
 
     public function bahanBaku()
-{
-    return $this->belongsToMany(BahanBaku::class, 'recipe_bahan_baku')
-                ->withPivot('jumlah', 'satuan', 'porsi');
-}
-
+    {
+        return $this->belongsToMany(BahanBaku::class, 'recipe_bahan_baku')
+            ->withPivot('jumlah', 'satuan', 'harga');
+    }
 }
