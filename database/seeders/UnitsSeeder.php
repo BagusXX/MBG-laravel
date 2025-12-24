@@ -24,7 +24,7 @@ class UnitsSeeder extends Seeder
                 'keterangan' => 'gram'
             ],
             [
-                'satuan' => 'l',
+                'satuan' => 'liter',
                 'keterangan' => 'liter'
             ],
             [

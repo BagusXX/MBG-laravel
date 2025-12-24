@@ -10,7 +10,7 @@ class Submission extends Model
 {
 
     use HasFactory, SoftDeletes;
-    protected $table = 'submission';
+    protected $table = 'submissions';
 
     protected $fillable = [
         'kode',
@@ -28,5 +28,9 @@ class Submission extends Model
     public function recipe_bahan_baku()
     {
         return $this->belongsTo(RecipeBahanBaku::class);
+    }
+
+    public function submission_detail(){
+        return $this->hasMany(SubmissionDetails::class);
     }
 }

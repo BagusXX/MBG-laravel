@@ -6,7 +6,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-class SubmissionsSeeder extends Seeder
+class SubmissionsDetailSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -16,37 +16,34 @@ class SubmissionsSeeder extends Seeder
         //
         $data = [
             [
-                "kode" => "SUB-2025-001",
-                "tanggal" => "2025-12-24",
-                "kitchen_id" => 1,
+                "submission_id" => 1,
                 "recipe_bahan_baku_id" => 1,
-                "porsi" => 10,
-                "total_harga" => 150000,
+                "qty_digunakan" => 500,
+                "harga_satuan_saat_itu" => 100,
+                "subtotal_harga" => 50000,
                 "created_at" => now(),
                 "updated_at" => now()
             ],
             [
-                "kode" => "SUB-2025-002",
-                "tanggal" => "2025-12-25",
-                "kitchen_id" => 1,
+                "submission_id" => 1,
                 "recipe_bahan_baku_id" => 2,
-                "porsi" => 5,
-                "total_harga" => 75000,
+                "qty_digunakan" => 10,
+                "harga_satuan_saat_itu" => 2000,
+                "subtotal_harga" => 20000,
                 "created_at" => now(),
                 "updated_at" => now()
             ],
             [
-                "kode" => "SUB-2025-003",
-                "tanggal" => "2025-12-26",
-                "kitchen_id" => 2,
+                "submission_id" => 2,
                 "recipe_bahan_baku_id" => 3,
-                "porsi" => 20,
-                "total_harga" => 300000,
+                "qty_digunakan" => 1000,
+                "harga_satuan_saat_itu" => 50,
+                "subtotal_harga" => 50000,
                 "created_at" => now(),
                 "updated_at" => now()
             ]
         ];
 
-        DB::table('submissions')->insert($data);
+        DB::table('submission_details')->insert($data);
     }
 }
