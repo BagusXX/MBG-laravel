@@ -10,7 +10,7 @@ return new class extends Migration {
     {
         Schema::create('submissions', function (Blueprint $table) {
             $table->id();
-            $table->string('kode');
+            $table->string('kode')->unique();
             $table->date('tanggal');
             $table->foreignId('kitchen_id')->constrained('kitchens')->onDelete('cascade');
             $table->foreignId('menu_id')->constrained('menus')->onDelete('cascade');

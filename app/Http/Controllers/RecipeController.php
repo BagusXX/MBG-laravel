@@ -13,7 +13,7 @@ class RecipeController extends Controller
 {
     public function index()
     {
-        $recipes = RecipeBahanBaku::with(['menu', 'kitchen', 'bahanBaku'])->get();
+        $recipes = RecipeBahanBaku::with(['menu', 'kitchen', 'bahan_baku'])->get();
         $menus = Menu::all();
         $kitchens = Kitchen::all();
         $bahanBaku = BahanBaku::all();

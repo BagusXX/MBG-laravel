@@ -16,7 +16,7 @@ class SubmissionsSeeder extends Seeder
         //
         $data = [
             [
-                "kode" => "SUB-2025-001",
+                "kode" => "PEM001",
                 "tanggal" => "2025-12-24",
                 "kitchen_id" => 1,
                 "menu_id" => 1,
@@ -27,7 +27,7 @@ class SubmissionsSeeder extends Seeder
                 "updated_at" => now()
             ],
             [
-                "kode" => "SUB-2025-002",
+                "kode" => "PEM002",
                 "tanggal" => "2025-12-25",
                 "kitchen_id" => 1,
                 "menu_id" => 2,
@@ -38,7 +38,7 @@ class SubmissionsSeeder extends Seeder
                 "updated_at" => now()
             ],
             [
-                "kode" => "SUB-2025-003",
+                "kode" => "PEM003",
                 "tanggal" => "2025-12-26",
                 "kitchen_id" => 2,
                 "menu_id" => 3,

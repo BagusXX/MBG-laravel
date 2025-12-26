@@ -18,58 +18,66 @@ class SubmissionController extends Controller
         $kitchens = Kitchen::all();
         $menus = collect();
 
+        // Ambil kode terakhir (hanya untuk tampilan)
+        $lastKode = Submission::withTrashed()
+            ->orderByDesc('id')
+            ->value('kode');
 
-        // 🔑 Generate KODE
-        $lastSubmission = Submission::orderBy('kode', 'desc')->first();
-
-        if (!$lastSubmission) {
-            $kode = 'PEM001';
-        } else {
-            $lastNumber = (int) substr($lastSubmission->kode, -3);
-            $kode = 'PEM' . str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
-        }
+        $nextKode = $lastKode
+            ? 'PEM' . str_pad(((int) substr($lastKode, -3)) + 1, 3, '0', STR_PAD_LEFT)
+            : 'PEM001';
 
         $submissions = Submission::with([
             'kitchen',
             'menu',
             'details.recipe.bahan_baku'
-        ])->latest()->get();
+        ])->latest()->paginate(10);
 
+        /**
+         * 🔑 DETEKSI MODE DARI ROUTE NAME
+         */
+        $mode = request()->routeIs('transaction.submission.index')
+            ? 'pengajuan'
+            : 'permintaan';
 
         return view('transaction.submission', compact(
             'submissions',
             'kitchens',
             'menus',
-            'kode'
+            'nextKode',
+            'mode' // ✅ WAJIB DIKIRIM
         ));
     }
+
 
     public function store(Request $request)
     {
         $request->validate([
-            'kode' => 'required|string|unique:submissions,kode',
             'tanggal' => 'required|date',
             'kitchen_id' => 'required|exists:kitchens,id',
-            'menu_id' => 'required|exists:menus,id',
+            'menu_id' => [
+                'required',
+                Rule::exists('menus', 'id')->where('kitchen_id', $request->kitchen_id),
+            ],
             'porsi' => 'required|integer|min:1',
         ]);
 
         DB::transaction(function () use ($request) {
 
-            $lastSubmission = Submission::lockForUpdate()
-                ->orderBy('kode', 'desc')
-                ->first();
+            /**
+             * 🔒 Generate kode submission (AMAN DARI DUPLIKASI)
+             */
+            $lastKode = Submission::withTrashed()
+                ->select('kode')
+                ->orderByRaw('CAST(SUBSTRING(kode, 4) AS UNSIGNED) DESC')
+                ->lockForUpdate()
+                ->value('kode');
 
-            if (!$lastSubmission) {
-                $kode = 'PEM001';
-            } else {
-                $lastNumber = (int) substr($lastSubmission->kode, -3);
-                $kode = 'PEM' . str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
-            }
-
+            $nextNumber = $lastKode ? ((int) substr($lastKode, -3)) + 1 : 1;
+            $kode = 'PEM' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
 
             /**
-             * Ambil menu + resep + bahan baku
+             * 📦 Ambil menu + resep + bahan baku
              */
             $menu = Menu::with('recipes.bahan_baku')
                 ->where('id', $request->menu_id)
@@ -77,7 +85,7 @@ class SubmissionController extends Controller
                 ->firstOrFail();
 
             /**
-             * Buat SUBMISSION (HEADER)
+             * 🧾 Buat submission (header)
              */
             $submission = Submission::create([
                 'kode' => $kode,
@@ -85,46 +93,45 @@ class SubmissionController extends Controller
                 'kitchen_id' => $request->kitchen_id,
                 'menu_id' => $menu->id,
                 'porsi' => $request->porsi,
-                'total_harga' => 0, // diupdate setelah loop
+                'total_harga' => 0,
                 'status' => 'diajukan',
             ]);
 
             $totalHarga = 0;
 
             /**
-             * Buat SUBMISSION DETAILS
+             * 📑 Buat submission detail
              */
             foreach ($menu->recipes as $recipe) {
 
-                $qtyDigunakan = $recipe->jumlah * $request->porsi;
-                $hargaSatuan = $recipe->bahan_baku->harga;
-                $subtotal = $qtyDigunakan * $hargaSatuan;
+                $qty = $recipe->jumlah * $request->porsi;
+                $harga = $recipe->bahan_baku->harga;
+                $subtotal = $qty * $harga;
 
                 SubmissionDetails::create([
                     'submission_id' => $submission->id,
                     'recipe_bahan_baku_id' => $recipe->id,
-                    'qty_digunakan' => $qtyDigunakan,
-                    'harga_satuan_saat_itu' => $hargaSatuan,
+                    'qty_digunakan' => $qty,
+                    'harga_satuan_saat_itu' => $harga,
                     'subtotal_harga' => $subtotal,
                 ]);
 
                 $totalHarga += $subtotal;
-
-                // OPTIONAL: potong stok bahan baku
-                // $recipe->bahanBaku->decrement('stok', $qtyDigunakan);
             }
 
             /**
-             * Update total harga
+             * 💰 Update total harga
              */
             $submission->update([
                 'total_harga' => $totalHarga
             ]);
         });
 
-        return back()->with('success', 'Submission berhasil dibuat');
-
+        return redirect()
+            ->route('transaction.submission.index')
+            ->with('success', 'Submission berhasil dibuat');
     }
+
 
     public function show(Submission $submission)
     {
@@ -139,9 +146,9 @@ class SubmissionController extends Controller
 
     public function update(Request $request, Submission $submission)
     {
-        // ❌ Lock submission jika sudah final
-        if (in_array($submission->status, ['diproses', 'diterima'])) {
-            abort(403, 'Submission sudah tidak dapat diubah');
+        // ❌ Kunci HANYA jika sudah diterima
+        if ($submission->status === 'diterima') {
+            abort(403, 'Submission yang sudah diterima tidak dapat diubah');
         }
 
         $request->validate([
@@ -151,27 +158,32 @@ class SubmissionController extends Controller
 
         DB::transaction(function () use ($request, $submission) {
 
-            // 🔄 Update data utama submission
+            /**
+             * 🔄 Update header submission
+             */
             $submission->update([
                 'porsi' => $request->porsi,
                 'status' => $request->status,
             ]);
 
-            // 🔥 Hapus detail lama
-            $submission->submission_detail()->delete();
+            /**
+             * 🔥 Hapus detail lama
+             */
+            $submission->details()->delete();
 
-            $total = 0;
+            $totalHarga = 0;
 
-            // Ambil recipe bahan baku berdasarkan menu
-            $recipes = RecipeBahanBaku::where('menu_id', $submission->menu_id)
-                ->with('bahan_baku')
+            /**
+             * 📦 Ambil recipe bahan baku
+             */
+            $recipes = RecipeBahanBaku::with('bahan_baku')
+                ->where('menu_id', $submission->menu_id)
                 ->get();
 
             foreach ($recipes as $recipe) {
 
                 $qty = $recipe->jumlah * $request->porsi;
                 $harga = $recipe->bahan_baku->harga;
-
                 $subtotal = $qty * $harga;
 
                 SubmissionDetails::create([
@@ -182,29 +194,31 @@ class SubmissionController extends Controller
                     'subtotal_harga' => $subtotal,
                 ]);
 
-                $total += $subtotal;
+                $totalHarga += $subtotal;
             }
 
-            // 💰 Update total harga
+            /**
+             * 💰 Update total harga
+             */
             $submission->update([
-                'total_harga' => $total
+                'total_harga' => $totalHarga
             ]);
         });
 
-        return redirect()->back()->with('success', 'Submission berhasil diperbarui');
-
-
+        return back()->with('success', 'Submission berhasil diperbarui');
     }
+
 
     public function destroy(Submission $submission)
     {
-        if (!in_array($submission->status, ['ditolak'])) {
-            abort(403, 'Submission tidak bisa dihapus');
+        if ($submission->status === 'diproses') {
+            abort(403, 'Submission yang sedang diproses tidak dapat dihapus');
         }
 
         $submission->delete();
 
-        return back()->with('success', 'Pengajuan menu berhasil dihapus.');
+        return back()->with('success', 'Submission berhasil dihapus');
+
     }
 
 
@@ -215,6 +229,7 @@ class SubmissionController extends Controller
             $kitchen->menus()->select('id', 'nama')->get()
         );
     }
+
 
 
 }
