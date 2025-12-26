@@ -13,13 +13,19 @@ class RecipeBahanBaku extends Model
 
     protected $table = 'recipe_bahan_baku';
     protected $fillable = [
+        'kitchen_id',
         'menu_id',
         'bahan_baku_id',
         'jumlah',
     ];
 
-    public function menu(){
+    public function menu()
+    {
         return $this->belongsTo(Menu::class);
+    }
+    public function kitchen()
+    {
+        return $this->belongsTo(Kitchen::class);
     }
 
     public function bahan_baku(){

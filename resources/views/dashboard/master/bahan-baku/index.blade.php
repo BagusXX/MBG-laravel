@@ -38,7 +38,7 @@
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $item->kode }}</td>
                             <td>{{ $item->nama }}</td>
-                            <td>{{ $item->satuan }}</td>
+                            <td>{{ $item->unit->satuan ?? '-' }}</td>
                             <td>Rp {{ number_format($item->harga, 0, ',', '.') }}</td>
                             <td>
                                 {{-- BUTTON EDIT --}}
@@ -48,7 +48,7 @@
                                     data-id="{{ $item->id }}"
                                     data-kode="{{ $item->kode }}"
                                     data-nama="{{ $item->nama }}"
-                                    data-satuan="{{ $item->satuan }}"
+                                    data-satuan="{{ $item->satuan_id }}"
                                     data-harga-dapur="{{ $item->harga }}"
                                     data-dapur-id="{{ $item->kitchen_id }}"
                                     data-old-kode="{{ $item->kode }}"
@@ -104,12 +104,15 @@
         </div>
         <div class="form-group">
             <label>Satuan</label>
-            <select class="form-control" name="satuan" required>
-                <option value="" disabled selected>Pilih Satuan</option>
-                @foreach($units as $unit)
-                    <option value="{{ $unit->satuan }}">{{ $unit->satuan }}</option>
+            <select name="satuan_id" class="form-control" required>
+                <option value="">-- Pilih Satuan --</option>
+                @foreach ($units as $unit)
+                    <option value="{{ $unit->id }}">
+                        {{ $unit->satuan }}
+                    </option>
                 @endforeach
             </select>
+
         </div>
 
         <div class="form-group">
@@ -155,10 +158,10 @@
 
         <div class="form-group">
             <label>Satuan</label>
-            <select id="editSatuan" class="form-control" name="satuan" required>
+            <select id="editSatuan" class="form-control" name="satuan_id" required>
                 <option value="" disabled selected>Pilih Satuan</option>
                 @foreach($units as $unit)
-                    <option value="{{ $unit->satuan }}">{{ $unit->satuan }}</option>
+                    <option value="{{ $unit->id }}">{{ $unit->satuan }}</option>
                 @endforeach
             </select>
         </div>
@@ -217,7 +220,7 @@
                     // Isi field pertama kali
                     document.getElementById('editKodeBahan').value = oldKode;
                     document.getElementById('editBahan').value = this.dataset.nama;
-                    document.getElementById('editSatuan').value = this.dataset.satuan;
+                    document.getElementById('editSatuan').value = this.dataset.satuanId;
                     document.getElementById('editHarga').value = this.dataset.harga;
                     document.getElementById('editDapur').value = oldKitchenId;
 

@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Recipe;
 use App\Models\Menu;
 use App\Models\Kitchen;
 use App\Models\BahanBaku;
+use App\Models\RecipeBahanBaku;
 use App\Models\Unit;
 use Illuminate\Http\Request;
 
@@ -13,7 +13,7 @@ class RecipeController extends Controller
 {
     public function index()
     {
-        $recipes = Recipe::with(['menu', 'kitchen', 'bahanBaku'])->get();
+        $recipes = RecipeBahanBaku::with(['menu', 'kitchen', 'bahanBaku'])->get();
         $menus = Menu::all();
         $kitchens = Kitchen::all();
         $bahanBaku = BahanBaku::all();
@@ -33,16 +33,17 @@ class RecipeController extends Controller
             'satuan'     => 'required|array',
         ]); // Hapus tanda '' yang tadi ada di sini
 
-        $recipe = Recipe::create([
+        $recipe = RecipeBahanBaku::create([
             'kitchen_id' => $request->kitchen_id,
             'menu_id'    => $request->menu_id,
         ]);
 
         foreach ($request->bahan as $index => $bahan_id) {
-            $recipe->bahanBaku()->attach($bahan_id, [
-                'jumlah' => $request->jumlah[$index],
-                'satuan' => $request->satuan[$index],
-                'harga' => $request->harga[$index],
+            RecipeBahanBaku::create([
+                'kitchen_id'    => $request->kitchen_id,
+                'menu_id'       => $request->menu_id,
+                'bahan_baku_id' => $bahan_id,
+                'jumlah'        => $request->jumlah[$index],
             ]);
         }
 
@@ -51,7 +52,7 @@ class RecipeController extends Controller
         return redirect()->route('recipe.index')->with('success', 'Menu berhasil diracik.');
     }
 
-    public function destroy(Recipe $recipe)
+    public function destroy(RecipeBahanBaku $recipe)
     {
         $recipe->bahanBaku()->detach(); // penting
         $recipe->delete();
