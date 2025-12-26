@@ -156,16 +156,37 @@ Route::middleware(['auth'])->group(function () {
     */
 
     Route::prefix('dashboard/transaksi/pengajuan-menu')
-        ->name('transaction.submission.')
-        ->controller(SubmissionController::class)
-        ->group(function () {
-            Route::get('/', 'index')->middleware('permission:transaction.submission.view')->name('index');
-            Route::post('/', 'store')->middleware('permission:transaction.submission.create')->name('store');
-            Route::delete('/{id}', 'destroy')->middleware('permission:transaction.submission.delete')->name('destroy');
-            Route::get('/menu-by-kitchen/{kitchen}', 'getMenuByKitchen')
-                ->middleware('permission:transaction.submission.view')
-                ->name('menu-by-kitchen');
-        });
+    ->name('transaction.submission.')
+    ->controller(SubmissionController::class)
+    ->group(function () {
+
+        Route::get('/', 'index')
+            ->middleware('permission:transaction.submission.view')
+            ->name('index');
+
+        Route::post('/', 'store')
+            ->middleware('permission:transaction.submission.store')
+            ->name('store');
+
+        Route::delete('/{id}', 'destroy')
+            ->middleware('permission:transaction.submission.delete')
+            ->name('destroy');
+
+        Route::get('/menu-by-kitchen/{kitchen}', 'getMenuByKitchen')
+            ->middleware('permission:transaction.submission.view')
+            ->name('menu-by-kitchen');
+
+        // ✅ DETAIL
+        Route::get('/{submission}/detail', 'show')
+            ->middleware('permission:transaction.submission.show')
+            ->name('detail');
+
+        Route::put('/{submission}', 'update')
+    ->middleware('permission:transaction.submission.update')
+    ->name('update');
+
+    });
+
 
     Route::prefix('dashboard/transaksi/jual-bahan-baku-dapur')
         ->name('transaction.sale-materials-kitchen.')

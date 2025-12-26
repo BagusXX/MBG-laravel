@@ -69,8 +69,12 @@ class PermissionSeeder extends Seeder
 
             // TRANSAKSI
             'transaction.submission.view',
-            'transaction.submission.create',
+            'transaction.submission.store',
             'transaction.submission.delete',
+            'transaction.submission.show',
+            'transaction.submission.update',
+
+
 
             'transaction.request-materials.view',
             'transaction.sale-kitchen.view',

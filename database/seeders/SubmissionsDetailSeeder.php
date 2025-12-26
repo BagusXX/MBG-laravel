@@ -18,9 +18,9 @@ class SubmissionsDetailSeeder extends Seeder
             [
                 "submission_id" => 1,
                 "recipe_bahan_baku_id" => 1,
-                "qty_digunakan" => 500,
-                "harga_satuan_saat_itu" => 100,
-                "subtotal_harga" => 50000,
+                "qty_digunakan" => 2.0,
+                "harga_satuan_saat_itu" => 15000,
+                "subtotal_harga" => 30000,
                 "created_at" => now(),
                 "updated_at" => now()
             ],

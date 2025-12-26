@@ -23,12 +23,16 @@ class RecipeBahanBaku extends Model
     }
 
     public function bahan_baku(){
-        return $this->hasMany(BahanBaku::class);
+        return $this->belongsTo(BahanBaku::class);
     }
 
-    public function detail_submission(){
+    public function submissionDetails(){
         return $this->hasMany(SubmissionDetails::class);
     }
+
+    // public function detail_submission(){
+    //     return $this->hasMany(SubmissionDetails::class);
+    // }
 
     
 

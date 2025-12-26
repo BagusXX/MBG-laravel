@@ -27,7 +27,7 @@ class BahanBaku extends Model
         return $this->belongsTo(Unit::class);
     }
 
-    public function recipe_bahan_baku(){
-        return $this->belongsTo(RecipeBahanBaku::class);
+    public function recipes(){
+        return $this->hasMany(RecipeBahanBaku::class);
     }
 }

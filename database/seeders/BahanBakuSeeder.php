@@ -60,6 +60,24 @@ class BahanBakuSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+            [
+                'kode' => 'BHNDPR11006',
+                'nama' => 'Bawang Putih',
+                'harga' => 35000,
+                'satuan_id' => 1,
+                'kitchen_id' => 3,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'kode' => 'BHNDPR11007',
+                'nama' => 'Bawang Bombay',
+                'harga' => 35000,
+                'satuan_id' => 1,
+                'kitchen_id' => 3,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ];
 
         DB::table('bahan_baku')->insert($data);

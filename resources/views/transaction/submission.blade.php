@@ -12,15 +12,10 @@
 
 @section('content')
 
-    {{-- BUTTON ADD --}}
-    <x-button-add
-        idTarget="#modalAddSubmission"
-        text="Tambah Pengajuan Menu"
-    />
+    <x-button-add idTarget="#modalAddSubmission" text="Tambah Pengajuan Menu" />
 
     <x-notification-pop-up />
 
-    {{-- TABLE --}}
     <div class="card">
         <div class="card-body">
             <table class="table table-bordered table-striped">
@@ -28,55 +23,57 @@
                     <tr>
                         <th>Kode</th>
                         <th>Tanggal</th>
-                        <th>Nama Dapur</th>
-                        <th>Nama Menu</th>
+                        <th>Dapur</th>
+                        <th>Menu</th>
                         <th>Porsi</th>
                         <th>Status</th>
-                        <th width="180">Aksi</th>
+                        <th width="220">Aksi</th>
                     </tr>
                 </thead>
-
                 <tbody>
                     @forelse ($submissions as $item)
-                        <tr>
-                            <td>{{ $item->kode }}</td>
-                            <td>{{ \Carbon\Carbon::parse($item->tanggal)->translatedFormat('l, d F Y') }}</td>
-                            <td>{{ $item->kitchen->nama ?? '-' }}</td>
-                            <td>{{ $item->menu->nama ?? '-' }}</td>
-                            <td>{{ number_format($item->porsi) }}</td>
-                            <td></td>
-                            <td>
-                                <button 
-                                    type="button" 
-                                    class="btn btn-primary btn-sm"
-                                    data-toggle="modal"
-                                    data-target="#modalDetail"
-                                >
-                                    Detail
-                                </button>
+                                <tr>
+                                    <td>{{ $item->kode }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y') }}</td>
+                                    <td>{{ $item->kitchen->nama }}</td>
+                                    <td>{{ $item->menu->nama }}</td>
+                                    <td>{{ $item->porsi }}</td>
+                                    <td>
+                                        <span class="badge badge-{{ 
+                                                            $item->status === 'diterima' ? 'success' :
+                        ($item->status === 'ditolak' ? 'danger' :
+                            ($item->status === 'diproses' ? 'info' : 'warning'))
+                                                        }}">
+                                            {{ strtoupper($item->status) }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {{-- DETAIL --}}
+                                        <a href="{{ route('transaction.submission.detail', $item->id) }}" class="btn btn-info btn-sm">
+                                            Detail
+                                        </a>
 
-                                <button 
-                                    type="button" 
-                                    class="btn btn-warning btn-sm btnEditSubmission"
-                                    data-toggle="modal"
-                                    data-target="#modalEditSubmission"
-                                >
-                                    Edit
-                                </button>
+                                        {{-- EDIT --}}
+                                        @if($item->status === 'diajukan')
+                                            <button class="btn btn-warning btn-sm btnEdit"
+                                                data-action="{{ route('transaction.submission.update', $item->id) }}"
+                                                data-porsi="{{ $item->porsi }}" data-status="{{ $item->status }}" data-toggle="modal"
+                                                data-target="#modalEditSubmission">
+                                                Edit
+                                            </button>
+                                        @endif
 
-                                <x-button-delete 
-                                    idTarget="#modalDeleteSubmission"
-                                    formId="formDeleteSubmission"
-                                    action="{{ route('transaction.submission.destroy', $item->id) }}"
-                                    text="Hapus"
-                                />
-                            </td>
-                        </tr>
+
+                                        {{-- DELETE --}}
+                                        @if($item->status === 'ditolak')
+                                            <x-button-delete idTarget="#modalDeleteSubmission" formId="formDeleteSubmission"
+                                                action="{{ route('transaction.submission.destroy', $item->id) }}" text="Hapus" />
+                                        @endif
+                                    </td>
+                                </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center">
-                                Belum ada data pengajuan
-                            </td>
+                            <td colspan="7" class="text-center">Belum ada data</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -84,122 +81,120 @@
         </div>
     </div>
 
-    {{-- ================= MODAL ADD ================= --}}
-    <x-modal-form
-        id="modalAddSubmission"
-        title="Tambah Pengajuan Menu"
-        action="{{ route('transaction.submission.store') }}"
-        submitText="Simpan"
+    <x-modal-form id="modalAddSubmission" title="Tambah Pengajuan Menu"
+    action="{{ route('transaction.submission.store') }}"
+    submitText="Simpan">
+
+    {{-- KODE --}}
+    <div class="form-group">
+    <label>Kode</label>
+    <input
+        type="text"
+        name="kode"
+        class="form-control"
+        value="{{ $kode }}"
+        readonly
     >
-        <div class="form-group">
-            <label>Kode</label>
-            <input 
-                id="kode_pengajuan" 
-                type="text" 
-                class="form-control" 
-                name="kode" 
-                readonly 
-                required
-            />
-        </div>
+</div>
 
-        <div class="form-group">
-            <label>Tanggal</label>
-            <input 
-                type="date" 
-                class="form-control" 
-                name="tanggal" 
-                required
-            >
-        </div>
 
-        <div class="form-group">
-            <label>Nama Dapur</label>
-            <select class="form-control" name="kitchen_id" id="kitchen_id" required>
-                <option value="" disabled selected>Pilih Dapur</option>
-                @foreach ($kitchens as $kitchen)
-                    <option value="{{ $kitchen->id }}">
-                        {{ $kitchen->nama }}
-                    </option>
-                @endforeach
-            </select>
+    {{-- TANGGAL --}}
+    <input type="hidden" name="tanggal" value="{{ now()->toDateString() }}">
 
-        </div>
+    {{-- DAPUR --}}
+    <div class="form-group">
+        <label>Dapur</label>
+        <select name="kitchen_id" id="kitchen_id" class="form-control" required>
+            <option value="" disabled selected>Pilih Dapur</option>
+            @foreach ($kitchens as $kitchen)
+                <option value="{{ $kitchen->id }}">{{ $kitchen->nama }}</option>
+            @endforeach
+        </select>
+    </div>
 
-        <div class="form-group">
-            <label>Nama Menu</label>
-            <select class="form-control" name="menu_id" id="menu_id" required>
-                <option value="" disabled selected>Pilih Menu</option>
-            </select>
-        </div>
+    {{-- MENU --}}
+    <div class="form-group">
+        <label>Menu</label>
+        <select name="menu_id" id="menu_id" class="form-control" required>
+            <option value="" disabled selected>Pilih dapur terlebih dahulu</option>
+        </select>
+    </div>
+
+    {{-- PORSI --}}
+    <div class="form-group">
+        <label>Porsi</label>
+        <input type="number" name="porsi" class="form-control" min="1" required>
+    </div>
+
+</x-modal-form>
+
+
+
+    {{-- MODAL EDIT --}}
+    <x-modal-form id="modalEditSubmission" title="Edit Pengajuan Menu" action="" submitText="Update">
+        @method('PUT')
 
         <div class="form-group">
             <label>Porsi</label>
-            <input 
-                type="number" 
-                class="form-control" 
-                name="porsi" 
-                placeholder="100"
-                required
-            >
+            <input type="number" id="edit_porsi" name="porsi" class="form-control">
+        </div>
+
+        <div class="form-group">
+            <label>Status</label>
+            <select id="edit_status" name="status" class="form-control">
+                <option value="diajukan">Diajukan</option>
+                <option value="diproses">Diproses</option>
+                <option value="diterima">Diterima</option>
+                <option value="ditolak">Ditolak</option>
+            </select>
         </div>
     </x-modal-form>
 
-    {{-- ================= MODAL EDIT ================= --}}
-    <x-modal-form
-        id="modalEditSubmission"
-        title="Edit Pengajuan Menu"
-        action=""
-        submitText="Update"
-    >
-        @method('PUT')
-    </x-modal-form>
-
-    {{-- ================= MODAL DETAIL ================= --}}
-    <x-modal-detail
-        id="modalDetail"
-        size="modal-lg"
-        title="Detail Pengajuan Menu"
-    >
-        <p class="text-muted">
-            Detail masih contoh, bisa dibuat dinamis dengan JS / AJAX
-        </p>
-    </x-modal-detail>
-
-    {{-- ================= MODAL DELETE ================= --}}
-    <x-modal-delete 
-        id="modalDeleteSubmission"
-        formId="formDeleteSubmission"
-        title="Konfirmasi Hapus"
-        message="Apakah Anda yakin ingin menghapus data ini?"
-        confirmText="Hapus"
-    />
+    <x-modal-delete id="modalDeleteSubmission" formId="formDeleteSubmission" title="Hapus Submission"
+        message="Yakin ingin menghapus submission ini?" confirmText="Hapus" />
 
 @endsection
 
 @push('js')
 <script>
-    document.getElementById('kitchen_id').addEventListener('change', function () {
-        let kitchenId = this.value;
-        let menuSelect = document.getElementById('menu_id');
+    // =============================
+    // EDIT MODAL
+    // =============================
+    $(document).on('click', '.btnEdit', function () {
+        $('#modalEditSubmission form').attr('action', $(this).data('action'));
+        $('#edit_porsi').val($(this).data('porsi'));
+        $('#edit_status').val($(this).data('status'));
+    });
 
-        // reset menu
-        menuSelect.innerHTML = '<option value="" disabled selected>Loading...</option>';
+    // =============================
+    // LOAD MENU BY DAPUR (INI YANG KURANG)
+    // =============================
+    $(document).on('change', '#kitchen_id', function () {
+        let kitchenId = $(this).val();
+        let menuSelect = $('#menu_id');
 
-        fetch(`/dashboard/transaksi/submission/menu/${kitchenId}`)
+        menuSelect.html('<option>Loading...</option>');
+
+        fetch(`/dashboard/transaksi/pengajuan-menu/menu-by-kitchen/${kitchenId}`)
             .then(response => response.json())
             .then(data => {
-                menuSelect.innerHTML = '<option value="" disabled selected>Pilih Menu</option>';
+                menuSelect.empty();
+                menuSelect.append('<option disabled selected>Pilih Menu</option>');
+
+                if (data.length === 0) {
+                    menuSelect.append('<option disabled>Tidak ada menu</option>');
+                }
 
                 data.forEach(menu => {
-                    menuSelect.innerHTML += `
-                        <option value="${menu.id}">
-                            ${menu.nama}
-                        </option>
-                    `;
+                    menuSelect.append(
+                        `<option value="${menu.id}">${menu.nama}</option>`
+                    );
                 });
+            })
+            .catch(error => {
+                console.error(error);
+                menuSelect.html('<option>Error load menu</option>');
             });
     });
 </script>
-
 @endpush
