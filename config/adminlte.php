@@ -341,45 +341,53 @@ return [
         [
             'text' => 'Master',
             'icon' => 'fas fa-fw fa-utensils',
+            'can'  => 'master.kitchen.view',
             'submenu' => [
                 [
                     'text' => 'Dapur',
                     'icon' => 'fas fa-fw fa-fire-alt',
                     'route' => 'master.kitchen.index',
+                    'can' => 'master.kitchen.view',
                 ],
 
                 [
                     'text' => 'Supplier',
                     'icon' => 'fas fa-store',
                     'route' => 'master.supplier.index',
+                    'can' => 'master.supplier.view',
                 ],
                 [
                     'text' => 'Region',
                     'icon' => 'fas fa-map-marked-alt',
                     'route' => 'master.region.index',
+                    'can' => 'master.region.view',
                 ],
 
                 [
                     'text' => 'Satuan',
                     'icon' => 'fas fa-sort-numeric-up',
                     'route' => 'master.unit.index',
+                    'can' => 'master.unit.view',
                 ],
 
                 [
                     'text' => 'Bahan Baku',
                     'icon' => 'fas fa-fw fa-carrot',
                     'route' => 'dashboard.master.bahan-baku.index',
+                    'can' => 'master.bahan-baku.view',
                 ],
                 [
                     'text' => 'Operasional',
                     'icon' => 'fas fa-fw fa-clipboard-list',
                     'route' => 'master.operational.index',
+                    'can' => 'master.operational.view',
                 ],
 
                 [
                     'text' => 'Nama Menu',
                     'icon' => 'fas fa-fw fa-book-open',
                     'route' => 'master.menu.index',
+                    'can' => 'master.menu.view',
                 ],
             ],
         ],
@@ -388,24 +396,28 @@ return [
         [
             'text' => 'Setup Data',
             'icon' => 'fas fa-fw fa-tools',
+            'can' => 'setup.user.view',
             'submenu' => [
 
                 [
                     'text' => 'User',
                     'icon' => 'fas fa-fw fa-users',
                     'route' => 'setup.user.index',
+                    'can' => 'setup.user.view',
                 ],
 
                 [
                     'text' => 'Role',
                     'icon' => 'fas fa-user-cog',
                     'route' => 'setup.role.index',
+                    'can' => 'setup.role.view',
                 ],
 
                 [
                     'text' => 'Racik Menu',
                     'icon' => 'fas fa-fw fa-blender',
                     'route' => 'recipe.index',
+                    'can' => 'recipe.view',
                 ],
 
             ],
@@ -415,35 +427,41 @@ return [
         [
             'text' => 'Transaksi',
             'icon' => 'fas fa-fw fa-exchange-alt',
+            'can'  => 'transaction.submission.view',
             'submenu' => [
 
                 [
                     'text' => 'Pengajuan Menu',
                     'icon' => 'fas fa-fw fa-paper-plane',
                     'route' => 'transaction.submission.index',
+                    'can'  => 'transaction.submission.view',
                 ],
 
                 [
                     'text' => 'Daftar Permintaan',
                     'icon' => 'fas fa-clipboard-list',
                     'route' => 'transaction.request-materials',
+                    'can'  => 'transaction.request-materials.view',
                 ],
 
 
                 [
                     'text' => 'Jual Bahan Baku',
                     'icon' => 'fas fa-money-bill-wave',
+                    'can'  => 'transaction.sale-kitchen.view',
                     'submenu' => [
                         [
                             'text' => 'Jual Bahan Baku Dapur',
                             'icon' => 'fas fa-store',
                             'route' => 'transaction.sale-materials-kitchen.index',
+                            'can'   => 'transaction.sale-kitchen.view',
                         ],
 
                         [
                             'text' => 'Jual Bahan Baku Mitra',
                             'icon' => 'fas fa-handshake',
                             'route' => 'transaction.sale-materials-partner.index',
+                            'can'   => 'transaction.sale-partner.view',
                         ],
                     ]
                 ],
@@ -452,6 +470,7 @@ return [
                     'text' => 'Beli Bahan Baku',
                     'icon' => 'fas fa-cart-plus',
                     'route' => 'transaction.purchase-materials',
+                    'can'   => 'transaction.purchase.view',
                 ],
 
             ],
@@ -461,23 +480,27 @@ return [
         [
             'text' => 'Laporan',
             'icon' => 'fas fa-fw fa-file-alt',
+            'can'  => 'report.submission.view',
             'submenu' => [
                 [
                     'text' => 'Pengajuan Menu',
                     'icon' => 'fas fa-file-signature',
-                    'route' => 'report.submission'
+                    'route' => 'report.submission',
+                    'can'   => 'report.submission.view',
                 ],
 
                 [
                     'text' => 'Beli Bahan Baku',
                     'icon' => 'fas fa-file-signature',
-                    'route' => 'report.purchase-materials'
+                    'route' => 'report.purchase-materials',
+                    'can'   => 'report.purchase.view',
                 ],
 
                 [
                     'text' => 'Jual Bahan Baku',
                     'icon' => 'fas fa-file-signature',
-                    'route' => 'report.sales-materials'
+                    'route' => 'report.sales-materials',
+                    'can'   => 'report.sales.view',
                 ],
             ],
         ],
