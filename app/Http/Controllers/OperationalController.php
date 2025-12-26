@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\operationals;
 use App\Models\Recipe;
+use App\Models\RecipeBahanBaku;
 use Illuminate\Http\Request;
 
 class OperationalController extends Controller
@@ -56,7 +57,7 @@ class OperationalController extends Controller
 
     public function destroy($id)
     {
-        $recipe = Recipe::findOrFail($id);
+        $recipe = RecipeBahanBaku::findOrFail($id);
 
         // hapus relasi pivot dulu
         $recipe->bahanBaku()->detach();

@@ -39,10 +39,11 @@ class RecipeController extends Controller
         ]);
 
         foreach ($request->bahan as $index => $bahan_id) {
-            $recipe->bahanBaku()->attach($bahan_id, [
-                'jumlah' => $request->jumlah[$index],
-                'satuan' => $request->satuan[$index],
-                'harga' => $request->harga[$index],
+            RecipeBahanBaku::create([
+                'kitchen_id'    => $request->kitchen_id,
+                'menu_id'       => $request->menu_id,
+                'bahan_baku_id' => $bahan_id,
+                'jumlah'        => $request->jumlah[$index],
             ]);
         }
 
