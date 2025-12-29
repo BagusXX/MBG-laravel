@@ -57,6 +57,13 @@
                                     class="btn btn-sm btn-warning btnEditSupplier"
                                     data-toggle="modal"
                                     data-target="#modalEditSupplier"
+                                    data-id="{{ $supplier->id }}"
+                                    data-kode="{{ $supplier->kode }}"
+                                    data-nama="{{ $supplier->nama }}"
+                                    data-alamat="{{ $supplier->alamat }}"
+                                    data-region="{{ $supplier->region_id }}"
+                                    data-kontak="{{ $supplier->kontak }}"
+                                    data-nomor="{{ $supplier->nomor }}"
                                 >
                                     Edit    
                                 </button>
@@ -93,7 +100,7 @@
                 type="text" 
                 name="kode" 
                 class="form-control" 
-                id="kode_supplier"
+                value="{{ $kodeBaru }}"
                 readonly 
                 required 
             />
@@ -136,7 +143,7 @@
     <x-modal-form
         id="modalEditSupplier"
         title="Edit Supplier"
-        action="#"
+        action=""
         submitText="Update"
     >
         @method('PUT')
@@ -146,24 +153,24 @@
             <input 
                 type="text" 
                 name="kode" 
+                id="edit_kode"
                 class="form-control" 
-                id=""
                 readonly
                 required />
         </div>
 
         <div class="form-group">
             <label>Nama</label>
-            <input type="text" id="" name="nama" class="form-control" required />
+            <input type="text" id="edit_nama" name="nama" class="form-control" required />
         </div>
         
         <div class="form-group">
             <label>Alamat</label>
-            <input type="text" id="" name="alamat" class="form-control" required />
+            <input type="text" id="edit_alamat" name="alamat" class="form-control" required />
         </div>
         <div class="form-group mt-2">
             <label>Region</label>
-            <select name="region_id" class="form-control" required>
+            <select name="region_id" id="edit_region" class="form-control" required>
                 <option value="">-- Pilih Region --</option>
                 @foreach($regions as $region)
                     <option value="{{ $region->id }}">
@@ -175,12 +182,12 @@
 
         <div class="form-group">
             <label>Kontak Person</label>
-            <input type="text" id="" name="kontak" class="form-control" required />
+            <input type="text" id="edit_kontak" name="kontak" class="form-control" required />
         </div>
         
         <div class="form-group">
             <label>Nomor</label>
-            <input type="text" id="" name="nomor" class="form-control" required />
+            <input type="text" id="edit_nomor" name="nomor" class="form-control" required />
         </div>
     </x-modal-form>
 
@@ -196,9 +203,22 @@
 
 @push('js')
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const kodeInput = document.getElementById('kode_supplier');
+     document.querySelectorAll('.btnEditSupplier').forEach(button => {
+        button.addEventListener('click', function () {
 
+            const id = this.dataset.id;
+
+            document.getElementById('edit_kode').value = this.dataset.kode;
+            document.getElementById('edit_nama').value = this.dataset.nama;
+            document.getElementById('edit_alamat').value = this.dataset.alamat;
+            document.getElementById('edit_region').value = this.dataset.region;
+            document.getElementById('edit_kontak').value = this.dataset.kontak;
+            document.getElementById('edit_nomor').value = this.dataset.nomor;
+
+            // set action form
+            const form = document.querySelector('#modalEditSupplier form');
+            form.action = `/dashboard/master/supplier/${id}`;
+        });
     });
 </script>
 @endpush

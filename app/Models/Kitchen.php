@@ -26,6 +26,10 @@ class Kitchen extends Model
     {
         return $this->hasMany(Menu::class);
     }
+    public function recipe_bahan_baku()
+    {
+        return $this->hasMany(RecipeBahanBaku::class);
+    }
 
     public function users()
     {
@@ -35,5 +39,9 @@ class Kitchen extends Model
     public function region()
     {
         return $this->belongsTo(region::class);
+    }
+
+    public function submissions(){
+        return $this->hasMany(Submission::class);
     }
 }

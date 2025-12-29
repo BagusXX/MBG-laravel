@@ -59,7 +59,7 @@ class BahanBakuController extends Controller
         $request->validate([
             'nama' => 'required|string|max:255',
             'harga' => 'required|numeric|min:0',
-            'satuan' => 'required|string|max:50',
+            'satuan_id' => 'required|exists:units,id',
             'kitchen_id' => 'required|exists:kitchens,id',
         ]);
 
@@ -69,12 +69,35 @@ class BahanBakuController extends Controller
             'kode' => $this->generateKode($kitchen->kode),
             'nama' => $request->nama,
             'harga' => $request->harga,
-            'satuan' => $request->satuan,
+            'satuan_id' => $request->satuan_id,
             'kitchen_id' => $request->kitchen_id,
         ]);
 
         return redirect()->route('dashboard.master.bahan-baku.index')
             ->with('success', 'Bahan baku berhasil ditambahkan.');
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'nama' => 'required|string|max:255',
+            'harga' => 'required|numeric|min:0',
+            'satuan_id' => 'required|exists:units,id',
+            'kitchen_id' => 'required|exists:kitchens,id',
+        ]);
+
+        $item = BahanBaku::findOrFail($id);
+
+        $item->update([
+            'nama' => $request->nama,
+            'harga' => $request->harga,
+            'satuan_id' => $request->satuan_id,
+            'kitchen_id' => $request->kitchen_id,
+        ]);
+
+        return redirect()
+            ->route('dashboard.master.bahan-baku.index')
+            ->with('success', 'Bahan baku berhasil diperbarui.');
     }
 
 

@@ -16,32 +16,35 @@ class SubmissionsSeeder extends Seeder
         //
         $data = [
             [
-                "kode" => "SUB-2025-001",
+                "kode" => "PEM001",
                 "tanggal" => "2025-12-24",
                 "kitchen_id" => 1,
-                "recipe_bahan_baku_id" => 1,
+                "menu_id" => 1,
                 "porsi" => 10,
                 "total_harga" => 150000,
+                "status" => 'diterima',
                 "created_at" => now(),
                 "updated_at" => now()
             ],
             [
-                "kode" => "SUB-2025-002",
+                "kode" => "PEM002",
                 "tanggal" => "2025-12-25",
                 "kitchen_id" => 1,
-                "recipe_bahan_baku_id" => 2,
+                "menu_id" => 2,
                 "porsi" => 5,
                 "total_harga" => 75000,
+                "status" => 'diproses',
                 "created_at" => now(),
                 "updated_at" => now()
             ],
             [
-                "kode" => "SUB-2025-003",
+                "kode" => "PEM003",
                 "tanggal" => "2025-12-26",
                 "kitchen_id" => 2,
-                "recipe_bahan_baku_id" => 3,
+                "menu_id" => 3,
                 "porsi" => 20,
                 "total_harga" => 300000,
+                "status" => 'diajukan',
                 "created_at" => now(),
                 "updated_at" => now()
             ]

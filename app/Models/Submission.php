@@ -16,8 +16,10 @@ class Submission extends Model
         'kode',
         'tanggal',
         'kitchen_id',
-        'recipe_bahan_baku_id',
-        'porsi'
+        'menu_id',
+        'total_harga',
+        'porsi',
+        'status'
     ];
 
     public function kitchen()
@@ -25,12 +27,12 @@ class Submission extends Model
         return $this->belongsTo(Kitchen::class);
     }
 
-    public function recipe_bahan_baku()
+    public function menu()
     {
-        return $this->belongsTo(RecipeBahanBaku::class);
+        return $this->belongsTo(Menu::class);
     }
 
-    public function submission_detail(){
+    public function details(){
         return $this->hasMany(SubmissionDetails::class);
     }
 }

@@ -48,7 +48,7 @@
                             <td>{{ $operational->nama }}</td>
                             <td>{{ $operational->harga }}</td>
                             <td>{{ $operational->tempat_beli }}</td>
-                            <td>{{ $operational->created_at }}</td>
+                            <td>{{ $operational->updated_at }}</td>
                             <td>
                                 <button 
                                     type="button" 
@@ -97,6 +97,7 @@
                 name="kode" 
                 class="form-control" 
                 id="kode_operasional"
+                value="{{ $nextKode }}"
                 readonly 
                 required 
             />

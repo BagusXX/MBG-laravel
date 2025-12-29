@@ -14,13 +14,9 @@ class SupplierController extends Controller
         $suppliers = Supplier::with('region')->orderBy('id', 'asc')->get();
         $regions = region::orderBy('nama_region')->get();
 
-        // Generate kode SPR11-SPR99
-        $generatedCodes = [];
-        for ($i = 11; $i <= 99; $i++) {
-            $generatedCodes[$i] = 'SPR' . $i;
-        }
+        $kodeBaru = $this->generateKode();
 
-        return view('master.supplier', compact('suppliers', 'regions', 'generatedCodes'));
+        return view('master.supplier', compact('suppliers', 'regions', 'kodeBaru'));
     }
 
 
@@ -105,6 +101,6 @@ class SupplierController extends Controller
             throw new \Exception('Kode supplier sudah mencapai batas SPR99');
         }
 
-        return 'SPR' . $nextNumber;
+        return 'SPR000' . $nextNumber;
     }
 }

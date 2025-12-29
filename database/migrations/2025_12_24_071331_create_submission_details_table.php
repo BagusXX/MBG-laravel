@@ -15,9 +15,9 @@ return new class extends Migration {
             $table->foreignId('submission_id')->constrained('submissions')->onDelete('cascade');
             $table->foreignId('recipe_bahan_baku_id')->constrained('recipe_bahan_baku')->onDelete('cascade');
 
-            $table->double('qty_digunakan');// Total berat (takaran x porsi)
-            $table->double('harga_satuan_saat_itu'); // Harga per gram saat submit
-            $table->double('subtotal_harga'); // <--- HARGA PER BAHAN DIKALI PORSI MASUK SINI
+            $table->decimal('qty_digunakan',15,4);// Total berat (takaran x porsi)
+            $table->decimal('harga_satuan_saat_itu',15,2); // Harga per gram saat submit
+            $table->decimal('subtotal_harga',15,2); // <--- HARGA PER BAHAN DIKALI PORSI MASUK SINI
 
             $table->timestamps();
         });

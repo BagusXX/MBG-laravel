@@ -16,6 +16,7 @@ class RecipeBahanBakuSeeder extends Seeder
         //
         $data = [
             [
+                'kitchen_id' => 1,
                 'menu_id' => 1,
                 'bahan_baku_id' => 1, // Beras
                 'jumlah' => 0.2, // 200 gram
@@ -23,6 +24,7 @@ class RecipeBahanBakuSeeder extends Seeder
                 'updated_at' => now()
             ],
             [
+                'kitchen_id' => 1,
                 'menu_id' => 1,
                 'bahan_baku_id' => 2, // Telur
                 'jumlah' => 1,
@@ -30,6 +32,7 @@ class RecipeBahanBakuSeeder extends Seeder
                 'updated_at' => now()
             ],
             [
+                'kitchen_id' => 1,
                 'menu_id' => 1,
                 'bahan_baku_id' => 3, // Minyak
                 'jumlah' => 0.05,
@@ -39,6 +42,7 @@ class RecipeBahanBakuSeeder extends Seeder
 
             // --- Bahan untuk Resep 2 ---
             [
+                'kitchen_id' => 2,
                 'menu_id' => 2,
                 'bahan_baku_id' => 4,
                 'jumlah' => 0.5,

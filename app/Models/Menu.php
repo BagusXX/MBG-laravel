@@ -20,4 +20,12 @@ class Menu extends Model
     {
         return $this->belongsTo(Kitchen::class);
     }
+
+    public function recipes(){
+        return $this->hasMany(RecipeBahanBaku::class);
+    }
+
+    public function submissions(){
+        return $this->hasMany(Submission::class);
+    }
 }

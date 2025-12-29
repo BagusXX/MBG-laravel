@@ -10,49 +10,25 @@ class MenuController extends Controller
 {
     // Tampilkan daftar menu
     public function index()
-{
-    $menus = Menu::with('kitchen')->get();
-    $kitchens = Kitchen::all();
+    {
+        $menus = Menu::with('kitchen')->get();
+        $kitchens = Kitchen::all();
 
-    $generatedCodes = [];
-    foreach ($kitchens as $k) {
-        $generatedCodes[$k->id] = $this->generateKode($k->kode);
+        $generatedCodes = [];
+        foreach ($kitchens as $k) {
+            $generatedCodes[$k->id] = $this->generateKode($k->kode);
+        }
+
+        return view('master.menu', compact('menus', 'kitchens', 'generatedCodes'));
     }
 
-    return view('master.menu', compact('menus', 'kitchens', 'generatedCodes'));
-}
-
-    // Generate kode menu: MN + KODE_DAPUR + 2 digit unik
-// private function generateKodeMenu($kodeDapur)
-// {
-//     // Cari menu terakhir untuk dapur tertentu
-//     $lastMenu = Menu::where('kode', 'LIKE', 'MN' . $kodeDapur . '%')
-//                     ->orderBy('kode', 'desc')
-//                     ->first();
-
-//     // Jika belum ada menu → mulai dari 01
-//     if (!$lastMenu) {
-//         return "MN{$kodeDapur}01";
-//     }
-
-//     // Ambil 2 digit terakhir
-//     $lastNumber = (int) substr($lastMenu->kode, -2);
-
-//     // Increment
-//     $nextNumber = $lastNumber + 1;
-
-//     // Format jadi 2 digit
-//     $nextNumberFormatted = str_pad($nextNumber, 2, '0', STR_PAD_LEFT);
-
-//     return "MN{$kodeDapur}{$nextNumberFormatted}";
-// }
 
     private function generateKode($kodeDapur)
     {
         // Cari kode terakhir khusus dapur tertentu
         $lastItem = Menu::where('kode', 'LIKE', "MN{$kodeDapur}%")
-                            ->orderBy('kode', 'desc')
-                            ->first();
+            ->orderBy('kode', 'desc')
+            ->first();
 
         // Jika belum ada data, mulai dari 111
         if (!$lastItem) {
@@ -96,6 +72,32 @@ class MenuController extends Controller
 
         return redirect()->route('master.menu.index')->with('success', 'Menu berhasil ditambahkan.');
     }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'nama' => 'required|string|max:255',
+            'kitchen_id' => 'required|exists:kitchens,id',
+        ]);
+
+        $menu = Menu::findOrFail($id);
+
+        // jika dapur berubah → generate ulang kode
+        if ($menu->kitchen_id != $request->kitchen_id) {
+            $kitchen = Kitchen::findOrFail($request->kitchen_id);
+            $menu->kode = $this->generateKode($kitchen->kode);
+        }
+
+        $menu->update([
+            'nama' => $request->nama,
+            'kitchen_id' => $request->kitchen_id,
+        ]);
+
+        return redirect()
+            ->route('master.menu.index')
+            ->with('success', 'Menu berhasil diperbarui.');
+    }
+
 
     // Hapus menu
     public function destroy($id)
