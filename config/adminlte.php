@@ -141,18 +141,18 @@ return [
     'usermenu_profile_url' => 'dashboard/profile',
 
     'usermenu_links' => [
-            [
-                'text' => 'Profile',
-                'url' => 'dashboard/profile',
-                'icon' => 'fas fa-fw fa-user',
-            ],
-            [
-                'text' => 'Logout',
-                'url' => 'logout',
-                'icon' => 'fas fa-fw fa-sign-out-alt',
-                'logout' => true,
-            ],
+        [
+            'text' => 'Profile',
+            'url' => 'dashboard/profile',
+            'icon' => 'fas fa-fw fa-user',
         ],
+        [
+            'text' => 'Logout',
+            'url' => 'logout',
+            'icon' => 'fas fa-fw fa-sign-out-alt',
+            'logout' => true,
+        ],
+    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -313,7 +313,7 @@ return [
     */
 
     'menu' => [
-        
+
 
         // Navbar items:
         [
@@ -469,7 +469,7 @@ return [
                 [
                     'text' => 'Beli Bahan Baku',
                     'icon' => 'fas fa-cart-plus',
-                    'route' => 'transaction.purchase-materials',
+                    'route' => 'transaction.purchase-materials.index',
                     'can'   => 'transaction.purchase.view',
                 ],
 

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Purchase extends Model
+class PurchaseBahanBaku extends Model
 {
     //
     use HasFactory, SoftDeletes;
@@ -14,12 +14,17 @@ class Purchase extends Model
     // protected $table = 'purchase';
 
     protected $fillable = [
-        'user_id',
-        'harga',
-        'bobot_jumlah',
+        'kode',
         'supplier_id',
-        'recipe_bahan_baku_id'
+        'user_id',
     ];
+
+    public static function generateKode()
+    {
+        $latest = self::latest()->first();
+        $number = $latest ? (int) substr($latest->kode, 5) + 1 : 1;
+        return 'PRCBN' . str_pad($number, 3, '0', STR_PAD_LEFT);
+    }
 
     public function user()
     {
@@ -33,5 +38,10 @@ class Purchase extends Model
     public function bahanBaku()
     {
         return $this->belongsTo(BahanBaku::class);
+    }
+
+    public function items()
+    {
+        return $this->hasMany(PurchaseItem::class);
     }
 }

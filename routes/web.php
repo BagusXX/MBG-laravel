@@ -211,14 +211,35 @@ Route::middleware(['auth'])->group(function () {
                 ->middleware('permission:transaction.request-materials.view')
                 ->name('request-materials');
 
-            Route::get('/penjualan-bahan-baku', fn() => view('transaction.sales-materials'))
+
+            Route::get(
+                '/penjualan-bahan-baku',
+                fn() => view('transaction.sales-materials')
+            )
                 ->middleware('permission:transaction.sales.view')
                 ->name('sales-materials');
 
-            Route::get('/pembelian-bahan-baku', fn() => view('transaction.purchase-materials'))
-                ->middleware('permission:transaction.purchase.view')
-                ->name('purchase-materials');
+
+            Route::get(
+                '/pembelian-bahan-baku',
+                fn() =>
+                view('transaction.purchase-materials')
+            )->name('purchase-materials');
         });
+
+
+    Route::prefix('dashboard/transaksi/pembelian-bahan-baku')
+        ->name('transaction.purchase-materials.')
+        ->controller(PurchaseController::class)
+        ->group(function () {
+
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'store')->name('store');
+        });
+
+
+
+
 
     /*
     |------------------------------------------------------------------
