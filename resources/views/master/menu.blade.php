@@ -190,8 +190,9 @@
                     document.getElementById('editDapur').value = oldKitchenId;
 
                     // Update action
-                    document.querySelector('#modalEditMaterials form').action =
-                        "{{ url('/dashboard/master/menu') }}/" + id;
+                    document.querySelector('#modalEditMenu form').action =
+                    "{{ url('/dashboard/master/nama-menu') }}/" + id;
+
                 });
             });
 

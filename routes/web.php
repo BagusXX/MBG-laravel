@@ -37,6 +37,7 @@ Route::middleware(['auth'])->group(function () {
         ->group(function () {
             Route::get('/', 'index')->middleware('permission:master.bahan-baku.view')->name('index');
             Route::post('/', 'store')->middleware('permission:master.bahan-baku.create')->name('store');
+            Route::put('/{id}', 'update')->middleware('permission:master.bahan-baku.update')->name('update');
             Route::delete('/{id}', 'destroy')->middleware('permission:master.bahan-baku.delete')->name('destroy');
             Route::get('/generate-code/{kitchenId}', 'generateKodeAjax')
                 ->middleware('permission:master.bahan-baku.create')
@@ -59,6 +60,7 @@ Route::middleware(['auth'])->group(function () {
         ->group(function () {
             Route::get('/', 'index')->middleware('permission:master.menu.view')->name('index');
             Route::post('/', 'store')->middleware('permission:master.menu.create')->name('store');
+            Route::put('/{id}', 'update')->middleware('permission:master.menu.update')->name('update');
             Route::delete('/{id}', 'destroy')->middleware('permission:master.menu.delete')->name('destroy');
         });
 
@@ -156,36 +158,35 @@ Route::middleware(['auth'])->group(function () {
     */
 
     Route::prefix('dashboard/transaksi/pengajuan-menu')
-    ->name('transaction.submission.')
-    ->controller(SubmissionController::class)
-    ->group(function () {
+        ->name('transaction.submission.')
+        ->controller(SubmissionController::class)
+        ->group(function () {
 
-        Route::get('/', 'index')
-            ->middleware('permission:transaction.submission.view')
-            ->name('index');
+            Route::get('/', 'index')
+                ->middleware('permission:transaction.submission.view')
+                ->name('index');
 
-        Route::post('/', 'store')
-            ->middleware('permission:transaction.submission.store')
-            ->name('store');
+            Route::post('/', 'store')
+                ->middleware('permission:transaction.submission.store')
+                ->name('store');
 
-        Route::delete('/{id}', 'destroy')
-            ->middleware('permission:transaction.submission.delete')
-            ->name('destroy');
+            Route::delete('/{id}', 'destroy')
+                ->middleware('permission:transaction.submission.delete')
+                ->name('destroy');
 
-        Route::get('/menu-by-kitchen/{kitchen}', 'getMenuByKitchen')
-            ->middleware('permission:transaction.submission.view')
-            ->name('menu-by-kitchen');
+            Route::get('/menu-by-kitchen/{kitchen}', 'getMenuByKitchen')
+                ->middleware('permission:transaction.submission.view')
+                ->name('menu-by-kitchen');
 
-        // ✅ DETAIL
-        Route::get('/{submission}/detail', 'show')
-            ->middleware('permission:transaction.submission.show')
-            ->name('detail');
+            // ✅ DETAIL
+            Route::get('/{submission}/detail', 'show')
+                ->middleware('permission:transaction.submission.show')
+                ->name('detail');
 
-        Route::put('/{submission}', 'update')
-    ->middleware('permission:transaction.submission.update')
-    ->name('update');
-
-    });
+            Route::put('/{submission}', 'update')
+                ->middleware('permission:transaction.submission.update')
+                ->name('update');
+        });
 
 
     Route::prefix('dashboard/transaksi/jual-bahan-baku-dapur')

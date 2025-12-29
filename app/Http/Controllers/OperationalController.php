@@ -44,7 +44,7 @@ class OperationalController extends Controller
         }
 
         operationals::create([
-            'kode' => $kode,
+            'kode' => $request->kode,
             'nama' => $request->nama,
             'harga' => $request->harga,
             'tempat_beli' => $request->tempat_beli,
@@ -57,17 +57,14 @@ class OperationalController extends Controller
 
     public function destroy($id)
     {
-        $recipe = RecipeBahanBaku::findOrFail($id);
+        $operational = operationals::findOrFail($id);
 
-        // hapus relasi pivot dulu
-        $recipe->bahanBaku()->detach();
-
-        // baru hapus recipe
-        $recipe->delete();
+        // baru hapus operational
+        $operational->delete();
 
         return redirect()
-            ->route('master.recipe.index')
-            ->with('success', 'Recipe berhasil dihapus');
+            ->route('master.operational.index')
+            ->with('success', 'Biaya Operasional berhasil dihapus');
     }
 
     public function update(Request $request, $id)
@@ -87,7 +84,7 @@ class OperationalController extends Controller
         ]);
 
         return redirect()
-            ->route('master.operationals.index')
+            ->route('master.operational.index')
             ->with('success', 'Biaya Operasional berhasil diperbarui');
     }
 }

@@ -102,12 +102,12 @@
         
         <div class="form-group mt-2">
             <label for="nama_region">Nama Region</label>
-            <input id="nama_region" type="text" name="nama_region" class="form-control" required />
+            <input id="add_nama_region" type="text" name="nama_region" class="form-control" required />
         </div>
         
         <div class="form-group mt-2">
             <label for="penanggung_jawab">Penanggung Jawab</label>
-            <input id="penanggung_jawab" type="text" name="penanggung_jawab" class="form-control" required />
+            <input id="add_penanggung_jawab" type="text" name="penanggung_jawab" class="form-control" required />
         </div>
     </x-modal-form>
 
@@ -134,12 +134,12 @@
 
         <div class="form-group">
             <label>Nama Region</label>
-            <input type="text" id="nama_region" name="nama_region" class="form-control" required />
+            <input type="text" id="edit_nama_region" name="nama_region" class="form-control" required />
         </div>
         
         <div class="form-group">
             <label>Penanggung Jawab</label>
-            <input type="text" id="penanggung_jawab" name="penanggung_jawab" class="form-control" required />
+            <input type="text" id="edit_penanggung_jawab" name="penanggung_jawab" class="form-control" required />
         </div>
     </x-modal-form>
 
@@ -163,8 +163,8 @@ function editRegion(button) {
     // isi input
     document.getElementById('edit_id').value = id;
     document.getElementById('edit_kode_region').value = button.dataset.kode;
-    document.getElementById('nama_region').value = button.dataset.nama;
-    document.getElementById('penanggung_jawab').value = button.dataset.pj;
+    document.getElementById('edit_nama_region').value = button.dataset.nama;
+    document.getElementById('edit_penanggung_jawab').value = button.dataset.pj;
 
     // tampilkan modal
     $('#modalEditRegion').modal('show');
