@@ -192,12 +192,11 @@ Route::middleware(['auth'])->group(function () {
 
             Route::get(
                 '/penjualan-bahan-baku',
-                fn() =>
-                view('transaction.sales-materials')
+                fn() => view('transaction.sales-materials')
+            )
                 ->middleware('permission:transaction.sales.view')
                 ->name('sales-materials');
-                
-            )->name('sales-materials');
+
 
             Route::get(
                 '/pembelian-bahan-baku',
@@ -207,15 +206,16 @@ Route::middleware(['auth'])->group(function () {
         });
 
 
-        Route::prefix('dashboard/transaksi/pembelian-bahan-baku')
+    Route::prefix('dashboard/transaksi/pembelian-bahan-baku')
         ->name('transaction.purchase-materials.')
         ->controller(PurchaseController::class)
         ->group(function () {
 
             Route::get('/', 'index')->name('index');
             Route::post('/', 'store')->name('store');
+        });
 
-    
+
 
 
 
