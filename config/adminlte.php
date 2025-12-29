@@ -396,7 +396,7 @@ return [
         [
             'text' => 'Setup Data',
             'icon' => 'fas fa-fw fa-tools',
-            'can' => 'setup.user.view',
+            'can' => 'recipe.view',
             'submenu' => [
 
                 [
