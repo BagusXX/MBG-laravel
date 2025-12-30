@@ -11,7 +11,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SubmissionController;
-use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\PurchaseBahanBakuController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\OperationalController;
@@ -211,14 +211,12 @@ Route::middleware(['auth'])->group(function () {
                 ->middleware('permission:transaction.request-materials.view')
                 ->name('request-materials');
 
-
             Route::get(
                 '/penjualan-bahan-baku',
                 fn() => view('transaction.sales-materials')
             )
                 ->middleware('permission:transaction.sales.view')
                 ->name('sales-materials');
-
 
             Route::get(
                 '/pembelian-bahan-baku',
@@ -230,11 +228,12 @@ Route::middleware(['auth'])->group(function () {
 
     Route::prefix('dashboard/transaksi/pembelian-bahan-baku')
         ->name('transaction.purchase-materials.')
-        ->controller(PurchaseController::class)
+        ->controller(PurchaseBahanBakuController::class)
         ->group(function () {
 
             Route::get('/', 'index')->name('index');
             Route::post('/', 'store')->name('store');
+            Route::get('/{id}', 'show')->name('show');
         });
 
 

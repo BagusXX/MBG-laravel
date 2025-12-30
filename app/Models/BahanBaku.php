@@ -18,9 +18,9 @@ class BahanBaku extends Model
         return $this->belongsTo(Kitchen::class);
     }
 
-    public function bahanBaku()
+    public function purchaseBahanBaku()
     {
-        return $this->hasMany(Purchase::class);
+        return $this->hasMany(PurchaseBahanBaku::class);
     }
 
     public function unit()
@@ -28,7 +28,8 @@ class BahanBaku extends Model
         return $this->belongsTo(Unit::class, 'satuan_id', 'id');
     }
 
-    public function recipes(){
+    public function recipes()
+    {
         return $this->hasMany(RecipeBahanBaku::class);
     }
 }

@@ -7,8 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class PurchaseItem extends Model
 {
     protected $fillable = [
-        'purchase_id',
+        'purchase_bahan_bakus_id',
         'bahan_baku_id',
+        'units_id',
         'jumlah',
         'harga',
     ];
@@ -20,5 +21,10 @@ class PurchaseItem extends Model
     public function BahanBaku()
     {
         return $this->belongsTo(BahanBaku::class);
+    }
+
+    public function unit()
+    {
+        return $this->belongsTo(Unit::class, 'units_id');
     }
 }

@@ -34,8 +34,8 @@
                             <td>{{ $purchase->created_at }}</td>
                             <td>{{ $purchase->supplier->nama }}</td>
                             <td>
-                                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal"
-                                    data-target="#modalDetailPurchase">
+                                <button type="button" class="btn btn-primary btn-sm btn-detail" data-toggle="modal"
+                                    data-id="{{ $purchase->id }}" data-target="#modalDetailPurchase">
                                     Detail
                                 </button>
                                 <button type="button" class="btn btn-sm btn-success btnEditPurchaseMaterials"
@@ -61,14 +61,16 @@
     </div>
 
     {{-- MODAL ADD --}}
-    <x-modal-form id="modalAddPurchaseMaterials" size="modal-lg" title="Tambah Pembelian Bahan Baku" action="{#"
-        submitText="Simpan">
+    <x-modal-form id="modalAddPurchaseMaterials" size="modal-lg" title="Tambah Pembelian Bahan Baku"
+        action="{{ route('transaction.purchase-materials.store') }}" submitText="Simpan" method="POST">
         @csrf
 
         <div class="d-flex align-items-center">
             <div class="form-group">
                 <label>Kode</label>
-                <input id="kode_transaksi_beli" type="text" class="form-control" name="kode" readonly required />
+                <input id="kode_transaksi_beli" type="text" class="form-control" name="kode"
+                    value="{{ $kode }}" readonly required />
+
             </div>
 
             <div class="form-group flex-fill ml-2">
@@ -101,6 +103,13 @@
                     <div class="col-md-3">
                         <select name="bahan[]" class="form-control" required>
                             <option value="" disabled selected>Pilih Bahan</option>
+                            @foreach ($bahanBaku as $bahan)
+                                <option value="{{ $bahan->id }}" data-harga="{{ $bahan->harga }}"
+                                    data-satuan-id="{{ $bahan->satuan_id }}"
+                                    data-satuan-nama="{{ $bahan->unit->satuan ?? '' }}">
+                                    {{ $bahan->nama }}
+                                </option>
+                            @endforeach
                         </select>
                     </div>
 
@@ -109,7 +118,7 @@
                     </div>
 
                     <div class="col-md-3">
-                        <select name="satuan[]" class="form-control" required>
+                        <select name="unit[]" class="form-control" required>
                             <option value="" disabled selected>Pilih Satuan</option>
                         </select>
                     </div>
@@ -143,16 +152,9 @@
     <x-modal-detail id="modalDetailPurchase" size="modal-lg" title="Pemesanan Bahan Baku">
         <div>
             <div>
-                <p class="font-weight-bold mb-0">Kode:</p>
-                <p>BB202511111</p>
-            </div>
-            <div>
-                <p class="font-weight-bold mb-0">Tanggal Beli:</p>
-                <p>Senin, 08 Desember 2025</p>
-            </div>
-            <div>
-                <p class="font-weight-bold mb-0">Supplier:</p>
-                <p>Fresh Mart</p>
+                <p><strong>Kode: </strong><span id="detail-kode"></span></p>
+                <p><strong>Tanggal Beli: </strong><span id="detail-tanggal"></span></p>
+                <p><strong>Supplier: </strong><span id="detail-supplier"></span></p>
             </div>
             <div>
                 <table class="table table-bordered table-striped">
@@ -163,22 +165,8 @@
                             <th>Harga</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td>Bawang Merah (Data Sampel)</td>
-                            <td>500 kg</td>
-                            <td>100000</td>
-                        </tr>
-                        <tr>
-                            <td>Bawang Merah (Data Sampel)</td>
-                            <td>500 kg</td>
-                            <td>100000</td>
-                        </tr>
-                        <tr>
-                            <td>Bawang Merah (Data Sampel)</td>
-                            <td>500 kg</td>
-                            <td>100000</td>
-                        </tr>
+                    <tbody id="detail-items">
+
                     </tbody>
                 </table>
             </div>
@@ -224,6 +212,66 @@
                 firstRemoveBtn.addEventListener('click', function() {
                     firstRemoveBtn.closest('.bahan-group').remove();
                 });
+            }
+        });
+        document.addEventListener('change', function(e) {
+            if (e.target.name === 'bahan[]') {
+                const selected = e.target.selectedOptions[0];
+                const group = e.target.closest('.bahan-group');
+
+                // ===== HARGA =====
+                const harga = selected.dataset.harga;
+                const hargaInput = group.querySelector('input[name="harga[]"]');
+                if (harga && hargaInput) {
+                    hargaInput.value = harga;
+                }
+
+                // ===== SATUAN =====
+                const satuanId = selected.dataset.satuanId;
+                const satuanNama = selected.dataset.satuanNama;
+                const satuanSelect = group.querySelector('select[name="unit[]"]');
+
+                if (satuanSelect && satuanId) {
+                    satuanSelect.innerHTML = `
+                <option value="${satuanId}" selected>${satuanNama}</option>
+            `;
+                }
+            }
+        });
+
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('btn-detail')) {
+                const purchaseId = e.target.dataset.id;
+
+                fetch(`/transaction/purchase-materials/${purchaseId}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        // Header
+                        document.getElementById('detail-kode').innerText = data.kode;
+                        document.getElementById('detail-tanggal').innerText =
+                            new Date(data.created_at).toLocaleDateString('id-ID');
+                        document.getElementById('detail-supplier').innerText =
+                            data.supplier.nama;
+
+                        // Items
+                        const tbody = document.getElementById('detail-items');
+                        tbody.innerHTML = '';
+
+                        data.items.forEach(item => {
+                            tbody.innerHTML += `
+                        <tr>
+                            <td>${item.bahan_baku.nama}</td>
+                            <td>${item.jumlah}</td>
+                            <td>${item.bahan_baku.unit.satuan}</td>
+                            <td>${item.harga}</td>
+                        </tr>
+                    `;
+                        });
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('Gagal mengambil data detail');
+                    });
             }
         });
     </script>
