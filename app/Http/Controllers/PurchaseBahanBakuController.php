@@ -40,7 +40,7 @@ class PurchaseBahanBakuController extends Controller
         // $satuan = Unit::all();
 
         return view('transaction.purchase-materials', [
-            'purchases' => PurchaseBahanBaku::with('supplier')->get(),
+            'purchases' => PurchaseBahanBaku::with(['supplier', 'items'])->get(),
             'users'     => User::all(),
             'suppliers' => Supplier::all(),
             'bahanBaku' => BahanBaku::with('unit')->get(),

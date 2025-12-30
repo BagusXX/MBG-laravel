@@ -20,10 +20,6 @@
                         <th>Tanggal Beli</th>
                         <th>Supplier</th>
                         <th>Total Harga</th>
-                        {{-- <th>Bahan Baku</th> --}}
-                        {{-- <th>Jumlah</th>
-                        <th>Satuan</th>
-                        <th>Harga</th> --}}
                         <th width="220">Aksi</th>
                     </tr>
                 </thead>
@@ -34,18 +30,19 @@
                             <td>{{ $purchase->kode }}</td>
                             <td>{{ $purchase->created_at }}</td>
                             <td>{{ $purchase->supplier->nama }}</td>
+                            <td>Rp {{ number_format($purchase->total, 0, ',', '.') }}</td>
                             <td>
                                 <button type="button" class="btn btn-primary btn-sm btn-detail" data-toggle="modal"
                                     data-id="{{ $purchase->id }}" data-target="#modalDetailPurchase">
                                     Detail
                                 </button>
-                                <button type="button" class="btn btn-sm btn-success btnEditPurchaseMaterials"
+                                {{-- <button type="button" class="btn btn-sm btn-success btnEditPurchaseMaterials"
                                     data-toggle="modal" data-target="#modalEditPurchaseMaterials">
                                     Edit
-                                </button>
+                                </button> --}}
                                 <button type="button" class="btn btn-sm btn-warning btnEditPurchaseMaterials"
                                     data-toggle="modal" data-target="#modalPrintPurchaseMaterials">
-                                    Print Invoice
+                                    <i class="fas fa-print mr-2"></i>Cetak Invoice
                                 </button>
                                 {{-- <x-button-delete
                                 idTarget="#modalDeletePurchaseMaterials"
@@ -152,32 +149,29 @@
     {{-- MODAL DETAIL PURCHASE MATERIALS --}}
     <x-modal-detail id="modalDetailPurchase" size="modal-lg" title="Pemesanan Bahan Baku">
         <div>
-            <div class="text-right mt-3">
-                <a href="#" target="_blank" id="btn-print-invoice" class="btn btn-warning">
-                    <i class="fas fa-print mr-1"></i>Cetak Invioce
-                </a>
-            </div>
-            <div>
-                <p><strong>Kode: </strong><span id="detail-kode"></span></p>
-                <p><strong>Tanggal Beli: </strong><span id="detail-tanggal"></span></p>
-                <p><strong>Supplier: </strong><span id="detail-supplier"></span></p>
-                <p><strong>Total Harga: </strong><span id="detail-total"></span></p>
-            </div>
-            <div>
-                <table class="table table-bordered table-striped">
-                    <thead>
-                        <tr>
-                            <th>Bahan Baku</th>
-                            <th>Jumlah</th>
-                            <th>Satuan</th>
-                            <th>Harga</th>
-                            <th>Subtotal</th>
-                        </tr>
-                    </thead>
-                    <tbody id="detail-items">
-                    </tbody>
-                </table>
-            </div>
+
+        </div>
+        <div>
+            <p><strong>Kode: </strong><span id="detail-kode"></span></p>
+            <p><strong>Tanggal Beli: </strong><span id="detail-tanggal"></span></p>
+            <p><strong>Supplier: </strong><span id="detail-supplier"></span></p>
+            <p><strong>Total Harga: </strong><span id="detail-total"></span></p>
+        </div>
+        <div>
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Bahan Baku</th>
+                        <th>Jumlah</th>
+                        <th>Satuan</th>
+                        <th>Harga</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody id="detail-items">
+                </tbody>
+            </table>
+        </div>
         </div>
     </x-modal-detail>
 
