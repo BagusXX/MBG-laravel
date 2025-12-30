@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\View;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Sells;
 use App\Models\Kitchen;
 use App\Models\BahanBaku;
@@ -14,10 +16,15 @@ class SaleMaterialsKitchenController extends Controller
 {
     public function index()
     {
-        $sales = Sells::with(['user', 'kitchen', 'bahanBaku.unit', 'satuan'])
+        $allSales = Sells::with(['user', 'kitchen', 'bahanBaku.unit', 'satuan'])
             ->where('tipe', 'dapur')
             ->latest()
             ->get();
+
+        // Group by kode untuk menghindari duplikasi di tabel
+        $sales = $allSales->groupBy('kode')->map(function ($group) {
+            return $group->first();
+        })->values();
 
         $kitchens = Kitchen::all();
         $units = Unit::all();
@@ -98,5 +105,46 @@ class SaleMaterialsKitchenController extends Controller
 
         return redirect()->route('transaction.sale-materials-kitchen.index')
             ->with('success', 'Penjualan bahan baku dapur berhasil disimpan');
+    }
+
+    public function printInvoice($kode)
+    {
+        $sales = Sells::with(['user', 'kitchen', 'bahanBaku.unit', 'satuan'])
+            ->where('tipe', 'dapur')
+            ->where('kode', $kode)
+            ->get();
+
+        if ($sales->isEmpty()) {
+            abort(404, 'Data penjualan tidak ditemukan');
+        }
+
+        $totalHarga = $sales->sum(function ($sale) {
+            return $sale->harga * $sale->bobot_jumlah;
+        });
+
+        return view('transaction.invoice-sale-kitchen', compact('sales', 'totalHarga'));
+    }
+
+    public function downloadInvoice($kode)
+    {
+        $sales = Sells::with(['user', 'kitchen', 'bahanBaku.unit', 'satuan'])
+            ->where('tipe', 'dapur')
+            ->where('kode', $kode)
+            ->get();
+
+        if ($sales->isEmpty()) {
+            abort(404, 'Data penjualan tidak ditemukan');
+        }
+
+        $totalHarga = $sales->sum(function ($sale) {
+            return $sale->harga * $sale->bobot_jumlah;
+        });
+
+        $pdf = Pdf::loadView('transaction.invoice-sale-kitchen', compact('sales', 'totalHarga'));
+        $pdf->setPaper('a4', 'portrait');
+        
+        $filename = 'Invoice_' . $kode . '_' . date('Y-m-d') . '.pdf';
+        
+        return $pdf->download($filename);
     }
 }

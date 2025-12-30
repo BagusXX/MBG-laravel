@@ -60,14 +60,14 @@
                                 >
                                     Detail
                                 </button>
-                                <button 
+                                {{-- <button 
                                     type="button" 
                                     class="btn btn-sm btn-warning btnEditSalesMaterials"
                                     data-toggle="modal"
                                     data-target="#modalEditSalesMaterials"
                                 >
                                     Edit
-                                </button>
+                                </button> --}}
                                 <x-button-delete
                                     idTarget="#modalDeleteSalesMaterials"
                                     formId="formDeleteSalesMaterials"
@@ -221,6 +221,15 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
+            <div class="mt-3 text-center">
+                <a 
+                    id="detail-download-invoice"
+                    href="#"
+                    class="btn btn-warning"
+                >
+                    <i class="fas fa-download"></i> Download Invoice PDF
+                </a>
             </div>
         </div>
     </x-modal-detail>
@@ -405,13 +414,23 @@
              * ======================================================
              */
             $(document).on('click', '[data-target="#modalDetailSales"]', function() {
-                $('#detail-kode').text($(this).data('kode') || '-');
+                var kode = $(this).data('kode');
+                $('#detail-kode').text(kode || '-');
                 $('#detail-tanggal').text($(this).data('tanggal') || '-');
                 $('#detail-dapur').text($(this).data('dapur') || '-');
                 $('#detail-bahan').text($(this).data('bahan') || '-');
                 $('#detail-jumlah').text($(this).data('jumlah') || '-');
                 $('#detail-satuan').text($(this).data('satuan') || '-');
                 $('#detail-harga').text('Rp ' + ($(this).data('harga') || '0'));
+                
+                // Set download invoice link
+                if (kode && kode !== '-') {
+                    var downloadUrl = "{{ route('transaction.sale-materials-partner.invoice.download', ':kode') }}";
+                    downloadUrl = downloadUrl.replace(':kode', kode);
+                    $('#detail-download-invoice').attr('href', downloadUrl).removeClass('disabled');
+                } else {
+                    $('#detail-download-invoice').attr('href', '#').addClass('disabled');
+                }
             });
         });
     </script>
