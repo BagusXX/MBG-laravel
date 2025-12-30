@@ -164,7 +164,7 @@
     <x-modal-form
         id="modalEditRecipe"
         title="Edit Racik Menu"
-        action=""
+        action="{{ route('recipe.update') }}"
         submitText="Update"
     >
         @method('PUT')
@@ -341,10 +341,7 @@
 
                     const modal = document.getElementById('modalEditRecipe');
                     const form = modal.querySelector('form');
-
-                    // set action PUT
-                    form.action = `/dashboard/setup/racik-menu/${menuId}`;
-
+                    
                     // set kitchen
                     form.querySelector('.kitchen-select').value = kitchenId;
 

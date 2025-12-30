@@ -151,7 +151,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/menus-by-kitchen/{kitchen}', 'getMenusByKitchen')->middleware('permission:recipe.view')->name('menus.by.kitchen');
             Route::get('/bahan/{id}', 'getBahanDetail')->middleware('permission:recipe.view')->name('bahan.detail');
             Route::get('/detail/{menu}/{kitchen}', 'getRecipeDetail')->middleware('permission:recipe.view')->name('detail');
-            Route::put('/{id}', 'update')->middleware('permission:recipe.update')->name('update');
+            Route::put('/', 'update')->middleware('permission:recipe.update')->name('update');
             Route::delete('/{id}', 'destroy')->middleware('permission:recipe.delete')->name('destroy');
         });
 

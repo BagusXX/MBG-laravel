@@ -53,11 +53,11 @@ class RecipeController extends Controller
         return redirect()->route('recipe.index')->with('success', 'Menu berhasil diracik.');
     }
 
-    public function update(Request $request, $menuId)
+    public function update(Request $request)
     {
         $request->validate([
-            'kitchen_id' => 'required',
-            'menu_id' => 'required',
+            'kitchen_id' => 'required|exists:kitchens,id',
+            'menu_id' => 'required|exists:menus,id',
             'bahan_baku_id' => 'required|array',
             'jumlah' => 'required|array',
         ]);
@@ -69,7 +69,7 @@ class RecipeController extends Controller
             $rowId = $request->row_id[$i] ?? null;
 
             if ($rowId) {
-                // UPDATE baris lama
+                // UPDATE BARIS LAMA
                 RecipeBahanBaku::where('id', $rowId)->update([
                     'bahan_baku_id' => $bahanId,
                     'jumlah' => $request->jumlah[$i],
@@ -77,9 +77,9 @@ class RecipeController extends Controller
 
                 $existingIds[] = $rowId;
             } else {
-                // TAMBAH baris baru
+                // TAMBAH BARIS BARU
                 $new = RecipeBahanBaku::create([
-                    'menu_id' => $menuId,
+                    'menu_id' => $request->menu_id,
                     'kitchen_id' => $request->kitchen_id,
                     'bahan_baku_id' => $bahanId,
                     'jumlah' => $request->jumlah[$i],
@@ -89,8 +89,8 @@ class RecipeController extends Controller
             }
         }
 
-        // HAPUS yang dihapus user
-        RecipeBahanBaku::where('menu_id', $menuId)
+        // HAPUS BARIS YANG DIHAPUS USER
+        RecipeBahanBaku::where('menu_id', $request->menu_id)
             ->where('kitchen_id', $request->kitchen_id)
             ->whereNotIn('id', $existingIds)
             ->delete();
@@ -99,6 +99,7 @@ class RecipeController extends Controller
             ->route('recipe.index')
             ->with('success', 'Racikan berhasil diperbarui');
     }
+
 
 
     public function getRecipeDetail($menuId, $kitchenId)
