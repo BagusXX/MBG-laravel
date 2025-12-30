@@ -102,9 +102,14 @@
                                     </td>
                                     <td>
                                         {{-- DETAIL (SEMUA MODE) --}}
-                                        <a href="{{ route('transaction.submission.detail', $item->id) }}" class="btn btn-info btn-sm">
+                                        <button 
+                                            type="button"
+                                            class="btn btn-primary btn-sm"
+                                            data-toggle="modal"
+                                            data-target="#modalDetail{{ $item->id }}"    
+                                        >
                                             Detail
-                                        </a>
+                                        </button>
 
                                         {{-- MODE PERMINTAAN --}}
                                         @if($mode === 'permintaan')
@@ -210,6 +215,55 @@
         <x-modal-delete id="modalDeleteSubmission" formId="formDeleteSubmission" title="Hapus Permintaan"
             message="Yakin ingin menghapus data ini?" confirmText="Hapus" />
     @endif
+
+    @foreach ($submissions as $submission)
+        <x-modal-detail id="modalDetail{{ $submission->id }}" size="modal-lg" title="Detail Pengajuan Menu">
+            <table class="table table-borderless">
+                <tr>
+                    <th width="140" class="py-2">Kode</th>
+                    <td class="py-2">: {{ $submission->kode }}</td>
+                </tr>
+                <tr>
+                    <th width="140" class="py-2">Tanggal</th>
+                    <td class="py-2">: {{ date('d-m-Y', strtotime($submission->tanggal)) }}</td>
+                </tr>
+                <tr>
+                    <th width="140" class="py-2">Dapur</th>
+                    <td class="py-2">: {{ $submission->kitchen->nama }}</td>
+                </tr>
+                <tr>
+                    <th width="140" class="py-2">Menu</th>
+                    <td class="py-2">: {{ $submission->menu->nama }}</td>
+                </tr>
+                <tr>
+                    <th width="140" class="py-2">Porsi</th>
+                    <td class="py-2">: {{ $submission->porsi }}</td>
+                </tr>
+            </table>
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Bahan Baku</th>
+                        <th>Qty Digunakan</th>
+                        <th>Satuan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($submission->details as $detail)
+                        <tr>
+                            <td>{{ $detail->recipe?->bahan_baku?->nama ?? '-' }}</td>
+                            <td>{{ $detail->qty_digunakan }}</td>
+                            <td>{{ $detail->recipe?->bahan_baku?->unit?->satuan ?? '-' }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="3" class="text-center text-muted">Data bahan baku tidak ditemukan</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </x-modal-detail>
+    @endforeach
 
 @endsection
 

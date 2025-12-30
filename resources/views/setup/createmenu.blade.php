@@ -235,52 +235,50 @@
     {{-- MODAL DETAIL PER RECIPE --}}
     @foreach($recipes as $recipe)
         <x-modal-detail id="modalDetail{{ $recipe->id }}" size="modal-lg" title="Detail Menu">
-            <div>
-                <div>
-                    <p class="font-weight-bold mb-0">Dapur:</p>
-                    <p>{{ $recipe->kitchen->nama }}</p>
-                </div>
-                <div>
-                    <p class="font-weight-bold mb-0">Nama Menu:</p>
-                    <p>{{ $recipe->menu->nama }}</p>
-                </div>
-                
-                <table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <th>Bahan Baku</th>
-            <th>Jumlah</th>
-            <th>Harga</th>
-            <th>Subtotal</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if ($recipe->bahan_baku)
-        <tr>
-            <td>{{ $recipe->bahan_baku->nama }}</td>
-            <td>{{ $recipe->jumlah }}</td>
-            <td>
-                Rp {{ number_format($recipe->bahan_baku->harga ?? 0, 0, ',', '.') }}
-            </td>
-            <td>
-                Rp {{ number_format(($recipe->bahan_baku->harga ?? 0) * $recipe->jumlah, 0, ',', '.') }}
-            </td>
-        </tr>
-        @endif
+            <table class="table table-borderless">
+                <tr>
+                    <th width="140" class="py-2">Dapur</th>
+                    <td class="py-2">: {{ $recipe->kitchen->nama }}</td>
+                </tr>
+                <tr>
+                    <th width="140" class="py-2">Nama Menu</th>
+                    <td class="py-2">: {{ $recipe->menu->nama }}</td>
+                </tr>
+            </table>
 
-    </tbody>
-</table>
-<tfoot>
-    <tr class="font-weight-bold">
-        <td colspan="3" class="text-right">Total</td>
-        <td>
-            Rp {{ number_format($recipe->total_harga, 0, ',', '.') }}
-        </td>
-    </tr>
-</tfoot>
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Bahan Baku</th>
+                        <th>Jumlah</th>
+                        <th>Harga</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if ($recipe->bahan_baku)
+                    <tr>
+                        <td>{{ $recipe->bahan_baku->nama }}</td>
+                        <td>{{ $recipe->jumlah }}</td>
+                        <td>
+                            Rp {{ number_format($recipe->bahan_baku->harga ?? 0, 0, ',', '.') }}
+                        </td>
+                        <td>
+                            Rp {{ number_format(($recipe->bahan_baku->harga ?? 0) * $recipe->jumlah, 0, ',', '.') }}
+                        </td>
+                    </tr>
+                    @endif
 
-
-            </div>
+                </tbody>
+            </table>
+            <tfoot>
+                <tr class="font-weight-bold">
+                    <td colspan="3" class="text-right">Total</td>
+                    <td>
+                        Rp {{ number_format($recipe->total_harga, 0, ',', '.') }}
+                    </td>
+                </tr>
+            </tfoot>
         </x-modal-detail>
     @endforeach
 
