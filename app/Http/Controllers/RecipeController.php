@@ -13,53 +13,64 @@ class RecipeController extends Controller
 {
     public function index()
     {
-        $recipes = RecipeBahanBaku::with(['menu', 'kitchen', 'bahan_baku'])->get();
-        $menus = Menu::all();
+        $user = auth()->user();
+        $kitchens = $user->kitchens()->pluck('kode');
+
+        $menus = Menu::with([
+            'recipes' => function ($q) {
+                $q->with(['bahan_baku.unit', 'kitchen']);
+            }
+        ])->get();
         $kitchens = Kitchen::all();
-        $bahanBaku = BahanBaku::all();
+        $bahanBaku = BahanBaku::with('unit')->get();
         $units = Unit::all();
 
         // Pastikan nama view ini benar ada di folder resources/views/setup/createmenu.blade.php
-        return view('setup.createmenu', compact('recipes', 'menus', 'kitchens', 'bahanBaku', 'units'));
+        return view('setup.createmenu', compact('menus', 'kitchens', 'bahanBaku', 'units'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'kitchen_id' => 'required|exists:kitchens,id',
             'menu_id' => 'required|exists:menus,id',
-            'bahan_baku_id' => 'required|array',
+            'kitchen_id' => 'required|exists:kitchens,id',
+            'bahan_baku_id' => 'required|array|min:1',
             'bahan_baku_id.*' => 'exists:bahan_baku,id',
-            'jumlah' => 'required|array',
-        ]); // Hapus tanda '' yang tadi ada di sini
+            'jumlah' => 'required|array|min:1',
+            'jumlah.*' => 'numeric|min:0.0001',
+        ]);
 
-        // $recipe = RecipeBahanBaku::create([
-        //     'kitchen_id' => $request->kitchen_id,
-        //     'menu_id'    => $request->menu_id,
-        // ]);
-
-        foreach ($request->bahan_baku_id as $index => $bahan_id) {
-            RecipeBahanBaku::create([
-                'kitchen_id' => $request->kitchen_id,
+        foreach ($request->bahan_baku_id as $bahanId) {
+            $exists = RecipeBahanBaku::where([
                 'menu_id' => $request->menu_id,
-                'bahan_baku_id' => $bahan_id,
-                'jumlah' => $request->jumlah[$index],
+                'kitchen_id' => $request->kitchen_id,
+                'bahan_baku_id' => $bahanId,
+            ])->exists();
 
+            if ($exists) {
+                return back()->withErrors('Bahan yang sama tidak boleh dobel dalam satu resep');
+            }
+        }
+
+        foreach ($request->bahan_baku_id as $i => $bahanId) {
+            RecipeBahanBaku::create([
+                'menu_id' => $request->menu_id,
+                'kitchen_id' => $request->kitchen_id,
+                'bahan_baku_id' => $bahanId,
+                'jumlah' => $request->jumlah[$i],
             ]);
         }
 
-        // PERBAIKAN PENTING:
-        // Ganti 'setup.createmenu' menjadi 'recipe.index' agar sesuai dengan web.php
-        return redirect()->route('recipe.index')->with('success', 'Menu berhasil diracik.');
+        return redirect()
+            ->route('recipe.index')
+            ->with('success', 'Resep berhasil disimpan');
     }
 
-    public function update(Request $request, $menuId)
+    public function update(Request $request, $menuId, $kitchenId)
     {
         $request->validate([
-            'kitchen_id' => 'required',
-            'menu_id' => 'required',
-            'bahan_baku_id' => 'required|array',
-            'jumlah' => 'required|array',
+            'bahan_baku_id' => 'required|array|min:1',
+            'jumlah' => 'required|array|min:1',
         ]);
 
         $existingIds = [];
@@ -69,7 +80,6 @@ class RecipeController extends Controller
             $rowId = $request->row_id[$i] ?? null;
 
             if ($rowId) {
-                // UPDATE baris lama
                 RecipeBahanBaku::where('id', $rowId)->update([
                     'bahan_baku_id' => $bahanId,
                     'jumlah' => $request->jumlah[$i],
@@ -77,10 +87,9 @@ class RecipeController extends Controller
 
                 $existingIds[] = $rowId;
             } else {
-                // TAMBAH baris baru
                 $new = RecipeBahanBaku::create([
                     'menu_id' => $menuId,
-                    'kitchen_id' => $request->kitchen_id,
+                    'kitchen_id' => $kitchenId,
                     'bahan_baku_id' => $bahanId,
                     'jumlah' => $request->jumlah[$i],
                 ]);
@@ -89,26 +98,49 @@ class RecipeController extends Controller
             }
         }
 
-        // HAPUS yang dihapus user
         RecipeBahanBaku::where('menu_id', $menuId)
-            ->where('kitchen_id', $request->kitchen_id)
+            ->where('kitchen_id', $kitchenId)
             ->whereNotIn('id', $existingIds)
             ->delete();
 
         return redirect()
             ->route('recipe.index')
-            ->with('success', 'Racikan berhasil diperbarui');
+            ->with('success', 'Resep berhasil diperbarui');
     }
 
-    public function destroy(RecipeBahanBaku $recipe)
+
+
+    public function destroy($menuId, $kitchenId)
     {
-        if ($recipe->submissionDetails()->exists()) {
-            return back()->withErrors('Racik menu sudah digunakan di submission');
+        $used = RecipeBahanBaku::where('menu_id', $menuId)
+            ->where('kitchen_id', $kitchenId)
+            ->whereHas('submissionDetails')
+            ->exists();
+
+        if ($used) {
+            return back()->withErrors('Resep sudah digunakan di submission');
         }
 
-        $recipe->delete();
+        RecipeBahanBaku::where('menu_id', $menuId)
+            ->where('kitchen_id', $kitchenId)
+            ->delete();
 
-        return back()->with('success', 'Racik menu berhasil dihapus');
+        return back()->with('success', 'Resep berhasil dihapus');
+    }
+
+
+
+
+    public function show($menuId, $kitchenId)
+    {
+        $recipes = RecipeBahanBaku::with(['bahan_baku.unit'])
+            ->where('menu_id', $menuId)
+            ->where('kitchen_id', $kitchenId)
+            ->get();
+
+        abort_if($recipes->isEmpty(), 404);
+
+        return view('recipe.show', compact('recipes'));
     }
 
 
