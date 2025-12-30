@@ -28,28 +28,85 @@ class RecipeController extends Controller
         $request->validate([
             'kitchen_id' => 'required|exists:kitchens,id',
             'menu_id'    => 'required|exists:menus,id',
-            'bahan'      => 'required|array',
+            'bahan_baku_id' => 'required|array',
+            'bahan_baku_id.*' => 'exists:bahan_baku,id',
             'jumlah'     => 'required|array',
-            'satuan'     => 'required|array',
         ]); // Hapus tanda '' yang tadi ada di sini
 
-        $recipe = RecipeBahanBaku::create([
-            'kitchen_id' => $request->kitchen_id,
-            'menu_id'    => $request->menu_id,
-        ]);
+        // $recipe = RecipeBahanBaku::create([
+        //     'kitchen_id' => $request->kitchen_id,
+        //     'menu_id'    => $request->menu_id,
+        // ]);
 
-        foreach ($request->bahan as $index => $bahan_id) {
+        foreach ($request->bahan_baku_id as $index => $bahan_id) {
             RecipeBahanBaku::create([
                 'kitchen_id'    => $request->kitchen_id,
                 'menu_id'       => $request->menu_id,
                 'bahan_baku_id' => $bahan_id,
                 'jumlah'        => $request->jumlah[$index],
+
             ]);
         }
 
         // PERBAIKAN PENTING:
         // Ganti 'setup.createmenu' menjadi 'recipe.index' agar sesuai dengan web.php
         return redirect()->route('recipe.index')->with('success', 'Menu berhasil diracik.');
+    }
+
+    public function update(Request $request, $menuId)
+    {
+        $request->validate([
+            'kitchen_id' => 'required',
+            'menu_id' => 'required',
+            'bahan_baku_id' => 'required|array',
+            'jumlah' => 'required|array',
+        ]);
+
+        $existingIds = [];
+
+        foreach ($request->bahan_baku_id as $i => $bahanId) {
+
+            $rowId = $request->row_id[$i] ?? null;
+
+            if ($rowId) {
+                // UPDATE baris lama
+                RecipeBahanBaku::where('id', $rowId)->update([
+                    'bahan_baku_id' => $bahanId,
+                    'jumlah' => $request->jumlah[$i],
+                ]);
+
+                $existingIds[] = $rowId;
+            } else {
+                // TAMBAH baris baru
+                $new = RecipeBahanBaku::create([
+                    'menu_id' => $menuId,
+                    'kitchen_id' => $request->kitchen_id,
+                    'bahan_baku_id' => $bahanId,
+                    'jumlah' => $request->jumlah[$i],
+                ]);
+
+                $existingIds[] = $new->id;
+            }
+        }
+
+        // HAPUS yang dihapus user
+        RecipeBahanBaku::where('menu_id', $menuId)
+            ->where('kitchen_id', $request->kitchen_id)
+            ->whereNotIn('id', $existingIds)
+            ->delete();
+
+        return redirect()
+            ->route('recipe.index')
+            ->with('success', 'Racikan berhasil diperbarui');
+    }
+
+
+    public function getRecipeDetail($menuId, $kitchenId)
+    {
+        return RecipeBahanBaku::with('bahan_baku.unit')
+            ->where('menu_id', $menuId)
+            ->where('kitchen_id', $kitchenId)
+            ->get();
     }
 
     public function destroy(RecipeBahanBaku $recipe)
@@ -60,5 +117,25 @@ class RecipeController extends Controller
         return redirect()
             ->route('recipe.index')
             ->with('success', 'Racik menu berhasil dihapus');
+    }
+
+    public function getMenusByKitchen(Kitchen $kitchen)
+    {
+        return response()->json(
+            $kitchen->menus()->select('id', 'nama')->get()
+        );
+    }
+
+    public function getBahanDetail($id)
+    {
+        $bahan = BahanBaku::with('unit')->findOrFail($id);
+
+        return response()->json([
+            'id' => $bahan->id,
+            'nama' => $bahan->nama,
+            'harga' => $bahan->harga,
+            'satuan_id' => $bahan->satuan_id,
+            'satuan' => $bahan->unit?->satuan,
+        ]);
     }
 }
