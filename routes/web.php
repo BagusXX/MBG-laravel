@@ -11,7 +11,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SubmissionController;
-use App\Http\Controllers\PurchaseController;
+use App\Http\Controllers\PurchaseBahanBakuController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\OperationalController;
@@ -146,14 +146,39 @@ Route::middleware(['auth'])->group(function () {
         ->name('recipe.')
         ->controller(RecipeController::class)
         ->group(function () {
-            Route::get('/', 'index')->middleware('permission:recipe.view')->name('index');
-            Route::post('/', 'store')->middleware('permission:recipe.create')->name('store');
-            Route::get('/menus-by-kitchen/{kitchen}', 'getMenusByKitchen')->middleware('permission:recipe.view')->name('menus.by.kitchen');
-            Route::get('/bahan/{id}', 'getBahanDetail')->middleware('permission:recipe.view')->name('bahan.detail');
-            Route::get('/detail/{menu}/{kitchen}', 'getRecipeDetail')->middleware('permission:recipe.view')->name('detail');
-            Route::put('/', 'update')->middleware('permission:recipe.update')->name('update');
-            Route::delete('/{id}', 'destroy')->middleware('permission:recipe.delete')->name('destroy');
+
+            Route::get('/', 'index')
+                ->middleware('permission:recipe.view')
+                ->name('index');
+
+            Route::post('/', 'store')
+                ->middleware('permission:recipe.create')
+                ->name('store');
+
+            Route::get('/menus-by-kitchen/{kitchen}', 'getMenusByKitchen')
+                ->middleware('permission:recipe.view')
+                ->name('menus.by.kitchen');
+
+            Route::get('/bahan/{id}', 'getBahanDetail')
+                ->middleware('permission:recipe.view')
+                ->name('bahan.detail');
+
+            // DETAIL 1 RESEP
+            Route::get('/detail/{menu}/{kitchen}', 'getRecipeDetail')
+                ->middleware('permission:recipe.view')
+                ->name('detail');
+
+            // UPDATE 1 RESEP
+            Route::put('/{menu}/{kitchen}', 'update')
+                ->middleware('permission:recipe.update')
+                ->name('update');
+
+            // DELETE 1 RESEP
+            Route::delete('/{menu}/{kitchen}', 'destroy')
+                ->middleware('permission:recipe.delete')
+                ->name('destroy');
         });
+
 
     /*
     |------------------------------------------------------------------
@@ -227,14 +252,12 @@ Route::middleware(['auth'])->group(function () {
                 ->middleware('permission:transaction.request-materials.view')
                 ->name('request-materials');
 
-
             Route::get(
                 '/penjualan-bahan-baku',
                 fn() => view('transaction.sales-materials')
             )
                 ->middleware('permission:transaction.sales.view')
                 ->name('sales-materials');
-
 
             Route::get(
                 '/pembelian-bahan-baku',
@@ -246,11 +269,13 @@ Route::middleware(['auth'])->group(function () {
 
     Route::prefix('dashboard/transaksi/pembelian-bahan-baku')
         ->name('transaction.purchase-materials.')
-        ->controller(PurchaseController::class)
+        ->controller(PurchaseBahanBakuController::class)
         ->group(function () {
 
             Route::get('/', 'index')->name('index');
             Route::post('/', 'store')->name('store');
+            Route::get('/{id}', 'show')->name('show');
+            Route::get('/{id}/invoice', 'invoice')->name('invoice');
         });
 
 

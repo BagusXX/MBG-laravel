@@ -17,6 +17,7 @@ class PurchaseBahanBaku extends Model
         'kode',
         'supplier_id',
         'user_id',
+        'total',
     ];
 
     public static function generateKode()
@@ -42,6 +43,6 @@ class PurchaseBahanBaku extends Model
 
     public function items()
     {
-        return $this->hasMany(PurchaseItem::class);
+        return $this->hasMany(PurchaseItem::class, 'purchase_bahan_bakus_id');
     }
 }

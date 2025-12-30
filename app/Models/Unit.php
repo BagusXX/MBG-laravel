@@ -12,7 +12,13 @@ class Unit extends Model
     protected $table = 'units';
     protected $fillable = ['satuan', 'keterangan'];
 
-    public function recipe_bahan_baku(){
+    public function recipe_bahan_baku()
+    {
         return $this->hasMany(RecipeBahanBaku::class);
+    }
+
+    public function bahanBaku()
+    {
+        return $this->hasMany(BahanBaku::class);
     }
 }
