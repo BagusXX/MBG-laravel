@@ -15,46 +15,77 @@ class SubmissionController extends Controller
 {
     public function index()
     {
-        $kitchens = Kitchen::all();
-        $menus = collect();
-
-        // Ambil kode terakhir (hanya untuk tampilan)
-        $lastKode = Submission::withTrashed()
-            ->orderByDesc('id')
-            ->value('kode');
-
-        $nextKode = $lastKode
-            ? 'PEM' . str_pad(((int) substr($lastKode, -3)) + 1, 3, '0', STR_PAD_LEFT)
-            : 'PEM001';
-
-        $submissions = Submission::with([
-            'kitchen',
-            'menu',
-            'details.recipe.bahan_baku'
-        ])->latest()->paginate(10);
+        $user = auth()->user();
 
         /**
-         * 🔑 DETEKSI MODE DARI ROUTE NAME
+         * 🔑 MODE DARI ROUTE
          */
         $mode = request()->routeIs('transaction.submission.index')
             ? 'pengajuan'
             : 'permintaan';
 
+        /**
+         * 🏠 DAPUR
+         * - pengajuan  → hanya dapur user
+         * - permintaan → semua dapur
+         */
+        $kitchens = $mode === 'pengajuan'
+            ? $user->kitchens()->get()
+            : Kitchen::all();
+
+        /**
+         * 📋 SUBMISSION
+         * - pengajuan  → hanya dapur user
+         * - permintaan → semua
+         */
+        $submissions = Submission::with([
+            'kitchen',
+            'menu',
+            'details.recipe.bahan_baku'
+        ])
+            ->when($mode === 'pengajuan', function ($q) use ($kitchens) {
+                $q->whereIn(
+                    'kitchen_id',
+                    Kitchen::whereIn('kode', $kitchens->pluck('kode'))->pluck('id')
+                );
+            })
+            ->latest()
+            ->paginate(10);
+
+        /**
+         * 🔢 KODE BARU (TAMPILAN)
+         */
+        $lastKode = Submission::withTrashed()->orderByDesc('id')->value('kode');
+        $nextKode = $lastKode
+            ? 'PEM' . str_pad(((int) substr($lastKode, -3)) + 1, 3, '0', STR_PAD_LEFT)
+            : 'PEM001';
+
         return view('transaction.submission', compact(
             'submissions',
             'kitchens',
-            'menus',
             'nextKode',
-            'mode' // ✅ WAJIB DIKIRIM
+            'mode'
         ));
     }
 
 
     public function store(Request $request)
     {
+        $user = auth()->user();
+
+        $allowedKitchenIds = Kitchen::whereIn(
+            'kode',
+            $user->kitchens()->pluck('kode')
+        )->pluck('id');
+
+
+
         $request->validate([
             'tanggal' => 'required|date',
-            'kitchen_id' => 'required|exists:kitchens,id',
+            'kitchen_id' => [
+                'required',
+                Rule::in($allowedKitchenIds),
+            ],
             'menu_id' => [
                 'required',
                 Rule::exists('menus', 'id')->where('kitchen_id', $request->kitchen_id),
@@ -135,10 +166,19 @@ class SubmissionController extends Controller
 
     public function show(Submission $submission)
     {
+        // 🔐 keamanan: hanya boleh lihat dapur miliknya saat pengajuan
+        if (request()->routeIs('transaction.submission.*')) {
+            $userKitchenKode = auth()->user()->kitchens->pluck('kode');
+
+            if (!$userKitchenKode->contains($submission->kitchen->kode)) {
+                abort(403, 'Tidak memiliki akses ke data ini');
+            }
+        }
+        
         $submission->load([
             'kitchen',
             'menu',
-            'details.recipe.bahan_baku'
+            'details.recipe.bahan_baku.unit'
         ]);
 
         return view('transaction.submission_detail', compact('submission'));
@@ -161,6 +201,16 @@ class SubmissionController extends Controller
             /**
              * 🔄 Update header submission
              */
+
+            $userKitchenIds = Kitchen::whereIn(
+                'kode',
+                auth()->user()->kitchens()->pluck('kode')
+            )->pluck('id');
+
+            if (!$userKitchenIds->contains($submission->kitchen_id)) {
+                abort(403, 'Anda tidak memiliki akses ke dapur ini');
+            }
+
             $submission->update([
                 'porsi' => $request->porsi,
                 'status' => $request->status,
@@ -211,6 +261,16 @@ class SubmissionController extends Controller
 
     public function destroy(Submission $submission)
     {
+        $userKitchenIds = Kitchen::whereIn(
+            'kode',
+            auth()->user()->kitchens()->pluck('kode')
+        )->pluck('id');
+
+        if (!$userKitchenIds->contains($submission->kitchen_id)) {
+            abort(403, 'Anda tidak memiliki akses ke dapur ini');
+        }
+
+
         if ($submission->status === 'diproses') {
             abort(403, 'Submission yang sedang diproses tidak dapat dihapus');
         }
@@ -225,6 +285,12 @@ class SubmissionController extends Controller
 
     public function getMenuByKitchen(Kitchen $kitchen)
     {
+        if (request()->routeIs('transaction.submission.index')) {
+            if (!auth()->user()->kitchens->pluck('kode')->contains($kitchen->kode)) {
+                abort(403, 'Anda tidak memiliki akses ke dapur ini');
+            }
+        }
+
         return response()->json(
             $kitchen->menus()->select('id', 'nama')->get()
         );

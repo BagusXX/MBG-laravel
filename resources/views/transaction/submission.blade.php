@@ -91,11 +91,12 @@
                                     <td>{{ $item->menu->nama }}</td>
                                     <td>{{ $item->porsi }}</td>
                                     <td>
-                                        <span class="badge badge-{{
+                                        <span
+                                            class="badge badge-{{
                         $item->status === 'diterima' ? 'success' :
                         ($item->status === 'ditolak' ? 'danger' :
                             ($item->status === 'diproses' ? 'info' : 'warning'))
-                                                                                                                        }}">
+                                                                                                                                                                        }}">
                                             {{ strtoupper($item->status) }}
                                         </span>
                                     </td>
@@ -112,8 +113,7 @@
                                             @if($item->status !== 'diterima')
                                                 <button class="btn btn-warning btn-sm btnEdit"
                                                     data-action="{{ route('transaction.submission.update', $item->id) }}"
-                                                    data-porsi="{{ $item->porsi }}" data-status="{{ $item->status }}" data-toggle="modal"
-                                                    data-target="#modalEditSubmission">
+                                                    data-status="{{ $item->status }}" data-toggle="modal" data-target="#modalEditSubmission">
                                                     Edit
                                                 </button>
                                             @endif
@@ -188,11 +188,6 @@
             @method('PUT')
 
             <div class="form-group">
-                <label>Porsi</label>
-                <input type="number" id="edit_porsi" name="porsi" class="form-control">
-            </div>
-
-            <div class="form-group">
                 <label>Status</label>
                 <select id="edit_status" name="status" class="form-control">
                     <option value="diajukan">Diajukan</option>
@@ -202,6 +197,7 @@
                 </select>
             </div>
         </x-modal-form>
+
 
         <x-modal-delete id="modalDeleteSubmission" formId="formDeleteSubmission" title="Hapus Permintaan"
             message="Yakin ingin menghapus data ini?" confirmText="Hapus" />
@@ -305,6 +301,57 @@
             });
 
         });
+
+        function applyFilter() {
+            let kitchen = $('#filterKitchen').val().toLowerCase();
+            let menu = $('#filterMenu').val().toLowerCase();
+            let status = $('#filterStatus').val().toLowerCase();
+            let date = $('#filterDate').val();
+
+            $('tbody tr').each(function () {
+                let rowKitchen = $(this).data('kitchen')?.toLowerCase() || '';
+                let rowMenu = $(this).data('menu')?.toLowerCase() || '';
+                let rowStatus = $(this).data('status')?.toLowerCase() || '';
+                let rowDate = $(this).data('date') || '';
+
+                let show = true;
+
+                if (kitchen && rowKitchen !== kitchen) show = false;
+                if (menu && rowMenu !== menu) show = false;
+                if (status && rowStatus !== status) show = false;
+                if (date && rowDate !== date) show = false;
+
+                $(this).toggle(show);
+            });
+        }
+
+        $('#filterKitchen, #filterMenu, #filterStatus, #filterDate').on('change', applyFilter);
+
+
+        $(document).on('click', '.btnEdit', function () {
+
+            let action = $(this).data('action');
+            let status = $(this).data('status');
+
+            let modal = $('#modalEditSubmission');
+
+            modal.find('form').attr('action', action);
+
+            let statusSelect = $('#edit_status');
+            statusSelect.val(status);
+            statusSelect.find('option').prop('disabled', false);
+
+            // RULE:
+            // jika status = diproses → hanya boleh diterima
+            if (status === 'diproses') {
+                statusSelect.find('option').prop('disabled', true);
+                statusSelect.find('option[value="diterima"]').prop('disabled', false);
+                statusSelect.val('diterima');
+            }
+        });
+
+
+
     </script>
 
 

@@ -12,42 +12,64 @@
         ← Kembali
     </a>
 
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <table class="table table-sm table-borderless mb-0">
+                <tr>
+                    <th width="180">Kode</th>
+                    <td>: {{ $submission->kode }}</td>
+                </tr>
+                <tr>
+                    <th>Tanggal</th>
+                    <td>: {{ date('d-m-Y', strtotime($submission->tanggal)) }}</td>
+                </tr>
+                <tr>
+                    <th>Dapur</th>
+                    <td>: {{ $submission->kitchen->nama }}</td>
+                </tr>
+                <tr>
+                    <th>Menu</th>
+                    <td>: {{ $submission->menu->nama }}</td>
+                </tr>
+                <tr>
+                    <th>Porsi</th>
+                    <td>: {{ $submission->porsi }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
     <div class="card">
         <div class="card-body">
             <table class="table table-bordered">
                 <thead>
                     <tr>
                         <th>Bahan Baku</th>
-                        <th>Qty Digunakan</th>
-                        <th>Harga Satuan</th>
-                        <th>Subtotal</th>
+                        <th class="text-center">Qty Digunakan</th>
+                        <th class="text-center">Satuan</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($submission->details as $detail)
                         <tr>
                             <td>{{ $detail->recipe?->bahan_baku?->nama ?? '-' }}</td>
-                            <td>{{ $detail->qty_digunakan }}</td>
-                            <td>Rp {{ number_format($detail->harga_satuan_saat_itu) }}</td>
-                            <td>Rp {{ number_format($detail->subtotal_harga) }}</td>
+                            <td class="text-center">{{ $detail->qty_digunakan }}</td>
+                            <td class="text-center">
+                                {{ $detail->recipe?->bahan_baku?->unit?->satuan ?? '-' }}
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="text-center text-muted">
-                                Tidak ada detail bahan
+                            <td colspan="3" class="text-center text-muted">
+                                Tidak ada detail bahan baku
                             </td>
                         </tr>
                     @endforelse
-
                 </tbody>
-                <tfoot>
-                    <tr>
-                        <th colspan="3" class="text-right">Total</th>
-                        <th>Rp {{ number_format($submission->total_harga) }}</th>
-                    </tr>
-                </tfoot>
             </table>
         </div>
     </div>
+
 
 @endsection
