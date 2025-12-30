@@ -11,7 +11,13 @@ class OperationalController extends Controller
 {
     public function index()
     {
-        $operationals = operationals::all();
+
+        $user = auth()->user();
+        $kitchens = $user->kitchens()->plluck('kode');
+
+        $operationals = operationals::with('kitchen')
+            ->whereIn('kitchen_kode', $kitchens)
+            ->paginate(10);
 
         $lastOperational = operationals::orderBy('kode', 'desc')->first();
 
@@ -22,16 +28,23 @@ class OperationalController extends Controller
             $nextKode = 'BOP' . str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
         }
 
-        return view('master.operational', compact('operationals', 'nextKode'));
+        return view('master.operational', compact('operationals', 'nextKode', 'kitchens'));
     }
 
     public function store(Request $request)
     {
+        $user = auth()->user();
+
         $request->validate([
             'nama' => 'required',
             'harga' => 'required',
             'tempat_beli' => 'required',
+            'kitchen_kode' => 'required|exist:kitchens,kode',
         ]);
+
+        if (!$user->kitchens()->where('kode', $request->kode_kitchen)->exists()) {
+            abort(403, 'Anda tidak memiliki akses ke dapur ini');
+        }
 
         // ambil kode terakhir
         $lastOperational = operationals::orderBy('kode', 'desc')->first();
@@ -48,6 +61,7 @@ class OperationalController extends Controller
             'nama' => $request->nama,
             'harga' => $request->harga,
             'tempat_beli' => $request->tempat_beli,
+            'kitchen_kode' => $request->kode_kitchen,
         ]);
 
         return redirect()
@@ -55,29 +69,25 @@ class OperationalController extends Controller
             ->with('success', 'Biaya Operasional berhasil ditambahkan');
     }
 
-    public function destroy($id)
-    {
-        $operational = operationals::findOrFail($id);
 
-        // baru hapus operational
-        $operational->delete();
-
-        return redirect()
-            ->route('master.operational.index')
-            ->with('success', 'Biaya Operasional berhasil dihapus');
-    }
 
     public function update(Request $request, $id)
     {
+        $operational = operationals::findOrFail($id);
+        $user = auth()->user();
+
+        if ($user->kitchens()->where('kode', $operational->kitchen_kode)->exists()) {
+            abort(403);
+        }
+
+
         $request->validate([
             'nama' => 'required',
             'harga' => 'required',
             'tempat_beli' => 'required',
         ]);
 
-        $region = operationals::findOrFail($id);
-        $region->update([
-            'kode' => $request->kode,
+        $operational->update([
             'nama' => $request->nama,
             'harga' => $request->harga,
             'tempat_beli' => $request->tempat_beli,
@@ -86,5 +96,21 @@ class OperationalController extends Controller
         return redirect()
             ->route('master.operational.index')
             ->with('success', 'Biaya Operasional berhasil diperbarui');
+    }
+
+    public function destroy($id)
+    {
+        $operational = operationals::findOrFail($id);
+
+        if (!auth()->user()->kitchens()->where('kode', $operational->kode_kitchen)->exists()) {
+            abort(403);
+        }
+        
+        // baru hapus operational
+        $operational->delete();
+
+        return redirect()
+            ->route('master.operational.index')
+            ->with('success', 'Biaya Operasional berhasil dihapus');
     }
 }

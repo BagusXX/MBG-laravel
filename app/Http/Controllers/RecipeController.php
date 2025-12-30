@@ -27,10 +27,10 @@ class RecipeController extends Controller
     {
         $request->validate([
             'kitchen_id' => 'required|exists:kitchens,id',
-            'menu_id'    => 'required|exists:menus,id',
+            'menu_id' => 'required|exists:menus,id',
             'bahan_baku_id' => 'required|array',
             'bahan_baku_id.*' => 'exists:bahan_baku,id',
-            'jumlah'     => 'required|array',
+            'jumlah' => 'required|array',
         ]); // Hapus tanda '' yang tadi ada di sini
 
         // $recipe = RecipeBahanBaku::create([
@@ -40,10 +40,10 @@ class RecipeController extends Controller
 
         foreach ($request->bahan_baku_id as $index => $bahan_id) {
             RecipeBahanBaku::create([
-                'kitchen_id'    => $request->kitchen_id,
-                'menu_id'       => $request->menu_id,
+                'kitchen_id' => $request->kitchen_id,
+                'menu_id' => $request->menu_id,
                 'bahan_baku_id' => $bahan_id,
-                'jumlah'        => $request->jumlah[$index],
+                'jumlah' => $request->jumlah[$index],
 
             ]);
         }
@@ -100,6 +100,17 @@ class RecipeController extends Controller
             ->with('success', 'Racikan berhasil diperbarui');
     }
 
+    public function destroy(RecipeBahanBaku $recipe)
+    {
+        if ($recipe->submissionDetails()->exists()) {
+            return back()->withErrors('Racik menu sudah digunakan di submission');
+        }
+
+        $recipe->delete();
+
+        return back()->with('success', 'Racik menu berhasil dihapus');
+    }
+
 
     public function getRecipeDetail($menuId, $kitchenId)
     {
@@ -109,15 +120,6 @@ class RecipeController extends Controller
             ->get();
     }
 
-    public function destroy(RecipeBahanBaku $recipe)
-    {
-        $recipe->bahanBaku()->detach(); // penting
-        $recipe->delete();
-
-        return redirect()
-            ->route('recipe.index')
-            ->with('success', 'Racik menu berhasil dihapus');
-    }
 
     public function getMenusByKitchen(Kitchen $kitchen)
     {

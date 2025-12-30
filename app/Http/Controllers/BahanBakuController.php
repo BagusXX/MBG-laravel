@@ -12,7 +12,7 @@ class BahanBakuController extends Controller
     // Tampilkan halaman bahan baku
     public function index()
     {
-        $items = BahanBaku::with('kitchen')->get();
+        $items = BahanBaku::with('kitchen')->paginate(10);
         $kitchens = Kitchen::all();
         $units = Unit::all();
 

@@ -17,6 +17,11 @@ class operationals extends Model
         'kode',
         'nama',
         'harga',
-        'tempat_beli'
+        'tempat_beli',
+        'kitchen_kode'
     ];
+
+    public function kitchen(){
+        return $this->belongsTo(Kitchen::class, 'kitchen_kode', 'kode');
+    }
 }

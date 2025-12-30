@@ -120,10 +120,18 @@
 
 
                                             {{-- HAPUS (KECUALI DIPROSES) --}}
-                                            @if($item->status !== 'diproses')
-                                                <x-button-delete idTarget="#modalDeleteSubmission" formId="formDeleteSubmission"
-                                                    action="{{ route('transaction.submission.destroy', $item->id) }}" text="Hapus" />
-                                            @endif
+                                            @if(
+    $mode === 'permintaan' &&
+    auth()->user()->kitchens->contains('id', $item->kitchen_id) &&
+    $item->status !== 'diproses'
+)
+    <x-button-delete
+        idTarget="#modalDeleteSubmission"
+        formId="formDeleteSubmission"
+        action="{{ route('transaction.submission.destroy', $item->id) }}"
+        text="Hapus" />
+@endif
+
 
                                         @endif
                                     </td>

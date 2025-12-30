@@ -174,7 +174,7 @@ Route::middleware(['auth'])->group(function () {
                 ->middleware('permission:transaction.submission.store')
                 ->name('store');
 
-            Route::delete('/{id}', 'destroy')
+            Route::delete('/{submission}', 'destroy')
                 ->middleware('permission:transaction.submission.delete')
                 ->name('destroy');
 

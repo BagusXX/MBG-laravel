@@ -17,8 +17,11 @@ return new class extends Migration
             $table->string('nama');
             $table->double('harga');
             $table->string('tempat_beli');
+            $table->string('kitchen_kode');
             $table->timestamps();
             $table->softDeletes();
+
+            $table->foreign('kitchen_kode')->references('kode')->on('kitchens')->onDelete('cascade');
         });
     }
 

@@ -15,7 +15,7 @@ class Submission extends Model
     protected $fillable = [
         'kode',
         'tanggal',
-        'kitchen_id',
+        'kitchen_kode',
         'menu_id',
         'total_harga',
         'porsi',
@@ -24,7 +24,7 @@ class Submission extends Model
 
     public function kitchen()
     {
-        return $this->belongsTo(Kitchen::class);
+        return $this->belongsTo(Kitchen::class,'kitchen_id','id');
     }
 
     public function menu()
