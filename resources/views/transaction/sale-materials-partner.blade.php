@@ -37,40 +37,50 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        {{-- <td></td> --}}
-                        {{-- <td></td> --}}
-                        {{-- <td></td> --}}
-                        {{-- <td></td> --}}
-                        <td>
-                            <button
-                                type="button"
-                                class="btn btn-primary btn-sm"
-                                data-toggle="modal"
-                                data-target="#modalDetailSales"
-                            >
-                                Detail
-                            </button>
-                            <button 
-                                type="button" 
-                                class="btn btn-sm btn-warning btnEditSalesMaterials"
-                                data-toggle="modal"
-                                data-target="#modalEditSalesMaterials"
-                            >
-                                Edit
-                            </button>
-                            <x-button-delete
-                                idTarget="#modalDeleteSalesMaterials"
-                                formId="formDeleteSalesMaterials"
-                                action="#"
-                                text="Hapus"
-                            />
-                        </td>
-                    </tr>
+                    @forelse($sales as $index => $sale)
+                        <tr>
+                            <td>{{ $index + 1 }}</td>
+                            <td>{{ $sale->kode ?? '-' }}</td>
+                            <td>{{ $sale->tanggal ? \Carbon\Carbon::parse($sale->tanggal)->format('d/m/Y') : '-' }}</td>
+                            <td>{{ $sale->kitchen ? $sale->kitchen->nama : '-' }}</td>
+                            <td>
+                                <button
+                                    type="button"
+                                    class="btn btn-primary btn-sm"
+                                    data-toggle="modal"
+                                    data-target="#modalDetailSales"
+                                    data-id="{{ $sale->id }}"
+                                    data-kode="{{ $sale->kode ?? '-' }}"
+                                    data-tanggal="{{ $sale->tanggal ? \Carbon\Carbon::parse($sale->tanggal)->format('d F Y') : '-' }}"
+                                    data-dapur="{{ $sale->kitchen ? $sale->kitchen->nama : '-' }}"
+                                    data-bahan="{{ $sale->bahanBaku ? $sale->bahanBaku->nama : '-' }}"
+                                    data-jumlah="{{ $sale->bobot_jumlah }}"
+                                    data-satuan="{{ $sale->satuan ? $sale->satuan->satuan : ($sale->bahanBaku && $sale->bahanBaku->unit ? $sale->bahanBaku->unit->satuan : '-') }}"
+                                    data-harga="{{ number_format($sale->harga, 0, ',', '.') }}"
+                                >
+                                    Detail
+                                </button>
+                                <button 
+                                    type="button" 
+                                    class="btn btn-sm btn-warning btnEditSalesMaterials"
+                                    data-toggle="modal"
+                                    data-target="#modalEditSalesMaterials"
+                                >
+                                    Edit
+                                </button>
+                                <x-button-delete
+                                    idTarget="#modalDeleteSalesMaterials"
+                                    formId="formDeleteSalesMaterials"
+                                    action="#"
+                                    text="Hapus"
+                                />
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="text-center">Belum ada data penjualan bahan baku</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
@@ -81,7 +91,7 @@
         id="modalAddSalesMaterials"
         size="modal-lg"
         title="Tambah Penjualan Bahan Baku"
-        action="#"
+        action="{{ route('transaction.sale-materials-partner.store') }}"
         submitText="Simpan"
     >
         <div class="d-flex align-items-center">
@@ -91,22 +101,24 @@
                     id="kode_transaksi_beli"
                     type="text"
                     class="form-control"
-                    name="kode"
+                    value="{{ $nextKode }}"
                     readonly
-                    required
+                    style="background:#e9ecef"
                 />
             </div>
     
             <div class="form-group flex-fill ml-2">
-                <label>Tanggal Beli</label>
-                <input type="date" class="form-control" name="tanggal" required />
+                <label>Tanggal Jual</label>
+                <input type="date" class="form-control" name="tanggal" value="{{ date('Y-m-d') }}" required />
             </div>
 
             <div class="form-group flex-fill ml-2">
                 <label>Dapur</label>
-                <select class="form-control" name="dapur" required>
+                <select id="kitchen_id" name="kitchen_id" class="form-control" required>
                     <option value="" disabled selected>Pilih Dapur</option>
-                    <option value=""></option>
+                    @foreach($kitchens as $kitchen)
+                        <option value="{{ $kitchen->id }}">{{ $kitchen->nama }}</option>
+                    @endforeach
                 </select>
             </div>
         </div>
@@ -123,23 +135,26 @@
             <div id="bahan-wrapper">
                 <div class="form-row mb-3 bahan-group">
                     <div class="col-md-3">
-                        <select name="bahan[]" class="form-control" required>
-                            <option value="" disabled selected>Pilih Bahan</option>
+                        <select name="bahan_id[]" class="form-control bahan-select" required>
+                            <option value="" disabled selected>Pilih Dapur terlebih dahulu</option>
                         </select>
                     </div>
 
                     <div class="col-md-2">
-                        <input type="number" name="jumlah[]" class="form-control" placeholder="80" required />
+                        <input type="number" name="jumlah[]" class="form-control" placeholder="80" min="1" required />
                     </div>
 
                     <div class="col-md-3">
-                        <select name="satuan[]" class="form-control" required>
+                        <select name="satuan_id[]" class="form-control satuan-select" required>
                             <option value="" disabled selected>Pilih Satuan</option>
+                            @foreach($units as $unit)
+                                <option value="{{ $unit->id }}">{{ $unit->satuan }}</option>
+                            @endforeach
                         </select>
                     </div>
                     
                     <div class="col-md-3">
-                        <input type="number" name="harga[]" class="form-control" required />
+                        <input type="number" name="harga[]" class="form-control harga-input" placeholder="0" min="0" step="0.01" required />
                     </div>
 
                     <div class="col-md-1">
@@ -175,17 +190,17 @@
         title="Detail Penjualan Bahan Baku"
     >
         <div>
-            <div>
+            <div class="mb-3">
                 <p class="font-weight-bold mb-0">Kode:</p>
-                <p>BB202511111</p>
+                <p id="detail-kode">-</p>
             </div>
-            <div>
-                <p class="font-weight-bold mb-0">Tanggal Beli:</p>
-                <p>Senin, 08 Desember 2025</p>
+            <div class="mb-3">
+                <p class="font-weight-bold mb-0">Tanggal Jual:</p>
+                <p id="detail-tanggal">-</p>
             </div>
-            <div>
+            <div class="mb-3">
                 <p class="font-weight-bold mb-0">Dapur:</p>
-                <p>Dapur A Tembalang</p>
+                <p id="detail-dapur">-</p>
             </div>
             <div>
                 <table class="table table-bordered table-striped">
@@ -193,24 +208,16 @@
                         <tr>
                             <th>Bahan Baku</th>
                             <th>Jumlah</th>
+                            <th>Satuan</th>
                             <th>Harga</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="detail-tbody">
                         <tr>
-                            <td>Bawang Merah (Data Sampel)</td>
-                            <td>500 kg</td>
-                            <td>100000</td>
-                        </tr>
-                        <tr>
-                            <td>Bawang Merah (Data Sampel)</td>
-                            <td>500 kg</td>
-                            <td>100000</td>
-                        </tr>
-                        <tr>
-                            <td>Bawang Merah (Data Sampel)</td>
-                            <td>500 kg</td>
-                            <td>100000</td>
+                            <td id="detail-bahan">-</td>
+                            <td id="detail-jumlah">-</td>
+                            <td id="detail-satuan">-</td>
+                            <td id="detail-harga">-</td>
                         </tr>
                     </tbody>
                 </table>
@@ -230,39 +237,182 @@
 
 @push('js')
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const wrapper = document.getElementById('bahan-wrapper');
-            const addBtn = document.getElementById('add-bahan');
+        $(document).ready(function () {
+            let bahanData = {}; // Menyimpan data bahan berdasarkan dapur
 
-            addBtn.addEventListener('click', function () {
-                const firstRow = wrapper.querySelector('.bahan-group');
-                const newRow = firstRow.cloneNode(true);
+            /**
+             * ======================================================
+             * LOAD BAHAN BERDASARKAN DAPUR
+             * ======================================================
+             */
+            function loadBahanByKitchen(kitchenId) {
+                if (!kitchenId) {
+                    // Reset semua dropdown bahan
+                    $('.bahan-select').html('<option value="" disabled selected>Pilih Dapur terlebih dahulu</option>');
+                    return;
+                }
+
+                // Generate URL route dengan parameter
+                let url = "{{ route('transaction.sale-materials-partner.bahan-by-kitchen', ':kitchen') }}";
+                url = url.replace(':kitchen', kitchenId);
+
+                $.get(url)
+                    .done(function (data) {
+                        bahanData[kitchenId] = data;
+
+                        // Update semua dropdown bahan
+                        $('.bahan-select').each(function() {
+                            let currentValue = $(this).val();
+                            $(this).empty();
+                            $(this).append('<option value="" disabled selected>Pilih Bahan</option>');
+
+                            if (data.length === 0) {
+                                $(this).append('<option disabled>Tidak ada bahan untuk dapur ini</option>');
+                                return;
+                            }
+
+                            data.forEach(function (bahan) {
+                                let selected = (bahan.id == currentValue) ? 'selected' : '';
+                                $(this).append(
+                                    `<option value="${bahan.id}" data-harga="${bahan.harga}" data-satuan-id="${bahan.satuan_id}" ${selected}>${bahan.nama}</option>`
+                                );
+                            }.bind(this));
+                        });
+                    })
+                    .fail(function () {
+                        $('.bahan-select').html('<option disabled selected>Gagal memuat bahan</option>');
+                    });
+            }
+
+            /**
+             * ======================================================
+             * SAAT DAPUR DIPILIH
+             * ======================================================
+             */
+            $(document).on('change', '#kitchen_id', function () {
+                let kitchenId = $(this).val();
+
+                // Reset semua bahan
+                $('.bahan-select').html('<option value="" disabled selected>Pilih Bahan</option>');
+                $('.harga-input').val('');
+                $('.satuan-select').val('');
+
+                if (kitchenId) {
+                    loadBahanByKitchen(kitchenId);
+                } else {
+                    $('.bahan-select').html('<option value="" disabled selected>Pilih Dapur terlebih dahulu</option>');
+                }
+            });
+
+            /**
+             * ======================================================
+             * SAAT BAHAN DIPILIH - AUTO FILL HARGA & SATUAN
+             * ======================================================
+             */
+            $(document).on('change', '.bahan-select', function () {
+                let selectedOption = $(this).find('option:selected');
+                let harga = selectedOption.data('harga');
+                let satuanId = selectedOption.data('satuan-id');
+                let row = $(this).closest('.bahan-group');
+
+                // Set harga
+                if (harga) {
+                    row.find('.harga-input').val(harga);
+                }
+
+                // Set satuan
+                if (satuanId) {
+                    row.find('.satuan-select').val(satuanId);
+                }
+            });
+
+            /**
+             * ======================================================
+             * TAMBAH ROW BAHAN BARU
+             * ======================================================
+             */
+            $('#add-bahan').on('click', function () {
+                let wrapper = $('#bahan-wrapper');
+                let firstRow = wrapper.find('.bahan-group').first();
+                let newRow = firstRow.clone(true); // Clone dengan event handlers
 
                 // Reset value input/select
-                newRow.querySelectorAll('input, select').forEach(input => {
-                    input.value = '';
-                });
+                newRow.find('input').val('');
+                newRow.find('.bahan-select').val('');
+                newRow.find('.satuan-select').val('');
+                newRow.find('.harga-input').val('');
+
+                // Load bahan jika dapur sudah dipilih
+                let kitchenId = $('#kitchen_id').val();
+                if (kitchenId && bahanData[kitchenId]) {
+                    newRow.find('.bahan-select').empty();
+                    newRow.find('.bahan-select').append('<option value="" disabled selected>Pilih Bahan</option>');
+                    bahanData[kitchenId].forEach(function (bahan) {
+                        newRow.find('.bahan-select').append(
+                            `<option value="${bahan.id}" data-harga="${bahan.harga}" data-satuan-id="${bahan.satuan_id}">${bahan.nama}</option>`
+                        );
+                    });
+                } else {
+                    newRow.find('.bahan-select').html('<option value="" disabled selected>Pilih Dapur terlebih dahulu</option>');
+                }
 
                 // Tampilkan tombol hapus
-                const removeBtn = newRow.querySelector('.remove-bahan');
-                removeBtn.classList.remove('d-none');
+                newRow.find('.remove-bahan').removeClass('d-none');
 
                 // Tambahkan event hapus
-                removeBtn.addEventListener('click', function () {
+                newRow.find('.remove-bahan').off('click').on('click', function () {
                     newRow.remove();
                 });
 
                 // Tambahkan row baru
-                wrapper.appendChild(newRow);
+                wrapper.append(newRow);
             });
 
-            // Event hapus untuk row pertama (opsional)
-            const firstRemoveBtn = wrapper.querySelector('.remove-bahan');
-            if(firstRemoveBtn){
-                firstRemoveBtn.addEventListener('click', function () {
-                    firstRemoveBtn.closest('.bahan-group').remove();
-                });
-            }
+            /**
+             * ======================================================
+             * SAAT MODAL DIBUKA - LOAD BAHAN JIKA DAPUR SUDAH DIPILIH
+             * ======================================================
+             */
+            $('#modalAddSalesMaterials').on('shown.bs.modal', function () {
+                let kitchenId = $('#kitchen_id').val();
+                if (kitchenId) {
+                    loadBahanByKitchen(kitchenId);
+                }
+            });
+
+            /**
+             * ======================================================
+             * SAAT MODAL DITUTUP → RESET FORM
+             * ======================================================
+             */
+            $('#modalAddSalesMaterials').on('hidden.bs.modal', function () {
+                $('#kitchen_id').val('');
+                $('.bahan-select').html('<option value="" disabled selected>Pilih Dapur terlebih dahulu</option>');
+                $('.harga-input').val('');
+                $('.satuan-select').val('');
+
+                // Reset ke 1 row saja
+                let wrapper = $('#bahan-wrapper');
+                let firstRow = wrapper.find('.bahan-group').first();
+                wrapper.empty();
+                wrapper.append(firstRow);
+                firstRow.find('.remove-bahan').addClass('d-none');
+            });
+
+            /**
+             * ======================================================
+             * HANDLE MODAL DETAIL BUTTON CLICK
+             * ======================================================
+             */
+            $(document).on('click', '[data-target="#modalDetailSales"]', function() {
+                $('#detail-kode').text($(this).data('kode') || '-');
+                $('#detail-tanggal').text($(this).data('tanggal') || '-');
+                $('#detail-dapur').text($(this).data('dapur') || '-');
+                $('#detail-bahan').text($(this).data('bahan') || '-');
+                $('#detail-jumlah').text($(this).data('jumlah') || '-');
+                $('#detail-satuan').text($(this).data('satuan') || '-');
+                $('#detail-harga').text('Rp ' + ($(this).data('harga') || '0'));
+            });
         });
     </script>
 @endpush

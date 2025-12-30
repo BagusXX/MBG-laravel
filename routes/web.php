@@ -194,6 +194,10 @@ Route::middleware(['auth'])->group(function () {
         ->controller(SaleMaterialsKitchenController::class)
         ->group(function () {
             Route::get('/', 'index')->middleware('permission:transaction.sale-kitchen.view')->name('index');
+            Route::post('/', 'store')->middleware('permission:transaction.sale-kitchen.create')->name('store');
+            Route::get('/bahan-by-kitchen/{kitchen}', 'getBahanByKitchen')
+                ->middleware('permission:transaction.sale-kitchen.view')
+                ->name('bahan-by-kitchen');
         });
 
     Route::prefix('dashboard/transaksi/jual-bahan-baku-mitra')
@@ -201,6 +205,10 @@ Route::middleware(['auth'])->group(function () {
         ->controller(SaleMaterialsPartnerController::class)
         ->group(function () {
             Route::get('/', 'index')->middleware('permission:transaction.sale-partner.view')->name('index');
+            Route::post('/', 'store')->middleware('permission:transaction.sale-partner.create')->name('store');
+            Route::get('/bahan-by-kitchen/{kitchen}', 'getBahanByKitchen')
+                ->middleware('permission:transaction.sale-partner.view')
+                ->name('bahan-by-kitchen');
         });
 
     Route::prefix('dashboard/transaksi')
