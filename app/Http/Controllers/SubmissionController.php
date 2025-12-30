@@ -174,7 +174,7 @@ class SubmissionController extends Controller
                 abort(403, 'Tidak memiliki akses ke data ini');
             }
         }
-        
+
         $submission->load([
             'kitchen',
             'menu',
@@ -186,46 +186,36 @@ class SubmissionController extends Controller
 
     public function update(Request $request, Submission $submission)
     {
-        // ❌ Kunci HANYA jika sudah diterima
+        // ❌ kunci jika sudah diterima
         if ($submission->status === 'diterima') {
             abort(403, 'Submission yang sudah diterima tidak dapat diubah');
         }
 
+        // ✅ CEK AKSES DI LUAR TRANSACTION
+        $userKitchenIds = Kitchen::whereIn(
+            'kode',
+            auth()->user()->kitchens()->pluck('kode')
+        )->pluck('id');
+
+        if (!$userKitchenIds->contains($submission->kitchen_id)) {
+            abort(403, 'Anda tidak memiliki akses ke dapur ini');
+        }
+
         $request->validate([
-            'porsi' => 'required|integer|min:1',
             'status' => 'required|in:diajukan,diproses,diterima,ditolak',
         ]);
 
         DB::transaction(function () use ($request, $submission) {
 
-            /**
-             * 🔄 Update header submission
-             */
-
-            $userKitchenIds = Kitchen::whereIn(
-                'kode',
-                auth()->user()->kitchens()->pluck('kode')
-            )->pluck('id');
-
-            if (!$userKitchenIds->contains($submission->kitchen_id)) {
-                abort(403, 'Anda tidak memiliki akses ke dapur ini');
-            }
-
             $submission->update([
-                'porsi' => $request->porsi,
                 'status' => $request->status,
             ]);
 
-            /**
-             * 🔥 Hapus detail lama
-             */
+            // hapus detail lama
             $submission->details()->delete();
 
             $totalHarga = 0;
 
-            /**
-             * 📦 Ambil recipe bahan baku
-             */
             $recipes = RecipeBahanBaku::with('bahan_baku')
                 ->where('menu_id', $submission->menu_id)
                 ->get();
@@ -247,9 +237,6 @@ class SubmissionController extends Controller
                 $totalHarga += $subtotal;
             }
 
-            /**
-             * 💰 Update total harga
-             */
             $submission->update([
                 'total_harga' => $totalHarga
             ]);
@@ -259,27 +246,31 @@ class SubmissionController extends Controller
     }
 
 
+
     public function destroy(Submission $submission)
-    {
-        $userKitchenIds = Kitchen::whereIn(
-            'kode',
-            auth()->user()->kitchens()->pluck('kode')
-        )->pluck('id');
+{
+    $user = auth()->user();
 
-        if (!$userKitchenIds->contains($submission->kitchen_id)) {
-            abort(403, 'Anda tidak memiliki akses ke dapur ini');
-        }
-
-
-        if ($submission->status === 'diproses') {
-            abort(403, 'Submission yang sedang diproses tidak dapat dihapus');
-        }
-
-        $submission->delete();
-
-        return back()->with('success', 'Submission berhasil dihapus');
-
+    // ⛔ cegah relasi null
+    if (!$submission->kitchen) {
+        abort(404, 'Dapur tidak ditemukan');
     }
+
+    // ✅ cek akses dapur user
+    if (!$user->kitchens()->where('kitchens.id', $submission->kitchen_id)->exists()) {
+        abort(403, 'Anda tidak memiliki akses ke dapur ini');
+    }
+
+    if ($submission->status === 'diproses') {
+        abort(403, 'Submission yang sedang diproses tidak dapat dihapus');
+    }
+
+    $submission->delete();
+
+    return back()->with('success', 'Submission berhasil dihapus');
+}
+
+
 
 
 

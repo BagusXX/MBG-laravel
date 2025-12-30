@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Kitchen;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 use Illuminate\Validation\Rule; // Tambahkan ini untuk validasi update unique
@@ -93,7 +94,20 @@ class UserController extends Controller
     // 4. HAPUS USER
     public function destroy($id)
     {
-        User::findOrFail($id)->delete();
-        return back()->with('success', 'User berhasil dihapus!');
+        $user = User::findOrFail($id);
+
+    // Superadmin tidak boleh dihapus
+    if ($user->hasRole('superadmin')) {
+        return back()->with('error', 'Superadmin tidak dapat dihapus.');
+    }
+
+    // User tidak boleh menghapus dirinya sendiri
+    if (Auth::id() === $user->id) {
+        return back()->with('error', 'Anda tidak dapat menghapus akun sendiri.');
+    }
+
+    $user->delete();
+
+    return back()->with('success', 'User berhasil dihapus!');
     }
 }

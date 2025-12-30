@@ -11,8 +11,13 @@ class MenuController extends Controller
     // Tampilkan daftar menu
     public function index()
     {
-        $menus = Menu::with('kitchen')->get();
-        $kitchens = Kitchen::all();
+        $user = auth()->user();
+        $kitchens = $user->kitchens()->get();
+
+        $menus = Menu::with('kitchen')
+        ->whereIn('kitchen_id', $kitchens->pluck('id'))
+        ->paginate(10);
+        
 
         $generatedCodes = [];
         foreach ($kitchens as $k) {
@@ -25,6 +30,7 @@ class MenuController extends Controller
 
     private function generateKode($kodeDapur)
     {
+        
         // Cari kode terakhir khusus dapur tertentu
         $lastItem = Menu::where('kode', 'LIKE', "MN{$kodeDapur}%")
             ->orderBy('kode', 'desc')
@@ -53,10 +59,16 @@ class MenuController extends Controller
     // Simpan menu baru
     public function store(Request $request)
     {
+        $user = auth()->user();
+        
         $request->validate([
             'nama' => 'required|string|max:255',
             'kitchen_id' => 'required|exists:kitchens,id' // dapur wajib dipilih
         ]);
+
+        if (!$user->kitchens()->where('id',$request->kitchen_id)->exists()) {
+            abort(403,'Anda tidak memiliki akses ke dapur ini');
+        }
 
         // Ambil kode dapur dari tabel dapur
         $kitchen = Kitchen::findOrFail($request->kitchen_id);
@@ -70,11 +82,19 @@ class MenuController extends Controller
             'kitchen_id' => $request->kitchen_id,
         ]);
 
-        return redirect()->route('master.menu.index')->with('success', 'Menu berhasil ditambahkan.');
+        return redirect()
+        ->route('master.menu.index')
+        ->with('success', 'Menu berhasil ditambahkan.');
     }
 
     public function update(Request $request, $id)
     {
+        $user = auth()->user();
+        if (!$user->kitchens()->where('id',$request->kitchen_id)->exists()) {
+            abort(403, 'Anda tidak memiliki akses ke dapur ini');
+        }
+
+
         $request->validate([
             'nama' => 'required|string|max:255',
             'kitchen_id' => 'required|exists:kitchens,id',
@@ -103,6 +123,10 @@ class MenuController extends Controller
     public function destroy($id)
     {
         $menu = Menu::findOrFail($id);
+        if (!auth()->user()->kitchens()->where('id', $menu->kitchen_id)->exists()) {
+        abort(403);
+    }
+    
         $menu->delete();
 
         return redirect()->route('master.menu.index')->with('success', 'Menu berhasil dihapus.');

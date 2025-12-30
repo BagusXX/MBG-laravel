@@ -89,9 +89,15 @@
                                 </button>
 
                                 {{-- Tombol Hapus --}}
-                                <x-button-delete idTarget="#modalDeleteUser{{ $user->id }}"
-                                    formId="formDeleteUser{{ $user->id }}" action="{{ route('setup.user.destroy', $user->id) }}"
-                                    text="Hapus" />
+                                @if(!$user->hasRole('superadmin'))
+    <x-button-delete idTarget="#modalDeleteUser{{ $user->id }}"
+        formId="formDeleteUser{{ $user->id }}"
+        action="{{ route('setup.user.destroy', $user->id) }}"
+        text="Hapus" />
+@else
+    <span class="badge badge-danger">Superadmin</span>
+@endif
+
                             </td>
                         </tr>
                     @endforeach
@@ -239,8 +245,16 @@
         </x-modal-form>
 
         {{-- MODAL DELETE --}}
-        <x-modal-delete id="modalDeleteUser{{ $user->id }}" formId="formDeleteUser{{ $user->id }}" title="Konfirmasi Hapus"
-            message="Apakah Anda yakin ingin menghapus user {{ $user->name }}?" confirmText="Hapus" />
+        @if(!$user->hasRole('superadmin'))
+    <x-modal-delete
+        id="modalDeleteUser{{ $user->id }}"
+        formId="formDeleteUser{{ $user->id }}"
+        title="Konfirmasi Hapus"
+        message="Apakah Anda yakin ingin menghapus user {{ $user->name }}?"
+        confirmText="Hapus"
+    />
+@endif
+
     @endforeach
 
 @endsection

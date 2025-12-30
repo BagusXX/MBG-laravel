@@ -17,7 +17,6 @@ class RecipeBahanBaku extends Model
         'menu_id',
         'bahan_baku_id',
         'jumlah',
-        'satuan_id',
     ];
 
     public function menu()
