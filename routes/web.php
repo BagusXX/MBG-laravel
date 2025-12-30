@@ -198,6 +198,10 @@ Route::middleware(['auth'])->group(function () {
         ->controller(SaleMaterialsKitchenController::class)
         ->group(function () {
             Route::get('/', 'index')->middleware('permission:transaction.sale-kitchen.view')->name('index');
+            Route::post('/', 'store')->middleware('permission:transaction.sale-kitchen.create')->name('store');
+            Route::get('/bahan-by-kitchen/{kitchen}', 'getBahanByKitchen')
+                ->middleware('permission:transaction.sale-kitchen.view')
+                ->name('bahan-by-kitchen');
         });
 
     Route::prefix('dashboard/transaksi/jual-bahan-baku-mitra')
@@ -205,6 +209,10 @@ Route::middleware(['auth'])->group(function () {
         ->controller(SaleMaterialsPartnerController::class)
         ->group(function () {
             Route::get('/', 'index')->middleware('permission:transaction.sale-partner.view')->name('index');
+            Route::post('/', 'store')->middleware('permission:transaction.sale-partner.create')->name('store');
+            Route::get('/bahan-by-kitchen/{kitchen}', 'getBahanByKitchen')
+                ->middleware('permission:transaction.sale-partner.view')
+                ->name('bahan-by-kitchen');
         });
 
     Route::prefix('dashboard/transaksi')
@@ -215,14 +223,35 @@ Route::middleware(['auth'])->group(function () {
                 ->middleware('permission:transaction.request-materials.view')
                 ->name('request-materials');
 
-            Route::get('/penjualan-bahan-baku', fn() => view('transaction.sales-materials'))
+
+            Route::get(
+                '/penjualan-bahan-baku',
+                fn() => view('transaction.sales-materials')
+            )
                 ->middleware('permission:transaction.sales.view')
                 ->name('sales-materials');
 
-            Route::get('/pembelian-bahan-baku', fn() => view('transaction.purchase-materials'))
-                ->middleware('permission:transaction.purchase.view')
-                ->name('purchase-materials');
+
+            Route::get(
+                '/pembelian-bahan-baku',
+                fn() =>
+                view('transaction.purchase-materials')
+            )->name('purchase-materials');
         });
+
+
+    Route::prefix('dashboard/transaksi/pembelian-bahan-baku')
+        ->name('transaction.purchase-materials.')
+        ->controller(PurchaseController::class)
+        ->group(function () {
+
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'store')->name('store');
+        });
+
+
+
+
 
     /*
     |------------------------------------------------------------------

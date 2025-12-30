@@ -27,34 +27,34 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {{-- @foreach ($purchases as $purchase) --}}
-                    <tr>
-                        <td>1</td>
-                        <td>PRC11</td>
-                        <td>10-12-2025</td>
-                        <td>Supplier A</td>
-                        <td>
-                            <button type="button" class="btn btn-primary btn-sm" data-toggle="modal"
-                                data-target="#modalDetailPurchase">
-                                Detail
-                            </button>
-                            <button type="button" class="btn btn-sm btn-success btnEditPurchaseMaterials"
-                                data-toggle="modal" data-target="#modalEditPurchaseMaterials">
-                                Edit
-                            </button>
-                            <button type="button" class="btn btn-sm btn-warning btnEditPurchaseMaterials"
-                                data-toggle="modal" data-target="#modalPrintPurchaseMaterials">
-                                Print Invoice
-                            </button>
-                            {{-- <x-button-delete
+                    @foreach ($purchases as $purchase)
+                        <tr>
+                            <td>{{ $purchase->id }}</td>
+                            <td>{{ $purchase->kode }}</td>
+                            <td>{{ $purchase->created_at }}</td>
+                            <td>{{ $purchase->supplier->nama }}</td>
+                            <td>
+                                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal"
+                                    data-target="#modalDetailPurchase">
+                                    Detail
+                                </button>
+                                <button type="button" class="btn btn-sm btn-success btnEditPurchaseMaterials"
+                                    data-toggle="modal" data-target="#modalEditPurchaseMaterials">
+                                    Edit
+                                </button>
+                                <button type="button" class="btn btn-sm btn-warning btnEditPurchaseMaterials"
+                                    data-toggle="modal" data-target="#modalPrintPurchaseMaterials">
+                                    Print Invoice
+                                </button>
+                                {{-- <x-button-delete
                                 idTarget="#modalDeletePurchaseMaterials"
                                 formId="formDeletePurchaseMaterials"
                                 action="#"
                                 text="Hapus"
                             /> --}}
-                        </td>
-                    </tr>
-                    {{-- @endforeach --}}
+                            </td>
+                        </tr>
+                    @endforeach
                 </tbody>
             </table>
         </div>
@@ -80,7 +80,9 @@
                 <label>Supplier</label>
                 <select class="form-control" name="supplier" required>
                     <option value="" disabled selected>Pilih Supplier</option>
-                    <option value=""></option>
+                    @foreach ($suppliers as $supplier)
+                        <option value="{{ $supplier->id }}">{{ $supplier->nama }}</option>
+                    @endforeach
                 </select>
             </div>
         </div>
