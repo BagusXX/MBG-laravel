@@ -148,6 +148,10 @@ Route::middleware(['auth'])->group(function () {
         ->group(function () {
             Route::get('/', 'index')->middleware('permission:recipe.view')->name('index');
             Route::post('/', 'store')->middleware('permission:recipe.create')->name('store');
+            Route::get('/menus-by-kitchen/{kitchen}', 'getMenusByKitchen')->middleware('permission:recipe.view')->name('menus.by.kitchen');
+            Route::get('/bahan/{id}', 'getBahanDetail')->middleware('permission:recipe.view')->name('bahan.detail');
+            Route::get('/detail/{menu}/{kitchen}', 'getRecipeDetail')->middleware('permission:recipe.view')->name('detail');
+            Route::put('/{id}', 'update')->middleware('permission:recipe.update')->name('update');
             Route::delete('/{id}', 'destroy')->middleware('permission:recipe.delete')->name('destroy');
         });
 
@@ -170,7 +174,7 @@ Route::middleware(['auth'])->group(function () {
                 ->middleware('permission:transaction.submission.store')
                 ->name('store');
 
-            Route::delete('/{id}', 'destroy')
+            Route::delete('/{submission}', 'destroy')
                 ->middleware('permission:transaction.submission.delete')
                 ->name('destroy');
 
@@ -194,6 +198,12 @@ Route::middleware(['auth'])->group(function () {
         ->controller(SaleMaterialsKitchenController::class)
         ->group(function () {
             Route::get('/', 'index')->middleware('permission:transaction.sale-kitchen.view')->name('index');
+            Route::post('/', 'store')->middleware('permission:transaction.sale-kitchen.create')->name('store');
+            Route::get('/invoice/{kode}', 'printInvoice')->middleware('permission:transaction.sale-kitchen.view')->name('invoice');
+            Route::get('/invoice/{kode}/download', 'downloadInvoice')->middleware('permission:transaction.sale-kitchen.view')->name('invoice.download');
+            Route::get('/bahan-by-kitchen/{kitchen}', 'getBahanByKitchen')
+                ->middleware('permission:transaction.sale-kitchen.view')
+                ->name('bahan-by-kitchen');
         });
 
     Route::prefix('dashboard/transaksi/jual-bahan-baku-mitra')
@@ -201,6 +211,12 @@ Route::middleware(['auth'])->group(function () {
         ->controller(SaleMaterialsPartnerController::class)
         ->group(function () {
             Route::get('/', 'index')->middleware('permission:transaction.sale-partner.view')->name('index');
+            Route::post('/', 'store')->middleware('permission:transaction.sale-partner.create')->name('store');
+            Route::get('/invoice/{kode}', 'printInvoice')->middleware('permission:transaction.sale-partner.view')->name('invoice');
+            Route::get('/invoice/{kode}/download', 'downloadInvoice')->middleware('permission:transaction.sale-partner.view')->name('invoice.download');
+            Route::get('/bahan-by-kitchen/{kitchen}', 'getBahanByKitchen')
+                ->middleware('permission:transaction.sale-partner.view')
+                ->name('bahan-by-kitchen');
         });
 
     Route::prefix('dashboard/transaksi')

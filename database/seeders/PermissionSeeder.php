@@ -78,7 +78,14 @@ class PermissionSeeder extends Seeder
 
             'transaction.request-materials.view',
             'transaction.sale-kitchen.view',
+            'transaction.sale-kitchen.create',
+            'transaction.sale-kitchen.delete',
+            'transaction.sale-kitchen.update',
             'transaction.sale-partner.view',
+            'transaction.sale-partner.create',
+            'transaction.sale-partner.delete',
+            'transaction.sale-partner.update',
+
 
             'transaction.sales.view',
             'transaction.purchase.view',

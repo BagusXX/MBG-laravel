@@ -11,7 +11,7 @@ class KitchenController extends Controller
     // Tampilkan halaman dapur
     public function index()
     {
-        $kitchens = Kitchen::with('region')->get();
+        $kitchens = Kitchen::with('region')->paginate(10);
         $kodeBaru = $this->generateKode();
         $regions = region::all();
 

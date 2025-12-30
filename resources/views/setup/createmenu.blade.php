@@ -54,6 +54,9 @@
                                 <button
                                     type="button"
                                     class="btn btn-warning btn-sm btnEditRecipe"
+                                    data-menu="{{ $recipe->menu_id }}"
+                                    data-kitchen="{{ $recipe->kitchen_id }}"
+                                    data-recipe="{{ $recipe->id }}"
                                     data-toggle="modal"
                                     data-target="#modalEditRecipe"
                                 >
@@ -87,7 +90,7 @@
     >
         <div class="form-group">
             <label>Nama Dapur</label>
-            <select class="form-control" name="kitchen_id" required>
+            <select class="form-control kitchen-select" name="kitchen_id" required>
                 <option value="" disabled selected>Pilih Dapur</option>
                 @foreach ($kitchens as $k)
                     <option value="{{ $k->id }}">{{ $k->nama }}</option>
@@ -97,22 +100,10 @@
 
         <div class="form-group">
             <label>Nama Menu</label>
-            <select class="form-control" name="menu_id" required>
+            <select class="form-control menu-select" name="menu_id" required>
                 <option value="" disabled selected>Pilih Menu</option>
-                @foreach ($menus as $m)
-                    <option value="{{ $m->id }}">{{ $m->nama }}</option>
-                @endforeach
             </select>
         </div>
-
-        {{-- <div class="form-group">
-            <label>Porsi</label>
-            <input type="number" name="porsi" class="form-control" placeholder="12">
-        </div> --}}
-
-        {{-- <div class="col-md-5">
-            <input type="number" name="porsi" class="form-control" placeholder="12">
-        </div> --}}
 
         <div class="form-group">
             <div class="form-row mb-2">
@@ -126,7 +117,7 @@
             <div id="bahan-wrapper-add">
                 <div class="form-row mb-3 bahan-group">
                     <div class="col-md-3">
-                        <select name="bahan[]" class="form-control" required>
+                        <select name="bahan_baku_id[]" class="form-control" required>
                             <option value="" disabled selected>Pilih Bahan</option>
                             @foreach ($bahanBaku as $b)
                                 <option value="{{ $b->id }}">{{ $b->nama }}</option>
@@ -139,12 +130,13 @@
                     </div>
 
                     <div class="col-md-3">
-                        <select name="satuan[]" class="form-control" required>
-                            <option value="" disabled selected>Pilih Satuan</option>
-                            @foreach ($units as $u)
-                                <option value="{{ $u->satuan }}">{{ $u->satuan }}</option>
-                            @endforeach
-                        </select>
+                        <!-- tampilkan nama satuan -->
+                        <input type="text" class="form-control satuan-text" placeholder="Otomatis" readonly>
+
+                        <!-- simpan ID satuan -->
+                        <input type="hidden" name="satuan_id[]" class="satuan-id">
+
+
                     </div>
                     
                     <div class="col-md-3">
@@ -179,7 +171,7 @@
 
         <div class="form-group">
             <label>Nama Dapur</label>
-            <select class="form-control" name="kitchen_id" required>
+            <select class="form-control kitchen-select" name="kitchen_id" required>
                 <option value="" disabled selected>Pilih Dapur</option>
                 @foreach ($kitchens as $k)
                     <option value="{{ $k->id }}">{{ $k->nama }}</option>
@@ -189,11 +181,8 @@
 
         <div class="form-group">
             <label>Nama Menu</label>
-            <select class="form-control" name="menu_id" required>
+            <select class="form-control menu-select" name="menu_id" required>
                 <option value="" disabled selected>Pilih Menu</option>
-                @foreach ($menus as $m)
-                    <option value="{{ $m->id }}">{{ $m->nama }}</option>
-                @endforeach
             </select>
         </div>
 
@@ -208,7 +197,7 @@
             <div id="bahan-wrapper-edit">
                 <div class="form-row mb-3 bahan-group">
                     <div class="col-md-5">
-                        <select name="bahan[]" class="form-control" required>
+                        <select name="bahan_baku_id[]" class="form-control" required>
                             <option value="" disabled selected>Pilih Bahan</option>
                             @foreach ($bahanBaku as $b)
                                 <option value="{{ $b->id }}">{{ $b->nama }}</option>
@@ -221,12 +210,12 @@
                     </div>
 
                     <div class="col-md-4">
-                        <select name="satuan[]" class="form-control" required>
-                            <option value="" disabled selected>Pilih Satuan</option>
-                            @foreach ($units as $u)
-                                <option value="{{ $u->satuan }}">{{ $u->satuan }}</option>
-                            @endforeach
-                        </select>
+                        <!-- tampilkan nama satuan -->
+                        <input type="text" class="form-control satuan-text" placeholder="Otomatis" readonly>
+
+                        <!-- simpan ID satuan -->
+                        <input type="hidden" name="satuan_id[]" class="satuan-id">
+
                     </div>
 
                     <div class="col-md-1">
@@ -266,16 +255,19 @@
         </tr>
     </thead>
     <tbody>
-        @foreach ($recipe->bahanBaku as $b)
-            <tr>
-                <td>{{ $b->nama }}</td>
-                <td>{{ $b->pivot->jumlah }} {{ $b->pivot->satuan }}</td>
-                <td>Rp {{ number_format($b->pivot->harga, 0, ',', '.') }}</td>
-                <td>
-                    Rp {{ number_format($b->pivot->harga * $b->pivot->jumlah, 0, ',', '.') }}
-                </td>
-            </tr>
-        @endforeach
+        @if ($recipe->bahan_baku)
+        <tr>
+            <td>{{ $recipe->bahan_baku->nama }}</td>
+            <td>{{ $recipe->jumlah }}</td>
+            <td>
+                Rp {{ number_format($recipe->bahan_baku->harga ?? 0, 0, ',', '.') }}
+            </td>
+            <td>
+                Rp {{ number_format(($recipe->bahan_baku->harga ?? 0) * $recipe->jumlah, 0, ',', '.') }}
+            </td>
+        </tr>
+        @endif
+
     </tbody>
 </table>
 <tfoot>
@@ -304,43 +296,188 @@
 
 @push('js')
     <script>
+        window.BAHAN_LIST = @json($bahanBaku);
+    </script>
+    <script>
         document.addEventListener('DOMContentLoaded', function () {
-            function initDynamicForm(wrapperId, addBtnId) {
-                const wrapper = document.getElementById(wrapperId);
-                const addBtn = document.getElementById(addBtnId);
+                function initDynamicForm(wrapperId, addBtnId) {
+                    const wrapper = document.getElementById(wrapperId);
+                    const addBtn = document.getElementById(addBtnId);
 
-                if (!wrapper || !addBtn) return;
+                    if (!wrapper || !addBtn) return;
 
-                addBtn.addEventListener('click', function () {
-                    const firstRow = wrapper.querySelector('.bahan-group');
-                    const newRow = firstRow.cloneNode(true);
+                    addBtn.addEventListener('click', function () {
+                        const firstRow = wrapper.querySelector('.bahan-group');
+                        const newRow = firstRow.cloneNode(true);
 
-                    newRow.querySelectorAll('input, select').forEach(input => {
-                        input.value = '';
+                        newRow.querySelectorAll('input, select').forEach(input => {
+                            input.value = '';
+                        });
+
+                        const removeBtn = newRow.querySelector('.remove-bahan');
+                        removeBtn.classList.remove('d-none');
+                        removeBtn.addEventListener('click', () => newRow.remove());
+
+                        wrapper.appendChild(newRow);
                     });
-
-                    const removeBtn = newRow.querySelector('.remove-bahan');
-                    removeBtn.classList.remove('d-none');
-                    removeBtn.addEventListener('click', () => newRow.remove());
-
-                    wrapper.appendChild(newRow);
-                });
-            }
-
-            document.querySelectorAll('.btn-delete').forEach(button => {
-            button.addEventListener('click', function () {
-                const action = this.getAttribute('data-action');
-                const form = document.getElementById('formDeleteRecipe');
-
-                if (form && action) {
-                    form.setAttribute('action', action);
                 }
+
+                document.querySelectorAll('.btn-delete').forEach(button => {
+                button.addEventListener('click', function () {
+                    const action = this.getAttribute('data-action');
+                    const form = document.getElementById('formDeleteRecipe');
+
+                    if (form && action) {
+                        form.setAttribute('action', action);
+                    }
+                });
             });
+
+            document.querySelectorAll('.btnEditRecipe').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const menuId = this.dataset.menu;
+                    const kitchenId = this.dataset.kitchen;
+                    const recipeId = this.dataset.recipe;
+
+                    const modal = document.getElementById('modalEditRecipe');
+                    const form = modal.querySelector('form');
+
+                    // set action PUT
+                    form.action = `/dashboard/setup/racik-menu/${menuId}`;
+
+                    // set kitchen
+                    form.querySelector('.kitchen-select').value = kitchenId;
+
+                    // load menu by kitchen
+                    fetch(`/dashboard/setup/racik-menu/menus-by-kitchen/${kitchenId}`)
+                        .then(res => res.json())
+                        .then(menus => {
+                            const menuSelect = form.querySelector('.menu-select');
+                            menuSelect.innerHTML = '';
+
+                            menus.forEach(m => {
+                                const opt = document.createElement('option');
+                                opt.value = m.id;
+                                opt.textContent = m.nama;
+                                if (m.id == menuId) opt.selected = true;
+                                menuSelect.appendChild(opt);
+                            });
+                        });
+
+                    // ambil detail bahan
+                    fetch(`/dashboard/setup/racik-menu/detail/${menuId}/${kitchenId}`)
+                        .then(res => res.json())
+                        .then(items => {
+                            console.log('HASIL DETAIL:', items);
+                            const wrapper = document.getElementById('bahan-wrapper-edit');
+                            wrapper.innerHTML = '';
+
+                            if (!items.length) {
+                                wrapper.innerHTML = `<p class="text-muted text-center">Belum ada bahan</p>`;
+                                return;
+                            }
+
+                            items.forEach(item => {
+                                const row = document.createElement('div');
+                                row.className = 'form-row mb-3 bahan-group';
+
+                                let options = '<option disabled>Pilih Bahan</option>';
+                                window.BAHAN_LIST.forEach(b => {
+                                    options += `
+                                        <option value="${b.id}" ${b.id == item.bahan_baku_id ? 'selected' : ''}>
+                                            ${b.nama}
+                                        </option>`;
+                                });
+
+                                row.innerHTML = `
+                                    <input type="hidden" name="row_id[]" value="${item.id}">
+                                    <div class="col-md-5">
+                                        <select name="bahan_baku_id[]" class="form-control" required>
+                                            ${options}
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-2">
+                                        <input type="number" name="jumlah[]" class="form-control" value="${item.jumlah}">
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control satuan-text"
+                                            value="${item.bahan_baku?.unit?.satuan ?? ''}" readonly>
+                                    </div>
+
+                                    <div class="col-md-1">
+                                        <button type="button" class="btn btn-outline-danger btn-sm remove-bahan">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                `;
+
+                                row.querySelector('.remove-bahan').onclick = () => row.remove();
+                                wrapper.appendChild(row);
+                            });
+                        });
+                });
+            });
+
+
+            document.querySelectorAll('.kitchen-select').forEach(kitchenSelect => {
+
+            kitchenSelect.addEventListener('change', function () {
+            const kitchenId = this.value;
+
+            const form = this.closest('form');
+            const menuSelect = form.querySelector('.menu-select');
+
+            if (!menuSelect) return;
+
+            menuSelect.innerHTML = '<option disabled selected>Loading...</option>';
+
+            fetch(`/dashboard/setup/racik-menu/menus-by-kitchen/${kitchenId}`)
+                .then(res => res.json())
+                .then(data => {
+                    menuSelect.innerHTML = '<option disabled selected>Pilih Menu</option>';
+
+                    data.forEach(menu => {
+                        const option = document.createElement('option');
+                        option.value = menu.id;
+                        option.textContent = menu.nama;
+                        menuSelect.appendChild(option);
+                    });
+                })
+                .catch(err => {
+                    console.error(err);
+                    menuSelect.innerHTML = '<option disabled>Gagal memuat menu</option>';
+                });
         });
 
+    });
+
+        document.addEventListener('change', function (e) {
+        if (!e.target.matches('select[name="bahan_baku_id[]"]')) return;
+
+        const row = e.target.closest('.bahan-group');
+        const bahanId = e.target.value;
+
+        const hargaInput = row.querySelector('input[name="harga[]"]');
+        const satuanIdInput = row.querySelector('.satuan-id');
+        const satuanTextInput = row.querySelector('.satuan-text');
+
+        fetch(`/dashboard/setup/racik-menu/bahan/${bahanId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (hargaInput) hargaInput.value = data.harga ?? 0;
+                if (satuanIdInput) satuanIdInput.value = data.satuan_id ?? '';
+                if (satuanTextInput) satuanTextInput.value = data.satuan ?? '';
+            })
+            
+            .catch(console.error);
+    });
             // Init untuk kedua modal
             initDynamicForm('bahan-wrapper-add', 'add-bahan-add');
             initDynamicForm('bahan-wrapper-edit', 'add-bahan-edit');
         });
+
+    
     </script>
 @endpush
