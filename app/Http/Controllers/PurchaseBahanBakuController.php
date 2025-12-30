@@ -57,20 +57,34 @@ class PurchaseBahanBakuController extends Controller
                 'kode'        => $this->generateKode(),
                 'supplier_id' => $request->supplier,
                 'user_id'    => Auth::id(),
+                'total' => 0,
             ]);
+
+            $grandTotal = 0;
 
             // 2. Simpan DETAIL
             foreach ($request->bahan as $index => $bahanId) {
                 $bahan = BahanBaku::findOrFail($bahanId);
 
+                $jumlah = $request->jumlah[$index];
+                $harga = $request->harga[$index];
+
+                $subtotal = $harga * $jumlah;
+                $grandTotal += $subtotal;
+
                 PurchaseItem::create([
                     'purchase_bahan_bakus_id'   => $purchase->id,
                     'bahan_baku_id' => $bahanId,
-                    'jumlah'        => $request->jumlah[$index],
+                    'jumlah'        => $jumlah,
                     'units_id'       => $bahan->satuan_id,
-                    'harga'         => $request->harga[$index],
+                    'harga'         => $harga,
+                    'subtotal' => $subtotal,
                 ]);
             }
+
+            $purchase->update([
+                'total' => $grandTotal
+            ]);
         });
         return redirect()->back()->with('success', 'Pembelian berhasil disimpan');
     }
@@ -82,6 +96,20 @@ class PurchaseBahanBakuController extends Controller
             'items.bahanBaku.unit'
         ])->findOrFail($id);
 
+        $purchase->total = $purchase->items->sum('subtotal');
         return response()->json($purchase);
+    }
+
+    public function invoice($id)
+    {
+        $purchase = PurchaseBahanBaku::with([
+            'supplier',
+            'items.bahanBaku.unit'
+        ])->findOrFail($id);
+
+        return view(
+            'transactions.purchase_materials.invoice',
+            compact('purchase')
+        );
     }
 }

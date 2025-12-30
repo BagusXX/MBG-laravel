@@ -25,7 +25,7 @@ class BahanBaku extends Model
 
     public function unit()
     {
-        return $this->belongsTo(Unit::class, 'satuan_id', 'id');
+        return $this->belongsTo(Unit::class, 'satuan_id');
     }
 
     public function recipes()

@@ -19,6 +19,7 @@
                         <th>Kode</th>
                         <th>Tanggal Beli</th>
                         <th>Supplier</th>
+                        <th>Total Harga</th>
                         {{-- <th>Bahan Baku</th> --}}
                         {{-- <th>Jumlah</th>
                         <th>Satuan</th>
@@ -151,10 +152,16 @@
     {{-- MODAL DETAIL PURCHASE MATERIALS --}}
     <x-modal-detail id="modalDetailPurchase" size="modal-lg" title="Pemesanan Bahan Baku">
         <div>
+            <div class="text-right mt-3">
+                <a href="#" target="_blank" id="btn-print-invoice" class="btn btn-warning">
+                    <i class="fas fa-print mr-1"></i>Cetak Invioce
+                </a>
+            </div>
             <div>
                 <p><strong>Kode: </strong><span id="detail-kode"></span></p>
                 <p><strong>Tanggal Beli: </strong><span id="detail-tanggal"></span></p>
                 <p><strong>Supplier: </strong><span id="detail-supplier"></span></p>
+                <p><strong>Total Harga: </strong><span id="detail-total"></span></p>
             </div>
             <div>
                 <table class="table table-bordered table-striped">
@@ -162,11 +169,12 @@
                         <tr>
                             <th>Bahan Baku</th>
                             <th>Jumlah</th>
+                            <th>Satuan</th>
                             <th>Harga</th>
+                            <th>Subtotal</th>
                         </tr>
                     </thead>
                     <tbody id="detail-items">
-
                     </tbody>
                 </table>
             </div>
@@ -243,9 +251,12 @@
             if (e.target.classList.contains('btn-detail')) {
                 const purchaseId = e.target.dataset.id;
 
-                fetch(`/transaction/purchase-materials/${purchaseId}`)
+                fetch(`/dashboard/transaksi/pembelian-bahan-baku/${purchaseId}`)
                     .then(res => res.json())
                     .then(data => {
+
+                        console.log("Isi data dari server:", data);
+                        console.log("Cek field total:", data.total);
                         // Header
                         document.getElementById('detail-kode').innerText = data.kode;
                         document.getElementById('detail-tanggal').innerText =
@@ -263,16 +274,27 @@
                             <td>${item.bahan_baku.nama}</td>
                             <td>${item.jumlah}</td>
                             <td>${item.bahan_baku.unit.satuan}</td>
-                            <td>${item.harga}</td>
+                            <td>Rp ${Number(item.harga).toLocaleString('id-ID')}</td>
+                            <td>RP ${Number(item.subtotal).toLocaleString('id-ID')}</td>
+                            <td>RP ${Number(data.total).toLocaleString('id-ID')}</td>
                         </tr>
                     `;
                         });
+                        document.getElementById('detail-total').innerText = new Intl.NumberFormat('id-ID', {
+                            style: 'currency',
+                            currency: 'IDR',
+                            minimumFractionDigits: 0
+                        }).format(data.total);
                     })
                     .catch(err => {
                         console.error(err);
                         alert('Gagal mengambil data detail');
                     });
             }
+
+
+            document.getElementById('btn-print-invoice').href =
+                `/dashboard/transaksi/pembelian-bahan-baku/${purchaseId}/invoice`;
         });
     </script>
 @endpush

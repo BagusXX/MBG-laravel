@@ -12,13 +12,14 @@ class PurchaseItem extends Model
         'units_id',
         'jumlah',
         'harga',
+        'subtotal',
     ];
 
     public function PurchaseBahanBaku()
     {
-        return $this->belongsTo(PurchaseBahanBaku::class);
+        return $this->belongsTo(PurchaseBahanBaku::class, 'purchase_items_id');
     }
-    public function BahanBaku()
+    public function bahanBaku()
     {
         return $this->belongsTo(BahanBaku::class);
     }
