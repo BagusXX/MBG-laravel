@@ -445,13 +445,13 @@ return [
                 ],
                 [
                     'text' => 'Pengajuan Operasional',
-                    'icon' => 'fas fa-clipboard-list',
+                    'icon' => 'fas fa-file-invoice-dollar',
                     'route' => 'transaction.operational-submission.index',
                     'can'  => 'transaction.operational-submission.view',
                 ],
                 [
                     'text' => 'Daftar Biaya Operasional',
-                    'icon' => 'fas fa-clipboard-list',
+                    'icon' => 'fas fa-clipboard-check',
                     'route' => 'transaction.operational-approval.index',
                     'can'  => 'transaction.operational-approval.view',
                 ],
