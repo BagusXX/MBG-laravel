@@ -66,21 +66,11 @@ class RecipeController extends Controller
             ->with('success', 'Resep berhasil disimpan');
     }
 
-<<<<<<< HEAD
-    public function update(Request $request)
-    {
-        $request->validate([
-            'kitchen_id' => 'required|exists:kitchens,id',
-            'menu_id' => 'required|exists:menus,id',
-            'bahan_baku_id' => 'required|array',
-            'jumlah' => 'required|array',
-=======
     public function update(Request $request, $menuId, $kitchenId)
     {
         $request->validate([
             'bahan_baku_id' => 'required|array|min:1',
             'jumlah' => 'required|array|min:1',
->>>>>>> 1f29db55143ce14dda1435baae18ea1a0dbff469
         ]);
 
         $existingIds = [];
@@ -90,10 +80,6 @@ class RecipeController extends Controller
             $rowId = $request->row_id[$i] ?? null;
 
             if ($rowId) {
-<<<<<<< HEAD
-                // UPDATE BARIS LAMA
-=======
->>>>>>> 1f29db55143ce14dda1435baae18ea1a0dbff469
                 RecipeBahanBaku::where('id', $rowId)->update([
                     'bahan_baku_id' => $bahanId,
                     'jumlah' => $request->jumlah[$i],
@@ -101,16 +87,9 @@ class RecipeController extends Controller
 
                 $existingIds[] = $rowId;
             } else {
-<<<<<<< HEAD
-                // TAMBAH BARIS BARU
-                $new = RecipeBahanBaku::create([
-                    'menu_id' => $request->menu_id,
-                    'kitchen_id' => $request->kitchen_id,
-=======
                 $new = RecipeBahanBaku::create([
                     'menu_id' => $menuId,
                     'kitchen_id' => $kitchenId,
->>>>>>> 1f29db55143ce14dda1435baae18ea1a0dbff469
                     'bahan_baku_id' => $bahanId,
                     'jumlah' => $request->jumlah[$i],
                 ]);
@@ -119,14 +98,8 @@ class RecipeController extends Controller
             }
         }
 
-<<<<<<< HEAD
-        // HAPUS BARIS YANG DIHAPUS USER
-        RecipeBahanBaku::where('menu_id', $request->menu_id)
-            ->where('kitchen_id', $request->kitchen_id)
-=======
         RecipeBahanBaku::where('menu_id', $menuId)
             ->where('kitchen_id', $kitchenId)
->>>>>>> 1f29db55143ce14dda1435baae18ea1a0dbff469
             ->whereNotIn('id', $existingIds)
             ->delete();
 

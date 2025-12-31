@@ -7,6 +7,7 @@ use App\Http\Controllers\BahanBakuController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\KitchenController;
+use App\Http\Controllers\OperationalApprovalController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\SupplierController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\PurchaseBahanBakuController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\OperationalController;
+use App\Http\Controllers\OperationalSubmissionController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\SaleMaterialsKitchenController;
 use App\Http\Controllers\SaleMaterialsPartnerController;
@@ -242,6 +244,18 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/bahan-by-kitchen/{kitchen}', 'getBahanByKitchen')
                 ->middleware('permission:transaction.sale-partner.view')
                 ->name('bahan-by-kitchen');
+        });
+    Route::prefix('dashboard/transaksi/pengajuan-operasional')
+        ->name('transaction.operational-submission.')
+        ->controller(OperationalSubmissionController::class)
+        ->group(function () {
+            Route::get('/', 'index')->middleware('permission:transaction.operational-submission.view')->name('index');
+        });
+    Route::prefix('dashboard/transaksi/daftar-biaya-operasional')
+        ->name('transaction.operational-approval.')
+        ->controller(OperationalApprovalController::class)
+        ->group(function () {
+            Route::get('/', 'index')->middleware('permission:transaction.operational-approval.view')->name('index');
         });
 
     Route::prefix('dashboard/transaksi')
