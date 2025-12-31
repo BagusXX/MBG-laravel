@@ -323,6 +323,11 @@
 
                     const modal = document.getElementById('modalEditRecipe');
                     const form = modal.querySelector('form');
+<<<<<<< HEAD
+                    
+                    // set kitchen
+                    form.querySelector('.kitchen-select').value = kitchenId;
+=======
                     const wrapper = document.getElementById('bahan-wrapper-edit');
 
                     // Set Action URL
@@ -333,6 +338,7 @@
                     document.getElementById('edit_menu_id').value = menuId;
                     document.getElementById('display_kitchen_name').value = kitchenName;
                     document.getElementById('display_menu_name').value = menuName;
+>>>>>>> 1f29db55143ce14dda1435baae18ea1a0dbff469
 
                     // Loading State
                     wrapper.innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm text-primary"></div> Memuat bahan...</div>';

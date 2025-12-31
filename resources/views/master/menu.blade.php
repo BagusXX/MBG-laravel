@@ -33,8 +33,8 @@
                     <tr>
                         <th>No</th>
                         <th>Kode Menu</th> {{-- Tambah kolom kode menu --}}
+                        <th>Dapur</th>
                         <th>Nama Menu</th>
-                        {{-- <th>Dapur</th> --}}
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -43,8 +43,8 @@
                         <tr>
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $menu->kode }}</td> {{-- Kode menu --}}
+                            <td>{{ $menu->kitchen->nama ?? '-' }}</td> 
                             <td>{{ $menu->nama }}</td>
-                            {{-- <td>{{ $menu->kitchen->nama ?? '-' }}</td> Nama dapur --}}
                             <td>
                                 <button
                                     type="button"

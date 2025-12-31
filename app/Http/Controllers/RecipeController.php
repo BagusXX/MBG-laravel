@@ -193,6 +193,7 @@ class RecipeController extends Controller
     }
 
 
+
     public function getRecipeDetail($menuId, $kitchenId)
     {
         return RecipeBahanBaku::with('bahan_baku.unit')

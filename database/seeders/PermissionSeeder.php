@@ -18,6 +18,7 @@ class PermissionSeeder extends Seeder
 
             // MASTER
             'master.bahan-baku.view',
+            'master.bahan-baku.update',
             'master.bahan-baku.create',
             'master.bahan-baku.delete',
 
@@ -27,6 +28,7 @@ class PermissionSeeder extends Seeder
             'master.unit.delete',
 
             'master.menu.view',
+            'master.menu.update',
             'master.menu.create',
             'master.menu.delete',
 
@@ -73,6 +75,18 @@ class PermissionSeeder extends Seeder
             'transaction.submission.delete',
             'transaction.submission.show',
             'transaction.submission.update',
+
+            'transaction.operational-submission.view',
+            'transaction.operational-submission.store',
+            'transaction.operational-submission.delete',
+            'transaction.operational-submission.show',
+            'transaction.operational-submission.update',
+
+            'transaction.operational-approval.view',
+            'transaction.operational-approval.store',
+            'transaction.operational-approval.delete',
+            'transaction.operational-approval.show',
+            'transaction.operational-approval.update',
 
 
 
