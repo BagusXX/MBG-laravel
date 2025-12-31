@@ -456,26 +456,18 @@ return [
                     'can'  => 'transaction.operational-approval.view',
                 ],
 
+                [
+                    'text' => 'Jual Bahan Baku Dapur',
+                    'icon' => 'fas fa-store',
+                    'route' => 'transaction.sale-materials-kitchen.index',
+                    'can'   => 'transaction.sale-kitchen.view',
+                ],
 
                 [
-                    'text' => 'Jual Bahan Baku',
-                    'icon' => 'fas fa-money-bill-wave',
-                    'can'  => 'transaction.sale-kitchen.view',
-                    'submenu' => [
-                        [
-                            'text' => 'Jual Bahan Baku Dapur',
-                            'icon' => 'fas fa-store',
-                            'route' => 'transaction.sale-materials-kitchen.index',
-                            'can'   => 'transaction.sale-kitchen.view',
-                        ],
-
-                        [
-                            'text' => 'Jual Bahan Baku Mitra',
-                            'icon' => 'fas fa-handshake',
-                            'route' => 'transaction.sale-materials-partner.index',
-                            'can'   => 'transaction.sale-partner.view',
-                        ],
-                    ]
+                    'text' => 'Jual Bahan Baku Mitra',
+                    'icon' => 'fas fa-handshake',
+                    'route' => 'transaction.sale-materials-partner.index',
+                    'can'   => 'transaction.sale-partner.view',
                 ],
 
                 [
