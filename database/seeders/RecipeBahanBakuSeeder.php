@@ -2,56 +2,56 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\Kitchen;
+use App\Models\Menu;
+use App\Models\BahanBaku;
 use Illuminate\Support\Facades\DB;
 
 class RecipeBahanBakuSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        //
         $data = [
             [
-                'kitchen_id' => 1,
-                'menu_id' => 1,
-                'bahan_baku_id' => 1, // Beras
-                'jumlah' => 0.2, // 200 gram
-                'created_at' => now(),
-                'updated_at' => now()
+                'kitchen_kode' => 'DPR11',
+                'menu_kode' => 'MNDPR0100001',
+                'bahan_kode' => 'BHNDPR11001',
+                'jumlah' => 0.2,
             ],
             [
-                'kitchen_id' => 1,
-                'menu_id' => 1,
-                'bahan_baku_id' => 2, // Telur
+                'kitchen_kode' => 'DPR11',
+                'menu_kode' => 'MNDPR0100001',
+                'bahan_kode' => 'BHNDPR11002',
                 'jumlah' => 1,
-                'created_at' => now(),
-                'updated_at' => now()
             ],
             [
-                'kitchen_id' => 1,
-                'menu_id' => 1,
-                'bahan_baku_id' => 3, // Minyak
+                'kitchen_kode' => 'DPR11',
+                'menu_kode' => 'MNDPR0100001',
+                'bahan_kode' => 'BHNDPR11003',
                 'jumlah' => 0.05,
-                'created_at' => now(),
-                'updated_at' => now()
             ],
-
-            // --- Bahan untuk Resep 2 ---
-            [
-                'kitchen_id' => 2,
-                'menu_id' => 2,
-                'bahan_baku_id' => 4,
-                'jumlah' => 0.5,
-                'created_at' => now(),
-                'updated_at' => now()
-            ],
-
         ];
 
-        DB::table('recipe_bahan_baku')->insert($data);
+        foreach ($data as $item) {
+            $kitchen = Kitchen::where('kode', $item['kitchen_kode'])->first();
+            $menu    = Menu::where('kode', $item['menu_kode'])->first();
+            $bahan   = BahanBaku::where('kode', $item['bahan_kode'])->first();
+
+            if ($kitchen && $menu && $bahan) {
+                DB::table('recipe_bahan_baku')->updateOrInsert(
+                    [
+                        'menu_id' => $menu->id,
+                        'bahan_baku_id' => $bahan->id,
+                    ],
+                    [
+                        'kitchen_id' => $kitchen->id,
+                        'jumlah' => $item['jumlah'],
+                        'updated_at' => now(),
+                        'created_at' => now(),
+                    ]
+                );
+            }
+        }
     }
 }

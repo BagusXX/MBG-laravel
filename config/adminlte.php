@@ -443,6 +443,18 @@ return [
                     'route' => 'transaction.request-materials',
                     'can'  => 'transaction.request-materials.view',
                 ],
+                [
+                    'text' => 'Pengajuan Operasional',
+                    'icon' => 'fas fa-clipboard-list',
+                    'route' => 'transaction.operational-submission.index',
+                    'can'  => 'transaction.operational-submission.view',
+                ],
+                [
+                    'text' => 'Daftar Biaya Operasional',
+                    'icon' => 'fas fa-clipboard-list',
+                    'route' => 'transaction.operational-approval.index',
+                    'can'  => 'transaction.operational-approval.view',
+                ],
 
                 [
                     'text' => 'Jual Bahan Baku Dapur',

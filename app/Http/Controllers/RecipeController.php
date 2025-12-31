@@ -14,23 +14,44 @@ class RecipeController extends Controller
     public function index()
     {
         $user = auth()->user();
-        $kitchens = $user->kitchens()->pluck('kode');
+
+        // Ambil KODE dapur milik user
+        $kitchenKodes = $user->kitchens()->pluck('kode');
+        $kitchens = Kitchen::whereIn('kode', $kitchenKodes)->get();
 
         $menus = Menu::with([
-            'recipes' => function ($q) {
-                $q->with(['bahan_baku.unit', 'kitchen']);
+            'recipes' => function ($q) use ($kitchenKodes) {
+                $q->with(['bahan_baku.unit', 'kitchen'])
+                    ->whereHas('kitchen', function ($k) use ($kitchenKodes) {
+                        $k->whereIn('kode', $kitchenKodes);
+                    });
             }
         ])->get();
-        $kitchens = Kitchen::all();
-        $bahanBaku = BahanBaku::with('unit')->get();
+
+        // HANYA dapur user
+
+        $bahanBaku = BahanBaku::with('unit')
+            ->whereHas('kitchen', function ($q) use ($kitchenKodes) {
+                $q->whereIn('kode', $kitchenKodes);
+            })
+            ->get();
+
         $units = Unit::all();
 
         // Pastikan nama view ini benar ada di folder resources/views/setup/createmenu.blade.php
-        return view('setup.createmenu', compact('menus', 'kitchens', 'bahanBaku', 'units'));
+        return view('setup.createmenu', compact(
+            'menus',
+            'kitchens',
+            'bahanBaku',
+            'units'
+        ));
     }
 
     public function store(Request $request)
     {
+        $user = auth()->user();
+        $kitchenKodes = $user->kitchens()->pluck('kode');
+
         $request->validate([
             'menu_id' => 'required|exists:menus,id',
             'kitchen_id' => 'required|exists:kitchens,id',
@@ -40,10 +61,15 @@ class RecipeController extends Controller
             'jumlah.*' => 'numeric|min:0.0001',
         ]);
 
+        // 🔒 pastikan dapur milik user (VALID UNTUK CENTRAL & CABANG)
+        $kitchen = Kitchen::where('id', $request->kitchen_id)
+            ->whereIn('kode', $kitchenKodes)
+            ->firstOrFail();
+
         foreach ($request->bahan_baku_id as $bahanId) {
             $exists = RecipeBahanBaku::where([
                 'menu_id' => $request->menu_id,
-                'kitchen_id' => $request->kitchen_id,
+                'kitchen_id' => $kitchen->id,
                 'bahan_baku_id' => $bahanId,
             ])->exists();
 
@@ -55,7 +81,7 @@ class RecipeController extends Controller
         foreach ($request->bahan_baku_id as $i => $bahanId) {
             RecipeBahanBaku::create([
                 'menu_id' => $request->menu_id,
-                'kitchen_id' => $request->kitchen_id,
+                'kitchen_id' => $kitchen->id,
                 'bahan_baku_id' => $bahanId,
                 'jumlah' => $request->jumlah[$i],
             ]);
@@ -66,8 +92,17 @@ class RecipeController extends Controller
             ->with('success', 'Resep berhasil disimpan');
     }
 
+
     public function update(Request $request, $menuId, $kitchenId)
     {
+        $user = auth()->user();
+        $kitchenKodes = $user->kitchens()->pluck('kode');
+
+        // 🔒 validasi dapur milik user
+        Kitchen::where('id', $kitchenId)
+            ->whereIn('kode', $kitchenKodes)
+            ->firstOrFail();
+
         $request->validate([
             'bahan_baku_id' => 'required|array|min:1',
             'jumlah' => 'required|array|min:1',
@@ -76,14 +111,15 @@ class RecipeController extends Controller
         $existingIds = [];
 
         foreach ($request->bahan_baku_id as $i => $bahanId) {
-
             $rowId = $request->row_id[$i] ?? null;
 
             if ($rowId) {
-                RecipeBahanBaku::where('id', $rowId)->update([
-                    'bahan_baku_id' => $bahanId,
-                    'jumlah' => $request->jumlah[$i],
-                ]);
+                RecipeBahanBaku::where('id', $rowId)
+                    ->where('kitchen_id', $kitchenId)
+                    ->update([
+                        'bahan_baku_id' => $bahanId,
+                        'jumlah' => $request->jumlah[$i],
+                    ]);
 
                 $existingIds[] = $rowId;
             } else {
@@ -110,8 +146,17 @@ class RecipeController extends Controller
 
 
 
+
     public function destroy($menuId, $kitchenId)
     {
+        $user = auth()->user();
+        $kitchenKodes = $user->kitchens()->pluck('kode');
+
+        // 🔒 validasi dapur
+        Kitchen::where('id', $kitchenId)
+            ->whereIn('kode', $kitchenKodes)
+            ->firstOrFail();
+
         $used = RecipeBahanBaku::where('menu_id', $menuId)
             ->where('kitchen_id', $kitchenId)
             ->whereHas('submissionDetails')
@@ -131,8 +176,12 @@ class RecipeController extends Controller
 
 
 
+
     public function show($menuId, $kitchenId)
     {
+        $user = auth()->user();
+        $kitchenKode = $user->kitchens()->pluck('kode');
+
         $recipes = RecipeBahanBaku::with(['bahan_baku.unit'])
             ->where('menu_id', $menuId)
             ->where('kitchen_id', $kitchenId)
@@ -142,6 +191,7 @@ class RecipeController extends Controller
 
         return view('recipe.show', compact('recipes'));
     }
+
 
 
     public function getRecipeDetail($menuId, $kitchenId)

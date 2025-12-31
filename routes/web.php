@@ -7,6 +7,7 @@ use App\Http\Controllers\BahanBakuController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\KitchenController;
+use App\Http\Controllers\OperationalApprovalController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\SupplierController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\PurchaseBahanBakuController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\OperationalController;
+use App\Http\Controllers\OperationalSubmissionController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\SaleMaterialsKitchenController;
 use App\Http\Controllers\SaleMaterialsPartnerController;
@@ -143,41 +145,41 @@ Route::middleware(['auth'])->group(function () {
         });
 
     Route::prefix('dashboard/setup/racik-menu')
-    ->name('recipe.')
-    ->controller(RecipeController::class)
-    ->group(function () {
+        ->name('recipe.')
+        ->controller(RecipeController::class)
+        ->group(function () {
 
-        Route::get('/', 'index')
-            ->middleware('permission:recipe.view')
-            ->name('index');
+            Route::get('/', 'index')
+                ->middleware('permission:recipe.view')
+                ->name('index');
 
-        Route::post('/', 'store')
-            ->middleware('permission:recipe.create')
-            ->name('store');
+            Route::post('/', 'store')
+                ->middleware('permission:recipe.create')
+                ->name('store');
 
-        Route::get('/menus-by-kitchen/{kitchen}', 'getMenusByKitchen')
-            ->middleware('permission:recipe.view')
-            ->name('menus.by.kitchen');
+            Route::get('/menus-by-kitchen/{kitchen}', 'getMenusByKitchen')
+                ->middleware('permission:recipe.view')
+                ->name('menus.by.kitchen');
 
-        Route::get('/bahan/{id}', 'getBahanDetail')
-            ->middleware('permission:recipe.view')
-            ->name('bahan.detail');
+            Route::get('/bahan/{id}', 'getBahanDetail')
+                ->middleware('permission:recipe.view')
+                ->name('bahan.detail');
 
-        // DETAIL 1 RESEP
-        Route::get('/detail/{menu}/{kitchen}', 'getRecipeDetail')
-            ->middleware('permission:recipe.view')
-            ->name('detail');
+            // DETAIL 1 RESEP
+            Route::get('/detail/{menu}/{kitchen}', 'getRecipeDetail')
+                ->middleware('permission:recipe.view')
+                ->name('detail');
 
-        // UPDATE 1 RESEP
-        Route::put('/{menu}/{kitchen}', 'update')
-            ->middleware('permission:recipe.update')
-            ->name('update');
+            // UPDATE 1 RESEP
+            Route::put('/{menu}/{kitchen}', 'update')
+                ->middleware('permission:recipe.update')
+                ->name('update');
 
-        // DELETE 1 RESEP
-        Route::delete('/{menu}/{kitchen}', 'destroy')
-            ->middleware('permission:recipe.delete')
-            ->name('destroy');
-    });
+            // DELETE 1 RESEP
+            Route::delete('/{menu}/{kitchen}', 'destroy')
+                ->middleware('permission:recipe.delete')
+                ->name('destroy');
+        });
 
 
     /*
@@ -242,6 +244,18 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/bahan-by-kitchen/{kitchen}', 'getBahanByKitchen')
                 ->middleware('permission:transaction.sale-partner.view')
                 ->name('bahan-by-kitchen');
+        });
+    Route::prefix('dashboard/transaksi/pengajuan-operasional')
+        ->name('transaction.operational-submission.')
+        ->controller(OperationalSubmissionController::class)
+        ->group(function () {
+            Route::get('/', 'index')->middleware('permission:transaction.operational-submission.view')->name('index');
+        });
+    Route::prefix('dashboard/transaksi/daftar-biaya-operasional')
+        ->name('transaction.operational-approval.')
+        ->controller(OperationalApprovalController::class)
+        ->group(function () {
+            Route::get('/', 'index')->middleware('permission:transaction.operational-approval.view')->name('index');
         });
 
     Route::prefix('dashboard/transaksi')
