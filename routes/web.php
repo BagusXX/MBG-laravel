@@ -143,41 +143,41 @@ Route::middleware(['auth'])->group(function () {
         });
 
     Route::prefix('dashboard/setup/racik-menu')
-    ->name('recipe.')
-    ->controller(RecipeController::class)
-    ->group(function () {
+        ->name('recipe.')
+        ->controller(RecipeController::class)
+        ->group(function () {
 
-        Route::get('/', 'index')
-            ->middleware('permission:recipe.view')
-            ->name('index');
+            Route::get('/', 'index')
+                ->middleware('permission:recipe.view')
+                ->name('index');
 
-        Route::post('/', 'store')
-            ->middleware('permission:recipe.create')
-            ->name('store');
+            Route::post('/', 'store')
+                ->middleware('permission:recipe.create')
+                ->name('store');
 
-        Route::get('/menus-by-kitchen/{kitchen}', 'getMenusByKitchen')
-            ->middleware('permission:recipe.view')
-            ->name('menus.by.kitchen');
+            Route::get('/menus-by-kitchen/{kitchen}', 'getMenusByKitchen')
+                ->middleware('permission:recipe.view')
+                ->name('menus.by.kitchen');
 
-        Route::get('/bahan/{id}', 'getBahanDetail')
-            ->middleware('permission:recipe.view')
-            ->name('bahan.detail');
+            Route::get('/bahan/{id}', 'getBahanDetail')
+                ->middleware('permission:recipe.view')
+                ->name('bahan.detail');
 
-        // DETAIL 1 RESEP
-        Route::get('/detail/{menu}/{kitchen}', 'getRecipeDetail')
-            ->middleware('permission:recipe.view')
-            ->name('detail');
+            // DETAIL 1 RESEP
+            Route::get('/detail/{menu}/{kitchen}', 'getRecipeDetail')
+                ->middleware('permission:recipe.view')
+                ->name('detail');
 
-        // UPDATE 1 RESEP
-        Route::put('/{menu}/{kitchen}', 'update')
-            ->middleware('permission:recipe.update')
-            ->name('update');
+            // UPDATE 1 RESEP
+            Route::put('/{menu}/{kitchen}', 'update')
+                ->middleware('permission:recipe.update')
+                ->name('update');
 
-        // DELETE 1 RESEP
-        Route::delete('/{menu}/{kitchen}', 'destroy')
-            ->middleware('permission:recipe.delete')
-            ->name('destroy');
-    });
+            // DELETE 1 RESEP
+            Route::delete('/{menu}/{kitchen}', 'destroy')
+                ->middleware('permission:recipe.delete')
+                ->name('destroy');
+        });
 
 
     /*
@@ -275,7 +275,8 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/', 'index')->name('index');
             Route::post('/', 'store')->name('store');
             Route::get('/{id}', 'show')->name('show');
-            Route::get('/{id}/invoice', 'invoice')->name('invoice');
+            Route::get('/{id}/invoice', 'printInvoice')->name('invoice');
+            Route::delete('/{id}', 'destroy')->name('destroy');
         });
 
 

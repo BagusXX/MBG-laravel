@@ -13,7 +13,7 @@ class OperationalController extends Controller
     {
 
         $user = auth()->user();
-        $kitchens = $user->kitchens()->plluck('kode');
+        $kitchens = $user->kitchens()->pluck('kode');
 
         $operationals = operationals::with('kitchen')
             ->whereIn('kitchen_kode', $kitchens)
@@ -105,7 +105,7 @@ class OperationalController extends Controller
         if (!auth()->user()->kitchens()->where('kode', $operational->kode_kitchen)->exists()) {
             abort(403);
         }
-        
+
         // baru hapus operational
         $operational->delete();
 
