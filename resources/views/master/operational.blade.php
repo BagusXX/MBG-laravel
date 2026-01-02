@@ -33,6 +33,7 @@
                     <tr>
                         <th>No</th>
                         <th>Kode</th>
+                        <th>Dapur</th>
                         <th>Nama Biaya</th>
                         <th>Harga</th>
                         <th>Tempat Beli</th>
@@ -45,6 +46,7 @@
                         <tr>
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $operational->kode }}</td>
+                            <td>{{ $operational->kitchen->nama ?? '-' }}</td>
                             <td>{{ $operational->nama }}</td>
                             <td>{{ $operational->harga }}</td>
                             <td>{{ $operational->tempat_beli }}</td>
@@ -56,6 +58,7 @@
                                     onclick="editOperational(this)"
                                     data-id="{{ $operational->id }}"
                                     data-kode="{{ $operational->kode }}"
+                                    data-kitchen="{{ $operational->kitchen_kode }}"
                                     data-nama="{{ $operational->nama }}"
                                     data-harga="{{ $operational->harga }}"
                                     data-tempat_beli="{{ $operational->tempat_beli }}"
@@ -102,6 +105,17 @@
                 required 
             />
         </div>
+
+        <div class="form-group mt-2">
+            <label>Dapur</label>
+            <select name="kitchen_kode" class="form-control" required>
+                <option value="">-- Pilih Dapur --</option>
+                @foreach ($kitchens as $kode => $nama)
+                    <option value="{{ $kode }}">{{ $nama }}</option>
+                @endforeach
+            </select>
+        </div>
+
         
         <div class="form-group mt-2">
             <label for="nama_operasional">Nama Biaya</label>
@@ -141,6 +155,15 @@
                 class="form-control"
                 readonly
             />
+        </div>
+
+        <div class="form-group mt-2">
+            <label>Dapur</label>
+            <select name="kitchen_kode" id="edit_kitchen_kode" class="form-control" required>
+                @foreach ($kitchens as $kode => $nama)
+                    <option value="{{ $kode }}">{{ $nama }}</option>
+                @endforeach
+            </select>
         </div>
 
         <div class="form-group mt-2">
@@ -208,6 +231,7 @@ function editOperational(button) {
     // isi input
     document.getElementById('edit_id').value = id;
     document.getElementById('edit_kode').value = button.dataset.kode;
+    document.getElementById('edit_kitchen_kode').value = button.dataset.kitchen;
     document.getElementById('edit_nama').value = button.dataset.nama;
     document.getElementById('edit_harga').value = button.dataset.harga;
     document.getElementById('edit_tempat_beli').value = button.dataset.tempat_beli;

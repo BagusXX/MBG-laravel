@@ -13,10 +13,15 @@ class OperationalController extends Controller
     {
 
         $user = auth()->user();
-        $kitchens = $user->kitchens()->pluck('kode');
+
+        // 1️⃣ Untuk dropdown (kode => nama)
+        $kitchens = $user->kitchens()->pluck('nama', 'kode');
+
+        // 2️⃣ Ambil hanya KODENYA saja untuk filter
+        $kitchenKode = $kitchens->keys();
 
         $operationals = operationals::with('kitchen')
-            ->whereIn('kitchen_kode', $kitchens)
+            ->whereIn('kitchen_kode', $kitchenKode)
             ->paginate(10);
 
         $lastOperational = operationals::orderBy('kode', 'desc')->first();
@@ -39,12 +44,13 @@ class OperationalController extends Controller
             'nama' => 'required',
             'harga' => 'required',
             'tempat_beli' => 'required',
-            'kitchen_kode' => 'required|exist:kitchens,kode',
+            'kitchen_kode' => 'required|exists:kitchens,kode',
         ]);
 
-        if (!$user->kitchens()->where('kode', $request->kode_kitchen)->exists()) {
+        if (!$user->kitchens()->where('kode', $request->kitchen_kode)->exists()) {
             abort(403, 'Anda tidak memiliki akses ke dapur ini');
         }
+
 
         // ambil kode terakhir
         $lastOperational = operationals::orderBy('kode', 'desc')->first();
@@ -61,7 +67,7 @@ class OperationalController extends Controller
             'nama' => $request->nama,
             'harga' => $request->harga,
             'tempat_beli' => $request->tempat_beli,
-            'kitchen_kode' => $request->kode_kitchen,
+            'kitchen_kode' => $request->kitchen_kode,
         ]);
 
         return redirect()
@@ -76,7 +82,7 @@ class OperationalController extends Controller
         $operational = operationals::findOrFail($id);
         $user = auth()->user();
 
-        if ($user->kitchens()->where('kode', $operational->kitchen_kode)->exists()) {
+        if (! $user->kitchens()->where('kode', $operational->kitchen_kode)->exists()) {
             abort(403);
         }
 
@@ -85,12 +91,14 @@ class OperationalController extends Controller
             'nama' => 'required',
             'harga' => 'required',
             'tempat_beli' => 'required',
+            'kitchen_kode' => 'required|exists:kitchens,kode',
         ]);
 
         $operational->update([
             'nama' => $request->nama,
             'harga' => $request->harga,
             'tempat_beli' => $request->tempat_beli,
+            'kitchen_kode' => $request->kitchen_kode,
         ]);
 
         return redirect()

@@ -443,27 +443,31 @@ return [
                     'route' => 'transaction.request-materials',
                     'can'  => 'transaction.request-materials.view',
                 ],
-
+                [
+                    'text' => 'Pengajuan Operasional',
+                    'icon' => 'fas fa-clipboard-list',
+                    'route' => 'transaction.operational-submission.index',
+                    'can'  => 'transaction.operational-submission.view',
+                ],
+                [
+                    'text' => 'Daftar Biaya Operasional',
+                    'icon' => 'fas fa-clipboard-list',
+                    'route' => 'transaction.operational-approval.index',
+                    'can'  => 'transaction.operational-approval.view',
+                ],
 
                 [
-                    'text' => 'Jual Bahan Baku',
-                    'icon' => 'fas fa-money-bill-wave',
-                    'can'  => 'transaction.sale-kitchen.view',
-                    'submenu' => [
-                        [
-                            'text' => 'Jual Bahan Baku Dapur',
-                            'icon' => 'fas fa-store',
-                            'route' => 'transaction.sale-materials-kitchen.index',
-                            'can'   => 'transaction.sale-kitchen.view',
-                        ],
+                    'text' => 'Jual Bahan Baku Dapur',
+                    'icon' => 'fas fa-store',
+                    'route' => 'transaction.sale-materials-kitchen.index',
+                    'can'   => 'transaction.sale-kitchen.view',
+                ],
 
-                        [
-                            'text' => 'Jual Bahan Baku Mitra',
-                            'icon' => 'fas fa-handshake',
-                            'route' => 'transaction.sale-materials-partner.index',
-                            'can'   => 'transaction.sale-partner.view',
-                        ],
-                    ]
+                [
+                    'text' => 'Jual Bahan Baku Mitra',
+                    'icon' => 'fas fa-handshake',
+                    'route' => 'transaction.sale-materials-partner.index',
+                    'can'   => 'transaction.sale-partner.view',
                 ],
 
                 [
