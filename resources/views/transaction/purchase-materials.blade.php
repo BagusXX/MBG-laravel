@@ -20,7 +20,7 @@
                         <th>Tanggal Beli</th>
                         <th>Supplier</th>
                         <th>Total Harga</th>
-                        <th width="220">Aksi</th>
+                        <th width="230">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -32,6 +32,7 @@
                             <td>{{ $purchase->supplier->nama }}</td>
                             <td>Rp {{ number_format($purchase->total, 0, ',', '.') }}</td>
                             <td>
+
                                 <button type="button" class="btn btn-primary btn-sm btn-detail" data-toggle="modal"
                                     data-id="{{ $purchase->id }}" data-target="#modalDetailPurchase">
                                     Detail
@@ -40,16 +41,21 @@
                                     data-toggle="modal" data-target="#modalEditPurchaseMaterials">
                                     Edit
                                 </button> --}}
-                                <button type="button" class="btn btn-sm btn-warning btnEditPurchaseMaterials"
-                                    data-toggle="modal" data-target="#modalPrintPurchaseMaterials">
+                                {{-- Kode BARU --}}
+                                {{-- <a href="{{ route('transaction.purchase-materials.invoice', $purchase->id) }}"
+                                    target="_blank" class="btn btn-sm btn-warning">
                                     <i class="fas fa-print mr-2"></i>Cetak Invoice
+                                </a> --}}
+
+
+                                <button type="button" class="btn btn-danger btn-sm"
+                                    data-delete-target="#modalDeletePurchaseMaterials"
+                                    data-action="{{ route('transaction.purchase-materials.destroy', $purchase->id) }}"
+                                    data-form-id="formDeletePurchaseMaterials">
+                                    Hapus
                                 </button>
-                                {{-- <x-button-delete
-                                idTarget="#modalDeletePurchaseMaterials"
-                                formId="formDeletePurchaseMaterials"
-                                action="#"
-                                text="Hapus"
-                            /> --}}
+
+
                             </td>
                         </tr>
                     @endforeach
@@ -148,9 +154,7 @@
 
     {{-- MODAL DETAIL PURCHASE MATERIALS --}}
     <x-modal-detail id="modalDetailPurchase" size="modal-lg" title="Pemesanan Bahan Baku">
-        <div>
 
-        </div>
         <div>
             <p><strong>Kode: </strong><span id="detail-kode"></span></p>
             <p><strong>Tanggal Beli: </strong><span id="detail-tanggal"></span></p>
@@ -172,6 +176,10 @@
                 </tbody>
             </table>
         </div>
+        <div class="text-center mb-3">
+            <a href="#" id="btn-print-invoice" target="_blank" class="btn btn-warning">
+                <i class="fas fa-print mr-1"></i>Cetak Invoice
+            </a>
         </div>
     </x-modal-detail>
 
@@ -235,60 +243,92 @@
 
                 if (satuanSelect && satuanId) {
                     satuanSelect.innerHTML = `
-                <option value="${satuanId}" selected>${satuanNama}</option>
-            `;
+                    <option value="${satuanId}" selected>${satuanNama}</option>
+                `;
                 }
             }
         });
 
         document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('btn-detail')) {
-                const purchaseId = e.target.dataset.id;
+            // Pastikan yang diklik adalah tombol detail
+            if (e.target.classList.contains('btn-detail') || e.target.closest('.btn-detail')) {
+                const btn = e.target.classList.contains('btn-detail') ? e.target : e.target.closest('.btn-detail');
+                const purchaseId = btn.dataset.id;
 
+                // 1. Atur Link Cetak Invoice di dalam Modal
+                const printBtn = document.querySelector('#modalDetailPurchase #btn-print-invoice');
+                if (printBtn) {
+                    let url = "{{ route('transaction.purchase-materials.invoice', ':id') }}";
+                    printBtn.href = url.replace(':id', purchaseId);
+                    printBtn.setAttribute('download', '');
+                }
+
+                // 2. Ambil Data Detail via Fetch
                 fetch(`/dashboard/transaksi/pembelian-bahan-baku/${purchaseId}`)
-                    .then(res => res.json())
+                    .then(res => {
+                        if (!res.ok) throw new Error('Network response was not ok');
+                        return res.json();
+                    })
                     .then(data => {
+                        // Isi Elemen Header Modal
+                        document.getElementById('detail-kode').innerText = data.kode || '-';
+                        document.getElementById('detail-tanggal').innerText = data.created_at ?
+                            new Date(data.created_at).toLocaleDateString('id-ID') : '-';
+                        document.getElementById('detail-supplier').innerText = data.supplier ? data.supplier
+                            .nama : '-';
 
-                        console.log("Isi data dari server:", data);
-                        console.log("Cek field total:", data.total);
-                        // Header
-                        document.getElementById('detail-kode').innerText = data.kode;
-                        document.getElementById('detail-tanggal').innerText =
-                            new Date(data.created_at).toLocaleDateString('id-ID');
-                        document.getElementById('detail-supplier').innerText =
-                            data.supplier.nama;
-
-                        // Items
-                        const tbody = document.getElementById('detail-items');
-                        tbody.innerHTML = '';
-
-                        data.items.forEach(item => {
-                            tbody.innerHTML += `
-                        <tr>
-                            <td>${item.bahan_baku.nama}</td>
-                            <td>${item.jumlah}</td>
-                            <td>${item.bahan_baku.unit.satuan}</td>
-                            <td>Rp ${Number(item.harga).toLocaleString('id-ID')}</td>
-                            <td>RP ${Number(item.subtotal).toLocaleString('id-ID')}</td>
-                            <td>RP ${Number(data.total).toLocaleString('id-ID')}</td>
-                        </tr>
-                    `;
-                        });
                         document.getElementById('detail-total').innerText = new Intl.NumberFormat('id-ID', {
                             style: 'currency',
                             currency: 'IDR',
                             minimumFractionDigits: 0
-                        }).format(data.total);
+                        }).format(data.total || 0);
+
+                        // Isi Tabel Items
+                        const tbody = document.getElementById('detail-items');
+                        tbody.innerHTML = '';
+
+                        if (data.items && data.items.length > 0) {
+                            data.items.forEach(item => {
+                                tbody.innerHTML += `
+                                        <tr>
+                                            <td>${item.bahan_baku ? item.bahan_baku.nama : '-'}</td>
+                                            <td>${item.jumlah}</td>
+                                            <td>${item.bahan_baku && item.bahan_baku.unit ? item.bahan_baku.unit.satuan : '-'}</td>
+                                            <td>Rp ${Number(item.harga).toLocaleString('id-ID')}</td>
+                                            <td>Rp ${Number(item.subtotal).toLocaleString('id-ID')}</td>
+                                        </tr>
+                                    `;
+                            });
+                        } else {
+                            tbody.innerHTML =
+                                '<tr><td colspan="5" class="text-center">Tidak ada data item</td></tr>';
+                        }
                     })
                     .catch(err => {
-                        console.error(err);
-                        alert('Gagal mengambil data detail');
+                        console.error('Error:', err);
+                        alert('Gagal mengambil data detail: ' + err.message);
                     });
             }
+        });
 
+        document.addEventListener('click', function(e) {
+            // Cari apakah yang diklik adalah tombol delete (atau elemen di dalamnya)
+            const deleteBtn = e.target.closest('[data-target="#modalDeletePurchaseMaterials"]');
 
-            document.getElementById('btn-print-invoice').href =
-                `/dashboard/transaksi/pembelian-bahan-baku/${purchaseId}/invoice`;
+            if (deleteBtn) {
+                // Ambil URL action dari atribut 'data-action' atau 'action' tombol yang diklik
+                // Tergantung bagaimana komponen x-button-delete Anda merendernya
+                const actionUrl = deleteBtn.getAttribute('data-action') || deleteBtn.closest('form')?.getAttribute(
+                    'action');
+
+                if (actionUrl) {
+                    // Set action pada form yang ada di dalam modal delete
+                    const deleteForm = document.getElementById('formDeletePurchaseMaterials');
+                    if (deleteForm) {
+                        deleteForm.setAttribute('action', actionUrl);
+                    }
+                }
+            }
         });
     </script>
 @endpush

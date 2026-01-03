@@ -289,7 +289,8 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/', 'index')->name('index');
             Route::post('/', 'store')->name('store');
             Route::get('/{id}', 'show')->name('show');
-            Route::get('/{id}/invoice', 'invoice')->name('invoice');
+            Route::get('/{id}/invoice', 'printInvoice')->name('invoice');
+            Route::delete('/{id}', 'destroy')->name('destroy');
         });
 
 

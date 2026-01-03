@@ -11,6 +11,7 @@ use App\Models\PurchaseItem;
 use App\Models\Supplier;
 use App\Models\User;
 use App\Models\Unit;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class PurchaseBahanBakuController extends Controller
@@ -100,16 +101,32 @@ class PurchaseBahanBakuController extends Controller
         return response()->json($purchase);
     }
 
-    public function invoice($id)
+    public function printInvoice($id)
     {
         $purchase = PurchaseBahanBaku::with([
             'supplier',
-            'items.bahanBaku.unit'
+            'items.bahanBaku.unit',
+            'user'
         ])->findOrFail($id);
+        $pdf = Pdf::loadView('transaction.invoice-purchase-material', compact('purchase'));
+        return $pdf->download('Invoice-' . $purchase->kode . '.pdf');
+    }
 
-        return view(
-            'transactions.purchase_materials.invoice',
-            compact('purchase')
-        );
+    public function destroy($id)
+    {
+        DB::transaction(function () use ($id) {
+
+            $purchase = PurchaseBahanBaku::findOrFail($id);
+
+            // hapus detail dulu
+            PurchaseItem::where('purchase_bahan_bakus_id', $purchase->id)->delete();
+
+            // hapus header
+            $purchase->delete();
+        });
+
+        return redirect()
+            ->back()
+            ->with('success', 'Data pembelian berhasil dihapus');
     }
 }
