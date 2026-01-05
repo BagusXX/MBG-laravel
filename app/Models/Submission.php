@@ -15,7 +15,6 @@ class Submission extends Model
     protected $fillable = [
         'kode',
         'tanggal',
-        'kitchen_kode',
         'kitchen_id',
         'menu_id',
         'total_harga',

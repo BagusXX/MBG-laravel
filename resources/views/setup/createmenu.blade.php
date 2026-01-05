@@ -310,7 +310,7 @@
                         .catch(err => {
                             console.error(err);
                             menuSelect.innerHTML =
-                            '<option disabled>Gagal memuat menu</option>';
+                                '<option disabled>Gagal memuat menu</option>';
                         });
                 });
             });
@@ -328,11 +328,13 @@
 
                     const modal = document.getElementById('modalEditRecipe');
                     const form = modal.querySelector('form'); <<
-                    << << < HEAD
+                    <<
+                    << < HEAD
 
                     // set kitchen
                     form.querySelector('.kitchen-select').value = kitchenId; ===
-                    === =
+                    ===
+                    =
                     const wrapper = document.getElementById('bahan-wrapper-edit');
 
                     // Set Action URL

@@ -203,12 +203,24 @@ class RecipeController extends Controller
     }
 
 
-    public function getMenusByKitchen(Kitchen $kitchen)
-    {
-        return response()->json(
-            $kitchen->menus()->select('id', 'nama')->get()
-        );
-    }
+ public function getMenusByKitchen($kitchenId)
+{
+    $user = auth()->user();
+
+    // pastikan dapur milik user
+    $kitchen = Kitchen::where('id', $kitchenId)
+        ->whereIn('kode', $user->kitchens()->pluck('kode'))
+        ->firstOrFail();
+
+    return response()->json(
+        Menu::where('kitchen_id', $kitchen->id)
+            ->select('id', 'nama')
+            ->get()
+    );
+}
+
+
+
 
     public function getBahanDetail($id)
     {

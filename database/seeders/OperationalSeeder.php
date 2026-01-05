@@ -18,8 +18,6 @@ class OperationalSeeder extends Seeder
             [
                 'kode' => 'BOP001',
                 'nama' => 'Listrik',
-                'harga' => 1.000000,
-                'tempat_beli' => 'Toko A',
                 'kitchen_kode' => 'DPR11',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -27,8 +25,6 @@ class OperationalSeeder extends Seeder
             [
                 'kode' => 'BOP002',
                 'nama' => 'Air',
-                'harga' => 900.000,
-                'tempat_beli' => 'Toko B',
                 'kitchen_kode' => 'DPR12',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -36,8 +32,6 @@ class OperationalSeeder extends Seeder
             [
                 'kode' => 'BOP003',
                 'nama' => 'Gas',
-                'harga' => 565.000,
-                'tempat_beli' => 'Toko C',
                 'kitchen_kode' => 'DPR13',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -45,8 +39,6 @@ class OperationalSeeder extends Seeder
             [
                 'kode' => 'BOP004',
                 'nama' => 'Internet',
-                'harga' => 2.000000,
-                'tempat_beli' => 'Toko D',
                 'kitchen_kode' => 'DPR11',
                 'created_at' => now(),
                 'updated_at' => now(),
