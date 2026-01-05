@@ -22,7 +22,7 @@ class SubmissionsSeeder extends Seeder
                 "menu_id" => 1,
                 "porsi" => 10,
                 "total_harga" => 150000,
-                "status" => 'diterima',
+                "status" => 'selesai',
                 "created_at" => now(),
                 "updated_at" => now()
             ],

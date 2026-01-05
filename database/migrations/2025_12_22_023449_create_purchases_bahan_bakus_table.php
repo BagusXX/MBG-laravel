@@ -11,16 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('purchase_bahan_bakus', function (Blueprint $table) {
-            $table->id()->autoIncrement(true);
-            $table->string('kode')->unique();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('supplier_id')->constrained('suppliers')->onDelete('cascade');
+        if (!Schema::hasTable('purchase_bahan_bakus')) {
+            Schema::create('purchase_bahan_bakus', function (Blueprint $table) {
+                $table->id()->autoIncrement(true);
+                $table->string('kode')->unique();
+                $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+                $table->foreignId('supplier_id')->constrained('suppliers')->onDelete('cascade');
 
-            $table->decimal('total', 15, 2)->default(0);
-            $table->timestamps();
-            $table->softDeletes();
-        });
+                $table->decimal('total', 15, 2)->default(0);
+                $table->timestamps();
+                $table->softDeletes();
+            });
+        }
     }
 
     /**

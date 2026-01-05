@@ -209,6 +209,10 @@ Route::middleware(['auth'])->group(function () {
                 ->middleware('permission:transaction.submission.view')
                 ->name('menu-by-kitchen');
 
+            Route::get('/{submission}/details', 'getSubmissionDetails')
+                ->middleware('permission:transaction.submission.view')
+                ->name('details');
+
             // ✅ DETAIL
             Route::get('/{submission}/detail', 'show')
                 ->middleware('permission:transaction.submission.show')
@@ -217,6 +221,18 @@ Route::middleware(['auth'])->group(function () {
             Route::put('/{submission}', 'update')
                 ->middleware('permission:transaction.submission.update')
                 ->name('update');
+
+            Route::patch('/{submission}/to-process', 'updateToProcess')
+                ->middleware('permission:transaction.submission.update')
+                ->name('to-process');
+
+            Route::patch('/{submission}/to-complete', 'updateToComplete')
+                ->middleware('permission:transaction.submission.update')
+                ->name('to-complete');
+
+            Route::patch('/{submission}/update-harga', 'updateHarga')
+                ->middleware('permission:transaction.submission.update')
+                ->name('update-harga');
         });
 
 
@@ -231,6 +247,10 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/bahan-by-kitchen/{kitchen}', 'getBahanByKitchen')
                 ->middleware('permission:transaction.sale-kitchen.view')
                 ->name('bahan-by-kitchen');
+
+            Route::get('/submission/{submission}/details', 'getSubmissionDetails')
+                ->middleware('permission:transaction.sale-kitchen.view')
+                ->name('submission.details');
         });
 
     Route::prefix('dashboard/transaksi/jual-bahan-baku-mitra')

@@ -144,6 +144,8 @@ class SubmissionController extends Controller
                     'recipe_bahan_baku_id' => $recipe->id,
                     'qty_digunakan' => $qty,
                     'harga_satuan_saat_itu' => $harga,
+                    'harga_dapur' => $harga,
+                    'harga_mitra' => $harga,
                     'subtotal_harga' => $subtotal,
                 ]);
 
@@ -186,63 +188,95 @@ class SubmissionController extends Controller
 
     public function update(Request $request, Submission $submission)
     {
-        // ❌ kunci jika sudah diterima
-        if ($submission->status === 'diterima') {
-            abort(403, 'Submission yang sudah diterima tidak dapat diubah');
+        // ❌ kunci jika sudah selesai
+        if ($submission->status === 'selesai') {
+            abort(403, 'Submission yang sudah selesai tidak dapat diubah');
         }
 
-        // ✅ CEK AKSES DI LUAR TRANSACTION
-        $userKitchenIds = Kitchen::whereIn(
+        $user = auth()->user();
+        $allowedKitchenIds = Kitchen::whereIn(
             'kode',
-            auth()->user()->kitchens()->pluck('kode')
+            $user->kitchens()->pluck('kode')
         )->pluck('id');
 
-        if (!$userKitchenIds->contains($submission->kitchen_id)) {
+        // ✅ CEK AKSES
+        if (!$allowedKitchenIds->contains($submission->kitchen_id)) {
             abort(403, 'Anda tidak memiliki akses ke dapur ini');
         }
 
-        $request->validate([
-            'status' => 'required|in:diajukan,diproses,diterima,ditolak',
-        ]);
+        // Validasi: jika ada kitchen_id, menu_id, porsi berarti update data lengkap
+        // Jika hanya ada status, berarti update status saja
+        if ($request->has('kitchen_id') && $request->has('menu_id') && $request->has('porsi')) {
+            // Update data lengkap (dari modal detail)
+            $request->validate([
+                'tanggal' => 'required|date',
+                'kitchen_id' => [
+                    'required',
+                    Rule::in($allowedKitchenIds),
+                ],
+                'menu_id' => [
+                    'required',
+                    Rule::exists('menus', 'id')->where('kitchen_id', $request->kitchen_id),
+                ],
+                'porsi' => 'required|integer|min:1',
+            ]);
 
-        DB::transaction(function () use ($request, $submission) {
+            DB::transaction(function () use ($request, $submission) {
+                // Ambil menu baru
+                $menu = Menu::with('recipes.bahan_baku')
+                    ->where('id', $request->menu_id)
+                    ->where('kitchen_id', $request->kitchen_id)
+                    ->firstOrFail();
+
+                // Update submission header
+                $submission->update([
+                    'tanggal' => $request->tanggal,
+                    'kitchen_id' => $request->kitchen_id,
+                    'menu_id' => $menu->id,
+                    'porsi' => $request->porsi,
+                ]);
+
+                // Hapus detail lama
+                $submission->details()->delete();
+
+                $totalHarga = 0;
+
+                // Buat detail baru
+                foreach ($menu->recipes as $recipe) {
+                    $qty = $recipe->jumlah * $request->porsi;
+                    $harga = $recipe->bahan_baku->harga;
+                    $subtotal = $qty * $harga;
+
+                    SubmissionDetails::create([
+                        'submission_id' => $submission->id,
+                        'recipe_bahan_baku_id' => $recipe->id,
+                        'qty_digunakan' => $qty,
+                        'harga_satuan_saat_itu' => $harga,
+                        'subtotal_harga' => $subtotal,
+                    ]);
+
+                    $totalHarga += $subtotal;
+                }
+
+                // Update total harga
+                $submission->update([
+                    'total_harga' => $totalHarga
+                ]);
+            });
+
+            return back()->with('success', 'Data permintaan berhasil diperbarui');
+        } else {
+            // Update status saja (untuk kompatibilitas dengan kode lama)
+            $request->validate([
+                'status' => 'required|in:diajukan,diproses,selesai,ditolak',
+            ]);
 
             $submission->update([
                 'status' => $request->status,
             ]);
 
-            // hapus detail lama
-            $submission->details()->delete();
-
-            $totalHarga = 0;
-
-            $recipes = RecipeBahanBaku::with('bahan_baku')
-                ->where('menu_id', $submission->menu_id)
-                ->get();
-
-            foreach ($recipes as $recipe) {
-
-                $qty = $recipe->jumlah * $request->porsi;
-                $harga = $recipe->bahan_baku->harga;
-                $subtotal = $qty * $harga;
-
-                SubmissionDetails::create([
-                    'submission_id' => $submission->id,
-                    'recipe_bahan_baku_id' => $recipe->id,
-                    'qty_digunakan' => $qty,
-                    'harga_satuan_saat_itu' => $harga,
-                    'subtotal_harga' => $subtotal,
-                ]);
-
-                $totalHarga += $subtotal;
-            }
-
-            $submission->update([
-                'total_harga' => $totalHarga
-            ]);
-        });
-
-        return back()->with('success', 'Submission berhasil diperbarui');
+            return back()->with('success', 'Status berhasil diperbarui');
+        }
     }
 
 
@@ -274,6 +308,56 @@ class SubmissionController extends Controller
 
 
 
+    public function updateToProcess(Submission $submission)
+    {
+        // ❌ kunci jika sudah selesai
+        if ($submission->status === 'selesai') {
+            abort(403, 'Submission yang sudah selesai tidak dapat diubah');
+        }
+
+        // ✅ CEK AKSES
+        $userKitchenIds = Kitchen::whereIn(
+            'kode',
+            auth()->user()->kitchens()->pluck('kode')
+        )->pluck('id');
+
+        if (!$userKitchenIds->contains($submission->kitchen_id)) {
+            abort(403, 'Anda tidak memiliki akses ke dapur ini');
+        }
+
+        // Update status ke diproses
+        $submission->update([
+            'status' => 'diproses',
+        ]);
+
+        return back()->with('success', 'Status berhasil diubah menjadi diproses');
+    }
+
+    public function updateToComplete(Submission $submission)
+    {
+        // ❌ hanya bisa jika status = diproses
+        if ($submission->status !== 'diproses') {
+            abort(403, 'Hanya submission yang sedang diproses yang dapat diselesaikan');
+        }
+
+        // ✅ CEK AKSES
+        $userKitchenIds = Kitchen::whereIn(
+            'kode',
+            auth()->user()->kitchens()->pluck('kode')
+        )->pluck('id');
+
+        if (!$userKitchenIds->contains($submission->kitchen_id)) {
+            abort(403, 'Anda tidak memiliki akses ke dapur ini');
+        }
+
+        // Update status ke selesai
+        $submission->update([
+            'status' => 'selesai',
+        ]);
+
+        return back()->with('success', 'Status berhasil diubah menjadi selesai');
+    }
+
     public function getMenuByKitchen(Kitchen $kitchen)
     {
         if (request()->routeIs('transaction.submission.index')) {
@@ -285,6 +369,97 @@ class SubmissionController extends Controller
         return response()->json(
             $kitchen->menus()->select('id', 'nama')->get()
         );
+    }
+
+    public function getSubmissionDetails(Submission $submission)
+    {
+        // ✅ CEK AKSES
+        $userKitchenIds = Kitchen::whereIn(
+            'kode',
+            auth()->user()->kitchens()->pluck('kode')
+        )->pluck('id');
+
+        if (!$userKitchenIds->contains($submission->kitchen_id)) {
+            abort(403, 'Anda tidak memiliki akses ke data ini');
+        }
+
+        $details = $submission->details()->with([
+            'recipe.bahan_baku.unit'
+        ])->get();
+
+        return response()->json($details->map(function ($detail) {
+            $hargaDapur = $detail->harga_dapur ?? $detail->harga_satuan_saat_itu ?? 0;
+            $hargaMitra = $detail->harga_mitra ?? $detail->harga_satuan_saat_itu ?? 0;
+            
+            return [
+                'id' => $detail->id,
+                'bahan_baku_nama' => $detail->recipe?->bahan_baku?->nama ?? '-',
+                'qty_digunakan' => $detail->qty_digunakan,
+                'satuan' => $detail->recipe?->bahan_baku?->unit?->satuan ?? '-',
+                'harga_dapur' => $hargaDapur,
+                'harga_mitra' => $hargaMitra,
+                'subtotal_dapur' => $hargaDapur * $detail->qty_digunakan,
+                'subtotal_mitra' => $hargaMitra * $detail->qty_digunakan,
+            ];
+        }));
+    }
+
+    public function updateHarga(Request $request, Submission $submission)
+    {
+        // ❌ kunci jika sudah selesai
+        if ($submission->status === 'selesai') {
+            abort(403, 'Submission yang sudah selesai tidak dapat diubah');
+        }
+
+        // ✅ CEK AKSES
+        $userKitchenIds = Kitchen::whereIn(
+            'kode',
+            auth()->user()->kitchens()->pluck('kode')
+        )->pluck('id');
+
+        if (!$userKitchenIds->contains($submission->kitchen_id)) {
+            abort(403, 'Anda tidak memiliki akses ke data ini');
+        }
+
+        $request->validate([
+            'details' => 'required|array',
+            'details.*.id' => 'required|exists:submission_details,id',
+            'details.*.harga_dapur' => 'required|numeric|min:0',
+            'details.*.harga_mitra' => 'required|numeric|min:0',
+        ]);
+
+        DB::transaction(function () use ($request, $submission) {
+            $totalHarga = 0;
+
+            foreach ($request->details as $detailData) {
+                $detail = SubmissionDetails::findOrFail($detailData['id']);
+                
+                // Pastikan detail milik submission ini
+                if ($detail->submission_id !== $submission->id) {
+                    continue;
+                }
+
+                $hargaDapur = $detailData['harga_dapur'];
+                $hargaMitra = $detailData['harga_mitra'];
+                $subtotalDapur = $hargaDapur * $detail->qty_digunakan;
+                $subtotalMitra = $hargaMitra * $detail->qty_digunakan;
+
+                $detail->update([
+                    'harga_dapur' => $hargaDapur,
+                    'harga_mitra' => $hargaMitra,
+                ]);
+
+                // Gunakan harga dapur untuk total (atau bisa disesuaikan)
+                $totalHarga += $subtotalDapur;
+            }
+
+            // Update total harga submission
+            $submission->update([
+                'total_harga' => $totalHarga
+            ]);
+        });
+
+        return back()->with('success', 'Harga berhasil diperbarui');
     }
 
 
