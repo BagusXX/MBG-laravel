@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\submissionOperational;
 use Illuminate\Http\Request;
 
 class OperationalApprovalController extends Controller
@@ -12,6 +13,12 @@ class OperationalApprovalController extends Controller
     public function index()
     {
         //
+        $submissions = submissionOperational::with(['details.barang', 'kitchen'])
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    return view('approval.index', compact('submissions'));
+        
     }
 
     /**
@@ -36,6 +43,12 @@ class OperationalApprovalController extends Controller
     public function show(string $id)
     {
         //
+        $submission = submissionOperational::with([
+        'details.barang',
+        'kitchen'
+    ])->findOrFail($id);
+
+    return view('approval.show', compact('submission'));
     }
 
     /**
@@ -61,4 +74,24 @@ class OperationalApprovalController extends Controller
     {
         //
     }
+
+    public function updateStatus(Request $request, $id)
+{
+    $request->validate([
+        'status' => 'required|in:diterima,ditolak'
+    ]);
+
+    $submission = submissionOperational::findOrFail($id);
+
+    if ($submission->status === 'diterima') {
+        return back()->with('error', 'Status tidak bisa diubah');
+    }
+
+    $submission->update([
+        'status' => $request->status
+    ]);
+
+    return back()->with('success', 'Status diperbarui');
+}
+
 }

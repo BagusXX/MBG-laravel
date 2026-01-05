@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('kitchen_id')->constrained('kitchens')->cascadeOnDelete();
             $table->foreignId('operasional_id')->constrained('operationals')->cascadeOnDelete();
             $table->decimal('total_harga', 15, 2)->default(0);
-            $table->enum('status',['diajukan','diterima','ditolak']);
+            $table->enum('status',['diajukan','diterima','ditolak'])->default('diajukan');
             $table->timestamps();
             $table->index(['kitchen_id', 'status']);
         });
