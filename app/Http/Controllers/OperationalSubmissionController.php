@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\operationals;
 use App\Models\submissionOperational;
 use App\Models\submissionOperationalDetails;
 use Illuminate\Http\Request;
@@ -15,15 +16,23 @@ class OperationalSubmissionController extends Controller
      */
     public function index()
     {
-        $userKitchens = Auth::user()->kitchens()->pluck('nama','kode');
+        $user = Auth::user();
 
-        $submissions = submissionOperational::with(['kitchen','details.barang'])
-            ->whereIn('kitchen_id', $userKitchens)
-            ->orderBy('created_at','desc')
+        // 1. Ambil List Kitchen User (Untuk Dropdown & Query)
+        // Pastikan relasi di model User bernama 'kitchens'
+        $kitchens = $user->kitchens;
+        $kitchenCodes = $kitchens->pluck('kode'); // Asumsi 'kode' adalah PK/FK
+
+        // 2. Ambil Master Barang (Untuk Dropdown Barang)
+        $masterBarang = operationals::all();
+
+        // 3. Ambil Data Submission
+        $submissions = submissionOperational::with(['kitchen', 'details.barang'])
+            ->whereIn('kitchen_kode', $kitchenCodes)
+            ->orderBy('created_at', 'desc')
             ->get();
-        
-        
-        return view('transaction.operational-submission',compact('submissions'));
+
+        return view('transaction.operational-submission', compact('submissions', 'kitchens', 'masterBarang'));
     }
 
     /**
@@ -40,54 +49,51 @@ class OperationalSubmissionController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'kitchen_id' => 'required',
-            'items' => 'required|array'
+            'kitchen_kode' => 'required|exists:kitchens,kode',
+            'items' => 'required|array',
+            'items.*.barang_id' => 'required|exists:operationals,id',
+            'items.*.qty' => 'required|numeric|min:1',
+            'items.*.harga_satuan' => 'required|numeric',
         ]);
 
-        DB::transaction(function () use ($request){
-           $prefix = 'POPR';
+        return DB::transaction(function () use ($request) {
+            $prefix = 'POPR';
 
-           $lastSubmission = submissionOperational::where('kode', 'like', $prefix.'%')
-                ->orderBy('id','desc')
+            // Menggunakan lockForUpdate untuk mencegah duplicate nomor urut di traffic tinggi
+            $lastSubmission = SubmissionOperational::where('kode', 'like', $prefix . '%')
+                ->orderBy('id', 'desc')
                 ->lockForUpdate()
                 ->first();
 
-            if ($lastSubmission) {
-                $lastNumber = (int) substr($lastSubmission->kode, strlen($prefix));
-                $nextNumber = $lastNumber + 1;
-            } else {
-                $nextNumber =  1;
-            }
-
+            $nextNumber = $lastSubmission ? ((int) substr($lastSubmission->kode, 4)) + 1 : 1;
             $newKode = $prefix . sprintf("%04d", $nextNumber);
 
-            $submission = submissionOperational::create([
+            $submission = SubmissionOperational::create([
                 'kode' => $newKode,
-                'kitchen_id' => $request->kitchen_id,
+                'kitchen_kode' => $request->kitchen_kode,
                 'status' => 'diajukan',
                 'total_harga' => 0
             ]);
 
             $total = 0;
-
-            foreach ($request->items as $item){
+            foreach ($request->items as $item) {
                 $subtotal = $item['qty'] * $item['harga_satuan'];
 
                 submissionOperationalDetails::create([
                     'operational_submission_id' => $submission->id,
+                    'operational_id' => $item['barang_id'], // Di migrasi ada dua field ini
                     'barang_id' => $item['barang_id'],
                     'qty' => $item['qty'],
                     'harga_satuan' => $item['harga_satuan'],
-                    'subtotal' => $subtotal
+                    'subtotal' => $subtotal,
                 ]);
-
                 $total += $subtotal;
             }
 
             $submission->update(['total_harga' => $total]);
-            
+
+            return redirect()->back()->with('success', "Pengajuan $newKode berhasil dibuat");
         });
-        return redirect()->back()->with('success', 'Pengajuan berhasil dibuat');
     }
 
     /**
@@ -97,17 +103,17 @@ class OperationalSubmissionController extends Controller
     {
         //
 
-         $user = auth()->user();
-    $kitchens = $user->kitchens()->pluck('kode');
+        $user = auth()->user();
+        $kitchens = $user->kitchens()->pluck('kode');
 
-    $submission = submissionOperational::with([
+        $submission = submissionOperational::with([
             'details.barang',
             'kitchen'
         ])
-        ->whereIn('kitchen_id', $kitchens)
-        ->findOrFail($id);
+            ->whereIn('kitchen_kode', $kitchens)
+            ->findOrFail($id);
 
-    return view('submission.show', compact('submission'));
+        return view('submission.show', compact('submission'));
     }
 
     /**
@@ -134,13 +140,13 @@ class OperationalSubmissionController extends Controller
         //
         $submission = submissionOperational::findOrFail($id);
 
-    if ($submission->status === 'diterima') {
-        return back()->with('error', 'Pengajuan sudah diterima');
-    }
+        if ($submission->status === 'diterima') {
+            return back()->with('error', 'Pengajuan sudah diterima');
+        }
 
-    $submission->details()->delete();
-    $submission->delete();
+        $submission->details()->delete();
+        $submission->delete();
 
-    return back()->with('success', 'Pengajuan dihapus');
+        return back()->with('success', 'Pengajuan dihapus');
     }
 }

@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('submission_operational_details', function (Blueprint $table) {
             $table->id();
             $table->foreignId('operational_submission_id')->constrained('submission_operationals')->cascadeOnDelete();
+            $table->foreignId('operational_id')->constrained('operationals')->cascadeOnDelete();
             $table->foreignId('barang_id')->constrained('operationals')->cascadeOnDelete();
             $table->decimal('qty', 10, 2);
             $table->decimal('harga_satuan', 15, 2);
