@@ -203,16 +203,23 @@ class RecipeController extends Controller
     }
 
 
-    public function getMenusByKitchen(Kitchen $kitchen)
+ public function getMenusByKitchen($kitchenId)
 {
-    $menuIds = RecipeBahanBaku::where('kitchen_id', $kitchen->id)
-        ->pluck('menu_id')
-        ->unique();
+    $user = auth()->user();
+
+    // pastikan dapur milik user
+    $kitchen = Kitchen::where('id', $kitchenId)
+        ->whereIn('kode', $user->kitchens()->pluck('kode'))
+        ->firstOrFail();
 
     return response()->json(
-        Menu::select('id', 'nama')->get()
+        Menu::where('kitchen_id', $kitchen->id)
+            ->select('id', 'nama')
+            ->get()
     );
 }
+
+
 
 
     public function getBahanDetail($id)
