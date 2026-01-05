@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('kode');
             $table->string('nama');
-            $table->double('harga');
+            $table->double('harga')->nullable();
             $table->string('tempat_beli');
             $table->string('kitchen_kode');
             $table->timestamps();
