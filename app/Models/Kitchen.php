@@ -48,4 +48,8 @@ class Kitchen extends Model
     public function operational(){
         return $this->hasMany(operationals::class);
     }
+
+    public function operationaldetails(){
+        return $this->hasMany(submissionOperational::class);
+    }
 }

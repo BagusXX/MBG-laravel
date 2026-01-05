@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('kode');
             $table->string('nama');
             $table->string('kitchen_kode');
+            $table->decimal('harga_default', 15, 2)->default(0);
             $table->timestamps();
             $table->softDeletes();
 
