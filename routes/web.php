@@ -249,13 +249,44 @@ Route::middleware(['auth'])->group(function () {
         ->name('transaction.operational-submission.')
         ->controller(OperationalSubmissionController::class)
         ->group(function () {
-            Route::get('/', 'index')->middleware('permission:transaction.operational-submission.view')->name('index');
+
+            Route::get('/', 'index')
+                ->middleware('permission:transaction.operational-submission.view')
+                ->name('index');
+
+            Route::post('/', 'store')
+                ->middleware('permission:transaction.operational-submission.create')
+                ->name('store');
+
+            Route::put('/{id}', 'update')
+                ->middleware('permission:transaction.operational-submission.update')
+                ->name('update');
+
+            Route::delete('/{id}', 'destroy')
+                ->middleware('permission:transaction.operational-submission.delete')
+                ->name('destroy');
         });
-    Route::prefix('dashboard/transaksi/daftar-biaya-operasional')
+
+    Route::prefix('dashboard/transaksi/daftar-operasional')
         ->name('transaction.operational-approval.')
         ->controller(OperationalApprovalController::class)
         ->group(function () {
-            Route::get('/', 'index')->middleware('permission:transaction.operational-approval.view')->name('index');
+
+            Route::get('/', 'index')
+                ->middleware('permission:transaction.operational-approval.view')
+                ->name('index');
+
+            Route::post('/', 'store')
+                ->middleware('permission:transaction.operational-approval.create')
+                ->name('store');
+
+            Route::put('/{id}', 'updateStatus')
+                ->middleware('permission:transaction.operational-approval.update')
+                ->name('update');
+
+            Route::delete('/{id}', 'destroy')
+                ->middleware('permission:transaction.operational-approval.delete')
+                ->name('destroy');
         });
 
     Route::prefix('dashboard/transaksi')

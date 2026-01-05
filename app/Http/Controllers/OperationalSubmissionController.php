@@ -11,7 +11,7 @@ class OperationalSubmissionController extends Controller
      */
     public function index()
     {
-        //
+        return view('transaction.operational-submission');
     }
 
     /**
