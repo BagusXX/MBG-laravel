@@ -93,9 +93,9 @@
                                     <td>
                                         <span
                                             class="badge badge-{{
-                        $item->status === 'diterima' ? 'success' :
-                        ($item->status === 'ditolak' ? 'danger' :
-                            ($item->status === 'diproses' ? 'info' : 'warning'))
+                                            $item->status === 'diterima' ? 'success' :
+                                            ($item->status === 'ditolak' ? 'danger' :
+                                                ($item->status === 'diproses' ? 'info' : 'warning'))
                                                                                                                                                                         }}">
                                             {{ strtoupper($item->status) }}
                                         </span>
@@ -126,16 +126,16 @@
 
                                             {{-- HAPUS (KECUALI DIPROSES) --}}
                                             @if(
-    $mode === 'permintaan' &&
-    auth()->user()->kitchens->contains('id', $item->kitchen_id) &&
-    $item->status !== 'diproses'
-)
-    <x-button-delete
-        idTarget="#modalDeleteSubmission"
-        formId="formDeleteSubmission"
-        action="{{ route('transaction.submission.destroy', $item->id) }}"
-        text="Hapus" />
-@endif
+                                                $mode === 'permintaan' &&
+                                                auth()->user()->kitchens->contains('id', $item->kitchen_id) &&
+                                                $item->status !== 'diproses'
+                                            )
+                                                <x-button-delete
+                                                    idTarget="#modalDeleteSubmission"
+                                                    formId="formDeleteSubmission"
+                                                    action="{{ route('transaction.submission.destroy', $item->id) }}"
+                                                    text="Hapus" />
+                                            @endif
 
 
                                         @endif
