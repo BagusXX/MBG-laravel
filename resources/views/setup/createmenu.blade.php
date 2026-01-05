@@ -60,14 +60,16 @@
                                 {{-- Cell Harga Dihapus --}}
                                 <td>
                                     {{-- Tombol Detail (Via AJAX) --}}
-                                    <button type="button" class="btn btn-primary btn-sm btnDetailRecipe" data-menu="{{ $menu->id }}"
-                                        data-kitchen="{{ $kitchenId }}" data-toggle="modal" data-target="#modalDetailRecipe">
+                                    <button type="button" class="btn btn-primary btn-sm btnDetailRecipe"
+                                        data-menu="{{ $menu->id }}" data-kitchen="{{ $kitchenId }}"
+                                        data-toggle="modal" data-target="#modalDetailRecipe">
                                         Detail
                                     </button>
 
                                     {{-- Tombol Edit --}}
-                                    <button type="button" class="btn btn-warning btn-sm btnEditRecipe" data-menu="{{ $menu->id }}"
-                                        data-kitchen="{{ $kitchenId }}" data-toggle="modal" data-target="#modalEditRecipe">
+                                    <button type="button" class="btn btn-warning btn-sm btnEditRecipe"
+                                        data-menu="{{ $menu->id }}" data-kitchen="{{ $kitchenId }}"
+                                        data-toggle="modal" data-target="#modalEditRecipe">
                                         Edit
                                     </button>
 
@@ -216,7 +218,7 @@
     </script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
 
             // --- FUNGSI HELPER: Dynamic Form Rows ---
             function initDynamicForm(wrapperId, addBtnId) {
@@ -225,7 +227,7 @@
 
                 if (!wrapper || !addBtn) return;
 
-                addBtn.addEventListener('click', function () {
+                addBtn.addEventListener('click', function() {
                     // Clone row pertama atau buat baru jika kosong (untuk edit)
                     let templateRow = wrapper.querySelector('.bahan-group');
 
@@ -254,16 +256,16 @@
 
             // Init Dynamic Form untuk Add dan Edit
             initDynamicForm('bahan-wrapper-add', 'add-bahan-add');
-            
+
             // --- GLOBAL EVENT: Hapus Baris Bahan ---
-            document.addEventListener('click', function (e) {
+            document.addEventListener('click', function(e) {
                 if (e.target.closest('.remove-bahan')) {
                     e.target.closest('.bahan-group').remove();
                 }
             });
 
             // --- GLOBAL EVENT: Auto Fill Satuan saat Pilih Bahan (Harga Dihapus) ---
-            document.addEventListener('change', function (e) {
+            document.addEventListener('change', function(e) {
                 if (!e.target.matches('select[name="bahan_baku_id[]"]')) return;
 
                 const row = e.target.closest('.bahan-group');
@@ -275,15 +277,16 @@
                 if (selectedBahan) {
                     const satuanText = selectedBahan.unit ? selectedBahan.unit.satuan : '-';
                     row.querySelector('.satuan-text').value = satuanText;
-                    if (row.querySelector('.satuan-id')) row.querySelector('.satuan-id').value = selectedBahan.satuan_id;
-                    
+                    if (row.querySelector('.satuan-id')) row.querySelector('.satuan-id').value =
+                        selectedBahan.satuan_id;
+
                     // Logic pengisian harga dihapus
                 }
             });
 
             // --- LOGIC: Fetch Menu berdasarkan Kitchen (Modal Add) ---
             document.querySelectorAll('.kitchen-select').forEach(kitchenSelect => {
-                kitchenSelect.addEventListener('change', function () {
+                kitchenSelect.addEventListener('change', function() {
                     const kitchenId = this.value;
                     const form = this.closest('form');
                     const menuSelect = form.querySelector('.menu-select');
@@ -295,7 +298,8 @@
                     fetch(`/dashboard/setup/racik-menu/menus-by-kitchen/${kitchenId}`)
                         .then(res => res.json())
                         .then(data => {
-                            menuSelect.innerHTML = '<option disabled selected>Pilih Menu</option>';
+                            menuSelect.innerHTML =
+                                '<option disabled selected>Pilih Menu</option>';
                             data.forEach(menu => {
                                 const option = document.createElement('option');
                                 option.value = menu.id;
@@ -305,14 +309,15 @@
                         })
                         .catch(err => {
                             console.error(err);
-                            menuSelect.innerHTML = '<option disabled>Gagal memuat menu</option>';
+                            menuSelect.innerHTML =
+                            '<option disabled>Gagal memuat menu</option>';
                         });
                 });
             });
 
             // --- LOGIC: Tombol EDIT ---
             document.querySelectorAll('.btnEditRecipe').forEach(btn => {
-                btn.addEventListener('click', function () {
+                btn.addEventListener('click', function() {
                     const menuId = this.dataset.menu;
                     const kitchenId = this.dataset.kitchen;
 
@@ -322,12 +327,12 @@
                     const menuName = row.children[2].textContent;
 
                     const modal = document.getElementById('modalEditRecipe');
-                    const form = modal.querySelector('form');
-<<<<<<< HEAD
-                    
+                    const form = modal.querySelector('form'); <<
+                    << << < HEAD
+
                     // set kitchen
-                    form.querySelector('.kitchen-select').value = kitchenId;
-=======
+                    form.querySelector('.kitchen-select').value = kitchenId; ===
+                    === =
                     const wrapper = document.getElementById('bahan-wrapper-edit');
 
                     // Set Action URL
@@ -337,11 +342,12 @@
                     document.getElementById('edit_kitchen_id').value = kitchenId;
                     document.getElementById('edit_menu_id').value = menuId;
                     document.getElementById('display_kitchen_name').value = kitchenName;
-                    document.getElementById('display_menu_name').value = menuName;
->>>>>>> 1f29db55143ce14dda1435baae18ea1a0dbff469
+                    document.getElementById('display_menu_name').value = menuName; >>>
+                    >>> > 1 f29db55143ce14dda1435baae18ea1a0dbff469
 
                     // Loading State
-                    wrapper.innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm text-primary"></div> Memuat bahan...</div>';
+                    wrapper.innerHTML =
+                        '<div class="text-center"><div class="spinner-border spinner-border-sm text-primary"></div> Memuat bahan...</div>';
 
                     // Fetch Data Detail
                     fetch(`/dashboard/setup/racik-menu/detail/${menuId}/${kitchenId}`)
@@ -350,7 +356,8 @@
                             wrapper.innerHTML = ''; // Clear loading
 
                             if (items.length === 0) {
-                                wrapper.innerHTML = '<p class="text-muted">Data tidak ditemukan</p>';
+                                wrapper.innerHTML =
+                                    '<p class="text-muted">Data tidak ditemukan</p>';
                                 return;
                             }
 
@@ -378,8 +385,9 @@
 
                 const rowIdInput = item ? `<input type="hidden" name="row_id[]" value="${item.id}">` : '';
                 const jumlahVal = item ? item.jumlah : '';
-                const satuanVal = item && item.bahan_baku && item.bahan_baku.unit ? item.bahan_baku.unit.satuan : '-';
-                
+                const satuanVal = item && item.bahan_baku && item.bahan_baku.unit ? item.bahan_baku.unit.satuan :
+                    '-';
+
                 // Layout kolom disesuaikan (Total 12 grid)
                 return `
                         <div class="form-row mb-3 bahan-group">
@@ -407,7 +415,7 @@
             // Logic Tambah Baris di Modal Edit
             const btnAddEdit = document.getElementById('add-bahan-edit');
             if (btnAddEdit) {
-                btnAddEdit.addEventListener('click', function () {
+                btnAddEdit.addEventListener('click', function() {
                     const wrapper = document.getElementById('bahan-wrapper-edit');
                     // Generate baris kosong
                     const emptyRow = generateBahanRowHtml(null);
@@ -417,28 +425,31 @@
 
             // --- LOGIC: Tombol Detail (AJAX - TANPA HARGA) ---
             document.querySelectorAll('.btnDetailRecipe').forEach(btn => {
-                btn.addEventListener('click', function () {
+                btn.addEventListener('click', function() {
                     const menuId = this.dataset.menu;
                     const kitchenId = this.dataset.kitchen;
                     const container = document.getElementById('detailContent');
 
-                    container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div></div>';
+                    container.innerHTML =
+                        '<div class="text-center py-4"><div class="spinner-border text-primary"></div></div>';
 
                     fetch(`/dashboard/setup/racik-menu/detail/${menuId}/${kitchenId}`)
                         .then(res => res.json())
                         .then(data => {
                             if (!data || data.length === 0) {
-                                container.innerHTML = '<p class="text-center">Data tidak ditemukan.</p>';
+                                container.innerHTML =
+                                    '<p class="text-center">Data tidak ditemukan.</p>';
                                 return;
                             }
 
                             // Ambil info header dari item pertama
                             const kitchenName = data[0].kitchen ? data[0].kitchen.nama : '-';
-                            
+
                             let rows = '';
 
                             data.forEach(item => {
-                                const satuan = item.bahan_baku && item.bahan_baku.unit ? item.bahan_baku.unit.satuan : '';
+                                const satuan = item.bahan_baku && item.bahan_baku.unit ?
+                                    item.bahan_baku.unit.satuan : '';
 
                                 rows += `
                                             <tr>
@@ -468,13 +479,14 @@
                         })
                         .catch(err => {
                             console.error(err);
-                            container.innerHTML = '<p class="text-danger text-center">Terjadi kesalahan saat memuat data.</p>';
+                            container.innerHTML =
+                                '<p class="text-danger text-center">Terjadi kesalahan saat memuat data.</p>';
                         });
                 });
             });
 
             // --- LOGIC: Delete ---
-            $('#modalDeleteRecipe').on('show.bs.modal', function (event) {
+            $('#modalDeleteRecipe').on('show.bs.modal', function(event) {
                 var button = $(event.relatedTarget);
                 var action = button.data('action');
                 var modal = $(this);
