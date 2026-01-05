@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\BahanBakuController;
+use App\Http\Controllers\HomePageController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\KitchenController;
@@ -24,6 +25,7 @@ use App\Http\Controllers\SaleMaterialsPartnerController;
 require __DIR__ . '/auth.php';
 
 Route::get('/', fn() => redirect()->route('dashboard.master.bahan-baku.index'));
+Route::get('/', [HomePageController::class, 'index'])->name('portal.index');
 
 Route::middleware(['auth'])->group(function () {
 
