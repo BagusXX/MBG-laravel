@@ -42,7 +42,6 @@ class OperationalController extends Controller
 
         $request->validate([
             'nama' => 'required',
-            'tempat_beli' => 'required',
             'kitchen_kode' => 'required|exists:kitchens,kode',
         ]);
 
@@ -64,7 +63,6 @@ class OperationalController extends Controller
         operationals::create([
             'kode' => $request->kode,
             'nama' => $request->nama,
-            'tempat_beli' => $request->tempat_beli,
             'kitchen_kode' => $request->kitchen_kode,
         ]);
 
@@ -87,13 +85,11 @@ class OperationalController extends Controller
 
         $request->validate([
             'nama' => 'required',
-            'tempat_beli' => 'required',
             'kitchen_kode' => 'required|exists:kitchens,kode',
         ]);
 
         $operational->update([
             'nama' => $request->nama,
-            'tempat_beli' => $request->tempat_beli,
             'kitchen_kode' => $request->kitchen_kode,
         ]);
 

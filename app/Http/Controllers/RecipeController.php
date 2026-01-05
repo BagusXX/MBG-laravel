@@ -204,11 +204,16 @@ class RecipeController extends Controller
 
 
     public function getMenusByKitchen(Kitchen $kitchen)
-    {
-        return response()->json(
-            $kitchen->menus()->select('id', 'nama')->get()
-        );
-    }
+{
+    $menuIds = RecipeBahanBaku::where('kitchen_id', $kitchen->id)
+        ->pluck('menu_id')
+        ->unique();
+
+    return response()->json(
+        Menu::select('id', 'nama')->get()
+    );
+}
+
 
     public function getBahanDetail($id)
     {

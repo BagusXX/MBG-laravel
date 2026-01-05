@@ -11,15 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('operationals', function (Blueprint $table) {
+        Schema::create('submission_operationals', function (Blueprint $table) {
             $table->id();
-            $table->string('kode');
-            $table->string('nama');
-            $table->string('kitchen_kode');
             $table->timestamps();
-            $table->softDeletes();
-
-            $table->foreign('kitchen_kode')->references('kode')->on('kitchens')->onDelete('cascade');
         });
     }
 
@@ -28,6 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('operationals');
+        Schema::dropIfExists('submission_operationals');
     }
 };
