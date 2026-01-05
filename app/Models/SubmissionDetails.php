@@ -14,6 +14,8 @@ class SubmissionDetails extends Model
     'recipe_bahan_baku_id',
     'qty_digunakan',
     'harga_satuan_saat_itu',
+    'harga_dapur',
+    'harga_mitra',
     'subtotal_harga',
 ];
 

@@ -16,11 +16,17 @@ class operationals extends Model
     protected $fillable = [
         'kode',
         'nama',
-        'harga',
+        'harga_default',
         'kitchen_kode'
     ];
 
     public function kitchen(){
         return $this->belongsTo(Kitchen::class, 'kitchen_kode', 'kode');
+    }
+
+    public function submissionDetails(){
+
+        return $this->hasMany(submissionOperationalDetails::class, 'barang_id');
+
     }
 }

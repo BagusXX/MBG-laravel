@@ -11,33 +11,24 @@ use App\Models\Sells;
 use App\Models\Kitchen;
 use App\Models\BahanBaku;
 use App\Models\Unit;
+use App\Models\Submission;
 
 class SaleMaterialsKitchenController extends Controller
 {
     public function index()
     {
-        $allSales = Sells::with(['user', 'kitchen', 'bahanBaku.unit', 'satuan'])
-            ->where('tipe', 'dapur')
+        // Ambil submission yang statusnya selesai sebagai data penjualan
+        $submissions = Submission::with(['kitchen', 'menu', 'details.recipe.bahan_baku.unit'])
+            ->where('status', 'selesai')
             ->latest()
             ->get();
 
         // Group by kode untuk menghindari duplikasi di tabel
-        $sales = $allSales->groupBy('kode')->map(function ($group) {
+        $sales = $submissions->groupBy('kode')->map(function ($group) {
             return $group->first();
         })->values();
 
-        $kitchens = Kitchen::all();
-        $units = Unit::all();
-
-        // Generate kode untuk form
-        $lastKode = Sells::withTrashed()
-            ->where('tipe', 'dapur')
-            ->orderByRaw('CAST(SUBSTRING(kode, 3) AS UNSIGNED) DESC')
-            ->value('kode');
-
-        $nextKode = $lastKode ? 'SJ' . str_pad(((int) substr($lastKode, 2)) + 1, 6, '0', STR_PAD_LEFT) : 'SJ000001';
-
-        return view('transaction.sale-materials-kitchen', compact('sales', 'kitchens', 'units', 'nextKode'));
+        return view('transaction.sale-materials-kitchen', compact('sales', 'submissions'));
     }
 
     public function getBahanByKitchen(Kitchen $kitchen)
@@ -57,6 +48,38 @@ class SaleMaterialsKitchenController extends Controller
             });
 
         return response()->json($bahanBaku);
+    }
+
+    public function getSubmissionDetails(Submission $submission)
+    {
+        // Pastikan submission status selesai
+        if ($submission->status !== 'selesai') {
+            abort(403, 'Hanya submission yang sudah selesai yang dapat digunakan');
+        }
+
+        $details = $submission->details()->with([
+            'recipe.bahan_baku.unit'
+        ])->get();
+
+        return response()->json([
+            'submission' => [
+                'id' => $submission->id,
+                'kode' => $submission->kode,
+                'tanggal' => $submission->tanggal,
+                'kitchen_id' => $submission->kitchen_id,
+                'kitchen_nama' => $submission->kitchen->nama,
+            ],
+            'details' => $details->map(function ($detail) {
+                return [
+                    'bahan_baku_id' => $detail->recipe?->bahan_baku_id,
+                    'bahan_baku_nama' => $detail->recipe?->bahan_baku?->nama ?? '-',
+                    'qty_digunakan' => $detail->qty_digunakan,
+                    'satuan_id' => $detail->recipe?->bahan_baku?->satuan_id,
+                    'satuan' => $detail->recipe?->bahan_baku?->unit?->satuan ?? '-',
+                    'harga_dapur' => $detail->harga_satuan_saat_itu ?? 0,
+                ];
+            })
+        ]);
     }
 
     public function store(Request $request)

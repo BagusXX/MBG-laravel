@@ -11,33 +11,24 @@ use App\Models\Sells;
 use App\Models\Kitchen;
 use App\Models\BahanBaku;
 use App\Models\Unit;
+use App\Models\Submission;
 
 class SaleMaterialsPartnerController extends Controller
 {
     public function index()
     {
-        $allSales = Sells::with(['user', 'kitchen', 'bahanBaku.unit', 'satuan'])
-            ->where('tipe', 'mitra')
+        // Ambil submission yang statusnya selesai sebagai data penjualan
+        $submissions = Submission::with(['kitchen', 'menu', 'details.recipe.bahan_baku.unit'])
+            ->where('status', 'selesai')
             ->latest()
             ->get();
 
         // Group by kode untuk menghindari duplikasi di tabel
-        $sales = $allSales->groupBy('kode')->map(function ($group) {
+        $sales = $submissions->groupBy('kode')->map(function ($group) {
             return $group->first();
         })->values();
 
-        $kitchens = Kitchen::all();
-        $units = Unit::all();
-
-        // Generate kode untuk form
-        $lastKode = Sells::withTrashed()
-            ->where('tipe', 'mitra')
-            ->orderByRaw('CAST(SUBSTRING(kode, 3) AS UNSIGNED) DESC')
-            ->value('kode');
-
-        $nextKode = $lastKode ? 'SM' . str_pad(((int) substr($lastKode, 2)) + 1, 6, '0', STR_PAD_LEFT) : 'SM000001';
-
-        return view('transaction.sale-materials-partner', compact('sales', 'kitchens', 'units', 'nextKode'));
+        return view('transaction.sale-materials-partner', compact('sales', 'submissions'));
     }
 
     public function getBahanByKitchen(Kitchen $kitchen)
