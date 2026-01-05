@@ -35,7 +35,6 @@
                         <th>Kode</th>
                         <th>Dapur</th>
                         <th>Nama Biaya</th>
-                        <th>Tempat Beli</th>
                         <th>Tanggal</th>
                         <th>Aksi</th>
                     </tr>
@@ -47,7 +46,6 @@
                             <td>{{ $operational->kode }}</td>
                             <td>{{ $operational->kitchen->nama ?? '-' }}</td>
                             <td>{{ $operational->nama }}</td>
-                            <td>{{ $operational->tempat_beli }}</td>
                             <td>{{ $operational->updated_at }}</td>
                             <td>
                                 <button 
@@ -58,7 +56,6 @@
                                     data-kode="{{ $operational->kode }}"
                                     data-kitchen="{{ $operational->kitchen_kode }}"
                                     data-nama="{{ $operational->nama }}"
-                                    data-tempat_beli="{{ $operational->tempat_beli }}"
                                     data-tanggal="{{ $operational->created_at->format('Y-m-d') }}"
                                 >
                                     Edit    
@@ -119,10 +116,6 @@
             <input id="nama_operasional" type="text" name="nama" class="form-control" required />
         </div>
         <div class="form-group mt-2">
-            <label>Tempat Beli</label>
-            <textarea name="tempat_beli" class="form-control" rows="2" placeholder="Detail pengeluaran..."></textarea>
-        </div>
-        <div class="form-group mt-2">
             <label>Tanggal</label>
             <input type="date" name="tanggal" class="form-control" required />
         </div>
@@ -171,15 +164,6 @@
         </div>
 
         <div class="form-group mt-2">
-            <label>Tempat Beli</label>
-            <textarea 
-                name="tempat_beli" 
-                id="edit_tempat_beli"
-                class="form-control"
-            ></textarea>
-        </div>
-
-        <div class="form-group mt-2">
             <label>Tanggal</label>
             <input 
                 type="date" 
@@ -215,7 +199,6 @@ function editOperational(button) {
     document.getElementById('edit_kode').value = button.dataset.kode;
     document.getElementById('edit_kitchen_kode').value = button.dataset.kitchen;
     document.getElementById('edit_nama').value = button.dataset.nama;
-    document.getElementById('edit_tempat_beli').value = button.dataset.tempat_beli;
     document.getElementById('edit_tanggal').value = button.dataset.tanggal;
 
     // tampilkan modal
