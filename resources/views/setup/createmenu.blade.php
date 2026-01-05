@@ -386,10 +386,9 @@
                 });
 
                 const rowIdInput = item ? `<input type="hidden" name="row_id[]" value="${item.id}">` : '';
-                const jumlahVal = item ? item.jumlah : '';
-                const satuanVal = item && item.bahan_baku && item.bahan_baku.unit ? item.bahan_baku.unit.satuan :
-                    '-';
-
+                const jumlahVal = item ? Number(item.jumlah).toFixed(2) : '';
+                const satuanVal = item && item.bahan_baku && item.bahan_baku.unit ? item.bahan_baku.unit.satuan : '-';
+                
                 // Layout kolom disesuaikan (Total 12 grid)
                 return `
                         <div class="form-row mb-3 bahan-group">
@@ -446,7 +445,8 @@
 
                             // Ambil info header dari item pertama
                             const kitchenName = data[0].kitchen ? data[0].kitchen.nama : '-';
-
+                            const menuName = data[0].menu ? data[0].menu.nama : '-';
+                            
                             let rows = '';
 
                             data.forEach(item => {
@@ -456,7 +456,7 @@
                                 rows += `
                                             <tr>
                                                 <td>${item.bahan_baku ? item.bahan_baku.nama : '-'}</td>
-                                                <td>${item.jumlah} ${satuan}</td>
+                                                <td>${Number(item.jumlah).toFixed(2)} ${satuan}</td>
                                             </tr>
                                         `;
                             });
@@ -465,7 +465,7 @@
                             const html = `
                                         <div class="row mb-3 text-left">
                                             <div class="col-md-6"><strong>Dapur:</strong> ${kitchenName}</div>
-                                            <div class="col-md-6"><strong>Menu ID:</strong> ${menuId}</div>
+                                            <div class="col-md-6"><strong>Menu ID:</strong> ${menuName}</div>
                                         </div>
                                         <table class="table table-sm table-bordered">
                                             <thead class="thead-light">

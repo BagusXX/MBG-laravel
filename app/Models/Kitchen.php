@@ -41,11 +41,13 @@ class Kitchen extends Model
         return $this->belongsTo(region::class);
     }
 
-    public function submissions(){
+    public function submissions()
+    {
         return $this->hasMany(Submission::class);
     }
 
-    public function operational(){
+    public function operational()
+    {
         return $this->hasMany(operationals::class);
     }
 

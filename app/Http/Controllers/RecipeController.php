@@ -196,28 +196,28 @@ class RecipeController extends Controller
 
     public function getRecipeDetail($menuId, $kitchenId)
     {
-        return RecipeBahanBaku::with('bahan_baku.unit')
+        return RecipeBahanBaku::with('bahan_baku.unit', 'kitchen', 'menu')
             ->where('menu_id', $menuId)
             ->where('kitchen_id', $kitchenId)
             ->get();
     }
 
 
- public function getMenusByKitchen($kitchenId)
-{
-    $user = auth()->user();
+    public function getMenusByKitchen($kitchenId)
+    {
+        $user = auth()->user();
 
-    // pastikan dapur milik user
-    $kitchen = Kitchen::where('id', $kitchenId)
-        ->whereIn('kode', $user->kitchens()->pluck('kode'))
-        ->firstOrFail();
+        // pastikan dapur milik user
+        $kitchen = Kitchen::where('id', $kitchenId)
+            ->whereIn('kode', $user->kitchens()->pluck('kode'))
+            ->firstOrFail();
 
-    return response()->json(
-        Menu::where('kitchen_id', $kitchen->id)
-            ->select('id', 'nama')
-            ->get()
-    );
-}
+        return response()->json(
+            Menu::where('kitchen_id', $kitchen->id)
+                ->select('id', 'nama')
+                ->get()
+        );
+    }
 
 
 
