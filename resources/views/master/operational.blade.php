@@ -35,7 +35,6 @@
                         <th>Kode</th>
                         <th>Dapur</th>
                         <th>Nama Biaya</th>
-                        <th>Harga</th>
                         <th>Tempat Beli</th>
                         <th>Tanggal</th>
                         <th>Aksi</th>
@@ -48,7 +47,6 @@
                             <td>{{ $operational->kode }}</td>
                             <td>{{ $operational->kitchen->nama ?? '-' }}</td>
                             <td>{{ $operational->nama }}</td>
-                            <td>{{ $operational->harga }}</td>
                             <td>{{ $operational->tempat_beli }}</td>
                             <td>{{ $operational->updated_at }}</td>
                             <td>
@@ -60,7 +58,6 @@
                                     data-kode="{{ $operational->kode }}"
                                     data-kitchen="{{ $operational->kitchen_kode }}"
                                     data-nama="{{ $operational->nama }}"
-                                    data-harga="{{ $operational->harga }}"
                                     data-tempat_beli="{{ $operational->tempat_beli }}"
                                     data-tanggal="{{ $operational->created_at->format('Y-m-d') }}"
                                 >
@@ -122,10 +119,6 @@
             <input id="nama_operasional" type="text" name="nama" class="form-control" required />
         </div>
         <div class="form-group mt-2">
-            <label>Harga (Rp)</label>
-            <input type="number" name="harga" class="form-control" placeholder="0" required />
-        </div>
-        <div class="form-group mt-2">
             <label>Tempat Beli</label>
             <textarea name="tempat_beli" class="form-control" rows="2" placeholder="Detail pengeluaran..."></textarea>
         </div>
@@ -178,17 +171,6 @@
         </div>
 
         <div class="form-group mt-2">
-            <label>Harga</label>
-            <input 
-                type="number" 
-                name="harga" 
-                id="edit_harga"
-                class="form-control" 
-                required
-            />
-        </div>
-
-        <div class="form-group mt-2">
             <label>Tempat Beli</label>
             <textarea 
                 name="tempat_beli" 
@@ -233,7 +215,6 @@ function editOperational(button) {
     document.getElementById('edit_kode').value = button.dataset.kode;
     document.getElementById('edit_kitchen_kode').value = button.dataset.kitchen;
     document.getElementById('edit_nama').value = button.dataset.nama;
-    document.getElementById('edit_harga').value = button.dataset.harga;
     document.getElementById('edit_tempat_beli').value = button.dataset.tempat_beli;
     document.getElementById('edit_tanggal').value = button.dataset.tanggal;
 
