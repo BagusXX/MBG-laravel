@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\BahanBakuController;
+use App\Http\Controllers\HomePageController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\KitchenController;
@@ -24,6 +25,7 @@ use App\Http\Controllers\SaleMaterialsPartnerController;
 require __DIR__ . '/auth.php';
 
 Route::get('/', fn() => redirect()->route('dashboard.master.bahan-baku.index'));
+Route::get('/', [HomePageController::class, 'index'])->name('portal.index');
 
 Route::middleware(['auth'])->group(function () {
 
@@ -269,13 +271,44 @@ Route::middleware(['auth'])->group(function () {
         ->name('transaction.operational-submission.')
         ->controller(OperationalSubmissionController::class)
         ->group(function () {
-            Route::get('/', 'index')->middleware('permission:transaction.operational-submission.view')->name('index');
+
+            Route::get('/', 'index')
+                ->middleware('permission:transaction.operational-submission.view')
+                ->name('index');
+
+            Route::post('/', 'store')
+                ->middleware('permission:transaction.operational-submission.create')
+                ->name('store');
+
+            Route::put('/{id}', 'update')
+                ->middleware('permission:transaction.operational-submission.update')
+                ->name('update');
+
+            Route::delete('/{id}', 'destroy')
+                ->middleware('permission:transaction.operational-submission.delete')
+                ->name('destroy');
         });
-    Route::prefix('dashboard/transaksi/daftar-biaya-operasional')
+
+    Route::prefix('dashboard/transaksi/daftar-operasional')
         ->name('transaction.operational-approval.')
         ->controller(OperationalApprovalController::class)
         ->group(function () {
-            Route::get('/', 'index')->middleware('permission:transaction.operational-approval.view')->name('index');
+
+            Route::get('/', 'index')
+                ->middleware('permission:transaction.operational-approval.view')
+                ->name('index');
+
+            Route::post('/', 'store')
+                ->middleware('permission:transaction.operational-approval.create')
+                ->name('store');
+
+            Route::put('/{id}', 'updateStatus')
+                ->middleware('permission:transaction.operational-approval.update')
+                ->name('update');
+
+            Route::delete('/{id}', 'destroy')
+                ->middleware('permission:transaction.operational-approval.delete')
+                ->name('destroy');
         });
 
     Route::prefix('dashboard/transaksi')
