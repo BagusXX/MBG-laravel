@@ -14,11 +14,10 @@ class OperationalApprovalController extends Controller
     {
         //
         $submissions = submissionOperational::with(['details.barang', 'kitchen'])
-        ->orderBy('created_at', 'desc')
-        ->get();
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-    return view('approval.index', compact('submissions'));
-        
+        return view('transaction.operational-approval', compact('submissions'));
     }
 
     /**
@@ -44,11 +43,11 @@ class OperationalApprovalController extends Controller
     {
         //
         $submission = submissionOperational::with([
-        'details.barang',
-        'kitchen'
-    ])->findOrFail($id);
+            'details.barang',
+            'kitchen'
+        ])->findOrFail($id);
 
-    return view('approval.show', compact('submission'));
+        return view('approval.show', compact('submission'));
     }
 
     /**
@@ -76,22 +75,21 @@ class OperationalApprovalController extends Controller
     }
 
     public function updateStatus(Request $request, $id)
-{
-    $request->validate([
-        'status' => 'required|in:diterima,ditolak'
-    ]);
+    {
+        $request->validate([
+            'status' => 'required|in:diterima,ditolak'
+        ]);
 
-    $submission = submissionOperational::findOrFail($id);
+        $submission = submissionOperational::findOrFail($id);
 
-    if ($submission->status === 'diterima') {
-        return back()->with('error', 'Status tidak bisa diubah');
+        if ($submission->status === 'diterima') {
+            return back()->with('error', 'Status tidak bisa diubah');
+        }
+
+        $submission->update([
+            'status' => $request->status
+        ]);
+
+        return back()->with('success', 'Status diperbarui');
     }
-
-    $submission->update([
-        'status' => $request->status
-    ]);
-
-    return back()->with('success', 'Status diperbarui');
-}
-
 }

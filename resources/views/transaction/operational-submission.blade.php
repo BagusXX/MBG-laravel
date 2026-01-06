@@ -3,7 +3,7 @@
 @section('title', 'Pengajuan Operasional')
 
 @section('content_header')
-    <h1>Pengajuan Operasional (Statis)</h1>
+    <h1>Pengajuan Operasional</h1>
 @endsection
 
 @section('content')
