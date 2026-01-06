@@ -7,6 +7,7 @@ use App\Models\Menu;
 use App\Models\RecipeBahanBaku;
 use App\Models\Submission;
 use App\Models\SubmissionDetails;
+use App\Models\BahanBaku;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -41,7 +42,8 @@ class SubmissionController extends Controller
         $submissions = Submission::with([
             'kitchen',
             'menu',
-            'details.recipe.bahan_baku'
+            'details.recipe.bahan_baku.unit',
+            'details.bahanBaku.unit'
         ])
             ->when($mode === 'pengajuan', function ($q) use ($kitchens) {
                 $q->whereIn(
@@ -384,18 +386,23 @@ class SubmissionController extends Controller
         }
 
         $details = $submission->details()->with([
-            'recipe.bahan_baku.unit'
+            'recipe.bahan_baku.unit',
+            'bahanBaku.unit'
         ])->get();
 
         return response()->json($details->map(function ($detail) {
             $hargaDapur = $detail->harga_dapur ?? $detail->harga_satuan_saat_itu ?? 0;
             $hargaMitra = $detail->harga_mitra ?? $detail->harga_satuan_saat_itu ?? 0;
             
+            // Ambil nama bahan baku dari recipe (jika ada) atau dari bahan_baku_id (untuk manual)
+            $bahanBakuNama = $detail->recipe?->bahan_baku?->nama ?? $detail->bahanBaku?->nama ?? '-';
+            $satuan = $detail->recipe?->bahan_baku?->unit?->satuan ?? $detail->bahanBaku?->unit?->satuan ?? '-';
+            
             return [
                 'id' => $detail->id,
-                'bahan_baku_nama' => $detail->recipe?->bahan_baku?->nama ?? '-',
+                'bahan_baku_nama' => $bahanBakuNama,
                 'qty_digunakan' => $detail->qty_digunakan,
-                'satuan' => $detail->recipe?->bahan_baku?->unit?->satuan ?? '-',
+                'satuan' => $satuan,
                 'harga_dapur' => $hargaDapur,
                 'harga_mitra' => $hargaMitra,
                 'subtotal_dapur' => $hargaDapur * $detail->qty_digunakan,
@@ -462,6 +469,142 @@ class SubmissionController extends Controller
         return back()->with('success', 'Harga berhasil diperbarui');
     }
 
+    public function deleteDetail(Request $request, Submission $submission, $detailId)
+    {
+        // ❌ kunci jika sudah selesai
+        if ($submission->status === 'selesai') {
+            abort(403, 'Submission yang sudah selesai tidak dapat diubah');
+        }
 
+        // ✅ CEK AKSES
+        $userKitchenIds = Kitchen::whereIn(
+            'kode',
+            auth()->user()->kitchens()->pluck('kode')
+        )->pluck('id');
+
+        if (!$userKitchenIds->contains($submission->kitchen_id)) {
+            abort(403, 'Anda tidak memiliki akses ke data ini');
+        }
+
+        // Ambil detail
+        $detail = SubmissionDetails::findOrFail($detailId);
+
+        // Pastikan detail milik submission ini
+        if ($detail->submission_id !== $submission->id) {
+            abort(403, 'Detail tidak sesuai dengan submission');
+        }
+
+        DB::transaction(function () use ($detail, $submission) {
+            // Hapus detail
+            $detail->delete();
+
+            // Recalculate total harga
+            $totalHarga = $submission->details()->sum(DB::raw('harga_dapur * qty_digunakan'));
+            $submission->update(['total_harga' => $totalHarga]);
+        });
+
+        return response()->json(['success' => true, 'message' => 'Bahan baku berhasil dihapus']);
+    }
+
+    public function addBahanBakuManual(Request $request, Submission $submission)
+    {
+        // ❌ kunci jika sudah selesai
+        if ($submission->status === 'selesai') {
+            abort(403, 'Submission yang sudah selesai tidak dapat diubah');
+        }
+
+        // ✅ CEK AKSES
+        $userKitchenIds = Kitchen::whereIn(
+            'kode',
+            auth()->user()->kitchens()->pluck('kode')
+        )->pluck('id');
+
+        if (!$userKitchenIds->contains($submission->kitchen_id)) {
+            abort(403, 'Anda tidak memiliki akses ke data ini');
+        }
+
+        $request->validate([
+            'bahan_baku_id' => 'required|exists:bahan_baku,id',
+            'qty_digunakan' => 'required|numeric|min:0.0001',
+        ]);
+
+        // Pastikan bahan baku dari dapur yang sama
+        $bahanBaku = BahanBaku::findOrFail($request->bahan_baku_id);
+        if ($bahanBaku->kitchen_id !== $submission->kitchen_id) {
+            abort(403, 'Bahan baku harus dari dapur yang sama');
+        }
+
+        // Cek apakah bahan baku sudah ada (dari recipe atau manual)
+        // Untuk bahan baku dari recipe
+        $existingDetailFromRecipe = $submission->details()
+            ->whereHas('recipe', function ($q) use ($bahanBaku) {
+                $q->where('bahan_baku_id', $bahanBaku->id);
+            })
+            ->first();
+
+        // Untuk bahan baku manual, kita perlu cek melalui recipe yang null
+        // Tapi karena tidak ada kolom bahan_baku_id langsung, kita skip pengecekan duplikasi manual
+        // atau bisa ditambahkan kolom bahan_baku_id di migration jika diperlukan
+        
+        if ($existingDetailFromRecipe) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bahan baku ini sudah ada dalam daftar (dari recipe)'
+            ], 422);
+        }
+
+        DB::transaction(function () use ($request, $submission, $bahanBaku) {
+            $harga = $bahanBaku->harga;
+            $qty = $request->qty_digunakan;
+            $subtotal = $harga * $qty;
+
+            // Buat detail baru tanpa recipe (manual)
+            SubmissionDetails::create([
+                'submission_id' => $submission->id,
+                'recipe_bahan_baku_id' => null, // null karena manual
+                'bahan_baku_id' => $bahanBaku->id, // simpan bahan baku ID untuk manual
+                'qty_digunakan' => $qty,
+                'harga_satuan_saat_itu' => $harga,
+                'harga_dapur' => $harga,
+                'harga_mitra' => $harga,
+                'subtotal_harga' => $subtotal,
+            ]);
+
+            // Update total harga
+            $totalHarga = $submission->details()->sum(DB::raw('harga_dapur * qty_digunakan'));
+            $submission->update(['total_harga' => $totalHarga]);
+        });
+
+        return response()->json(['success' => true, 'message' => 'Bahan baku berhasil ditambahkan']);
+    }
+
+    public function getBahanBakuByKitchen(Kitchen $kitchen)
+    {
+        // ✅ CEK AKSES
+        $userKitchenIds = Kitchen::whereIn(
+            'kode',
+            auth()->user()->kitchens()->pluck('kode')
+        )->pluck('id');
+
+        if (!$userKitchenIds->contains($kitchen->id)) {
+            abort(403, 'Anda tidak memiliki akses ke dapur ini');
+        }
+
+        $bahanBaku = BahanBaku::where('kitchen_id', $kitchen->id)
+            ->with('unit')
+            ->select('id', 'nama', 'harga', 'satuan_id', 'kitchen_id')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'nama' => $item->nama,
+                    'harga' => $item->harga,
+                    'satuan_id' => $item->satuan_id,
+                    'satuan' => $item->unit ? $item->unit->satuan : null,
+                ];
+            });
+
+        return response()->json($bahanBaku);
+    }
 
 }

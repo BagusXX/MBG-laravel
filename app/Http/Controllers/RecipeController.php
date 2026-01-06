@@ -215,6 +215,7 @@ class RecipeController extends Controller
         return response()->json(
             Menu::where('kitchen_id', $kitchen->id)
                 ->select('id', 'nama')
+                ->orderBy('nama', 'asc')
                 ->get()
         );
     }
@@ -233,5 +234,31 @@ class RecipeController extends Controller
             'satuan_id' => $bahan->satuan_id,
             'satuan' => $bahan->unit?->satuan,
         ]);
+    }
+
+    public function getBahanByKitchen($kitchenId)
+    {
+        $user = auth()->user();
+
+        // pastikan dapur milik user
+        $kitchen = Kitchen::where('id', $kitchenId)
+            ->whereIn('kode', $user->kitchens()->pluck('kode'))
+            ->firstOrFail();
+
+        $bahanBaku = BahanBaku::where('kitchen_id', $kitchen->id)
+            ->with('unit')
+            ->select('id', 'nama', 'harga', 'satuan_id', 'kitchen_id')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'nama' => $item->nama,
+                    'harga' => $item->harga,
+                    'satuan_id' => $item->satuan_id,
+                    'satuan' => $item->unit ? $item->unit->satuan : null,
+                ];
+            });
+
+        return response()->json($bahanBaku);
     }
 }
