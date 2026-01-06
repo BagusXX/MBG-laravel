@@ -2,42 +2,16 @@
 
 @section('title', 'Daftar Biaya Operasional')
 
+@section('css')
+    <link rel="stylesheet" href="{{ asset('css/notification-pop-up.css') }}">
+@endsection
+
 @section('content_header')
     <h1>Daftar Biaya Operasional</h1>
 @endsection
 
 @section('content')
 
-@php
-    // =========================
-    // DATA STATIS
-    // =========================
-    $submissions = collect([
-        (object)[
-            'id' => 1,
-            'kode' => 'OPR001',
-            'tanggal' => '2026-01-05',
-            'dapur' => 'Dapur Pusat',
-            'operasional' => 'Gas LPG',
-            'total' => 150000,
-            'status' => 'diajukan',
-        ],
-        (object)[
-            'id' => 2,
-            'kode' => 'OPR002',
-            'tanggal' => '2026-01-06',
-            'dapur' => 'Dapur Cabang',
-            'operasional' => 'Listrik',
-            'total' => 300000,
-            'status' => 'diproses',
-        ],
-    ]);
-
-    $items = [
-        ['nama' => 'Gas 12 Kg', 'unit' => 'Tabung', 'harga' => 150000],
-        ['nama' => 'Token Listrik', 'unit' => 'kWh', 'harga' => 300000],
-    ];
-@endphp
 
 {{-- BUTTON ADD --}}
 
@@ -51,8 +25,13 @@
                 <label>Dapur</label>
                 <select id="filterKitchen" class="form-control">
                     <option value="">Semua Dapur</option>
-                    <option value="Dapur Pusat">Dapur Pusat</option>
-                    <option value="Dapur Cabang">Dapur Cabang</option>
+                    @foreach ($submissions->pluck('kitchen')->unique('id') as $kitchen)
+                        @if($kitchen)
+                            <option value="{{ strtolower($kitchen->nama) }}">
+                                {{ $kitchen->nama }}
+                            </option>
+                        @endif
+                    @endforeach
                 </select>
             </div>
 
@@ -63,7 +42,9 @@
                     <option value="diajukan">Diajukan</option>
                     <option value="diproses">Diproses</option>
                     <option value="diterima">Diterima</option>
+                    <option value="ditolak">Ditolak</option>
                 </select>
+
             </div>
 
             <div class="col-md-4">
@@ -93,15 +74,15 @@
             <tbody>
                 @foreach($submissions as $item)
                 <tr 
-                    data-kitchen="{{ $item->dapur }}"
+                    data-kitchen="{{ $item->kitchen->nama ?? '' }}"
                     data-status="{{ $item->status }}"
-                    data-date="{{ $item->tanggal }}"
+                    data-date="{{ \Carbon\Carbon::parse($item->tanggal)->format('Y-m-d') }}"
                 >
                     <td>{{ $item->kode }}</td>
-                    <td>{{ date('d-m-Y', strtotime($item->tanggal)) }}</td>
-                    <td>{{ $item->dapur }}</td>
-                    <td>{{ $item->operasional }}</td>
-                    <td>Rp {{ number_format($item->total) }}</td>
+                    <td>{{ \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y') }}</td>
+                    <td>{{ $item->kitchen->nama ?? '-' }}</td>
+                    <td>{{ $item->details->first()->operational->nama ?? '-' }}</td>
+                    <td>Rp {{ number_format($item->total, 0, ',','.') }}</td>
                     <td>
                         <span class="badge badge-{{
                             $item->status === 'diterima' ? 'success' :
@@ -317,33 +298,51 @@ MODAL DETAIL
     size="modal-lg"
     title="Detail {{ $item->kode }}"
 >
+
     <table class="table table-borderless">
-        <tr><th>Dapur</th><td>: {{ $item->dapur }}</td></tr>
-        <tr><th>Operasional</th><td>: {{ $item->operasional }}</td></tr>
+        <tr><th>Kode</th><td>: {{ $item->kode }}</td></tr>
+        <tr><th>Tanggal</th><td>: {{ \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y') }}</td></tr>
+        <tr><th>Dapur</th><td>: {{ $item->kitchen->nama ?? '-' }}</td></tr>
         <tr><th>Status</th><td>: {{ strtoupper($item->status) }}</td></tr>
     </table>
 
     <table class="table table-bordered table-striped">
         <thead>
             <tr>
-                <th>Barang</th>
+                <th>Operasional</th>
                 <th>Qty</th>
-                <th>Satuan</th>
                 <th>Harga</th>
+                <th>Keterangan</th>
                 <th>Subtotal</th>
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td>Gas 12 Kg</td>
-                <td>1</td>
-                <td>Tabung</td>
-                <td>150.000</td>
-                <td>150.000</td>
-            </tr>
+            @forelse ($item->details as $detail)
+                <tr>
+                    <td>{{ $detail->operational->nama ?? '-' }}</td>
+                    <td>{{ $detail->qty }}</td>
+                    <td>Rp {{ number_format($detail->harga, 0, ',', '.') }}</td>
+                    <td>{{ $detail->keterangan ?? '-' }}</td>
+                    <td>Rp {{ number_format($detail->subtotal, 0, ',', '.') }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="5" class="text-center text-muted">
+                        Tidak ada detail operasional
+                    </td>
+                </tr>
+            @endforelse
         </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="4" class="text-right">Total</th>
+                <th>Rp {{ number_format($item->total, 0, ',', '.') }}</th>
+            </tr>
+        </tfoot>
     </table>
+
 </x-modal-detail>
+
 
 <x-modal-form
     id="modalApprovalOperational"
@@ -465,29 +464,39 @@ MODAL DETAIL
         });
 
         function applyFilter() {
-            let kitchen = $('#filterKitchen').val().toLowerCase();
-            let menu = $('#filterMenu').val().toLowerCase();
-            let status = $('#filterStatus').val().toLowerCase();
-            let date = $('#filterDate').val();
+        let kitchen = $('#filterKitchen').val().toLowerCase();
+        let status  = $('#filterStatus').val().toLowerCase();
+        let date    = $('#filterDate').val();
+        let status = ($('#filterStatus').val() || '').toLowerCase();
 
-            $('tbody tr').each(function () {
-                let rowKitchen = $(this).data('kitchen')?.toLowerCase() || '';
-                let rowMenu = $(this).data('menu')?.toLowerCase() || '';
-                let rowStatus = $(this).data('status')?.toLowerCase() || '';
-                let rowDate = $(this).data('date') || '';
+        $('tbody tr').each(function () {
+            let rowKitchen = ($(this).data('kitchen') || '').toLowerCase();
+            let rowStatus  = ($(this).data('status') || '').toLowerCase();
+            let rowDate    = $(this).data('date') || '';
 
-                let show = true;
+            let show = true;
 
-                if (kitchen && rowKitchen !== kitchen) show = false;
-                if (menu && rowMenu !== menu) show = false;
-                if (status && rowStatus !== status) show = false;
-                if (date && rowDate !== date) show = false;
+            if (kitchen && rowKitchen !== kitchen) show = false;
+            if (status && rowStatus !== status) show = false;
+            if (date && rowDate !== date) show = false;
 
-                $(this).toggle(show);
-            });
-        }
+            $(this).toggle(show);
+        });
 
-        $('#filterKitchen, #filterMenu, #filterStatus, #filterDate').on('change', applyFilter);
+        $('tbody tr').each(function () {
+            let rowStatus = ($(this).data('status') || '').toLowerCase();
+
+            let show = true;
+
+            if (status && rowStatus !== status) {
+                show = false;
+            }
+
+            $(this).toggle(show);
+        });
+        $('#filterStatus').on('change', applyFilter);
+
+    }
 
 
         $(document).on('click', '.btnEdit', function () {

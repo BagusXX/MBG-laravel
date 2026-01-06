@@ -2,44 +2,18 @@
 
 @section('title', 'Pengajuan Operasional')
 
+@section('css')
+    <link rel="stylesheet" href="{{ asset('css/notification-pop-up.css') }}">
+@endsection
+
 @section('content_header')
     <h1>Pengajuan Operasional</h1>
 @endsection
 
 @section('content')
 
-{{-- ALERT SYSTEM --}}
-@if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="fas fa-check-circle mr-2"></i> {{ session('success') }}
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-@endif
+<div id="notification-container"></div>
 
-@if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="fas fa-exclamation-triangle mr-2"></i> {{ session('error') }}
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-@endif
-
-@if($errors->any())
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <strong>Terjadi Kesalahan Input:</strong>
-        <ul class="mb-0 pl-3">
-            @foreach($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-@endif
 
 {{-- BUTTON ADD --}}
 <x-button-add
@@ -120,20 +94,18 @@
                         {{-- Tombol Detail --}}
                         <button class="btn btn-info btn-sm"
                             data-toggle="modal"
-                            data-target="#modalDetail{{ $item->id }}"
-                            title="Lihat Detail">
-                            <i class="fas fa-eye"></i>
+                            data-target="#modalDetail{{ $item->id }}">
+                            Detail
                         </button>
 
                         {{-- Tombol Hapus (Hanya jika belum diterima) --}}
                         @if($item->status !== 'diterima')
-                        <form action="{{ route('transaction.operational-submission.destroy', $item->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus pengajuan {{ $item->kode }}?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger btn-sm" title="Hapus">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </form>
+                        <x-button-delete
+                            idTarget="#modalDeleteOperational"
+                            formId="formDeleteOperational"
+                            action="{{ route('transaction.operational-submission.destroy', $item->id) }}"
+                            text="Hapus"
+                        />
                         @endif
                     </td>
                 </tr>
@@ -312,10 +284,36 @@
 
 @endforeach
 
+{{-- MODAL KONFIRMASI DELETE --}}
+<x-modal-delete 
+    id="modalDeleteOperational"
+    formId="formDeleteOperational"
+    title="Konfirmasi Hapus" 
+    message="Apakah Anda yakin ingin menghapus pengajuan operasional ini?" 
+    confirmText="Hapus" 
+/>
+
+
 @endsection
 
 @section('js') {{-- Menggunakan section js, sesuaikan jika Anda pakai push('js') --}}
 <script>
+    function showNotification(type, message) {
+    const container = document.getElementById('notification-container');
+    if (!container) return;
+
+    const notif = document.createElement('div');
+    notif.className = `notification ${type} show`;
+    notif.innerText = message;
+
+    container.appendChild(notif);
+
+    setTimeout(() => {
+        notif.classList.remove('show');
+        notif.remove();
+    }, 3000);
+}
+
     $(document).ready(function() {
 
         let index = 1;
@@ -483,6 +481,8 @@
             // $('#inputContainer').find('tr:not(:first)').remove(); // Hapus baris tambahan
             // calculateGrandTotal();
         });
+        
     });
 </script>
+
 @endsection
