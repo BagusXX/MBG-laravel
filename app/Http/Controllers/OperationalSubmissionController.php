@@ -27,9 +27,9 @@ class OperationalSubmissionController extends Controller
         $masterBarang = operationals::select('id', 'nama', 'kitchen_kode', 'harga_default')->get();
 
         // 3. Ambil Data Submission
-        $submissions = submissionOperational::with(['kitchen', 'details.barang'])
+        $submissions = submissionOperational::with(['kitchen', 'details.operational'])
             ->whereIn('kitchen_kode', $kitchenCodes)
-            ->orderBy('tanggal','desc')
+            ->orderBy('tanggal', 'desc')
             ->orderBy('created_at', 'desc')
             ->get();
 

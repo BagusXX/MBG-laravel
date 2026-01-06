@@ -174,14 +174,14 @@
     </div>
 
     <div class="form-group">
-        <label>Tanggal Pengajuan</label>
-        <input 
-            type="date"
+        <label>Tanggal</label>
+        <input type="date"
+            name="tanggal"
             class="form-control"
-            name="tanggal_pengajuan"
-            required
-        >
+            value="{{ old('tanggal', now()->format('Y-m-d')) }}"
+            required>
     </div>
+
 
     <div class="form-group">
         <label>Dapur</label>
@@ -200,6 +200,7 @@
             <div class="col-md-4 font-weight-bold">Barang Operasional</div>
             <div class="col-md-2 font-weight-bold">Qty</div>
             <div class="col-md-3 font-weight-bold">Harga</div>
+            <div class="col-md-4 font-weight-bold">Keterangan</div>
             <div class="col-md-1"></div>
         </div>
 
@@ -223,6 +224,13 @@
 
                     <div class="col-md-3">
                         <input type="number" name="items[0][harga_satuan]" class="form-control" required />
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <input type="text"
+                            name="items[0][keterangan]"
+                            class="form-control"
+                            placeholder="Contoh: untuk gas dapur / perbaikan alat" />
                     </div>
 
                     <div class="col-md-1">
@@ -284,15 +292,17 @@
                 <th>Barang</th>
                 <th class="text-center">Qty</th>
                 <th class="text-right">Harga</th>
+                <th>Keterangan</th>
                 <th class="text-right">Subtotal</th>
             </tr>
         </thead>
         <tbody>
             @foreach($item->details as $det)
                 <tr>
-                    <td>{{ $det->barang->nama ?? '-' }}</td>
+                    <td>{{ $det->operational->nama ?? '-' }}</td>
                     <td class="text-center">{{ $det->qty }}</td>
                     <td class="text-right">Rp {{ number_format($det->harga_satuan,0,',','.') }}</td>
+                    <td>{{ $det->keterangan ?? '-' }}</td>
                     <td class="text-right">Rp {{ number_format($det->subtotal,0,',','.') }}</td>
                 </tr>
             @endforeach

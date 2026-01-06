@@ -13,7 +13,7 @@ class OperationalApprovalController extends Controller
     public function index()
     {
         //
-        $submissions = submissionOperational::with(['details.barang', 'kitchen'])
+        $submissions = submissionOperational::with(['details.operational', 'kitchen'])
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -43,7 +43,7 @@ class OperationalApprovalController extends Controller
     {
         //
         $submission = submissionOperational::with([
-            'details.barang',
+            'details.operational',
             'kitchen'
         ])->findOrFail($id);
 
