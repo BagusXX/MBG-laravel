@@ -12,6 +12,7 @@ class SubmissionDetails extends Model
     protected $fillable = [
     'submission_id',
     'recipe_bahan_baku_id',
+    'bahan_baku_id',
     'qty_digunakan',
     'harga_satuan_saat_itu',
     'harga_dapur',
@@ -26,5 +27,9 @@ class SubmissionDetails extends Model
 
     public function recipe(){
         return $this->belongsTo(RecipeBahanBaku::class,'recipe_bahan_baku_id');
+    }
+
+    public function bahanBaku(){
+        return $this->belongsTo(BahanBaku::class,'bahan_baku_id');
     }
 }

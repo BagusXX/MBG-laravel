@@ -24,7 +24,7 @@ use App\Http\Controllers\SaleMaterialsPartnerController;
 
 require __DIR__ . '/auth.php';
 
-Route::get('/', fn() => redirect()->route('dashboard.master.bahan-baku.index'));
+//Route::get('/', fn() => redirect()->route('dashboard.master.bahan-baku.index'));
 Route::get('/', [HomePageController::class, 'index'])->name('portal.index');
 
 Route::middleware(['auth'])->group(function () {
@@ -163,6 +163,10 @@ Route::middleware(['auth'])->group(function () {
                 ->middleware('permission:recipe.view')
                 ->name('menus.by.kitchen');
 
+            Route::get('/bahan-by-kitchen/{kitchen}', 'getBahanByKitchen')
+                ->middleware('permission:recipe.view')
+                ->name('bahan.by.kitchen');
+
             Route::get('/bahan/{id}', 'getBahanDetail')
                 ->middleware('permission:recipe.view')
                 ->name('bahan.detail');
@@ -235,6 +239,18 @@ Route::middleware(['auth'])->group(function () {
             Route::patch('/{submission}/update-harga', 'updateHarga')
                 ->middleware('permission:transaction.submission.update')
                 ->name('update-harga');
+
+            Route::delete('/{submission}/details/{detail}', 'deleteDetail')
+                ->middleware('permission:transaction.submission.update')
+                ->name('delete-detail');
+
+            Route::post('/{submission}/add-bahan-baku', 'addBahanBakuManual')
+                ->middleware('permission:transaction.submission.update')
+                ->name('add-bahan-baku');
+
+            Route::get('/bahan-baku-by-kitchen/{kitchen}', 'getBahanBakuByKitchen')
+                ->middleware('permission:transaction.submission.view')
+                ->name('bahan-baku-by-kitchen');
         });
 
 
@@ -321,8 +337,6 @@ Route::middleware(['auth'])->group(function () {
             Route::patch('/{id}', 'updateStatus')
                 ->middleware('permission:transaction.operational-approval.update-status')
                 ->name('update-status');
-
-
         });
 
     Route::prefix('dashboard/transaksi')

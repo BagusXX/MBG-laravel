@@ -1,52 +1,58 @@
 @extends('adminlte::page')
 
-@section('title', 'Persetujuan Operasional')
+@section('title', 'Daftar Biaya Operasional')
 
 @section('content_header')
-    <h1>Persetujuan Operasional</h1>
+    <h1>Daftar Biaya Operasional</h1>
 @endsection
 
 @section('content')
 
-{{-- ALERT SYSTEM --}}
-@if(session('success'))
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="fas fa-check-circle mr-2"></i> {{ session('success') }}
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-@endif
-
-@if(session('error'))
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="fas fa-exclamation-triangle mr-2"></i> {{ session('error') }}
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-@endif
-
-{{-- FILTER SECTION --}}
 @php
-    // Ambil list nama dapur unik dari data submissions untuk filter dropdown
-    // (Karena controller tidak mengirim variable $kitchens)
-    $uniqueKitchens = $submissions->pluck('kitchen.nama')->unique()->filter();
+    // =========================
+    // DATA STATIS
+    // =========================
+    $submissions = collect([
+        (object)[
+            'id' => 1,
+            'kode' => 'OPR001',
+            'tanggal' => '2026-01-05',
+            'dapur' => 'Dapur Pusat',
+            'operasional' => 'Gas LPG',
+            'total' => 150000,
+            'status' => 'diajukan',
+        ],
+        (object)[
+            'id' => 2,
+            'kode' => 'OPR002',
+            'tanggal' => '2026-01-06',
+            'dapur' => 'Dapur Cabang',
+            'operasional' => 'Listrik',
+            'total' => 300000,
+            'status' => 'diproses',
+        ],
+    ]);
+
+    $items = [
+        ['nama' => 'Gas 12 Kg', 'unit' => 'Tabung', 'harga' => 150000],
+        ['nama' => 'Token Listrik', 'unit' => 'kWh', 'harga' => 300000],
+    ];
 @endphp
 
+{{-- BUTTON ADD --}}
+
+<x-notification-pop-up />
+
 <div class="card mb-3">
-    <div class="card-header bg-light">
-        <h3 class="card-title"><i class="fas fa-filter mr-1"></i> Filter Data</h3>
-    </div>
     <div class="card-body">
         <div class="row">
+
             <div class="col-md-4">
                 <label>Dapur</label>
                 <select id="filterKitchen" class="form-control">
                     <option value="">Semua Dapur</option>
-                    @foreach($uniqueKitchens as $dapurNama)
-                        <option value="{{ $dapurNama }}">{{ $dapurNama }}</option>
-                    @endforeach
+                    <option value="Dapur Pusat">Dapur Pusat</option>
+                    <option value="Dapur Cabang">Dapur Cabang</option>
                 </select>
             </div>
 
@@ -54,9 +60,9 @@
                 <label>Status</label>
                 <select id="filterStatus" class="form-control">
                     <option value="">Semua Status</option>
-                    <option value="diajukan">Diajukan (Menunggu)</option>
+                    <option value="diajukan">Diajukan</option>
+                    <option value="diproses">Diproses</option>
                     <option value="diterima">Diterima</option>
-                    <option value="ditolak">Ditolak</option>
                 </select>
             </div>
 
@@ -64,217 +70,416 @@
                 <label>Tanggal</label>
                 <input type="date" id="filterDate" class="form-control">
             </div>
+
         </div>
     </div>
 </div>
 
-{{-- TABLE DATA --}}
-<div class="card shadow-sm">
-    <div class="card-body p-0">
-        <table class="table table-striped table-hover mb-0" id="tableApproval">
-            <thead class="thead-dark">
+<div class="card">
+    <div class="card-body">
+
+        <table class="table table-bordered table-striped">
+            <thead>
                 <tr>
                     <th>Kode</th>
                     <th>Tanggal</th>
                     <th>Dapur</th>
-                    <th>Jml Item</th>
-                    <th>Total Biaya</th>
+                    <th>Operasional</th>
+                    <th>Total</th>
                     <th>Status</th>
-                    <th width="100" class="text-center">Aksi</th>
+                    <th width="180">Aksi</th>
                 </tr>
             </thead>
             <tbody>
-                @forelse($submissions as $item)
+                @foreach($submissions as $item)
                 <tr 
-                    data-kitchen="{{ $item->kitchen->nama ?? '' }}"
+                    data-kitchen="{{ $item->dapur }}"
                     data-status="{{ $item->status }}"
-                    data-date="{{ $item->created_at->format('Y-m-d') }}"
+                    data-date="{{ $item->tanggal }}"
                 >
-                    <td class="font-weight-bold">{{ $item->kode }}</td>
-                    <td>{{ $item->created_at->format('d-m-Y') }}</td>
-                    <td>{{ $item->kitchen->nama ?? '-' }}</td>
-                    <td>{{ $item->details->count() }} Item</td>
-                    <td>Rp {{ number_format($item->total_harga, 0, ',', '.') }}</td>
+                    <td>{{ $item->kode }}</td>
+                    <td>{{ date('d-m-Y', strtotime($item->tanggal)) }}</td>
+                    <td>{{ $item->dapur }}</td>
+                    <td>{{ $item->operasional }}</td>
+                    <td>Rp {{ number_format($item->total) }}</td>
                     <td>
-                        @php
-                            $badgeClass = match($item->status) {
-                                'diterima' => 'success',
-                                'ditolak' => 'danger',
-                                default => 'warning'
-                            };
-                        @endphp
-                        <span class="badge badge-{{ $badgeClass }} px-2 py-1">
+                        <span class="badge badge-{{
+                            $item->status === 'diterima' ? 'success' :
+                            ($item->status === 'diproses' ? 'info' : 'warning')
+                        }}">
                             {{ strtoupper($item->status) }}
                         </span>
                     </td>
-                    <td class="text-center">
+                    <td>
+                        {{-- DETAIL (TETAP ADA) --}}
                         <button class="btn btn-primary btn-sm"
                             data-toggle="modal"
-                            data-target="#modalApproval{{ $item->id }}"
-                            title="Proses Pengajuan">
-                            <i class="fas fa-search-plus"></i> Detail
+                            data-target="#modalDetail{{ $item->id }}">
+                            Detail
                         </button>
+
+                        {{-- =========================
+                        OPERATIONAL APPROVAL
+                        ========================= --}}
+                        @if ($item->status === 'diajukan')
+                            <button
+                                class="btn btn-success btn-sm btnApproval"
+                                data-id="{{ $item->id }}"
+                                data-status="diproses"
+                            >
+                                Setujui
+                            </button>
+
+                            <button
+                                class="btn btn-danger btn-sm btnApproval"
+                                data-id="{{ $item->id }}"
+                                data-status="ditolak"
+                            >
+                                Tolak
+                            </button>
+
+                            {{-- Hapus hanya boleh saat diajukan --}}
+                            <x-button-delete
+                                idTarget="#modalDeleteOperational"
+                                formId="formDeleteOperational"
+                                action="#"
+                                text="Hapus"
+                            />
+
+                        @elseif ($item->status === 'diproses')
+                            <button
+                                class="btn btn-info btn-sm btnApproval"
+                                data-id="{{ $item->id }}"
+                                data-status="diterima"
+                            >
+                                Terima
+                            </button>
+                        @endif
                     </td>
+
                 </tr>
-                @empty
-                <tr>
-                    <td colspan="7" class="text-center py-4 text-muted">
-                        <i class="fas fa-check-double fa-3x mb-3"></i><br>
-                        Tidak ada data pengajuan yang perlu diproses.
-                    </td>
-                </tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
+
     </div>
 </div>
+
 
 {{-- =========================
-    MODAL DETAIL & APPROVAL (LOOPING)
+MODAL TAMBAH
+========================= --}}
+{{-- <x-modal-form
+    id="modalAddOperational"
+    title="Tambah Pengajuan Operasional"
+    action="{{ route('transaction.operational-submission.store') }}"
+    submitText="Simpan"
+>
+
+    KODE
+    <div class="form-group">
+        <label>Kode</label>
+        <input
+            type="text"
+            class="form-control"
+            value="{{ $nextKodeOperasional ?? 'OPRXXX' }}"
+            readonly
+            style="background:#e9ecef"
+        >
+    </div>
+
+    TANGGAL
+    <input type="hidden" name="tanggal" value="{{ now()->toDateString() }}">
+
+    DAPUR
+    <div class="form-group">
+        <label>Dapur</label>
+        <select name="kitchen_id" class="form-control" required>
+            <option disabled selected>Pilih Dapur</option>
+            @foreach ($kitchens as $kitchen)
+                <option value="{{ $kitchen->id }}">
+                    {{ $kitchen->nama }}
+                </option>
+            @endforeach
+        </select>
+    </div>
+
+    JENIS OPERASIONAL
+    <div class="form-group">
+        <label>Jenis Operasional</label>
+        <select name="operational_id" class="form-control" required>
+            <option disabled selected>Pilih Operasional</option>
+            @foreach ($operationals ?? [] as $op)
+                <option value="{{ $op->id }}">
+                    {{ $op->nama }}
+                </option>
+            @endforeach
+        </select>
+    </div>
+
+    TOTAL
+    <div class="form-group">
+        <label>Total Biaya</label>
+        <input
+            type="number"
+            name="total"
+            min="0"
+            class="form-control"
+            placeholder="Masukkan total biaya"
+            required
+        >
+    </div>
+
+</x-modal-form> --}}
+
+<x-modal-form
+    id="modalAddOperational"
+    size="modal-lg"
+    title="Tambah Pengajuan Operasional"
+    action="#"
+    submitText="Simpan"
+    method="POST"
+>
+
+    {{-- HEADER ROW --}}
+    <div class="d-flex align-items-center">
+
+        {{-- KODE --}}
+        <div class="form-group">
+            <label>Kode</label>
+            <input
+                type="text"
+                class="form-control"
+                value="OPR001"
+                readonly
+                required
+                style="background:#e9ecef"
+            >
+        </div>
+
+        {{-- TANGGAL --}}
+        <div class="form-group flex-fill ml-2">
+            <label>Tanggal</label>
+            <input
+                type="date"
+                class="form-control"
+                value="{{ now()->toDateString() }}"
+                required
+            >
+        </div>
+
+        {{-- DAPUR --}}
+        <div class="form-group flex-fill ml-2">
+            <label>Dapur</label>
+            <select class="form-control" required>
+                <option disabled selected>Pilih Dapur</option>
+                <option value="1">Dapur Pusat</option>
+                <option value="2">Dapur Cabang</option>
+            </select>
+        </div>
+
+    </div>
+
+    {{-- DETAIL OPERASIONAL --}}
+    <div class="form-group">
+        <label>Jenis Operasional</label>
+        <select class="form-control" required>
+            <option disabled selected>Pilih Operasional</option>
+            <option value="gas">Gas LPG</option>
+            <option value="listrik">Listrik</option>
+            <option value="air">Air</option>
+            <option value="internet">Internet</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Total Biaya</label>
+        <input
+            type="number"
+            min="0"
+            class="form-control"
+            placeholder="Masukkan total biaya"
+            required
+        >
+    </div>
+
+</x-modal-form>
+
+
+
+
+{{-- =========================
+MODAL DETAIL
 ========================= --}}
 @foreach($submissions as $item)
-<div class="modal fade" id="modalApproval{{ $item->id }}" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header {{ $item->status == 'diajukan' ? 'bg-primary' : 'bg-secondary' }} text-white">
-                <h5 class="modal-title">
-                    Proses Pengajuan: <span class="font-weight-bold">{{ $item->kode }}</span>
-                </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            
-            <div class="modal-body">
-                {{-- INFO HEADER --}}
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <table class="table table-borderless table-sm">
-                            <tr>
-                                <td class="text-muted" width="100">Dapur</td>
-                                <td class="font-weight-bold">: {{ $item->kitchen->nama ?? '-' }}</td>
-                            </tr>
-                            <tr>
-                                <td class="text-muted">Tanggal</td>
-                                <td class="font-weight-bold">: {{ $item->created_at->format('d F Y, H:i') }}</td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div class="col-md-6 text-right">
-                        Status Saat Ini:<br>
-                        <span class="badge badge-{{ $item->status == 'diterima' ? 'success' : ($item->status == 'ditolak' ? 'danger' : 'warning') }} p-2" style="font-size: 1rem;">
-                            {{ strtoupper($item->status) }}
-                        </span>
-                    </div>
-                </div>
+<x-modal-detail 
+    id="modalDetail{{ $item->id }}"
+    size="modal-lg"
+    title="Detail {{ $item->kode }}"
+>
+    <table class="table table-borderless">
+        <tr><th>Dapur</th><td>: {{ $item->dapur }}</td></tr>
+        <tr><th>Operasional</th><td>: {{ $item->operasional }}</td></tr>
+        <tr><th>Status</th><td>: {{ strtoupper($item->status) }}</td></tr>
+    </table>
 
-                {{-- TABEL BARANG --}}
-                <h6 class="font-weight-bold text-secondary">Detail Barang</h6>
-                <table class="table table-bordered table-sm mb-3">
-                    <thead class="bg-light">
-                        <tr>
-                            <th>Barang</th>
-                            <th class="text-center">Qty</th>
-                            <th class="text-right">Harga Satuan</th>
-                            <th class="text-right">Subtotal</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($item->details as $det)
-                        <tr>
-                            <td>{{ $det->barang->nama ?? 'Item dihapus' }}</td>
-                            <td class="text-center">{{ $det->qty }}</td>
-                            <td class="text-right">{{ number_format($det->harga_satuan) }}</td>
-                            <td class="text-right">{{ number_format($det->subtotal) }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <th colspan="3" class="text-right">Total Biaya</th>
-                            <th class="text-right font-weight-bold">Rp {{ number_format($item->total_harga) }}</th>
-                        </tr>
-                    </tfoot>
-                </table>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Barang</th>
+                <th>Qty</th>
+                <th>Satuan</th>
+                <th>Harga</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Gas 12 Kg</td>
+                <td>1</td>
+                <td>Tabung</td>
+                <td>150.000</td>
+                <td>150.000</td>
+            </tr>
+        </tbody>
+    </table>
+</x-modal-detail>
 
-                @if($item->status == 'ditolak' && $item->keterangan)
-                    <div class="alert alert-danger">
-                        <strong>Alasan Penolakan:</strong><br>
-                        {{ $item->keterangan }}
-                    </div>
-                @endif
+<x-modal-form
+    id="modalApprovalOperational"
+    title="Konfirmasi Approval"
+    action="#"
+    submitText="Ya, Lanjutkan"
+    method="POST"
+>
+    @csrf
+    @method('PUT')
 
-                {{-- FORM APPROVAL (Hanya muncul jika status masih DIAJUKAN) --}}
-                @if($item->status === 'diajukan')
-                    <hr>
-                    <h6 class="font-weight-bold mb-3">Tindakan Persetujuan:</h6>
-                    
-                    {{-- Pastikan route ini sesuai dengan route web.php Anda --}}
-                    {{-- Contoh Route: Route::patch('/operational-approval/{id}/status', ...)->name('operational.approval.update_status') --}}
-                    <form action="{{ route('transaction.operational-approval.update-status', $item->id) }}" method="POST">
-                        @csrf
-                        @method('PATCH')
+    <input type="hidden" name="status" id="approval_status">
 
-                        <div class="row">
-                            {{-- TOMBOL TERIMA --}}
-                            <div class="col-md-6">
-                                <button type="submit" name="status" value="diterima" class="btn btn-success btn-block btn-lg" onclick="return confirm('Yakin ingin MENERIMA pengajuan ini?')">
-                                    <i class="fas fa-check-circle"></i> TERIMA PENGAJUAN
-                                </button>
-                            </div>
+    <p>
+        Apakah Anda yakin ingin mengubah status pengajuan ini menjadi
+        <strong id="approval_status_text"></strong>?
+    </p>
+</x-modal-form>
 
-                            {{-- TOMBOL TOLAK (Toggle Input Keterangan) --}}
-                            <div class="col-md-6">
-                                <button type="button" class="btn btn-danger btn-block btn-lg" onclick="$('#rejectSection{{ $item->id }}').collapse('toggle')">
-                                    <i class="fas fa-times-circle"></i> TOLAK PENGAJUAN
-                                </button>
-                            </div>
-                        </div>
-
-                        {{-- SECTION KETERANGAN TOLAK (Default Hidden) --}}
-                        <div class="collapse mt-3" id="rejectSection{{ $item->id }}">
-                            <div class="card card-body bg-light border-danger">
-                                <div class="form-group">
-                                    <label class="text-danger">Alasan Penolakan (Wajib diisi):</label>
-                                    <textarea name="keterangan" class="form-control" rows="3" placeholder="Contoh: Stok barang di gudang pusat kosong..."></textarea>
-                                </div>
-                                <button type="submit" name="status" value="ditolak" class="btn btn-danger btn-sm">
-                                    Konfirmasi Tolak
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                @else
-                    <div class="alert alert-secondary text-center mb-0">
-                        <i class="fas fa-lock"></i> Pengajuan ini sudah selesai diproses.
-                    </div>
-                @endif
-
-            </div>
-        </div>
-    </div>
-</div>
 @endforeach
 
 @endsection
 
-@section('js')
-<script>
-    $(document).ready(function() {
-        
-        // --- LOGIKA FILTER TABEL ---
+@push('js')
+    <script>
+        $(document).ready(function () {
+
+            /**
+             * ======================================================
+             * LOAD MENU BERDASARKAN DAPUR
+             * ======================================================
+             */
+            function loadMenuByKitchen(kitchenId) {
+
+                let menuSelect = $('#menu_id');
+
+                // tampilkan loading
+                menuSelect.html('<option disabled selected>Loading...</option>');
+
+                // generate URL route dengan parameter
+                let url = "{{ route('transaction.submission.menu-by-kitchen', ':kitchen') }}";
+                url = url.replace(':kitchen', kitchenId);
+
+                $.get(url)
+                    .done(function (data) {
+
+                        menuSelect.empty();
+                        menuSelect.append('<option disabled selected>Pilih Menu</option>');
+
+                        if (data.length === 0) {
+                            menuSelect.append(
+                                '<option disabled>Tidak ada menu untuk dapur ini</option>'
+                            );
+                            return;
+                        }
+
+                        data.forEach(function (menu) {
+                            menuSelect.append(
+                                `<option value="${menu.id}">${menu.nama}</option>`
+                            );
+                        });
+                    })
+                    .fail(function () {
+                        menuSelect.html(
+                            '<option disabled selected>Gagal memuat menu</option>'
+                        );
+                    });
+            }
+
+            /**
+             * ======================================================
+             * SAAT DAPUR DIPILIH
+             * ======================================================
+             */
+            $(document).on('change', '#kitchen_id', function () {
+
+                let kitchenId = $(this).val();
+
+                // reset menu
+                $('#menu_id').html(
+                    '<option disabled selected>Pilih dapur terlebih dahulu</option>'
+                );
+
+                if (kitchenId) {
+                    loadMenuByKitchen(kitchenId);
+                }
+            });
+
+            /**
+             * ======================================================
+             * SAAT MODAL TAMBAH DIBUKA
+             * ======================================================
+             */
+            $('#modalAddSubmission').on('shown.bs.modal', function () {
+
+                let kitchenId = $('#kitchen_id').val();
+
+                if (kitchenId) {
+                    loadMenuByKitchen(kitchenId);
+                } else {
+                    $('#menu_id').html(
+                        '<option disabled selected>Pilih dapur terlebih dahulu</option>'
+                    );
+                }
+            });
+
+            /**
+             * ======================================================
+             * SAAT MODAL DITUTUP → RESET FORM
+             * ======================================================
+             */
+            $('#modalAddSubmission').on('hidden.bs.modal', function () {
+                $('#kitchen_id').val('');
+                $('#menu_id').html(
+                    '<option disabled selected>Pilih dapur terlebih dahulu</option>'
+                );
+            });
+
+        });
+
         function applyFilter() {
             let kitchen = $('#filterKitchen').val().toLowerCase();
+            let menu = $('#filterMenu').val().toLowerCase();
             let status = $('#filterStatus').val().toLowerCase();
             let date = $('#filterDate').val();
 
-            $('#tableApproval tbody tr').each(function () {
-                let rowKitchen = $(this).data('kitchen').toLowerCase();
-                let rowStatus = $(this).data('status').toLowerCase();
-                let rowDate = $(this).data('date');
+            $('tbody tr').each(function () {
+                let rowKitchen = $(this).data('kitchen')?.toLowerCase() || '';
+                let rowMenu = $(this).data('menu')?.toLowerCase() || '';
+                let rowStatus = $(this).data('status')?.toLowerCase() || '';
+                let rowDate = $(this).data('date') || '';
 
                 let show = true;
+
                 if (kitchen && rowKitchen !== kitchen) show = false;
+                if (menu && rowMenu !== menu) show = false;
                 if (status && rowStatus !== status) show = false;
                 if (date && rowDate !== date) show = false;
 
@@ -282,7 +487,58 @@
             });
         }
 
-        $('#filterKitchen, #filterStatus, #filterDate').on('change', applyFilter);
-    });
-</script>
-@endsection
+        $('#filterKitchen, #filterMenu, #filterStatus, #filterDate').on('change', applyFilter);
+
+
+        $(document).on('click', '.btnEdit', function () {
+
+            let action = $(this).data('action');
+            let status = $(this).data('status');
+
+            let modal = $('#modalEditSubmission');
+
+            modal.find('form').attr('action', action);
+
+            let statusSelect = $('#edit_status');
+            statusSelect.val(status);
+            statusSelect.find('option').prop('disabled', false);
+
+            // RULE:
+            // jika status = diproses → hanya boleh diterima
+            if (status === 'diproses') {
+                statusSelect.find('option').prop('disabled', true);
+                statusSelect.find('option[value="diterima"]').prop('disabled', false);
+                statusSelect.val('diterima');
+            }
+        });
+
+        /**
+         * =========================
+         * APPROVAL HANDLER
+         * =========================
+         */
+        $(document).on('click', '.btnApproval', function () {
+
+            let id     = $(this).data('id');
+            let status = $(this).data('status');
+
+            let modal = $('#modalApprovalOperational');
+
+            // endpoint approval (nanti sesuaikan route)
+            modal.find('form').attr(
+                'action',
+                `/dashboard/transaksi/pengajuan-operasional/${id}/approval`
+            );
+
+            $('#approval_status').val(status);
+            $('#approval_status_text').text(status.toUpperCase());
+
+            modal.modal('show');
+        });
+
+
+    </script>
+
+
+
+@endpush
