@@ -18,7 +18,12 @@ class SaleMaterialsKitchenController extends Controller
     public function index()
     {
         // Ambil submission yang statusnya selesai sebagai data penjualan
-        $submissions = Submission::with(['kitchen', 'menu', 'details.recipe.bahan_baku.unit'])
+        $submissions = Submission::with([
+            'kitchen', 
+            'menu', 
+            'details.recipe.bahan_baku.unit',
+            'details.bahanBaku.unit'
+        ])
             ->where('status', 'selesai')
             ->latest()
             ->get();
@@ -58,7 +63,8 @@ class SaleMaterialsKitchenController extends Controller
         }
 
         $details = $submission->details()->with([
-            'recipe.bahan_baku.unit'
+            'recipe.bahan_baku.unit',
+            'bahanBaku.unit'
         ])->get();
 
         return response()->json([
@@ -70,13 +76,18 @@ class SaleMaterialsKitchenController extends Controller
                 'kitchen_nama' => $submission->kitchen->nama,
             ],
             'details' => $details->map(function ($detail) {
+                $bahanBakuNama = $detail->recipe?->bahan_baku?->nama ?? $detail->bahanBaku?->nama ?? '-';
+                $satuan = $detail->recipe?->bahan_baku?->unit?->satuan ?? $detail->bahanBaku?->unit?->satuan ?? '-';
+                $bahanBakuId = $detail->recipe?->bahan_baku_id ?? $detail->bahan_baku_id ?? null;
+                $satuanId = $detail->recipe?->bahan_baku?->satuan_id ?? $detail->bahanBaku?->satuan_id ?? null;
+                
                 return [
-                    'bahan_baku_id' => $detail->recipe?->bahan_baku_id,
-                    'bahan_baku_nama' => $detail->recipe?->bahan_baku?->nama ?? '-',
+                    'bahan_baku_id' => $bahanBakuId,
+                    'bahan_baku_nama' => $bahanBakuNama,
                     'qty_digunakan' => $detail->qty_digunakan,
-                    'satuan_id' => $detail->recipe?->bahan_baku?->satuan_id,
-                    'satuan' => $detail->recipe?->bahan_baku?->unit?->satuan ?? '-',
-                    'harga_dapur' => $detail->harga_satuan_saat_itu ?? 0,
+                    'satuan_id' => $satuanId,
+                    'satuan' => $satuan,
+                    'harga_dapur' => $detail->harga_dapur ?? $detail->harga_satuan_saat_itu ?? 0,
                 ];
             })
         ]);
@@ -132,38 +143,54 @@ class SaleMaterialsKitchenController extends Controller
 
     public function printInvoice($kode)
     {
-        $sales = Sells::with(['user', 'kitchen', 'bahanBaku.unit', 'satuan'])
-            ->where('tipe', 'dapur')
+        // Ambil submission berdasarkan kode
+        $submission = Submission::with([
+            'kitchen',
+            'menu',
+            'details.recipe.bahan_baku.unit',
+            'details.bahanBaku.unit'
+        ])
             ->where('kode', $kode)
-            ->get();
+            ->where('status', 'selesai')
+            ->first();
 
-        if ($sales->isEmpty()) {
+        if (!$submission) {
             abort(404, 'Data penjualan tidak ditemukan');
         }
 
-        $totalHarga = $sales->sum(function ($sale) {
-            return $sale->harga * $sale->bobot_jumlah;
+        // Hitung total harga dari detail
+        $totalHarga = $submission->details->sum(function ($detail) {
+            $hargaDapur = $detail->harga_dapur ?? $detail->harga_satuan_saat_itu ?? 0;
+            return $hargaDapur * $detail->qty_digunakan;
         });
 
-        return view('transaction.invoice-sale-kitchen', compact('sales', 'totalHarga'));
+        return view('transaction.invoice-sale-kitchen', compact('submission', 'totalHarga'));
     }
 
     public function downloadInvoice($kode)
     {
-        $sales = Sells::with(['user', 'kitchen', 'bahanBaku.unit', 'satuan'])
-            ->where('tipe', 'dapur')
+        // Ambil submission berdasarkan kode
+        $submission = Submission::with([
+            'kitchen',
+            'menu',
+            'details.recipe.bahan_baku.unit',
+            'details.bahanBaku.unit'
+        ])
             ->where('kode', $kode)
-            ->get();
+            ->where('status', 'selesai')
+            ->first();
 
-        if ($sales->isEmpty()) {
+        if (!$submission) {
             abort(404, 'Data penjualan tidak ditemukan');
         }
 
-        $totalHarga = $sales->sum(function ($sale) {
-            return $sale->harga * $sale->bobot_jumlah;
+        // Hitung total harga dari detail
+        $totalHarga = $submission->details->sum(function ($detail) {
+            $hargaDapur = $detail->harga_dapur ?? $detail->harga_satuan_saat_itu ?? 0;
+            return $hargaDapur * $detail->qty_digunakan;
         });
 
-        $pdf = Pdf::loadView('transaction.invoice-sale-kitchen', compact('sales', 'totalHarga'));
+        $pdf = Pdf::loadView('transaction.invoice-sale-kitchen', compact('submission', 'totalHarga'));
         $pdf->setPaper('a4', 'portrait');
         
         $filename = 'Invoice_' . $kode . '_' . date('Y-m-d') . '.pdf';

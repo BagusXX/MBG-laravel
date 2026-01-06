@@ -18,6 +18,7 @@ return new class extends Migration
             $table->decimal('total_harga', 15, 2)->default(0);
             $table->enum('status',['diajukan','diterima','ditolak'])->default('diajukan');
             $table->text('keterangan')->nullable();
+            $table->date('tanggal')->nullable();
             $table->timestamps();
             $table->index(['kitchen_kode', 'status']);
 

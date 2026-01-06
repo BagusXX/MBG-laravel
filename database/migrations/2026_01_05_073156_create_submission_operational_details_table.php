@@ -15,10 +15,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('operational_submission_id')->constrained('submission_operationals')->cascadeOnDelete();
             $table->foreignId('operational_id')->constrained('operationals')->cascadeOnDelete();
-            $table->foreignId('barang_id')->constrained('operationals')->cascadeOnDelete();
             $table->decimal('qty', 10, 2);
             $table->decimal('harga_satuan', 15, 2);
             $table->decimal('subtotal', 15, 2);
+            $table->text('keterangan')->nullable();
             $table->timestamps();
 
             $table->index('barang_id');
