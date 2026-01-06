@@ -83,24 +83,53 @@
                 </thead>
                 <tbody>
                     @forelse ($submissions as $item)
-                                <tr data-kitchen="{{ $item->kitchen->nama }}" data-menu="{{ $item->menu->nama }}"
-                                    data-status="{{ $item->status }}" data-date="{{ $item->tanggal }}">
-                                    <td>{{ $item->kode }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y') }}</td>
-                                    <td>{{ $item->kitchen->nama }}</td>
-                                    <td>{{ $item->menu->nama }}</td>
-                                    <td>{{ $item->porsi }}</td>
-                                    <td>
+                        <tr data-kitchen="{{ $item->kitchen->nama }}" data-menu="{{ $item->menu->nama }}"
+                            data-status="{{ $item->status }}" data-date="{{ $item->tanggal }}">
+                                <td>{{ $item->kode }}</td>
+                                <td>{{ \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y') }}</td>
+                                <td>{{ $item->kitchen->nama }}</td>
+                                <td>{{ $item->menu->nama }}</td>
+                                <td>{{ $item->porsi }}</td>
+                                <td>
                                         <span
                                             class="badge badge-{{
-                        $item->status === 'selesai' ? 'success' :
-                        ($item->status === 'ditolak' ? 'danger' :
-                            ($item->status === 'diproses' ? 'info' : 'warning'))
-                                                                                                                                                                        }}">
+                                                $item->status === 'selesai' ? 'success' :
+                                                ($item->status === 'ditolak' ? 'danger' :
+                                                ($item->status === 'diproses' ? 'info' : 'warning'))
+                                            }}">
                                             {{ strtoupper($item->status) }}
                                         </span>
                                     </td>
                                     <td>
+                                        @if ($mode === "pengajuan")
+                                            <button 
+                                                type="button"
+                                                class="btn btn-primary btn-sm btnViewDetail"
+                                                data-toggle="modal"
+                                                data-target="#modalViewDetail{{ $item->id }}"
+                                            >
+                                                Detail
+                                            </button>
+                                        @endif
+
+                                        @if($mode === 'pengajuan' && $item->status === 'diajukan')
+                                            <button
+                                                type="button"
+                                                class="btn btn-warning btn-sm btnEdit"
+                                                data-id="{{ $item->id }}"
+                                                data-toggle="modal"
+                                                data-target="#modalEditSubmission"
+                                            >
+                                                Edit
+                                            </button>
+                                            <x-button-delete
+                                                idTarget="#modalDeleteSubmission"
+                                                formId="formDeleteSubmission"
+                                                action="{{ route('transaction.submission.destroy', $item->id) }}"
+                                                text="Hapus"
+                                            />
+                                        @endif
+
                                         {{-- DETAIL (SEMUA MODE) --}}
                                         @if($mode === 'permintaan' && $item->status !== 'selesai')
                                             <button 
@@ -115,15 +144,6 @@
                                                 data-menu-id="{{ $item->menu_id }}"
                                                 data-porsi="{{ $item->porsi }}"
                                                 data-action="{{ route('transaction.submission.update', $item->id) }}"
-                                            >
-                                                Detail
-                                            </button>
-                                        @else
-                                            <button 
-                                                type="button"
-                                                class="btn btn-primary btn-sm btnViewDetail"
-                                                data-toggle="modal"
-                                                data-target="#modalViewDetail{{ $item->id }}"    
                                             >
                                                 Detail
                                             </button>
@@ -163,7 +183,6 @@
                                                     </button>
                                                 </form>
                                             @endif
-
                                         @endif
                                     </td>
                                 </tr>
@@ -219,6 +238,31 @@
         </x-modal-form>
     @endif
 
+    {{-- MODAL EDIT PENGAJUAN --}}
+    <x-modal-form 
+        id="modalEditSubmission" 
+        size="modal-lg" 
+        title="Edit Pengajuan" 
+        action="" 
+        submitText="Perbarui"
+    >
+        @method('PUT')
+
+        <div class="form-group">
+
+        </div>
+    </x-modal-form>
+
+    {{-- MODAL DELETE PENGAJUAN --}}
+    @if ($mode === 'pengajuan')
+        <x-modal-delete
+            id="modalDeleteSubmission"
+            formId="formDeleteSubmission"
+            title="Konfirmasi Hapus"
+            message="Apakah Anda yakin ingin menghapus data ini?"
+            confirmText="Hapus"
+        />
+    @endif
 
     {{-- MODAL EDIT DETAIL (PERMINTAAN) --}}
     @if($mode === 'permintaan')

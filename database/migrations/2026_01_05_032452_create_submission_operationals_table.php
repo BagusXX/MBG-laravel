@@ -14,12 +14,14 @@ return new class extends Migration
         Schema::create('submission_operationals', function (Blueprint $table) {
             $table->id();
             $table->string('kode')->unique();
-            $table->foreignId('kitchen_id')->constrained('kitchens')->cascadeOnDelete();
-            $table->foreignId('operasional_id')->constrained('operationals')->cascadeOnDelete();
+            $table->string('kitchen_kode');
             $table->decimal('total_harga', 15, 2)->default(0);
             $table->enum('status',['diajukan','diterima','ditolak'])->default('diajukan');
+            $table->text('keterangan')->nullable();
             $table->timestamps();
-            $table->index(['kitchen_id', 'status']);
+            $table->index(['kitchen_kode', 'status']);
+
+            $table->foreign('kitchen_kode')->references('kode')->on('kitchens')->OnDelete('cascade');
         });
     }
 

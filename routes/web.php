@@ -277,7 +277,7 @@ Route::middleware(['auth'])->group(function () {
                 ->name('index');
 
             Route::post('/', 'store')
-                ->middleware('permission:transaction.operational-submission.create')
+                ->middleware('permission:transaction.operational-submission.store')
                 ->name('store');
 
             Route::put('/{id}', 'update')
@@ -287,6 +287,10 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{id}', 'destroy')
                 ->middleware('permission:transaction.operational-submission.delete')
                 ->name('destroy');
+
+            Route::get('/{id}', 'show')
+                ->middleware('permission:transaction.operational-submission.view') // Sesuaikan permission jika ada khusus 'show'
+                ->name('show');
         });
 
     Route::prefix('dashboard/transaksi/daftar-operasional')
@@ -298,8 +302,12 @@ Route::middleware(['auth'])->group(function () {
                 ->middleware('permission:transaction.operational-approval.view')
                 ->name('index');
 
+            Route::get('/{id}', 'show')
+                ->middleware('permission:transaction.operational-approval.show')
+                ->name('show');
+
             Route::post('/', 'store')
-                ->middleware('permission:transaction.operational-approval.create')
+                ->middleware('permission:transaction.operational-approval.store')
                 ->name('store');
 
             Route::put('/{id}', 'updateStatus')
@@ -309,6 +317,12 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{id}', 'destroy')
                 ->middleware('permission:transaction.operational-approval.delete')
                 ->name('destroy');
+
+            Route::patch('/{id}', 'updateStatus')
+                ->middleware('permission:transaction.operational-approval.update-status')
+                ->name('update-status');
+
+
         });
 
     Route::prefix('dashboard/transaksi')

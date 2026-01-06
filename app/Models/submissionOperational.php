@@ -12,23 +12,19 @@ class submissionOperational extends Model
     protected $fillable = 
     [
         'kode',
-        'kitchen_id',
-        'operasional_id',
+        'kitchen_kode',
         'total_harga',
         'status',
+        'keterangan'
 
     ];
 
     public function kitchen(){
-        return $this->belongsTo(Kitchen::class);
-    }
-
-    public function operational(){
-        return $this->belongsTo(operationals::class); 
+        return $this->belongsTo(Kitchen::class,'kitchen_kode', 'kode');
     }
 
     public function details(){
-        return $this->hasMany(submissionOperationalDetails::class);
+        return $this->hasMany(submissionOperationalDetails::class,'operational_submission_id');
     }
 
     
