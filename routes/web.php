@@ -24,7 +24,7 @@ use App\Http\Controllers\SaleMaterialsPartnerController;
 
 require __DIR__ . '/auth.php';
 
-Route::get('/', fn() => redirect()->route('dashboard.master.bahan-baku.index'));
+//Route::get('/', fn() => redirect()->route('dashboard.master.bahan-baku.index'));
 Route::get('/', [HomePageController::class, 'index'])->name('portal.index');
 
 Route::middleware(['auth'])->group(function () {
@@ -321,8 +321,6 @@ Route::middleware(['auth'])->group(function () {
             Route::patch('/{id}', 'updateStatus')
                 ->middleware('permission:transaction.operational-approval.update-status')
                 ->name('update-status');
-
-
         });
 
     Route::prefix('dashboard/transaksi')
