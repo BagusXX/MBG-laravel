@@ -26,7 +26,7 @@ class operationals extends Model
 
     public function submissionDetails(){
 
-        return $this->hasMany(submissionOperationalDetails::class, 'barang_id');
+        return $this->hasMany(submissionOperationalDetails::class, 'operational_id');
 
     }
 }

@@ -12,6 +12,7 @@ class submissionOperational extends Model
     protected $fillable = 
     [
         'kode',
+        'tanggal',
         'kitchen_kode',
         'total_harga',
         'status',

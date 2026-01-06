@@ -24,11 +24,12 @@ class OperationalSubmissionController extends Controller
         $kitchenCodes = $kitchens->pluck('kode'); // Asumsi 'kode' adalah PK/FK
 
         // 2. Ambil Master Barang (Untuk Dropdown Barang)
-        $masterBarang = operationals::all();
+        $masterBarang = operationals::select('id', 'nama', 'kitchen_kode', 'harga_default')->get();
 
         // 3. Ambil Data Submission
         $submissions = submissionOperational::with(['kitchen', 'details.barang'])
             ->whereIn('kitchen_kode', $kitchenCodes)
+            ->orderBy('tanggal','desc')
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -50,6 +51,8 @@ class OperationalSubmissionController extends Controller
     {
         $request->validate([
             'kitchen_kode' => 'required|exists:kitchens,kode',
+            'tanggal' => 'required|date',
+            'keterangan' => 'nullable|string',
             'items' => 'required|array',
             'items.*.barang_id' => 'required|exists:operationals,id',
             'items.*.qty' => 'required|numeric|min:1',
@@ -72,7 +75,9 @@ class OperationalSubmissionController extends Controller
                 'kode' => $newKode,
                 'kitchen_kode' => $request->kitchen_kode,
                 'status' => 'diajukan',
-                'total_harga' => 0
+                'total_harga' => 0,
+                'tanggal' => $request->tanggal,
+                'keterangan' => $request->keterangan
             ]);
 
             $total = 0;
@@ -82,7 +87,6 @@ class OperationalSubmissionController extends Controller
                 submissionOperationalDetails::create([
                     'operational_submission_id' => $submission->id,
                     'operational_id' => $item['barang_id'], // Di migrasi ada dua field ini
-                    'barang_id' => $item['barang_id'],
                     'qty' => $item['qty'],
                     'harga_satuan' => $item['harga_satuan'],
                     'subtotal' => $subtotal,
