@@ -15,8 +15,8 @@ class HomePageController extends Controller
                 'role' => 'Dashboard',
                 'description' => 'Superadmin, Admin, dan Operator. Silakan masuk ke dashboard admin untuk mengelola data dan operasional sistem.',
                 'icon' => 'fa-gauge-high',
-                'color_theme' => 'blue', // Untuk styling class dynamic
-                'url' => route('login'), // Sesuaikan dengan route login admin
+                'color_theme' => 'blue',
+                'url' => route('login'),
                 'btn_text' => 'Masuk Dashboard'
             ],
             [
@@ -24,7 +24,7 @@ class HomePageController extends Controller
                 'description' => 'Daftarkan akun anda disini, jangan lupa untuk meminta persetujuan admin terlebih dahulu.',
                 'icon' => 'fa-solid fa-user-plus',
                 'color_theme' => 'green',
-                'url' => route('register'), // Ganti dengan route login sekolah
+                'url' => route('register'),
                 'btn_text' => 'Registrasi Disini'
             ]
         ];

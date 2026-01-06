@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -19,6 +20,7 @@ return new class extends Migration
                 $table->foreignId('supplier_id')->constrained('suppliers')->onDelete('cascade');
 
                 $table->decimal('total', 15, 2)->default(0);
+                $table->date('tanggal')->default(DB::raw('CURRENT_DATE'));
                 $table->timestamps();
                 $table->softDeletes();
             });
