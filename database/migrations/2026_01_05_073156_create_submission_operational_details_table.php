@@ -18,6 +18,7 @@ return new class extends Migration
             $table->decimal('qty', 10, 2);
             $table->decimal('harga_satuan', 15, 2);
             $table->decimal('subtotal', 15, 2);
+            $table->text('keterangan')->nullable();
             $table->timestamps();
 
             $table->index('barang_id');

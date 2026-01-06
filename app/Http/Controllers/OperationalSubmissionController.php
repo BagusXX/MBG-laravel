@@ -57,6 +57,7 @@ class OperationalSubmissionController extends Controller
             'items.*.barang_id' => 'required|exists:operationals,id',
             'items.*.qty' => 'required|numeric|min:1',
             'items.*.harga_satuan' => 'required|numeric',
+            'items.*.keterangan'   => 'nullable|string'
         ]);
 
         return DB::transaction(function () use ($request) {
@@ -90,6 +91,7 @@ class OperationalSubmissionController extends Controller
                     'qty' => $item['qty'],
                     'harga_satuan' => $item['harga_satuan'],
                     'subtotal' => $subtotal,
+                    'keterangan'   => $item['keterangan'] ?? null
                 ]);
                 $total += $subtotal;
             }
