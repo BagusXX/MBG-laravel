@@ -86,7 +86,7 @@ class PermissionSeeder extends Seeder
             'transaction.operational-approval.store',
             'transaction.operational-approval.delete',
             'transaction.operational-approval.show',
-            'transaction.operational-approval.update',
+            'transaction.operational-approval.update-status',
 
 
 
