@@ -236,8 +236,30 @@
                     if (templateRow) {
                         newRow = templateRow.cloneNode(true);
                         // Reset values
-                        newRow.querySelectorAll('input').forEach(inp => inp.value = '');
-                        newRow.querySelectorAll('select').forEach(sel => sel.selectedIndex = 0);
+                        newRow.querySelectorAll('input').forEach(inp => {
+                            if (inp.type !== 'hidden') inp.value = '';
+                        });
+                        
+                        // Update select bahan baku dengan bahan dari dapur yang dipilih
+                        const bahanSelect = newRow.querySelector('select[name="bahan_baku_id[]"]');
+                        if (bahanSelect && window.BAHAN_LIST) {
+                            bahanSelect.innerHTML = '<option value="" disabled selected>Pilih Bahan</option>';
+                            window.BAHAN_LIST.forEach(bahan => {
+                                const option = document.createElement('option');
+                                option.value = bahan.id;
+                                option.textContent = bahan.nama;
+                                bahanSelect.appendChild(option);
+                            });
+                        } else {
+                            bahanSelect.selectedIndex = 0;
+                        }
+                        
+                        // Reset satuan
+                        const satuanText = newRow.querySelector('.satuan-text');
+                        const satuanId = newRow.querySelector('.satuan-id');
+                        if (satuanText) satuanText.value = '';
+                        if (satuanId) satuanId.value = '';
+                        
                         // Hapus hidden ID (row_id) jika ada (agar dianggap data baru)
                         const hiddenId = newRow.querySelector('input[name="row_id[]"]');
                         if (hiddenId) hiddenId.remove();
@@ -284,34 +306,105 @@
                 }
             });
 
-            // --- LOGIC: Fetch Menu berdasarkan Kitchen (Modal Add) ---
+            // --- LOGIC: Fetch Menu dan Bahan Baku berdasarkan Kitchen (Modal Add) ---
             document.querySelectorAll('.kitchen-select').forEach(kitchenSelect => {
                 kitchenSelect.addEventListener('change', function() {
                     const kitchenId = this.value;
                     const form = this.closest('form');
                     const menuSelect = form.querySelector('.menu-select');
+                    const bahanWrapper = form.querySelector('#bahan-wrapper-add');
 
-                    if (!menuSelect) return;
+                    if (!kitchenId) {
+                        // Reset jika dapur tidak dipilih
+                        if (menuSelect) {
+                            menuSelect.innerHTML = '<option value="" disabled selected>Pilih Menu</option>';
+                        }
+                        return;
+                    }
 
-                    menuSelect.innerHTML = '<option disabled selected>Loading...</option>';
+                    // Reset dan load menu
+                    if (menuSelect) {
+                        menuSelect.innerHTML = '<option disabled selected>Loading...</option>';
+                        menuSelect.disabled = true;
+                        menuSelect.removeAttribute('readonly');
 
-                    fetch(`/dashboard/setup/racik-menu/menus-by-kitchen/${kitchenId}`)
-                        .then(res => res.json())
-                        .then(data => {
-                            menuSelect.innerHTML =
-                                '<option disabled selected>Pilih Menu</option>';
-                            data.forEach(menu => {
-                                const option = document.createElement('option');
-                                option.value = menu.id;
-                                option.textContent = menu.nama;
-                                menuSelect.appendChild(option);
+                        fetch(`/dashboard/setup/racik-menu/menus-by-kitchen/${kitchenId}`)
+                            .then(res => {
+                                if (!res.ok) {
+                                    throw new Error(`HTTP error! status: ${res.status}`);
+                                }
+                                return res.json();
+                            })
+                            .then(data => {
+                                menuSelect.innerHTML = '<option value="" disabled selected>Pilih Menu</option>';
+                                if (!data || data.length === 0) {
+                                    menuSelect.innerHTML += '<option disabled>Tidak ada menu untuk dapur ini</option>';
+                                } else {
+                                    data.forEach(menu => {
+                                        const option = document.createElement('option');
+                                        option.value = menu.id;
+                                        option.textContent = menu.nama;
+                                        menuSelect.appendChild(option);
+                                    });
+                                }
+                                menuSelect.disabled = false;
+                                menuSelect.removeAttribute('readonly');
+                            })
+                            .catch(err => {
+                                console.error('Error loading menu:', err);
+                                menuSelect.innerHTML = '<option value="" disabled selected>Gagal memuat menu</option>';
+                                menuSelect.disabled = false;
+                                menuSelect.removeAttribute('readonly');
                             });
-                        })
-                        .catch(err => {
-                            console.error(err);
-                            menuSelect.innerHTML =
-                                '<option disabled>Gagal memuat menu</option>';
-                        });
+                    }
+
+                    // Reset dan load bahan baku
+                    if (bahanWrapper) {
+                        const bahanSelects = bahanWrapper.querySelectorAll('select[name="bahan_baku_id[]"]');
+                        
+                        // Load bahan baku dari server
+                        fetch(`/dashboard/setup/racik-menu/bahan-by-kitchen/${kitchenId}`)
+                            .then(res => res.json())
+                            .then(bahanList => {
+                                // Update semua select bahan baku
+                                bahanSelects.forEach(select => {
+                                    const currentValue = select.value;
+                                    select.innerHTML = '<option value="" disabled selected>Pilih Bahan</option>';
+                                    
+                                    if (bahanList.length === 0) {
+                                        select.innerHTML += '<option disabled>Tidak ada bahan baku untuk dapur ini</option>';
+                                    } else {
+                                        bahanList.forEach(bahan => {
+                                            const option = document.createElement('option');
+                                            option.value = bahan.id;
+                                            option.textContent = bahan.nama;
+                                            // Restore previous selection if still valid
+                                            if (currentValue == bahan.id) {
+                                                option.selected = true;
+                                                // Trigger change untuk update satuan
+                                                select.dispatchEvent(new Event('change'));
+                                            }
+                                            select.appendChild(option);
+                                        });
+                                    }
+                                });
+
+                                // Update window.BAHAN_LIST untuk dapur ini
+                                window.BAHAN_LIST = bahanList.map(b => ({
+                                    id: b.id,
+                                    nama: b.nama,
+                                    harga: b.harga,
+                                    satuan_id: b.satuan_id,
+                                    unit: b.satuan ? { satuan: b.satuan } : null
+                                }));
+                            })
+                            .catch(err => {
+                                console.error(err);
+                                bahanSelects.forEach(select => {
+                                    select.innerHTML = '<option disabled>Gagal memuat bahan baku</option>';
+                                });
+                            });
+                    }
                 });
             });
 
@@ -327,14 +420,7 @@
                     const menuName = row.children[2].textContent;
 
                     const modal = document.getElementById('modalEditRecipe');
-                    const form = modal.querySelector('form'); <<
-                    <<
-                    << < HEAD
-
-                    // set kitchen
-                    form.querySelector('.kitchen-select').value = kitchenId; ===
-                    ===
-                    =
+                    const form = modal.querySelector('form');
                     const wrapper = document.getElementById('bahan-wrapper-edit');
 
                     // Set Action URL
@@ -344,8 +430,7 @@
                     document.getElementById('edit_kitchen_id').value = kitchenId;
                     document.getElementById('edit_menu_id').value = menuId;
                     document.getElementById('display_kitchen_name').value = kitchenName;
-                    document.getElementById('display_menu_name').value = menuName; >>>
-                    >>> > 1 f29db55143ce14dda1435baae18ea1a0dbff469
+                    document.getElementById('display_menu_name').value = menuName;
 
                     // Loading State
                     wrapper.innerHTML =
@@ -493,6 +578,52 @@
                 var action = button.data('action');
                 var modal = $(this);
                 modal.find('#formDeleteRecipe').attr('action', action);
+            });
+
+            // --- LOGIC: Reset Form saat Modal Dibuka ---
+            $('#modalAddRecipe').on('show.bs.modal', function() {
+                const form = this.querySelector('form');
+                if (form) {
+                    // Reset semua input
+                    form.reset();
+                    
+                    // Reset select dapur
+                    const kitchenSelect = form.querySelector('.kitchen-select');
+                    if (kitchenSelect) {
+                        kitchenSelect.value = '';
+                    }
+                    
+                    // Reset select menu
+                    const menuSelect = form.querySelector('.menu-select');
+                    if (menuSelect) {
+                        menuSelect.innerHTML = '<option value="" disabled selected>Pilih Menu</option>';
+                        menuSelect.disabled = false;
+                        menuSelect.removeAttribute('readonly');
+                    }
+                    
+                    // Reset bahan wrapper ke 1 baris
+                    const bahanWrapper = form.querySelector('#bahan-wrapper-add');
+                    if (bahanWrapper) {
+                        const firstRow = bahanWrapper.querySelector('.bahan-group');
+                        if (firstRow) {
+                            bahanWrapper.innerHTML = '';
+                            bahanWrapper.appendChild(firstRow.cloneNode(true));
+                            // Reset select bahan di baris pertama
+                            const firstBahanSelect = bahanWrapper.querySelector('select[name="bahan_baku_id[]"]');
+                            if (firstBahanSelect) {
+                                firstBahanSelect.innerHTML = '<option value="" disabled selected>Pilih Bahan</option>';
+                            }
+                            // Reset satuan
+                            const firstSatuanText = bahanWrapper.querySelector('.satuan-text');
+                            const firstSatuanId = bahanWrapper.querySelector('.satuan-id');
+                            if (firstSatuanText) firstSatuanText.value = '';
+                            if (firstSatuanId) firstSatuanId.value = '';
+                            // Sembunyikan tombol hapus di baris pertama
+                            const firstRemoveBtn = bahanWrapper.querySelector('.remove-bahan');
+                            if (firstRemoveBtn) firstRemoveBtn.classList.add('d-none');
+                        }
+                    }
+                }
             });
 
         });

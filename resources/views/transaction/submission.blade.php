@@ -149,6 +149,18 @@
                                             </button>
                                         @endif
 
+                                        {{-- DETAIL UNTUK STATUS SELESAI (READ ONLY) --}}
+                                        @if($mode === 'permintaan' && $item->status === 'selesai')
+                                            <button 
+                                                type="button"
+                                                class="btn btn-primary btn-sm btnViewDetail"
+                                                data-toggle="modal"
+                                                data-target="#modalViewDetail{{ $item->id }}"
+                                            >
+                                                Detail
+                                            </button>
+                                        @endif
+
                                         {{-- MODE PERMINTAAN --}}
                                         @if($mode === 'permintaan')
 
@@ -302,8 +314,8 @@
             </div>
 
             <hr>
-            <h6 class="font-weight-bold">Detail Bahan Baku</h6>
-            <div id="edit_bahan_baku_list" class="table-responsive">
+            <h6 class="font-weight-bold mb-3">Detail Bahan Baku</h6>
+            <div id="edit_bahan_baku_list" class="table-responsive mb-3">
                 <table class="table table-bordered table-striped">
                     <thead>
                         <tr>
@@ -314,11 +326,12 @@
                             <th>Harga Mitra</th>
                             <th>Subtotal Dapur</th>
                             <th>Subtotal Mitra</th>
+                            <th width="80">Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="edit_bahan_tbody">
                         <tr>
-                            <td colspan="7" class="text-center text-muted">Pilih menu untuk melihat detail bahan baku</td>
+                            <td colspan="8" class="text-center text-muted">Pilih menu untuk melihat detail bahan baku</td>
                         </tr>
                     </tbody>
                 </table>
@@ -333,6 +346,52 @@
                 </button>
                 <button type="button" id="btn-cancel-edit-harga" class="btn btn-secondary btn-sm" style="display: none;">
                     <i class="fas fa-times"></i> Batal
+                </button>
+            </div>
+
+            <hr class="my-4">
+            <h6 class="font-weight-bold mb-3">Tambah Bahan Baku Manual</h6>
+            <div class="form-group">
+                <div class="form-row mb-2 small text-muted font-weight-bold">
+                    <div class="col-md-5">Bahan Baku</div>
+                    <div class="col-md-3">Jumlah</div>
+                    <div class="col-md-2">Satuan</div>
+                    <div class="col-md-2"></div>
+                </div>
+
+                <div id="tambah-bahan-wrapper">
+                    {{-- Template Row Pertama --}}
+                    <div class="form-row mb-3 bahan-tambah-group">
+                        <div class="col-md-5">
+                            <select name="tambah_bahan_baku_id[]" class="form-control bahan-tambah-select" required>
+                                <option value="" disabled selected>Pilih Bahan</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <input type="number" step="0.01" min="0.0001" name="tambah_qty_digunakan[]" class="form-control" placeholder="0" required>
+                        </div>
+
+                        <div class="col-md-2">
+                            <input type="text" class="form-control satuan-tambah-text bg-light" placeholder="-" readonly>
+                        </div>
+
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-outline-danger btn-sm remove-bahan-tambah d-none w-100">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" id="add-bahan-tambah" class="btn btn-outline-primary btn-sm mt-2">
+                    <i class="fas fa-plus mr-1"></i> Tambah Bahan Lain
+                </button>
+            </div>
+            
+            <div class="mt-3">
+                <button type="button" id="btn-simpan-bahan-tambah" class="btn btn-primary btn-sm">
+                    <i class="fas fa-save"></i> Simpan Bahan Baku
                 </button>
             </div>
         </x-modal-form>
@@ -385,9 +444,9 @@
                                 $subtotalMitra = $hargaMitra * $detail->qty_digunakan;
                             @endphp
                             <tr>
-                                <td>{{ $detail->recipe?->bahan_baku?->nama ?? '-' }}</td>
+                                <td>{{ $detail->recipe?->bahan_baku?->nama ?? $detail->bahanBaku?->nama ?? '-' }}</td>
                                 <td>{{ number_format($detail->qty_digunakan, 2, ',', '.') }}</td>
-                                <td>{{ $detail->recipe?->bahan_baku?->unit?->satuan ?? '-' }}</td>
+                                <td>{{ $detail->recipe?->bahan_baku?->unit?->satuan ?? $detail->bahanBaku?->unit?->satuan ?? '-' }}</td>
                                 <td>Rp {{ number_format($hargaDapur, 0, ',', '.') }}</td>
                                 <td>Rp {{ number_format($hargaMitra, 0, ',', '.') }}</td>
                                 <td>Rp {{ number_format($subtotalDapur, 0, ',', '.') }}</td>
@@ -593,7 +652,7 @@
                     tbody.empty();
 
                     if (data.length === 0) {
-                        tbody.html('<tr><td colspan="7" class="text-center text-muted">Data bahan baku tidak ditemukan</td></tr>');
+                        tbody.html('<tr><td colspan="8" class="text-center text-muted">Data bahan baku tidak ditemukan</td></tr>');
                         return;
                     }
 
@@ -613,6 +672,11 @@
                                 </td>
                                 <td class="subtotal-dapur-cell">${formatRupiah(detail.subtotal_dapur)}</td>
                                 <td class="subtotal-mitra-cell">${formatRupiah(detail.subtotal_mitra)}</td>
+                                <td>
+                                    <button type="button" class="btn btn-danger btn-sm btn-hapus-bahan" data-detail-id="${detail.id}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
                             </tr>
                         `);
                     });
@@ -623,7 +687,7 @@
                     }
                 })
                 .fail(function () {
-                    tbody.html('<tr><td colspan="7" class="text-center text-danger">Gagal memuat data bahan baku</td></tr>');
+                    tbody.html('<tr><td colspan="8" class="text-center text-danger">Gagal memuat data bahan baku</td></tr>');
                 });
         }
 
@@ -634,7 +698,7 @@
          */
         function loadBahanBakuByMenu(menuId, kitchenId, porsi = 1) {
             let tbody = $('#edit_bahan_tbody');
-            tbody.html('<tr><td colspan="7" class="text-center">Loading...</td></tr>');
+            tbody.html('<tr><td colspan="8" class="text-center">Loading...</td></tr>');
 
             // Load dari recipe
             let url = "{{ route('recipe.detail', [':menu', ':kitchen']) }}";
@@ -645,7 +709,7 @@
                     tbody.empty();
 
                     if (data.length === 0) {
-                        tbody.html('<tr><td colspan="7" class="text-center text-muted">Tidak ada bahan baku untuk menu ini</td></tr>');
+                        tbody.html('<tr><td colspan="8" class="text-center text-muted">Tidak ada bahan baku untuk menu ini</td></tr>');
                         return;
                     }
 
@@ -666,12 +730,13 @@
                                 <td>${formatRupiah(hargaMitra)}</td>
                                 <td>${formatRupiah(subtotalDapur)}</td>
                                 <td>${formatRupiah(subtotalMitra)}</td>
+                                <td></td>
                             </tr>
                         `);
                     });
                 })
                 .fail(function () {
-                    tbody.html('<tr><td colspan="7" class="text-center text-danger">Gagal memuat data bahan baku</td></tr>');
+                    tbody.html('<tr><td colspan="8" class="text-center text-danger">Gagal memuat data bahan baku</td></tr>');
                 });
         }
 
@@ -708,6 +773,12 @@
 
             // Load detail bahan baku dari submission yang sudah ada
             loadSubmissionDetails(submissionId);
+            
+            // Reset form tambah inline
+            resetFormTambahInline();
+            
+            // Load bahan baku untuk form tambah inline
+            loadBahanBakuForTambahInline(kitchenId);
         });
 
         /**
@@ -719,6 +790,7 @@
             let kitchenId = $(this).val();
             if (kitchenId) {
                 loadMenuByKitchenForEdit(kitchenId);
+                loadBahanBakuForTambahInline(kitchenId);
             } else {
                 $('#edit_menu_id').html('<option disabled selected>Pilih dapur terlebih dahulu</option>');
             }
@@ -858,6 +930,264 @@
                 }
             });
         });
+
+        /**
+         * ======================================================
+         * HAPUS BAHAN BAKU
+         * ======================================================
+         */
+        $(document).on('click', '.btn-hapus-bahan', function() {
+            if (!confirm('Yakin ingin menghapus bahan baku ini?')) {
+                return;
+            }
+
+            let detailId = $(this).data('detail-id');
+            let submissionId = currentSubmissionId;
+
+            if (!submissionId) {
+                alert('Submission ID tidak ditemukan');
+                return;
+            }
+
+            let url = "{{ route('transaction.submission.delete-detail', [':submission', ':detail']) }}";
+            url = url.replace(':submission', submissionId).replace(':detail', detailId);
+
+            $.ajax({
+                url: url,
+                method: 'DELETE',
+                data: {
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    // Reload data
+                    loadSubmissionDetails(submissionId);
+                    alert('Bahan baku berhasil dihapus');
+                },
+                error: function(xhr) {
+                    let message = xhr.responseJSON?.message || 'Gagal menghapus bahan baku';
+                    alert(message);
+                }
+            });
+        });
+
+        /**
+         * ======================================================
+         * LOAD BAHAN BAKU UNTUK FORM TAMBAH INLINE
+         * ======================================================
+         */
+        function loadBahanBakuForTambahInline(kitchenId) {
+            if (!kitchenId) return;
+
+            let url = "{{ route('transaction.submission.bahan-baku-by-kitchen', ':kitchen') }}";
+            url = url.replace(':kitchen', kitchenId);
+
+            $.get(url)
+                .done(function(data) {
+                    // Update semua select bahan baku di form tambah
+                    $('.bahan-tambah-select').each(function() {
+                        let currentValue = $(this).val();
+                        $(this).empty();
+                        $(this).append('<option value="" disabled selected>Pilih Bahan</option>');
+                        
+                        if (data.length === 0) {
+                            $(this).append('<option disabled>Tidak ada bahan baku untuk dapur ini</option>');
+                            return;
+                        }
+
+                        data.forEach(function(bahan) {
+                            let option = $('<option></option>').attr('value', bahan.id).text(bahan.nama);
+                            if (currentValue == bahan.id) {
+                                option.attr('selected', true);
+                            }
+                            $(this).append(option);
+                        }.bind(this));
+                    });
+                })
+                .fail(function() {
+                    $('.bahan-tambah-select').html('<option disabled selected>Gagal memuat bahan baku</option>');
+                });
+        }
+
+        /**
+         * ======================================================
+         * TAMBAH BARIS BAHAN BAKU (FORM INLINE)
+         * ======================================================
+         */
+        $(document).on('click', '#add-bahan-tambah', function() {
+            let wrapper = $('#tambah-bahan-wrapper');
+            let templateRow = wrapper.find('.bahan-tambah-group').first();
+            
+            if (templateRow.length === 0) return;
+
+            let newRow = templateRow.clone();
+            newRow.find('input').val('');
+            newRow.find('select').val('');
+            newRow.find('.satuan-tambah-text').val('');
+            newRow.find('.remove-bahan-tambah').removeClass('d-none');
+            
+            wrapper.append(newRow);
+            
+            // Load bahan baku untuk select baru
+            let kitchenId = $('#edit_kitchen_id').val();
+            if (kitchenId) {
+                loadBahanBakuForTambahInline(kitchenId);
+            }
+        });
+
+        /**
+         * ======================================================
+         * HAPUS BARIS BAHAN BAKU (FORM INLINE)
+         * ======================================================
+         */
+        $(document).on('click', '.remove-bahan-tambah', function() {
+            let totalRows = $('#tambah-bahan-wrapper .bahan-tambah-group').length;
+            if (totalRows > 1) {
+                $(this).closest('.bahan-tambah-group').remove();
+            } else {
+                alert('Minimal harus ada satu baris bahan baku');
+            }
+        });
+
+        /**
+         * ======================================================
+         * AUTO FILL SATUAN SAAT PILIH BAHAN BAKU
+         * ======================================================
+         */
+        $(document).on('change', '.bahan-tambah-select', function() {
+            let row = $(this).closest('.bahan-tambah-group');
+            let bahanId = $(this).val();
+            
+            if (!bahanId) {
+                row.find('.satuan-tambah-text').val('');
+                return;
+            }
+
+            // Ambil satuan dari data bahan baku yang sudah di-load
+            let url = "{{ route('transaction.submission.bahan-baku-by-kitchen', ':kitchen') }}";
+            let kitchenId = $('#edit_kitchen_id').val();
+            url = url.replace(':kitchen', kitchenId);
+
+            $.get(url)
+                .done(function(data) {
+                    let selectedBahan = data.find(b => b.id == bahanId);
+                    if (selectedBahan && selectedBahan.satuan) {
+                        row.find('.satuan-tambah-text').val(selectedBahan.satuan);
+                    } else {
+                        row.find('.satuan-tambah-text').val('-');
+                    }
+                });
+        });
+
+        /**
+         * ======================================================
+         * SIMPAN BAHAN BAKU TAMBAHAN (FORM INLINE)
+         * ======================================================
+         */
+        $(document).on('click', '#btn-simpan-bahan-tambah', function() {
+            if (!currentSubmissionId) {
+                alert('Submission ID tidak ditemukan');
+                return;
+            }
+
+            let bahanBakuIds = [];
+            let qtyDigunakans = [];
+            let isValid = true;
+
+            $('#tambah-bahan-wrapper .bahan-tambah-group').each(function() {
+                let bahanId = $(this).find('.bahan-tambah-select').val();
+                let qty = $(this).find('input[name="tambah_qty_digunakan[]"]').val();
+
+                if (bahanId && qty) {
+                    bahanBakuIds.push(bahanId);
+                    qtyDigunakans.push(qty);
+                } else if (bahanId || qty) {
+                    isValid = false;
+                }
+            });
+
+            if (!isValid) {
+                alert('Harap lengkapi semua field bahan baku yang dipilih');
+                return;
+            }
+
+            if (bahanBakuIds.length === 0) {
+                alert('Harap pilih minimal satu bahan baku');
+                return;
+            }
+
+            // Simpan satu per satu
+            let savedCount = 0;
+            let totalCount = bahanBakuIds.length;
+            let errors = [];
+
+            bahanBakuIds.forEach(function(bahanId, index) {
+                let url = "{{ route('transaction.submission.add-bahan-baku', ':id') }}";
+                url = url.replace(':id', currentSubmissionId);
+
+                $.ajax({
+                    url: url,
+                    method: 'POST',
+                    data: {
+                        bahan_baku_id: bahanId,
+                        qty_digunakan: qtyDigunakans[index],
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        savedCount++;
+                        if (savedCount === totalCount) {
+                            // Reload data
+                            loadSubmissionDetails(currentSubmissionId);
+                            
+                            // Reset form
+                            resetFormTambahInline();
+                            
+                            // Reload bahan baku options
+                            let kitchenId = $('#edit_kitchen_id').val();
+                            if (kitchenId) {
+                                loadBahanBakuForTambahInline(kitchenId);
+                            }
+                            
+                            if (errors.length > 0) {
+                                alert('Beberapa bahan baku berhasil ditambahkan, namun ada yang gagal:\n' + errors.join('\n'));
+                            } else {
+                                alert('Semua bahan baku berhasil ditambahkan');
+                            }
+                        }
+                    },
+                    error: function(xhr) {
+                        errors.push(xhr.responseJSON?.message || 'Bahan baku ' + (index + 1) + ' gagal ditambahkan');
+                        savedCount++;
+                        if (savedCount === totalCount) {
+                            loadSubmissionDetails(currentSubmissionId);
+                            if (errors.length > 0) {
+                                alert('Beberapa bahan baku gagal ditambahkan:\n' + errors.join('\n'));
+                            }
+                        }
+                    }
+                });
+            });
+        });
+
+        /**
+         * ======================================================
+         * RESET FORM TAMBAH INLINE
+         * ======================================================
+         */
+        function resetFormTambahInline() {
+            let wrapper = $('#tambah-bahan-wrapper');
+            let firstRow = wrapper.find('.bahan-tambah-group').first();
+            
+            if (firstRow.length === 0) return;
+            
+            // Reset semua input di baris pertama
+            firstRow.find('input').val('');
+            firstRow.find('select').val('');
+            firstRow.find('.satuan-tambah-text').val('');
+            firstRow.find('.remove-bahan-tambah').addClass('d-none');
+            
+            // Hapus semua baris kecuali yang pertama
+            wrapper.find('.bahan-tambah-group').not(':first').remove();
+        }
 
     </script>
 

@@ -46,6 +46,13 @@
                                 >
                                     Detail
                                 </button>
+                                <button 
+                                    type="button"
+                                    class="btn btn-warning btn-sm btn-download-invoice"
+                                    data-kode="{{ $submission->kode }}"
+                                >
+                                    <i class="fas fa-print mr-1"></i>Cetak Invoice
+                                </button>
                             </td>
                         </tr>
                     @empty
@@ -104,9 +111,9 @@
                                     $subtotalDapur = $hargaDapur * $detail->qty_digunakan;
                                 @endphp
                                 <tr>
-                                    <td>{{ $detail->recipe?->bahan_baku?->nama ?? '-' }}</td>
+                                    <td>{{ $detail->recipe?->bahan_baku?->nama ?? $detail->bahanBaku?->nama ?? '-' }}</td>
                                     <td>{{ number_format($detail->qty_digunakan, 2, ',', '.') }}</td>
-                                    <td>{{ $detail->recipe?->bahan_baku?->unit?->satuan ?? '-' }}</td>
+                                    <td>{{ $detail->recipe?->bahan_baku?->unit?->satuan ?? $detail->bahanBaku?->unit?->satuan ?? '-' }}</td>
                                     <td>Rp {{ number_format($hargaDapur, 0, ',', '.') }}</td>
                                     <td>Rp {{ number_format($subtotalDapur, 0, ',', '.') }}</td>
                                 </tr>
@@ -122,3 +129,35 @@
         </x-modal-detail>
     @endforeach
 @endsection
+
+@push('js')
+    <script>
+        $(document).ready(function() {
+            // Handle tombol download invoice untuk sale-materials-kitchen
+            $(document).on('click', '.btn-download-invoice', function() {
+                let kode = $(this).data('kode');
+                
+                // URL untuk download
+                let downloadUrl = "{{ route('transaction.sale-materials-kitchen.invoice.download', ':kode') }}";
+                downloadUrl = downloadUrl.replace(':kode', kode);
+                
+                // URL untuk preview (buka di tab baru)
+                let previewUrl = "{{ route('transaction.sale-materials-kitchen.invoice', ':kode') }}";
+                previewUrl = previewUrl.replace(':kode', kode);
+                
+                // Buat elemen link untuk download
+                let downloadLink = document.createElement('a');
+                downloadLink.href = downloadUrl;
+                downloadLink.download = 'Invoice_' + kode + '_' + new Date().toISOString().split('T')[0] + '.pdf';
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+                
+                // Buka preview di tab baru setelah sedikit delay
+                setTimeout(function() {
+                    window.open(previewUrl, '_blank');
+                }, 500);
+            });
+        });
+    </script>
+@endpush

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice Penjualan Bahan Baku Mitra - {{ $sales->first()->kode }}</title>
+    <title>Invoice Penjualan Bahan Baku Mitra - {{ $submission->kode }}</title>
     <style>
         * {
             margin: 0;
@@ -150,20 +150,22 @@
 
         <div class="header">
             <h1>INVOICE PENJUALAN BAHAN BAKU MITRA</h1>
-            <p>Kode Transaksi: <strong>{{ $sales->first()->kode }}</strong></p>
+            <p>Kode Transaksi: <strong>{{ $submission->kode }}</strong></p>
         </div>
 
         <div class="invoice-info">
             <div class="info-box">
                 <h3>Informasi Penjualan</h3>
-                <p><strong>Tanggal:</strong> {{ \Carbon\Carbon::parse($sales->first()->tanggal)->format('d F Y') }}</p>
-                <p><strong>Dapur:</strong> {{ $sales->first()->kitchen->nama ?? '-' }}</p>
-                <p><strong>Alamat:</strong> {{ $sales->first()->kitchen->alamat ?? '-' }}</p>
+                <p><strong>Tanggal:</strong> {{ \Carbon\Carbon::parse($submission->tanggal)->format('d F Y') }}</p>
+                <p><strong>Dapur:</strong> {{ $submission->kitchen->nama ?? '-' }}</p>
+                <p><strong>Alamat:</strong> {{ $submission->kitchen->alamat ?? '-' }}</p>
+                <p><strong>Menu:</strong> {{ $submission->menu->nama ?? '-' }}</p>
+                <p><strong>Porsi:</strong> {{ $submission->porsi ?? '-' }}</p>
             </div>
             <div class="info-box">
                 <h3>Informasi User</h3>
-                <p><strong>Nama:</strong> {{ $sales->first()->user->name ?? '-' }}</p>
-                <p><strong>Email:</strong> {{ $sales->first()->user->email ?? '-' }}</p>
+                <p><strong>Nama:</strong> {{ auth()->user()->name ?? '-' }}</p>
+                <p><strong>Email:</strong> {{ auth()->user()->email ?? '-' }}</p>
             </div>
         </div>
 
@@ -179,16 +181,26 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($sales as $index => $sale)
-                <tr>
-                    <td>{{ $index + 1 }}</td>
-                    <td>{{ $sale->bahanBaku->nama ?? '-' }}</td>
-                    <td class="text-right">{{ number_format($sale->bobot_jumlah, 0, ',', '.') }}</td>
-                    <td>{{ $sale->satuan->satuan ?? ($sale->bahanBaku && $sale->bahanBaku->unit ? $sale->bahanBaku->unit->satuan : '-') }}</td>
-                    <td class="text-right">Rp {{ number_format($sale->harga, 0, ',', '.') }}</td>
-                    <td class="text-right">Rp {{ number_format($sale->harga * $sale->bobot_jumlah, 0, ',', '.') }}</td>
-                </tr>
-                @endforeach
+                @forelse($submission->details as $index => $detail)
+                    @php
+                        $hargaMitra = $detail->harga_mitra ?? $detail->harga_satuan_saat_itu ?? 0;
+                        $subtotalMitra = $hargaMitra * $detail->qty_digunakan;
+                        $bahanBakuNama = $detail->recipe?->bahan_baku?->nama ?? $detail->bahanBaku?->nama ?? '-';
+                        $satuan = $detail->recipe?->bahan_baku?->unit?->satuan ?? $detail->bahanBaku?->unit?->satuan ?? '-';
+                    @endphp
+                    <tr>
+                        <td>{{ $index + 1 }}</td>
+                        <td>{{ $bahanBakuNama }}</td>
+                        <td class="text-right">{{ number_format($detail->qty_digunakan, 0, ',', '.') }}</td>
+                        <td>{{ $satuan }}</td>
+                        <td class="text-right">Rp {{ number_format($hargaMitra, 0, ',', '.') }}</td>
+                        <td class="text-right">Rp {{ number_format($subtotalMitra, 0, ',', '.') }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="6" class="text-center">Tidak ada data bahan baku</td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
 

@@ -18,7 +18,12 @@ class SaleMaterialsPartnerController extends Controller
     public function index()
     {
         // Ambil submission yang statusnya selesai sebagai data penjualan
-        $submissions = Submission::with(['kitchen', 'menu', 'details.recipe.bahan_baku.unit'])
+        $submissions = Submission::with([
+            'kitchen', 
+            'menu', 
+            'details.recipe.bahan_baku.unit',
+            'details.bahanBaku.unit'
+        ])
             ->where('status', 'selesai')
             ->latest()
             ->get();
@@ -100,38 +105,54 @@ class SaleMaterialsPartnerController extends Controller
 
     public function printInvoice($kode)
     {
-        $sales = Sells::with(['user', 'kitchen', 'bahanBaku.unit', 'satuan'])
-            ->where('tipe', 'mitra')
+        // Ambil submission berdasarkan kode
+        $submission = Submission::with([
+            'kitchen',
+            'menu',
+            'details.recipe.bahan_baku.unit',
+            'details.bahanBaku.unit'
+        ])
             ->where('kode', $kode)
-            ->get();
+            ->where('status', 'selesai')
+            ->first();
 
-        if ($sales->isEmpty()) {
+        if (!$submission) {
             abort(404, 'Data penjualan tidak ditemukan');
         }
 
-        $totalHarga = $sales->sum(function ($sale) {
-            return $sale->harga * $sale->bobot_jumlah;
+        // Hitung total harga dari detail
+        $totalHarga = $submission->details->sum(function ($detail) {
+            $hargaMitra = $detail->harga_mitra ?? $detail->harga_satuan_saat_itu ?? 0;
+            return $hargaMitra * $detail->qty_digunakan;
         });
 
-        return view('transaction.invoice-sale-partner', compact('sales', 'totalHarga'));
+        return view('transaction.invoice-sale-partner', compact('submission', 'totalHarga'));
     }
 
     public function downloadInvoice($kode)
     {
-        $sales = Sells::with(['user', 'kitchen', 'bahanBaku.unit', 'satuan'])
-            ->where('tipe', 'mitra')
+        // Ambil submission berdasarkan kode
+        $submission = Submission::with([
+            'kitchen',
+            'menu',
+            'details.recipe.bahan_baku.unit',
+            'details.bahanBaku.unit'
+        ])
             ->where('kode', $kode)
-            ->get();
+            ->where('status', 'selesai')
+            ->first();
 
-        if ($sales->isEmpty()) {
+        if (!$submission) {
             abort(404, 'Data penjualan tidak ditemukan');
         }
 
-        $totalHarga = $sales->sum(function ($sale) {
-            return $sale->harga * $sale->bobot_jumlah;
+        // Hitung total harga dari detail
+        $totalHarga = $submission->details->sum(function ($detail) {
+            $hargaMitra = $detail->harga_mitra ?? $detail->harga_satuan_saat_itu ?? 0;
+            return $hargaMitra * $detail->qty_digunakan;
         });
 
-        $pdf = Pdf::loadView('transaction.invoice-sale-partner', compact('sales', 'totalHarga'));
+        $pdf = Pdf::loadView('transaction.invoice-sale-partner', compact('submission', 'totalHarga'));
         $pdf->setPaper('a4', 'portrait');
         
         $filename = 'Invoice_' . $kode . '_' . date('Y-m-d') . '.pdf';
