@@ -20,7 +20,7 @@ return new class extends Migration
                 $table->foreignId('supplier_id')->constrained('suppliers')->onDelete('cascade');
 
                 $table->decimal('total', 15, 2)->default(0);
-                $table->date('tanggal')->default(DB::raw('CURRENT_DATE'));
+                $table->date('tanggal');
                 $table->timestamps();
                 $table->softDeletes();
             });
