@@ -41,7 +41,7 @@ class PurchaseBahanBakuController extends Controller
         // $satuan = Unit::all();
 
         return view('transaction.purchase-materials', [
-            'purchases' => PurchaseBahanBaku::with(['supplier', 'items'])->get(),
+            'purchases' => PurchaseBahanBaku::with(['supplier', 'items'])->latest()->get(),
             'users'     => User::all(),
             'suppliers' => Supplier::all(),
             'bahanBaku' => BahanBaku::with('unit')->get(),
@@ -51,6 +51,11 @@ class PurchaseBahanBakuController extends Controller
 
     public function store(Request $request)
     {
+        $request->validate([
+            'tanggal' => 'required|date',
+            'supplier' => 'required',
+            'bahan' => 'required|array',
+        ]);
         DB::transaction(function () use ($request) {
 
             // 1. Simpan HEADER
@@ -59,6 +64,7 @@ class PurchaseBahanBakuController extends Controller
                 'supplier_id' => $request->supplier,
                 'user_id'    => Auth::id(),
                 'total' => 0,
+                'tanggal' => $request->tanggal,
             ]);
 
             $grandTotal = 0;

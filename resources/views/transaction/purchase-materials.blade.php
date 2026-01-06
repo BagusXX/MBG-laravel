@@ -26,9 +26,9 @@
                 <tbody>
                     @foreach ($purchases as $purchase)
                         <tr>
-                            <td>{{ $purchase->id }}</td>
+                            <td>{{ $loop->iteration }}</td>
                             <td>{{ $purchase->kode }}</td>
-                            <td>{{ $purchase->created_at }}</td>
+                            <td>{{ \Carbon\Carbon::parse($purchase->tanggal)->format('d-m-Y') }}</td>
                             <td>{{ $purchase->supplier->nama }}</td>
                             <td>Rp {{ number_format($purchase->total, 0, ',', '.') }}</td>
                             <td>
@@ -74,7 +74,6 @@
                 <label>Kode</label>
                 <input id="kode_transaksi_beli" type="text" class="form-control" name="kode"
                     value="{{ $kode }}" readonly required />
-
             </div>
 
             <div class="form-group flex-fill ml-2">
@@ -272,8 +271,8 @@
                     .then(data => {
                         // Isi Elemen Header Modal
                         document.getElementById('detail-kode').innerText = data.kode || '-';
-                        document.getElementById('detail-tanggal').innerText = data.created_at ?
-                            new Date(data.created_at).toLocaleDateString('id-ID') : '-';
+                        document.getElementById('detail-tanggal').innerText = data.tanggal ?
+                            new Date(data.tanggal).toLocaleDateString('id-ID') : '-';
                         document.getElementById('detail-supplier').innerText = data.supplier ? data.supplier
                             .nama : '-';
 

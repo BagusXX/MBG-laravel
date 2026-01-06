@@ -18,6 +18,7 @@ class PurchaseBahanBaku extends Model
         'supplier_id',
         'user_id',
         'total',
+        'tanggal',
     ];
 
     public static function generateKode()
