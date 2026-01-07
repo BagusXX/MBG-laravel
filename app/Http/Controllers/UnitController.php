@@ -17,12 +17,16 @@ class UnitController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'satuan' => 'required|string|max:17',
+            'satuan' => 'required|string|max:20',
+            'base_unit' => 'required|string|max:20',
+            'multiplier' => 'required|numeric|min:0.0001',
             'keterangan' => 'nullable|string|max:20',
         ]);
 
         Unit::create([
             'satuan' => $request->satuan,
+            'base_unit' => $request->base_unit,
+            'multiplier' => $request->multiplier,
             'keterangan' => $request->keterangan,
         ]);
 
@@ -34,6 +38,8 @@ class UnitController extends Controller
     {
         $request->validate([
             'satuan' => 'required|string|max:17',
+            'base_unit' => 'required|string|max:20',
+            'multiplier' => 'required|numeric|min:0.0001',
             'keterangan' => 'nullable|string|max:20',
         ]);
 
@@ -41,6 +47,8 @@ class UnitController extends Controller
 
         $unit->update([
             'satuan' => $request->satuan,
+            'base_unit' => $request->base_unit,
+            'multiplier' => $request->multiplier,
             'keterangan' => $request->keterangan,
         ]);
 

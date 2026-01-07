@@ -11,6 +11,8 @@ return new class extends Migration
         Schema::create('units', function (Blueprint $table) {
             $table->id();
             $table->string('satuan');
+            $table->string('base_unit');
+            $table->decimal('multiplier', 10,4);
             $table->string('keterangan')->nullable();
             $table->timestamps();
             $table->softDeletes();
