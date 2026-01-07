@@ -27,8 +27,6 @@
                     <tr>
                         <th>No</th>
                         <th>Satuan</th>
-                        <th>Satuan Dasar</th> 
-                        <th>Nilai Konversi</th>
                         <th>Keterangan</th>
                         <th>Aksi</th>
                     </tr>
@@ -38,10 +36,6 @@
                         <tr>
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $unit->satuan }}</td>
-                            <td>{{ $unit->base_unit }}</td>
-                            <td>
-    {{ rtrim(rtrim(number_format($unit->multiplier, 4, ',', '.'), '0'), ',') }}
-</td>
                             <td>{{ $unit->keterangan ?? '-' }}</td>
                             <td>
                                 <button 
@@ -49,8 +43,6 @@
                                     class="btn btn-warning btn-sm btnEditUnit"
                                     data-id="{{ $unit->id }}"
                                     data-satuan="{{ $unit->satuan }}"
-                                    data-base_unit="{{ $unit->base_unit }}"
-                                    data-multiplier="{{ $unit->multiplier }}"
                                     data-keterangan="{{ $unit->keterangan }}"
                                     data-toggle="modal"
                                     data-target="#modalEditUnit"
@@ -82,31 +74,10 @@
         action="{{ route('master.unit.store') }}"
         submitText="Simpan"
     >
-        {{-- Input Satuan (Misal: Kg, Lusin, Liter) --}}
-    <div class="form-group">
-        <label>Nama Satuan</label>
-        <input type="text" placeholder="Contoh: Kg, Lusin, Liter" class="form-control" name="satuan" required />
-    </div>
-
-    {{-- UBAH BAGIAN INI: Base Unit jadi "Dikonversi ke Satuan Dasar" --}}
-            <div class="form-group mt-2">
-                <label>Dikonversi ke Satuan</label>
-                <input type="text" placeholder="Contoh: gram, pcs, ml" class="form-control" name="base_unit" required />
-                <small class="text-muted">
-                    Satuan terkecil yang digunakan saat masak (Resep). <br>
-                    <i>Contoh: Jika satuan beli 'Kg', maka satuan dasar biasanya 'gram'.</i>
-                </small>
-            </div>
-
-            {{-- UBAH BAGIAN INI: Multiplier jadi "Jumlah Konversi" --}}
-            <div class="form-group mt-2">
-                <label>Jumlah Isi / Nilai Konversi</label>
-                <input type="number" step="any" placeholder="Contoh: 1000" class="form-control" name="multiplier" required />
-                <small class="text-muted">
-                    1 Satuan di atas setara dengan berapa Satuan Dasar? <br>
-                    <i>Contoh: 1 Kg = 1000 gram (Isi angka 1000).</i>
-                </small>
-            </div>
+        <div class="form-group">
+            <label>Satuan</label>
+            <input type="text" placeholder="kg" class="form-control" name="satuan" required />
+        </div>
         
         <div class="form-group mt-2">
             <label>Keterangan (Opsional)</label>
@@ -124,20 +95,9 @@
         @method('PUT')
         
         <div class="form-group">
-        <label>Nama Satuan</label>
-        <input id="editSatuan" type="text" class="form-control" name="satuan" required />
-    </div>
-
-    <div class="form-group mt-2">
-        <label>Dikonversi ke Satuan Dasar</label>
-        <input id="editBaseUnit" type="text" class="form-control" name="base_unit" required />
-    </div>
-
-    <div class="form-group mt-2">
-        <label>Jumlah Isi / Nilai Konversi</label>
-        <input id="editMultiplier" type="number" step="any" class="form-control" name="multiplier" required />
-        <small class="text-muted">Contoh: Isi 12 jika 1 Lusin = 12 Pcs</small>
-    </div>
+            <label>Satuan</label>
+            <input id="editSatuan" type="text" placeholder="kg" class="form-control" name="satuan" required />
+        </div>
         
         <div class="form-group mt-2">
             <label>Keterangan (Opsional)</label>
@@ -167,8 +127,6 @@
 
                     // Isi field modal edit
                     document.getElementById('editSatuan').value = this.dataset.satuan;
-                    document.getElementById('editBaseUnit').value = this.dataset.base_unit;
-                    document.getElementById('editMultiplier').value = this.dataset.multiplier;
                     document.getElementById('editKeterangan').value = this.dataset.keterangan;
 
                     // Set action form update

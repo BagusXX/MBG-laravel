@@ -16,50 +16,20 @@ class UnitsSeeder extends Seeder
         //
         $data= [
             [
-                'satuan' => 'gram',
-                'base_unit' => 'gram',
-                'multiplier' => 1,
-                'keterangan' => 'Berat (base)',
+                'satuan' => 'kg',
+                'keterangan' => 'kilogram'
             ],
             [
-                'satuan' => 'kilogram',
-                'base_unit' => 'gram',
-                'multiplier' => 1000,
-                'keterangan' => 'Berat',
-            ],
-
-            // VOLUME
-            [
-                'satuan' => 'ml',
-                'base_unit' => 'ml',
-                'multiplier' => 1,
-                'keterangan' => 'Volume (base)',
+                'satuan' => 'g',
+                'keterangan' => 'gram'
             ],
             [
                 'satuan' => 'liter',
-                'base_unit' => 'ml',
-                'multiplier' => 1000,
-                'keterangan' => 'Volume',
-            ],
-
-            // JUMLAH
-            [
-                'satuan' => 'pcs',
-                'base_unit' => 'pcs',
-                'multiplier' => 1,
-                'keterangan' => 'Jumlah (base)',
+                'keterangan' => 'liter'
             ],
             [
-                'satuan' => 'pack',
-                'base_unit' => 'pcs',
-                'multiplier' => 6,
-                'keterangan' => 'Jumlah',
-            ],
-            [
-                'satuan' => 'dus',
-                'base_unit' => 'pcs',
-                'multiplier' => 12,
-                'keterangan' => 'Jumlah',
+                'satuan' => 'ml',
+                'keterangan' => 'mili liter'
             ],
 
         ];

@@ -6,14 +6,20 @@ use App\Models\BahanBaku;
 use App\Models\Kitchen;
 use App\Models\Unit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class BahanBakuController extends Controller
 {
     // Tampilkan halaman bahan baku
     public function index()
     {
-        $items = BahanBaku::with('kitchen')->paginate(10);
-        $kitchens = Kitchen::all();
+        $user = Auth::user();
+        $kitchens = $user->kitchens;
+        $kitchenCodes = $kitchens->pluck('kode');
+        $kitchenIds = $kitchens->pluck('id');
+
+
+        $items = BahanBaku::with('kitchen')->whereIn('kitchen_id', $kitchenIds)->paginate(10);
         $units = Unit::all();
 
         // Pre-generate kode untuk semua dapur
@@ -28,6 +34,7 @@ class BahanBakuController extends Controller
     // Generate kode bahan baku: 2 digit + kode dapur
     private function generateKode($kodeDapur)
     {
+
         // Cari kode terakhir khusus dapur tertentu
         $lastItem = BahanBaku::where('kode', 'LIKE', "BN{$kodeDapur}%")
             ->orderBy('kode', 'desc')
@@ -56,6 +63,8 @@ class BahanBakuController extends Controller
     // Simpan bahan baku baru
     public function store(Request $request)
     {
+        $user = Auth::user();
+
         $request->validate([
             'nama' => 'required|string|max:255',
             'harga' => 'required|numeric|min:0',
@@ -64,6 +73,11 @@ class BahanBakuController extends Controller
         ]);
 
         $kitchen = Kitchen::findOrFail($request->kitchen_id);
+
+        // ❗ AUTH CHECK PAKAI KODE
+        if (!$user->kitchens()->where('kode', $kitchen->kode)->exists()) {
+            abort(403, 'Anda tidak memiliki akses ke kitchen ini');
+        }
 
         BahanBaku::create([
             'kode' => $this->generateKode($kitchen->kode),
@@ -79,6 +93,15 @@ class BahanBakuController extends Controller
 
     public function update(Request $request, $id)
     {
+
+        $user = Auth::user();
+
+        $item = BahanBaku::with('kitchen')->findOrFail($id);
+
+        if (!$user->kitchens()->where('kode', $item->kitchen->kode)->exists()) {
+            abort(403, 'Anda tidak memiliki akses ke data ini');
+        }
+
         $request->validate([
             'nama' => 'required|string|max:255',
             'harga' => 'required|numeric|min:0',
@@ -86,14 +109,20 @@ class BahanBakuController extends Controller
             'kitchen_id' => 'required|exists:kitchens,id',
         ]);
 
-        $item = BahanBaku::findOrFail($id);
-
-        $item->update([
+        $data = [
             'nama' => $request->nama,
             'harga' => $request->harga,
             'satuan_id' => $request->satuan_id,
             'kitchen_id' => $request->kitchen_id,
-        ]);
+        ];
+
+        if ($item->kitchen_id != $request->kitchen_id) {
+            $kitchen = Kitchen::findOrFail($request->kitchen_id);
+            $data['kode'] = $this->generateKode($kitchen->kode);
+        }
+
+        $item->update($data);
+
 
         return redirect()
             ->route('dashboard.master.bahan-baku.index')
@@ -104,7 +133,15 @@ class BahanBakuController extends Controller
     // Hapus bahan baku
     public function destroy($id)
     {
-        $item = BahanBaku::findOrFail($id);
+        $user = Auth::user();
+
+        $item = BahanBaku::with('kitchen')->findOrFail($id);
+
+        if (!$user->kitchens()->where('kode', $item->kitchen->kode)->exists()) {
+            abort(403, 'Anda tidak memiliki akses ke data ini');
+        }
+
+
         $item->delete();
 
         return redirect()->route('dashboard.master.bahan-baku.index')
