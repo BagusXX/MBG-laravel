@@ -27,9 +27,9 @@ class OperationalSubmissionController extends Controller
         $masterBarang = operationals::select('id', 'nama', 'kitchen_kode', 'harga_default')->get();
 
         // 3. Ambil Data Submission
-        $submissions = submissionOperational::with(['kitchen', 'details.barang'])
+        $submissions = submissionOperational::with(['kitchen', 'details.operational'])
             ->whereIn('kitchen_kode', $kitchenCodes)
-            ->orderBy('tanggal','desc')
+            ->orderBy('tanggal', 'desc')
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -93,12 +93,29 @@ class OperationalSubmissionController extends Controller
                     'subtotal' => $subtotal,
                     'keterangan'   => $item['keterangan'] ?? null
                 ]);
+
+                // ==========================================================
+                // FITUR UPDATE MASTER: 
+                // Jika harga input berbeda dengan harga master, update master
+                // ==========================================================
+                $masterOperational = operationals::find($item['barang_id']);
+                
+                if ($masterOperational) {
+                    // Cek apakah harga di input beda dengan harga default saat ini
+                    if ($masterOperational->harga_default != $item['harga_satuan']) {
+                        $masterOperational->update([
+                            'harga_default' => $item['harga_satuan']
+                        ]);
+                    }
+                }
+                // ==========================================================
+
                 $total += $subtotal;
             }
 
             $submission->update(['total_harga' => $total]);
 
-            return redirect()->back()->with('success', "Pengajuan $newKode berhasil dibuat");
+            return redirect()->back()->with('success', "Pengajuan $newKode berhasil dibuat & Harga Master diperbarui (jika ada perubahan).");
         });
     }
 

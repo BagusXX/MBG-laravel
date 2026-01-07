@@ -21,6 +21,7 @@ return new class extends Migration
 
                 $table->decimal('total', 15, 2)->default(0);
                 $table->date('tanggal');
+                $table->date('tanggal')->default(DB::raw('(CURRENT_DATE)'));
                 $table->timestamps();
                 $table->softDeletes();
             });
