@@ -191,7 +191,8 @@
             </div>
             <div class="info-box">
                 <h3>Detail Transaksi</h3>
-                <p><strong>Tanggal Beli:</strong> {{ $purchase->created_at }}</p>
+                <p><strong>Tanggal Beli:</strong>
+                    {{ \Carbon\Carbon::parse($purchase->tanggal)->locale('id')->isoFormat('DD MMMM YYYY') }}</p>
                 <p><strong>Petugas:</strong> {{ $purchase->user->name ?? '-' }}</p>
                 <p><strong>Email:</strong> {{ $purchase->user->email ?? '-' }}</p>
             </div>

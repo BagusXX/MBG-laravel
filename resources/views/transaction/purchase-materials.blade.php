@@ -15,7 +15,7 @@
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>No</th>
+                        <th width="50">No</th>
                         <th>Kode</th>
                         <th>Tanggal Beli</th>
                         <th>Supplier</th>
@@ -271,9 +271,15 @@
                     .then(data => {
                         // Isi Elemen Header Modal
                         document.getElementById('detail-kode').innerText = data.kode || '-';
-                        document.getElementById('detail-tanggal').innerText = data.tanggal ?
-                            new Date(data.tanggal).toLocaleDateString('id-ID') : '-';
-                        document.getElementById('detail-supplier').innerText = data.supplier ? data.supplier
+                        document.getElementById('detail-tanggal').innerText = data.tanggal ? (() => {
+                            const d = new Date(data.tanggal);
+                            const tgl = String(d.getDate()).padStart(2, '0');
+                            const bln = String(d.getMonth() + 1).padStart(2, '0');
+                            const thn = d.getFullYear();
+                            return `${tgl}-${bln}-${thn}`;
+                        })() : '-';
+                        document.getElementById('detail-supplier').innerText = data.supplier ? data
+                            .supplier
                             .nama : '-';
 
                         document.getElementById('detail-total').innerText = new Intl.NumberFormat('id-ID', {

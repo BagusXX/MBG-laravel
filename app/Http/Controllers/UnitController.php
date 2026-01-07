@@ -17,7 +17,7 @@ class UnitController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'satuan' => 'required|string|max:17',
+            'satuan' => 'required|string|max:20',
             'keterangan' => 'nullable|string|max:20',
         ]);
 

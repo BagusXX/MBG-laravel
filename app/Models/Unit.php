@@ -10,7 +10,7 @@ class Unit extends Model
 {
     use HasFactory, SoftDeletes;
     protected $table = 'units';
-    protected $fillable = ['satuan', 'keterangan'];
+    protected $fillable = ['satuan','base_unit','multiplier', 'keterangan'];
 
     public function recipe_bahan_baku()
     {

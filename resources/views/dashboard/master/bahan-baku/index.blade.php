@@ -36,7 +36,7 @@
                 <tbody>
                     @forelse($items as $index => $item)
                         <tr>
-                            <td>{{ $index + 1 }}</td>
+                            <td>{{ $items->firstItem() + $index }}</td>
                             <td>{{ $item->kode }}</td>
                             <td>{{ $item->nama }}</td>
                             <td>{{ $item->unit->satuan ?? '-' }}</td>
