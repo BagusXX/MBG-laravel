@@ -129,7 +129,7 @@
 
 <x-modal-form 
     id="modalAddOperational"
-    size="modal-lg"
+    size="modal-xl"
     title="Tambah Pengajuan Operasional"
     action="{{ route('transaction.operational-submission.store') }}"
     submitText="Simpan Pengajuan"
@@ -157,7 +157,7 @@
 
     <div class="form-group">
         <label>Dapur</label>
-        <select name="kitchen_kode" class="form-control" required>
+        <select name="kitchen_kode" id="selectKitchen" class="form-control" required>
             <option disabled selected>Pilih Dapur</option>
             @foreach($kitchens as $k)
                 <option value="{{ $k->kode }}">{{ $k->nama }}</option>
@@ -169,40 +169,44 @@
     {{-- Tabel input barang --}}
     <div class="form-group">
         <div class="form-row mb-2">
-            <div class="col-md-4 font-weight-bold">Barang Operasional</div>
-            <div class="col-md-2 font-weight-bold">Qty</div>
-            <div class="col-md-3 font-weight-bold">Harga</div>
-            <div class="col-md-4 font-weight-bold">Keterangan</div>
+            <div class="col-md-3 font-weight-bold">Barang Operasional</div>
+            <div class="col-md-1 font-weight-bold">Qty</div>
+            <div class="col-md-2 font-weight-bold">Harga</div>
+            <div class="col-md-5 font-weight-bold">Keterangan</div>
             <div class="col-md-1"></div>
         </div>
 
             <div id="operasional-wrapper">
                 <div class="form-row mb-3 operasional-group">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <select name="items[0][barang_id]" class="form-control" required>
                             <option value="" disabled selected>Pilih Barang</option>
                             @foreach ($masterBarang as $barang)
-                                <option value="{{ $barang->id }}"
-                                    data-harga="{{ $barang->harga }}">
+                                <option 
+                                    value="{{ $barang->id }}"
+                                    data-kitchen="{{ $barang->kitchen_kode }}"
+                                    data-harga="{{ $barang->harga_default }}"
+                                >
                                     {{ $barang->nama }}
                                 </option>
                             @endforeach
                         </select>
                     </div>
 
-                    <div class="col-md-2">
+                    <div class="col-md-1">
                         <input type="number" name="items[0][qty]" class="form-control" min="1" required />
                     </div>
 
-                    <div class="col-md-3">
-                        <input type="number" name="items[0][harga_satuan]" class="form-control" required />
+                    <div class="col-md-2">
+                        <input type="number" name="items[0][harga_satuan]"class="form-control harga-input"required/>
                     </div>
                     
-                    <div class="col-md-4">
-                        <input type="text"
-                            name="items[0][keterangan]"
+                    <div class="col-md-5">
+                        <textarea name="items[0][keterangan]"
                             class="form-control"
-                            placeholder="Contoh: untuk gas dapur / perbaikan alat" />
+                            rows="1"
+                            placeholder="Contoh: untuk gas dapur / perbaikan alat">
+                        </textarea>
                     </div>
 
                     <div class="col-md-1">
@@ -255,6 +259,18 @@
                     {{ strtoupper($item->status) }}
                 </span>
             </td>
+        </tr>
+        <tr>
+            @if ($item->status === 'ditolak' && $item->keterangan)
+                <div class="mt-2 p-2 border rounded bg-light">
+                    <large class="text-danger font-weight-bold">
+                        Alasan Penolakan:
+                    </large>
+                    <div class="text-strong">
+                        {{ $item->keterangan }}
+                    </div>
+                </div>
+            @endif
         </tr>
     </table>
 
@@ -324,8 +340,7 @@
         let $firstRow = $wrapper.find('.operasional-group:first');
         let $newRow = $firstRow.clone();
 
-        // Update name index
-        $newRow.find('select, input').each(function () {
+        $newRow.find('select, input, textarea').each(function () {
             let name = $(this).attr('name');
             if (name) {
                 name = name.replace(/\[\d+\]/, '[' + index + ']');
@@ -333,13 +348,18 @@
             }
         });
 
-        // Show remove button
-        $newRow.find('.remove-operasional')
-            .removeClass('d-none');
+        $newRow.find('.remove-operasional').removeClass('d-none');
 
         $wrapper.append($newRow);
+
+        let kitchenKode = $('#selectKitchen').val();
+        if (kitchenKode) {
+            filterBarangByKitchen(kitchenKode, false);
+        }
+
         index++;
-        });
+    });
+
 
         // REMOVE BARANG
         $(document).on('click', '.remove-operasional', function () {
@@ -379,87 +399,52 @@
          */
         let rowIdx = 1;
 
-        // Simpan Opsi Barang ke Variable JS agar mudah dicopy saat tambah baris
-        const barangOptions = `
-            <option value="" data-price="0">Pilih Barang</option>
-            @foreach($masterBarang as $brg)
-                <option value="{{ $brg->id }}" data-price="{{ $brg->harga_default }}">
-                    {{ $brg->nama }}
-                </option>
-            @endforeach
-        `;
-
-        // Fungsi Tambah Baris
-        $('#addRowBtn').click(function() {
-            let html = `
-                <tr>
-                    <td>
-                        <select name="items[${rowIdx}][barang_id]" class="form-control item-select" required onchange="updatePrice(this)">
-                            ${barangOptions}
-                        </select>
-                    </td>
-                    <td>
-                        <input type="number" name="items[${rowIdx}][harga_satuan]" class="form-control price-input bg-light" readonly value="0">
-                    </td>
-                    <td>
-                        <input type="number" name="items[${rowIdx}][qty]" class="form-control qty-input" min="1" value="1" required oninput="updateSubtotal(this)">
-                    </td>
-                    <td>
-                        <input type="text" class="form-control subtotal-display bg-light" readonly value="0">
-                    </td>
-                    <td class="text-center">
-                        <button type="button" class="btn btn-danger btn-sm remove-row"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>
-            `;
-            $('#inputContainer').append(html);
-            rowIdx++;
-        });
-
         // Fungsi Hapus Baris
         $(document).on('click', '.remove-row', function() {
             $(this).closest('tr').remove();
             calculateGrandTotal();
         });
 
-        // Global functions agar bisa dipanggil via onchange/oninput HTML attributes
-        window.updatePrice = function(selectElement) {
-            let price = $(selectElement).find(':selected').data('price');
-            let row = $(selectElement).closest('tr');
-            
-            row.find('.price-input').val(price); // Set harga satuan
-            updateSubtotal(selectElement); // Trigger hitung ulang subtotal
-        }
 
-        window.updateSubtotal = function(element) {
-            let row = $(element).closest('tr');
-            let price = parseFloat(row.find('.price-input').val()) || 0;
-            let qty = parseFloat(row.find('.qty-input').val()) || 0;
-            let subtotal = price * qty;
+        $(document).on('change', 'select[name*="[barang_id]"]', function () {
+            let harga = $(this).find(':selected').data('harga') || 0;
+            let row = $(this).closest('.operasional-group');
 
-            // Format Rupiah untuk Display Subtotal
-            row.find('.subtotal-display').val("Rp " + subtotal.toLocaleString('id-ID'));
-            
-            calculateGrandTotal();
-        }
+            row.find('.harga-input').val(harga);
+        });
 
-        document.addEventListener('DOMContentLoaded', function () {
-            const wrapper = document.getElementById('operasional-wrapper');
-            const addBtn = document.getElementById('add-operasional');
+        function filterBarangByKitchen(kitchenKode) {
+            $('#operasional-wrapper select[name*="[barang_id]"]').each(function () {
+                let select = $(this);
 
-            addBtn.addEventListener('click', function () {
-                const firstRow = wrapper.querySelector('.operasional-group');
-                const newRow = firstRow.cloneNode(true);
+                select.find('option').each(function () {
+                    let optKitchen = $(this).data('kitchen');
 
-                newRow.querySelectorAll('input, select').forEach(el => el.value = '');
+                    // option default
+                    if (!optKitchen) {
+                        $(this).show();
+                        return;
+                    }
 
-                const removeBtn = newRow.querySelector('.remove-operasional');
-                removeBtn.classList.remove('d-none');
+                    if (optKitchen === kitchenKode) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
 
-                removeBtn.addEventListener('click', () => newRow.remove());
-
-                wrapper.appendChild(newRow);
+                // reset pilihan barang
+               if (reset) {
+                    select.val('');
+                }
             });
+        }
+
+
+        // Event saat dapur dipilih
+        $('#selectKitchen').on('change', function () {
+            let kitchenKode = $(this).val();
+            filterBarangByKitchen(kitchenKode, true);
         });
 
         function calculateGrandTotal() {

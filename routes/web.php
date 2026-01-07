@@ -326,10 +326,6 @@ Route::middleware(['auth'])->group(function () {
                 ->middleware('permission:transaction.operational-approval.store')
                 ->name('store');
 
-            Route::put('/{id}', 'updateStatus')
-                ->middleware('permission:transaction.operational-approval.update')
-                ->name('update');
-
             Route::delete('/{id}', 'destroy')
                 ->middleware('permission:transaction.operational-approval.delete')
                 ->name('destroy');

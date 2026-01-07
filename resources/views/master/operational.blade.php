@@ -35,6 +35,7 @@
                         <th>Kode</th>
                         <th>Dapur</th>
                         <th>Nama Biaya</th>
+                        <th>Harga</th>
                         <th>Tanggal</th>
                         <th>Aksi</th>
                     </tr>
@@ -46,6 +47,7 @@
                             <td>{{ $operational->kode }}</td>
                             <td>{{ $operational->kitchen->nama ?? '-' }}</td>
                             <td>{{ $operational->nama }}</td>
+                            <td>Rp {{ number_format($operational->harga_default, 2, ',', '.') }}</td>
                             <td>{{ $operational->updated_at }}</td>
                             <td>
                                 <button 
@@ -56,6 +58,7 @@
                                     data-kode="{{ $operational->kode }}"
                                     data-kitchen="{{ $operational->kitchen_kode }}"
                                     data-nama="{{ $operational->nama }}"
+                                    data-harga="{{ $operational->harga_default }}" 
                                     data-tanggal="{{ $operational->created_at->format('Y-m-d') }}"
                                 >
                                     Edit    
@@ -115,6 +118,19 @@
             <label for="nama_operasional">Nama Biaya</label>
             <input id="nama_operasional" type="text" name="nama" class="form-control" required />
         </div>
+
+        <div class="form-group mt-2">
+            <label>Harga Default</label>
+            <input 
+                type="number" 
+                name="harga_default" 
+                class="form-control"
+                min="0"
+                step="0.01"
+                required
+            />
+        </div>
+
         <div class="form-group mt-2">
             <label>Tanggal</label>
             <input type="date" name="tanggal" class="form-control" required />
@@ -164,6 +180,20 @@
         </div>
 
         <div class="form-group mt-2">
+            <label>Harga Default</label>
+            <input 
+                type="number" 
+                name="harga_default"
+                id="edit_harga_default"
+                class="form-control"
+                min="0"
+                step="0.01"
+                required
+            />
+        </div>
+
+
+        <div class="form-group mt-2">
             <label>Tanggal</label>
             <input 
                 type="date" 
@@ -199,6 +229,7 @@ function editOperational(button) {
     document.getElementById('edit_kode').value = button.dataset.kode;
     document.getElementById('edit_kitchen_kode').value = button.dataset.kitchen;
     document.getElementById('edit_nama').value = button.dataset.nama;
+    document.getElementById('edit_harga_default').value = button.dataset.harga;
     document.getElementById('edit_tanggal').value = button.dataset.tanggal;
 
     // tampilkan modal
