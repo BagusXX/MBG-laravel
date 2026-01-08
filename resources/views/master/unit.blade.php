@@ -34,7 +34,7 @@
                 <tbody>
                     @forelse($units as $index => $unit)
                         <tr>
-                            <td>{{ $index + 1 }}</td>
+                            <td>{{ $units->firstItem() + $index }}</td>
                             <td>{{ $unit->satuan }}</td>
                             <td>{{ $unit->keterangan ?? '-' }}</td>
                             <td>
@@ -64,6 +64,9 @@
                     @endforelse
                 </tbody>
             </table>
+            <div class="mt-3 d-flex justify-content-end">
+                {{ $units->links('pagination::bootstrap-4') }}
+            </div>
         </div>
     </div>
 

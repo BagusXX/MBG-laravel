@@ -16,28 +16,28 @@ class RegionSeeder extends Seeder
         DB::table('regions')->insert([
             [
                 'kode_region' => 'RGN01',
-                'nama_region' => 'Region Utara',
+                'nama_region' => 'SOLO RAYA',
                 'penanggung_jawab' => 'Andi Setiawan',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
                 'kode_region' => 'RGN02',
-                'nama_region' => 'Region Selatan',
+                'nama_region' => 'PANTURA BARAT',
                 'penanggung_jawab' => 'Budi Santoso',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
                 'kode_region' => 'RGN03',
-                'nama_region' => 'Region Timur',
+                'nama_region' => 'PANTURA TIMUR 1',
                 'penanggung_jawab' => 'Citra Lestari',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
                 'kode_region' => 'RGN04',
-                'nama_region' => 'Region Barat',
+                'nama_region' => 'PANTURA TIMUR 2',
                 'penanggung_jawab' => 'Dewi Kartika',
                 'created_at' => now(),
                 'updated_at' => now(),

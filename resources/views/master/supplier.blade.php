@@ -44,7 +44,7 @@
                 <tbody>
                     @forelse($suppliers as $index => $supplier)
                         <tr>
-                            <td>{{ $index + 1 }}</td>
+                            <td>{{ $suppliers->firstItem() + $index }}</td>
                             <td>{{ $supplier->kode }}</td>
                             <td>{{ $supplier->nama }}</td>
                             <td>{{ $supplier->alamat }}</td>
@@ -84,6 +84,9 @@
                     @endforelse
                 </tbody>
             </table>
+            <div class="mt-3 d-flex justify-content-end">
+                {{ $suppliers->links('pagination::bootstrap-4') }}
+            </div>
         </div>
     </div>
 

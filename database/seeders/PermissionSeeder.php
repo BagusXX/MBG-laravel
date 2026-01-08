@@ -91,8 +91,6 @@ class PermissionSeeder extends Seeder
             'transaction.operational-approval.update-status',
             'transaction.operational-approval.invoice',
 
-
-
             'transaction.request-materials.view',
             'transaction.sale-kitchen.view',
             'transaction.sale-kitchen.create',

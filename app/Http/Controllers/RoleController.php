@@ -15,7 +15,7 @@ class RoleController extends Controller
     {
         //
         return view('setup.role', [
-            'roles' => Role::with('permissions')->get(),
+            'roles' => Role::with('permissions')->paginate(10),
             'permissions' => Permission::orderBy('name')->get()
         ]);
     }

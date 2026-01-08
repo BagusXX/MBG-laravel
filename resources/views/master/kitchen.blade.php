@@ -35,7 +35,7 @@
 
                     @forelse($kitchens as $index => $k)
                         <tr>
-                            <td>{{ $index + 1 }}</td>
+                            <td>{{ $kitchens->firstItem() + $index  }}</td>
                             <td>{{ $k->kode }}</td>
                             <td>{{ $k->nama }}</td>
                             <td>{{ $k->region->nama_region }}</td>
@@ -70,6 +70,9 @@
                     @endforelse
                 </tbody>
             </table>
+            <div class="mt-3 d-flex justify-content-end">
+                {{ $kitchens->links('pagination::bootstrap-4') }}
+            </div>
         </div>
     </div>
 

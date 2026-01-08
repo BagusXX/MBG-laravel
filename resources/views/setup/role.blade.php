@@ -38,9 +38,13 @@
             </thead>
 
             <tbody>
+                @php
+                    $no = ($roles->currentPage() - 1) * $roles->perPage() + 1;
+                @endphp
+                
                 @foreach($roles as $role)
                 <tr>
-                    <td>{{ $loop->iteration }}</td>
+                    <td>{{ $no++ }}</td>
                     <td><strong>{{ $role->name }}</strong></td>
 
                     <td>
@@ -74,7 +78,9 @@
             </tbody>
 
         </table>
-
+        <div class="mt-3 d-flex justify-content-end">
+             {{ $roles->links('pagination::bootstrap-4') }}
+        </div>
     </div>
 </div>
 

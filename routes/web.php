@@ -219,6 +219,10 @@ Route::middleware(['auth'])->group(function () {
                 ->middleware('permission:transaction.submission.view')
                 ->name('details');
 
+            Route::get('/{submission}/data', 'getSubmissionData')
+                ->middleware('permission:transaction.submission.view')
+                ->name('data');
+
             // ✅ DETAIL
             Route::get('/{submission}/detail', 'show')
                 ->middleware('permission:transaction.submission.show')

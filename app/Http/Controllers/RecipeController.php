@@ -26,7 +26,7 @@ class RecipeController extends Controller
                         $k->whereIn('kode', $kitchenKodes);
                     });
             }
-        ])->get();
+        ])->paginate(10);
 
         // HANYA dapur user
 

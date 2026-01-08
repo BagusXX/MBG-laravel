@@ -42,9 +42,12 @@
                 </thead>
 
                 <tbody>
+                    @php 
+                        $no = ($users->currentPage() - 1) * $users->perPage() + 1; 
+                    @endphp
                     @foreach ($users as $user)
                         <tr>
-                            <td>{{ $loop->iteration }}</td>
+                            <td>{{ $no++ }}</td>
                             <td>{{ $user->name }}</td>
                             <td>{{ $user->email }}</td>
 
@@ -90,19 +93,22 @@
 
                                 {{-- Tombol Hapus --}}
                                 @if(!$user->hasRole('superadmin'))
-    <x-button-delete idTarget="#modalDeleteUser{{ $user->id }}"
-        formId="formDeleteUser{{ $user->id }}"
-        action="{{ route('setup.user.destroy', $user->id) }}"
-        text="Hapus" />
-@else
-    <span class="badge badge-danger">Superadmin</span>
-@endif
+                                    <x-button-delete idTarget="#modalDeleteUser{{ $user->id }}"
+                                        formId="formDeleteUser{{ $user->id }}"
+                                        action="{{ route('setup.user.destroy', $user->id) }}"
+                                        text="Hapus" />
+                                @else
+                                    <span class="badge badge-danger">Superadmin</span>
+                                @endif
 
                             </td>
                         </tr>
                     @endforeach
                 </tbody>
             </table>
+            <div class="mt-3 d-flex justify-content-end">
+             {{ $users->links('pagination::bootstrap-4') }}
+        </div>
         </div>
     </div>
 

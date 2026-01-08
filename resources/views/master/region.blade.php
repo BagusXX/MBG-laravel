@@ -44,7 +44,7 @@
                 <tbody>
                     @forelse($regions as $index => $region)
                         <tr>
-                            <td>{{ $index + 1 }}</td>
+                            <td>{{ $regions->firstItem() + $index }}</td>
                             <td>{{ $region->kode_region }}</td>
                             <td>{{ $region->nama_region }}</td>
                             <td>{{ $region->penanggung_jawab }}</td>
@@ -77,6 +77,9 @@
 
                 </tbody>
             </table>
+            <div class="mt-3 d-flex justify-content-end">
+                {{ $regions->links('pagination::bootstrap-4') }}
+            </div>
         </div>
     </div>
 

@@ -11,7 +11,9 @@ class SupplierController extends Controller
 
     public function index()
     {
-        $suppliers = Supplier::with('region')->orderBy('id', 'asc')->get();
+        $suppliers = Supplier::with('region')
+            ->orderBy('id', 'asc')
+            ->paginate(10);
         $regions = region::orderBy('nama_region')->get();
 
         $kodeBaru = $this->generateKode();
