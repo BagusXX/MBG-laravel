@@ -154,12 +154,29 @@
     {{-- MODAL DETAIL PURCHASE MATERIALS --}}
     <x-modal-detail id="modalDetailPurchase" size="modal-lg" title="Pemesanan Bahan Baku">
 
-        <div>
-            <p><strong>Kode: </strong><span id="detail-kode"></span></p>
-            <p><strong>Tanggal Beli: </strong><span id="detail-tanggal"></span></p>
-            <p><strong>Supplier: </strong><span id="detail-supplier"></span></p>
-            <p><strong>Total Harga: </strong><span id="detail-total"></span></p>
-        </div>
+        <table class="table table-borderless table-sm">
+            <tr>
+                <th width="150"><strong>Kode </strong></th>
+                <td width="5">:</td>
+                <td id="detail-kode">: </td>
+
+            </tr>
+            <tr>
+                <th><strong>Tanggal Beli </strong></th>
+                <td width="5">:</td>
+                <td id="detail-tanggal"></td>
+            </tr>
+            <tr>
+                <th><strong>Supplier </strong></th>
+                <td width="5">:</td>
+                <td id="detail-supplier"></td>
+            </tr>
+            <tr>
+                <th><strong>Total Harga </strong></th>
+                <td width="5">:</td>
+                <td id="detail-total"></td>
+            </tr>
+        </table>
         <div>
             <table class="table table-bordered table-striped">
                 <thead>
