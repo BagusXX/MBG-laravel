@@ -196,27 +196,41 @@ class SubmissionController extends Controller
         }
 
         $user = auth()->user();
-        $allowedKitchenIds = Kitchen::whereIn(
-            'kode',
-            $user->kitchens()->pluck('kode')
-        )->pluck('id');
-
-        // ✅ CEK AKSES
-        if (!$allowedKitchenIds->contains($submission->kitchen_id)) {
-            abort(403, 'Anda tidak memiliki akses ke dapur ini');
+        
+        // Tentukan mode dari request atau referer URL
+        $referer = request()->header('referer', '');
+        $isPermintaanMode = $request->input('_mode') === 'permintaan' ||
+                           str_contains($referer, 'daftar-pemesanan') || 
+                           str_contains($referer, 'request-materials');
+        
+        // Untuk mode permintaan, bisa edit semua dapur
+        // Untuk mode pengajuan, hanya dapur milik user
+        if ($isPermintaanMode) {
+            // Mode permintaan: bisa edit ke semua dapur
+            $allowedKitchenIds = Kitchen::all()->pluck('id');
+        } else {
+            // Mode pengajuan: hanya dapur milik user
+            $allowedKitchenIds = Kitchen::whereIn(
+                'kode',
+                $user->kitchens()->pluck('kode')
+            )->pluck('id');
+            
+            // ✅ CEK AKSES: Pastikan user memiliki akses ke submission yang akan diubah
+            if (!$allowedKitchenIds->contains($submission->kitchen_id)) {
+                abort(403, 'Anda tidak memiliki akses ke dapur ini');
+            }
         }
 
         // Validasi: jika ada kitchen_id, menu_id, porsi berarti update data lengkap
         // Jika hanya ada status, berarti update status saja
-        // if ($request->has('kitchen_id') && $request->has('menu_id') && $request->has('porsi')) {
-        if ($request->filled(['kitchen_id', 'menu_id', 'porsi'])) {
-            // Update data lengkap (dari modal detail)
+        // Untuk mode permintaan, jangan update dapur/menu/porsi, hanya bahan baku
+        if ($request->filled(['kitchen_id', 'menu_id', 'porsi']) && !$isPermintaanMode) {
+            // Update data lengkap (dari modal detail) - hanya untuk mode pengajuan
+            $kitchenValidation = ['required', Rule::in($allowedKitchenIds->toArray())];
+            
             $request->validate([
                 // 'tanggal' => 'required|date',
-                'kitchen_id' => [
-                    'required',
-                    Rule::in($allowedKitchenIds),
-                ],
+                'kitchen_id' => $kitchenValidation,
                 'menu_id' => [
                     'required',
                     Rule::exists('menus', 'id')->where('kitchen_id', $request->kitchen_id),
@@ -397,10 +411,12 @@ class SubmissionController extends Controller
             
             // Ambil nama bahan baku dari recipe (jika ada) atau dari bahan_baku_id (untuk manual)
             $bahanBakuNama = $detail->recipe?->bahan_baku?->nama ?? $detail->bahanBaku?->nama ?? '-';
+            $bahanBakuId = $detail->recipe?->bahan_baku_id ?? $detail->bahan_baku_id ?? null;
             $satuan = $detail->recipe?->bahan_baku?->unit?->satuan ?? $detail->bahanBaku?->unit?->satuan ?? '-';
             
             return [
                 'id' => $detail->id,
+                'bahan_baku_id' => $bahanBakuId,
                 'bahan_baku_nama' => $bahanBakuNama,
                 'qty_digunakan' => $detail->qty_digunakan,
                 'satuan' => $satuan,
@@ -410,6 +426,26 @@ class SubmissionController extends Controller
                 'subtotal_mitra' => $hargaMitra * $detail->qty_digunakan,
             ];
         }));
+    }
+
+    public function getSubmissionData(Submission $submission)
+    {
+        // Load submission dengan relasi
+        $submission->load(['kitchen', 'menu']);
+
+        // Akses control sudah ditangani oleh middleware permission
+        // Data dikembalikan sesuai dengan yang ada di database
+        return response()->json([
+            'id' => $submission->id,
+            'kode' => $submission->kode,
+            'tanggal' => $submission->tanggal,
+            'kitchen_id' => $submission->kitchen_id,
+            'kitchen_nama' => $submission->kitchen->nama ?? '-',
+            'menu_id' => $submission->menu_id,
+            'menu_nama' => $submission->menu->nama ?? '-',
+            'porsi' => $submission->porsi,
+            'status' => $submission->status,
+        ]);
     }
 
     public function updateHarga(Request $request, Submission $submission)
@@ -432,6 +468,8 @@ class SubmissionController extends Controller
         $request->validate([
             'details' => 'required|array',
             'details.*.id' => 'required|exists:submission_details,id',
+            'details.*.bahan_baku_id' => 'nullable|exists:bahan_baku,id',
+            'details.*.qty_digunakan' => 'required|numeric|min:0.0001',
             'details.*.harga_dapur' => 'required|numeric|min:0',
             'details.*.harga_mitra' => 'required|numeric|min:0',
         ]);
@@ -447,15 +485,34 @@ class SubmissionController extends Controller
                     continue;
                 }
 
+                $bahanBakuId = $detailData['bahan_baku_id'] ?? null;
+                $qtyDigunakan = $detailData['qty_digunakan'];
                 $hargaDapur = $detailData['harga_dapur'];
                 $hargaMitra = $detailData['harga_mitra'];
-                $subtotalDapur = $hargaDapur * $detail->qty_digunakan;
-                $subtotalMitra = $hargaMitra * $detail->qty_digunakan;
+                $subtotalDapur = $hargaDapur * $qtyDigunakan;
+                $subtotalMitra = $hargaMitra * $qtyDigunakan;
 
-                $detail->update([
+                // Update detail
+                $updateData = [
+                    'qty_digunakan' => $qtyDigunakan,
                     'harga_dapur' => $hargaDapur,
                     'harga_mitra' => $hargaMitra,
-                ]);
+                ];
+
+                // Jika bahan baku diubah, update bahan_baku_id dan reset recipe_bahan_baku_id
+                if ($bahanBakuId !== null) {
+                    // Validasi bahan baku milik dapur yang sama
+                    $bahanBaku = BahanBaku::findOrFail($bahanBakuId);
+                    if ($bahanBaku->kitchen_id !== $submission->kitchen_id) {
+                        continue; // Skip jika bahan baku tidak sesuai dapur
+                    }
+
+                    $updateData['bahan_baku_id'] = $bahanBakuId;
+                    $updateData['recipe_bahan_baku_id'] = null; // Reset recipe karena manual edit
+                }
+                // Jika bahan_baku_id null, tetap gunakan yang sudah ada (tidak diubah)
+
+                $detail->update($updateData);
 
                 // Gunakan harga dapur untuk total (atau bisa disesuaikan)
                 $totalHarga += $subtotalDapur;
@@ -467,7 +524,20 @@ class SubmissionController extends Controller
             ]);
         });
 
-        return back()->with('success', 'Harga berhasil diperbarui');
+        // Refresh submission dengan data terbaru dari database
+        $submission->refresh();
+        $submission->load('details');
+
+        // Return JSON untuk AJAX request
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Detail berhasil diperbarui',
+                'submission' => $submission
+            ]);
+        }
+
+        return back()->with('success', 'Detail berhasil diperbarui');
     }
 
     public function deleteDetail(Request $request, Submission $submission, $detailId)
