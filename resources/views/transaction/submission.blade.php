@@ -115,8 +115,15 @@
                                         @if($mode === 'pengajuan' && $item->status === 'diajukan')
                                             <button
                                                 type="button"
-                                                class="btn btn-warning btn-sm btnEdit"
+                                                class="btn btn-warning btn-sm btnEditSubmission"
                                                 data-id="{{ $item->id }}"
+                                                data-update-url="{{ route('transaction.submission.update', $item->id) }}"
+                                                data-kode="{{ $item->kode }}"
+                                                data-kitchen-id="{{ $item->kitchen_id }}"
+                                                data-kitchen-nama="{{ $item->kitchen->nama }}"
+                                                data-menu-id="{{ $item->menu_id }}"
+                                                data-menu-nama="{{ $item->menu->nama }}"
+                                                data-porsi="{{ $item->porsi }}"
                                                 data-toggle="modal"
                                                 data-target="#modalEditSubmission"
                                             >
@@ -253,7 +260,6 @@
     {{-- MODAL EDIT PENGAJUAN --}}
     <x-modal-form 
         id="modalEditSubmission" 
-        size="modal-lg" 
         title="Edit Pengajuan" 
         action="" 
         submitText="Perbarui"
@@ -261,7 +267,25 @@
         @method('PUT')
 
         <div class="form-group">
+            <label>Kode</label>
+            <input id="editKodePengajuan" type="text" class="form-control" name="kode" readonly />
+        </div>
 
+        <input id="editKitchenId" type="hidden" name="kitchen_id" />
+        <div class="form-group">
+            <label>Dapur</label>
+            <input id="editKitchenNama" type="text" class="form-control" readonly />
+        </div>
+        
+        <input id="editMenuId" type="hidden" name="menu_id" />
+        <div class="form-group">
+            <label>Menu</label>
+            <input id="editMenuNama" type="text" class="form-control" readonly />
+        </div>
+
+        <div class="form-group">
+            <label>Porsi</label>
+            <input id="editPorsi" type="number" class="form-control" name="porsi" required />
         </div>
     </x-modal-form>
 
@@ -467,6 +491,27 @@
 
 @push('js')
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.btnEditSubmission').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = this.dataset.id;
+
+                    const form = document.querySelector('#modalEditSubmission form');
+                    form.action = this.dataset.updateUrl;
+
+                    document.getElementById('editKodePengajuan').value = this.dataset.kode;
+
+                    document.getElementById('editKitchenId').value = this.dataset.kitchenId;
+                    document.getElementById('editKitchenNama').value = this.dataset.kitchenNama;
+
+                    document.getElementById('editMenuId').value = this.dataset.menuId;
+                    document.getElementById('editMenuNama').value = this.dataset.menuNama;
+
+                    document.getElementById('editPorsi').value = this.dataset.porsi;
+                });
+            });
+        });
+
         $(document).ready(function () {
 
             /**
