@@ -272,13 +272,20 @@
                 </div>
             @endif
         </tr>
+        <tr>
+            <th>Total Biaya</th>
+            <td>
+                : Rp {{ number_format($item->total_harga, 0, ',', '.') }}
+            </td>
+        </tr>
+
     </table>
 
     <table class="table table-bordered table-striped">
         <thead>
             <tr>
                 <th>Barang</th>
-                <th class="text-center">Qty</th>
+                <th class="text-center">Jumlah</th>
                 <th class="text-right">Harga</th>
                 <th>Keterangan</th>
                 <th class="text-right">Subtotal</th>

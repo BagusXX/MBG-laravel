@@ -65,7 +65,6 @@
                     <th>Kode</th>
                     <th>Tanggal</th>
                     <th>Dapur</th>
-                    {{-- <th>Operasional</th> --}}
                     <th>Total</th>
                     <th>Status</th>
                     <th width="180">Aksi</th>
@@ -82,8 +81,7 @@
                     <td>{{ $item->kode }}</td>
                     <td>{{ \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y') }}</td>
                     <td>{{ $item->kitchen->nama ?? '-' }}</td>
-                    {{-- <td>{{ $item->details->first()->operational->nama ?? '-' }}</td> --}}
-                    <td>Rp {{ number_format($item->total, 0, ',','.') }}</td>
+                    <td>Rp {{ number_format($item->total_harga, 0, ',','.') }}</td>
                     <td>
                         <span class="badge badge-{{
                            $item->status === 'diterima' ? 'success' :
@@ -120,14 +118,6 @@
                             >
                                 Tolak
                             </button>
-
-                            {{-- Hapus hanya boleh saat diajukan --}}
-                            {{-- <x-button-delete
-                                idTarget="#modalDeleteOperational"
-                                formId="formDeleteOperational"
-                                action="#"
-                                text="Hapus"
-                            /> --}}
 
                         @elseif ($item->status === 'diproses')
                             <button
@@ -221,9 +211,6 @@
 
 </x-modal-form>
 
-
-
-
 {{-- =========================
 MODAL DETAIL
 ========================= --}}
@@ -265,6 +252,12 @@ MODAL DETAIL
                 </div>
             @endif
         </tr>
+        <tr>
+            <th>Total Biaya</th>
+            <td>
+                : Rp {{ number_format($item->total_harga, 0, ',', '.') }}
+            </td>
+        </tr>
 
     </table>
 
@@ -272,7 +265,7 @@ MODAL DETAIL
         <thead>
             <tr>
                 <th>Operasional</th>
-                <th>Qty</th>
+                <th>Jumlah</th>
                 <th>Harga</th>
                 <th>Keterangan</th>
                 <th>Subtotal</th>
@@ -283,7 +276,7 @@ MODAL DETAIL
                 <tr>
                     <td>{{ $detail->operational->nama ?? '-' }}</td>
                     <td>{{ $detail->qty }}</td>
-                    <td>Rp {{ number_format($detail->harga, 0, ',', '.') }}</td>
+                    <td>Rp {{ number_format($detail->harga_satuan, 0, ',', '.') }}</td>
                     <td>{{ $detail->keterangan ?? '-' }}</td>
                     <td>Rp {{ number_format($detail->subtotal, 0, ',', '.') }}</td>
                 </tr>
@@ -295,12 +288,6 @@ MODAL DETAIL
                 </tr>
             @endforelse
         </tbody>
-        <tfoot>
-            <tr>
-                <th colspan="4" class="text-right">Total</th>
-                <th>Rp {{ number_format($item->total, 0, ',', '.') }}</th>
-            </tr>
-        </tfoot>
     </table>
 
 </x-modal-detail>
