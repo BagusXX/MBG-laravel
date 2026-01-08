@@ -208,10 +208,11 @@ class SubmissionController extends Controller
 
         // Validasi: jika ada kitchen_id, menu_id, porsi berarti update data lengkap
         // Jika hanya ada status, berarti update status saja
-        if ($request->has('kitchen_id') && $request->has('menu_id') && $request->has('porsi')) {
+        // if ($request->has('kitchen_id') && $request->has('menu_id') && $request->has('porsi')) {
+        if ($request->filled(['kitchen_id', 'menu_id', 'porsi'])) {
             // Update data lengkap (dari modal detail)
             $request->validate([
-                'tanggal' => 'required|date',
+                // 'tanggal' => 'required|date',
                 'kitchen_id' => [
                     'required',
                     Rule::in($allowedKitchenIds),
@@ -232,7 +233,7 @@ class SubmissionController extends Controller
 
                 // Update submission header
                 $submission->update([
-                    'tanggal' => $request->tanggal,
+                    // 'tanggal' => $request->tanggal,
                     'kitchen_id' => $request->kitchen_id,
                     'menu_id' => $menu->id,
                     'porsi' => $request->porsi,
