@@ -9,7 +9,7 @@ class RegionController extends Controller
 {
     public function index()
     {
-        $regions = Region::all();
+        $regions = Region::paginate(10);
 
         $lastRegion = Region::orderBy('kode_region', 'desc')->first();
 
@@ -31,7 +31,9 @@ class RegionController extends Controller
         ]);
 
         // ambil kode terakhir
-        $lastRegion = Region::orderBy('kode_region', 'desc')->first();
+        $lastRegion = Region::withTrashed()
+        ->orderBy('kode_region', 'desc')
+        ->first();
 
         if (!$lastRegion) {
             $kode = 'RGN01';

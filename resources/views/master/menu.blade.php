@@ -41,7 +41,7 @@
                 <tbody>
                     @forelse($menus as $index => $menu)
                         <tr>
-                            <td>{{ $index + 1 }}</td>
+                            <td>{{ $menus->firstItem() + $index }}</td>
                             <td>{{ $menu->kode }}</td> {{-- Kode menu --}}
                             <td>{{ $menu->kitchen->nama ?? '-' }}</td> 
                             <td>{{ $menu->nama }}</td>
@@ -76,6 +76,9 @@
                     @endforelse
                 </tbody>
             </table>
+            <div class="mt-3 d-flex justify-content-end">
+                {{ $menus->links('pagination::bootstrap-4') }}
+            </div>
         </div>
     </div>
 

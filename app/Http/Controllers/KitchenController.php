@@ -5,13 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\Kitchen;
 use App\Models\region;
 use Illuminate\Http\Request;
+use App\Models\User;
+
 
 class KitchenController extends Controller
 {
     // Tampilkan halaman dapur
     public function index()
     {
-        $kitchens = Kitchen::with('region')->paginate(10);
+        $kitchens = Kitchen::with('region')
+        ->paginate(10);
         $kodeBaru = $this->generateKode();
         $regions = region::all();
 
@@ -20,30 +23,14 @@ class KitchenController extends Controller
 
     private function generateKode()
     {
-        $lastKitchen = Kitchen::orderBy('id', 'desc')->first();
+        $lastKode = Kitchen::withTrashed()->max('kode');
 
-        if (!$lastKitchen || !$lastKitchen->kode) {
-            // Jika belum ada data → langsung DPR11
+        if (!$lastKode) {
             return 'DPR11';
         }
 
-        // Ambil angka setelah "DPR", misal "DPR15" → 15
-        $lastNumber = (int) substr($lastKitchen->kode, 3);
-
-        // Jika angka terlalu kecil (misal DPR1), paksa kembali ke 11
-        if ($lastNumber < 11) {
-            $nextNumber = 11;
-        } else {
-            // Normal increment
-            $nextNumber = $lastNumber + 1;
-        }
-
-        // Batas maksimum 99
-        if ($nextNumber > 99) {
-            $nextNumber = 99;
-        }
-
-        return 'DPR' . $nextNumber;
+        $lastNumber = (int) substr($lastKode, 3);
+        return 'DPR' . ($lastNumber + 1);
     }
 
 
@@ -58,8 +45,9 @@ class KitchenController extends Controller
             'region_id' => 'required|exists:regions,id',
         ]);
 
-        Kitchen::create([
-            'kode' => $this->generateKode(), // auto-generate dari backend
+        // 1. Buat dapur
+        $kitchen = Kitchen::create([
+            'kode' => $this->generateKode(),
             'nama' => $request->nama,
             'alamat' => $request->alamat,
             'kepala_dapur' => $request->kepala_dapur,
@@ -67,9 +55,18 @@ class KitchenController extends Controller
             'region_id' => $request->region_id,
         ]);
 
+        // 2. Ambil semua superadmin
+        $superadmins = User::role('superadmin')->get();
+
+        // 3. Attach dapur baru ke semua superadmin
+        foreach ($superadmins as $admin) {
+            $admin->kitchens()->syncWithoutDetaching([$kitchen->kode]);
+        }
+
         return redirect()->route('master.kitchen.index')
-            ->with('success', 'Data dapur berhasil ditambahkan.');
+            ->with('success', 'Data dapur berhasil ditambahkan & otomatis terhubung ke Superadmin.');
     }
+
 
     // Update data dapur
     public function update(Request $request, $id)

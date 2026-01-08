@@ -40,7 +40,9 @@
                 </thead>
 
                 <tbody>
-                    @php $no = 1; @endphp
+                    @php 
+                        $no = ($menus->currentPage() - 1) * $menus->perPage() + 1; 
+                    @endphp
                     {{-- Loop Menus dari Controller --}}
                     @forelse ($menus as $menu)
                         {{-- Grouping Resep berdasarkan Kitchen ID agar tampil per baris (Unik: Menu + Kitchen) --}}
@@ -87,6 +89,10 @@
                     @endforelse
                 </tbody>
             </table>
+            <div class="mt-3 d-flex justify-content-end">
+                {{-- Gunakan pagination::bootstrap-4 jika menggunakan AdminLTE --}}
+                {{ $menus->links('pagination::bootstrap-4') }}
+            </div>
         </div>
     </div>
 

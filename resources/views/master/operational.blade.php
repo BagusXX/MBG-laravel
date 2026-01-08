@@ -43,7 +43,7 @@
                 <tbody>
                     @forelse($operationals as $index => $operational)
                         <tr>
-                            <td>{{ $index + 1 }}</td>
+                            <td>{{ $operationals->firstItem() +  $index}}</td>
                             <td>{{ $operational->kode }}</td>
                             <td>{{ $operational->kitchen->nama ?? '-' }}</td>
                             <td>{{ $operational->nama }}</td>
@@ -80,6 +80,9 @@
                     @endforelse
                 </tbody>
             </table>
+            <div class="mt-3 d-flex justify-content-end">
+                {{ $operationals->links('pagination::bootstrap-4') }}
+            </div>
         </div>
     </div>
 
