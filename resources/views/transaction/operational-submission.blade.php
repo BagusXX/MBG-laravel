@@ -107,6 +107,12 @@
                             text="Hapus"
                         />
                         @endif
+                        @if($item->status === 'diterima')
+                            <a href="{{ route('transaction.operational-submission.invoice', $item->id) }}"
+                            class="btn btn-warning btn-sm">
+                                <i class="fas fa-print mr-1"></i>Invoice
+                            </a>
+                        @endif
                     </td>
                 </tr>
                 @empty
@@ -238,20 +244,21 @@
 >
     <table class="table table-borderless">
         <tr>
-            <th width="140">Kode</th>
-            <td>: {{ $item->kode }}</td>
+            <th width="140" class="py-1">Kode</th>
+            <td class="py-1">: {{ $item->kode }}</td>
         </tr>
         <tr>
-            <th>Tanggal</th>
-            <td>: {{ $item->created_at->format('d-m-Y') }}</td>
+            <th width="140" class="py-1">Tanggal</th>
+            <td class="py-1">: {{ $item->created_at->format('d-m-Y') }}</td>
         </tr>
         <tr>
-            <th>Dapur</th>
-            <td>: {{ $item->kitchen->nama ?? '-' }}</td>
+            <th width="140" class="py-1">Dapur</th>
+            <td class="py-1">: {{ $item->kitchen->nama ?? '-' }}</td>
         </tr>
+
         <tr>
-            <th>Status</th>
-            <td>
+            <th width="140" class="py-1">Status</th>
+            <td class="py-1">
                 <span class="badge badge-{{
                     $item->status === 'diterima' ? 'success' :
                     ($item->status === 'ditolak' ? 'danger' : 'warning')
@@ -273,8 +280,15 @@
             @endif
         </tr>
         <tr>
-            <th>Total Biaya</th>
-            <td>
+            <th width="140" class="py-1">Supplier</th>
+            <td class="py-1">
+                : {{ $item->supplier->nama ?? '-' }}
+            </td>
+        </tr>
+
+        <tr>
+            <th width="140" class="py-1">Total Biaya</th>
+            <td class="py-1">
                 : Rp {{ number_format($item->total_harga, 0, ',', '.') }}
             </td>
         </tr>

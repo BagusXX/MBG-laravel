@@ -35,7 +35,7 @@
                         <th>Kode</th>
                         <th>Dapur</th>
                         <th>Nama Biaya</th>
-                        <th>Harga</th>
+                        <th>Harga Satuan</th>
                         <th>Tanggal</th>
                         <th>Aksi</th>
                     </tr>
@@ -120,7 +120,7 @@
         </div>
 
         <div class="form-group mt-2">
-            <label>Harga Default</label>
+            <label>Harga Satuan</label>
             <input 
                 type="number" 
                 name="harga_default" 
@@ -180,7 +180,7 @@
         </div>
 
         <div class="form-group mt-2">
-            <label>Harga Default</label>
+            <label>Harga Satuan</label>
             <input 
                 type="number" 
                 name="harga_default"

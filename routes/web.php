@@ -307,6 +307,10 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{id}', 'show')
                 ->middleware('permission:transaction.operational-submission.view') // Sesuaikan permission jika ada khusus 'show'
                 ->name('show');
+
+            Route::get('/{id}/invoice', 'invoice')
+                ->middleware('permission:transaction.operational-submission.invoice')
+                ->name('invoice');
         });
 
     Route::prefix('dashboard/transaksi/daftar-operasional')
@@ -326,13 +330,21 @@ Route::middleware(['auth'])->group(function () {
                 ->middleware('permission:transaction.operational-approval.store')
                 ->name('store');
 
+            Route::patch('/{id}', 'update')
+                ->middleware('permission:transaction.operational-approval.update')
+                ->name('update');
+
             Route::delete('/{id}', 'destroy')
                 ->middleware('permission:transaction.operational-approval.delete')
                 ->name('destroy');
 
-            Route::patch('/{id}', 'updateStatus')
+            Route::patch('/{id}/status', 'updateStatus')
                 ->middleware('permission:transaction.operational-approval.update-status')
                 ->name('update-status');
+
+            Route::get('/{id}/invoice', 'invoice')
+                ->middleware('permission:transaction.operational-approval.invoice')
+                ->name('invoice');
         });
 
     Route::prefix('dashboard/transaksi')

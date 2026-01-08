@@ -15,8 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('kode')->unique();
             $table->string('kitchen_kode');
+            $table->foreignId('supplier_id')->nullable()->constrained('suppliers')->nullOnDelete();
             $table->decimal('total_harga', 15, 2)->default(0);
-            $table->enum('status',['diajukan','diterima','ditolak'])->default('diajukan');
+            $table->enum('status', ['diajukan', 'diterima', 'ditolak'])->default('diajukan');
             $table->text('keterangan')->nullable();
             $table->date('tanggal')->nullable();
             $table->timestamps();

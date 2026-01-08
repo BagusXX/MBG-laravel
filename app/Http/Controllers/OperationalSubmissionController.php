@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\operationals;
 use App\Models\submissionOperational;
 use App\Models\submissionOperationalDetails;
+use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 
 class OperationalSubmissionController extends Controller
@@ -27,13 +29,16 @@ class OperationalSubmissionController extends Controller
         $masterBarang = operationals::select('id', 'nama', 'kitchen_kode', 'harga_default')->get();
 
         // 3. Ambil Data Submission
-        $submissions = submissionOperational::with(['kitchen', 'details.operational'])
+        $submissions = submissionOperational::with(['kitchen', 'details.operational', 'supplier'])
             ->whereIn('kitchen_kode', $kitchenCodes)
             ->orderBy('tanggal', 'desc')
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('transaction.operational-submission', compact('submissions', 'kitchens', 'masterBarang'));
+        $suppliers = Supplier::orderBy('nama')->get();
+
+
+        return view('transaction.operational-submission', compact('submissions', 'kitchens', 'masterBarang', 'suppliers'));
     }
 
     /**
@@ -99,7 +104,7 @@ class OperationalSubmissionController extends Controller
                 // Jika harga input berbeda dengan harga master, update master
                 // ==========================================================
                 $masterOperational = operationals::find($item['barang_id']);
-                
+
                 if ($masterOperational) {
                     // Cek apakah harga di input beda dengan harga default saat ini
                     if ($masterOperational->harga_default != $item['harga_satuan']) {
@@ -155,6 +160,7 @@ class OperationalSubmissionController extends Controller
         //
     }
 
+
     /**
      * Remove the specified resource from storage.
      */
@@ -171,5 +177,28 @@ class OperationalSubmissionController extends Controller
         $submission->delete();
 
         return back()->with('success', 'Pengajuan dihapus');
+    }
+
+    public function invoice($id)
+    {
+        $submission = submissionOperational::with([
+            'supplier',
+            'kitchen',
+            'details.operational'
+        ])->findOrFail($id);
+
+        // Proteksi: hanya yang disetujui
+        if ($submission->status !== 'diterima') {
+            abort(403, 'Invoice hanya tersedia untuk pengajuan yang disetujui');
+        }
+
+        $pdf = Pdf::loadView(
+            'transaction.invoice-operational',
+            compact('submission')
+        )->setPaper('A4', 'portrait');
+
+        return $pdf->download(
+            'Invoice-Operasional-' . $submission->kode . '.pdf'
+        );
     }
 }

@@ -28,7 +28,7 @@
                         <th>Kode</th>
                         <th>Nama Bahan</th>
                         <th>Satuan</th>
-                        <th>Harga</th>
+                        <th>Harga Satuan</th>
                         <th>Dapur</th>
                         <th>Aksi</th>
                     </tr>
