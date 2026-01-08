@@ -2,42 +2,16 @@
 
 @section('title', 'Daftar Biaya Operasional')
 
+@section('css')
+    <link rel="stylesheet" href="{{ asset('css/notification-pop-up.css') }}">
+@endsection
+
 @section('content_header')
     <h1>Daftar Biaya Operasional</h1>
 @endsection
 
 @section('content')
 
-@php
-    // =========================
-    // DATA STATIS
-    // =========================
-    $submissions = collect([
-        (object)[
-            'id' => 1,
-            'kode' => 'OPR001',
-            'tanggal' => '2026-01-05',
-            'dapur' => 'Dapur Pusat',
-            'operasional' => 'Gas LPG',
-            'total' => 150000,
-            'status' => 'diajukan',
-        ],
-        (object)[
-            'id' => 2,
-            'kode' => 'OPR002',
-            'tanggal' => '2026-01-06',
-            'dapur' => 'Dapur Cabang',
-            'operasional' => 'Listrik',
-            'total' => 300000,
-            'status' => 'diproses',
-        ],
-    ]);
-
-    $items = [
-        ['nama' => 'Gas 12 Kg', 'unit' => 'Tabung', 'harga' => 150000],
-        ['nama' => 'Token Listrik', 'unit' => 'kWh', 'harga' => 300000],
-    ];
-@endphp
 
 {{-- BUTTON ADD --}}
 
@@ -51,8 +25,13 @@
                 <label>Dapur</label>
                 <select id="filterKitchen" class="form-control">
                     <option value="">Semua Dapur</option>
-                    <option value="Dapur Pusat">Dapur Pusat</option>
-                    <option value="Dapur Cabang">Dapur Cabang</option>
+                    @foreach ($submissions->pluck('kitchen')->unique('id') as $kitchen)
+                        @if($kitchen)
+                            <option value="{{ strtolower($kitchen->nama) }}">
+                                {{ $kitchen->nama }}
+                            </option>
+                        @endif
+                    @endforeach
                 </select>
             </div>
 
@@ -63,7 +42,9 @@
                     <option value="diajukan">Diajukan</option>
                     <option value="diproses">Diproses</option>
                     <option value="diterima">Diterima</option>
+                    <option value="ditolak">Ditolak</option>
                 </select>
+
             </div>
 
             <div class="col-md-4">
@@ -84,7 +65,6 @@
                     <th>Kode</th>
                     <th>Tanggal</th>
                     <th>Dapur</th>
-                    <th>Operasional</th>
                     <th>Total</th>
                     <th>Status</th>
                     <th width="180">Aksi</th>
@@ -92,20 +72,21 @@
             </thead>
             <tbody>
                 @foreach($submissions as $item)
-                <tr 
-                    data-kitchen="{{ $item->dapur }}"
-                    data-status="{{ $item->status }}"
-                    data-date="{{ $item->tanggal }}"
+                <tr
+                    data-kitchen="{{ strtolower($item->kitchen->nama ?? '') }}"
+                    data-status="{{ strtolower($item->status) }}"
+                    data-date="{{ \Carbon\Carbon::parse($item->tanggal)->format('Y-m-d') }}"
                 >
+
                     <td>{{ $item->kode }}</td>
-                    <td>{{ date('d-m-Y', strtotime($item->tanggal)) }}</td>
-                    <td>{{ $item->dapur }}</td>
-                    <td>{{ $item->operasional }}</td>
-                    <td>Rp {{ number_format($item->total) }}</td>
+                    <td>{{ \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y') }}</td>
+                    <td>{{ $item->kitchen->nama ?? '-' }}</td>
+                    <td>Rp {{ number_format($item->total_harga, 0, ',','.') }}</td>
                     <td>
                         <span class="badge badge-{{
-                            $item->status === 'diterima' ? 'success' :
-                            ($item->status === 'diproses' ? 'info' : 'warning')
+                           $item->status === 'diterima' ? 'success' :
+                            ($item->status === 'diproses' ? 'info' :
+                            ($item->status === 'ditolak' ? 'danger' : 'warning'))
                         }}">
                             {{ strtoupper($item->status) }}
                         </span>
@@ -125,7 +106,7 @@
                             <button
                                 class="btn btn-success btn-sm btnApproval"
                                 data-id="{{ $item->id }}"
-                                data-status="diproses"
+                                data-status="diterima"
                             >
                                 Setujui
                             </button>
@@ -137,14 +118,6 @@
                             >
                                 Tolak
                             </button>
-
-                            {{-- Hapus hanya boleh saat diajukan --}}
-                            <x-button-delete
-                                idTarget="#modalDeleteOperational"
-                                formId="formDeleteOperational"
-                                action="#"
-                                text="Hapus"
-                            />
 
                         @elseif ($item->status === 'diproses')
                             <button
@@ -164,73 +137,6 @@
 
     </div>
 </div>
-
-
-{{-- =========================
-MODAL TAMBAH
-========================= --}}
-{{-- <x-modal-form
-    id="modalAddOperational"
-    title="Tambah Pengajuan Operasional"
-    action="{{ route('transaction.operational-submission.store') }}"
-    submitText="Simpan"
->
-
-    KODE
-    <div class="form-group">
-        <label>Kode</label>
-        <input
-            type="text"
-            class="form-control"
-            value="{{ $nextKodeOperasional ?? 'OPRXXX' }}"
-            readonly
-            style="background:#e9ecef"
-        >
-    </div>
-
-    TANGGAL
-    <input type="hidden" name="tanggal" value="{{ now()->toDateString() }}">
-
-    DAPUR
-    <div class="form-group">
-        <label>Dapur</label>
-        <select name="kitchen_id" class="form-control" required>
-            <option disabled selected>Pilih Dapur</option>
-            @foreach ($kitchens as $kitchen)
-                <option value="{{ $kitchen->id }}">
-                    {{ $kitchen->nama }}
-                </option>
-            @endforeach
-        </select>
-    </div>
-
-    JENIS OPERASIONAL
-    <div class="form-group">
-        <label>Jenis Operasional</label>
-        <select name="operational_id" class="form-control" required>
-            <option disabled selected>Pilih Operasional</option>
-            @foreach ($operationals ?? [] as $op)
-                <option value="{{ $op->id }}">
-                    {{ $op->nama }}
-                </option>
-            @endforeach
-        </select>
-    </div>
-
-    TOTAL
-    <div class="form-group">
-        <label>Total Biaya</label>
-        <input
-            type="number"
-            name="total"
-            min="0"
-            class="form-control"
-            placeholder="Masukkan total biaya"
-            required
-        >
-    </div>
-
-</x-modal-form> --}}
 
 <x-modal-form
     id="modalAddOperational"
@@ -305,9 +211,6 @@ MODAL TAMBAH
 
 </x-modal-form>
 
-
-
-
 {{-- =========================
 MODAL DETAIL
 ========================= --}}
@@ -317,33 +220,78 @@ MODAL DETAIL
     size="modal-lg"
     title="Detail {{ $item->kode }}"
 >
+
     <table class="table table-borderless">
-        <tr><th>Dapur</th><td>: {{ $item->dapur }}</td></tr>
-        <tr><th>Operasional</th><td>: {{ $item->operasional }}</td></tr>
-        <tr><th>Status</th><td>: {{ strtoupper($item->status) }}</td></tr>
+        <tr><th>Kode</th><td>: {{ $item->kode }}</td></tr>
+        <tr><th>Tanggal</th><td>: {{ \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y') }}</td></tr>
+        <tr><th>Dapur</th><td>: {{ $item->kitchen->nama ?? '-' }}</td></tr>
+        <tr>
+            <th>Status</th>
+            <td>
+                :
+                <span class="badge badge-{{
+                    $item->status === 'diterima' ? 'success' :
+                    ($item->status === 'diproses' ? 'info' :
+                    ($item->status === 'ditolak' ? 'danger' : 'warning'))
+                }}">
+                    {{ strtoupper($item->status) }}
+                </span>
+
+                {{-- KETERANGAN DITOLAK --}}
+                
+            </td>
+        </tr>
+        <tr>@if ($item->status === 'ditolak' && $item->keterangan)
+                <div class="mt-2 p-2 border rounded bg-light">
+                    <large class="text-danger font-weight-bold">
+                        Alasan Penolakan:
+                    </large>
+                    <div class="text-strong">
+                        {{ $item->keterangan }}
+                    </div>
+                </div>
+            @endif
+        </tr>
+        <tr>
+            <th>Total Biaya</th>
+            <td>
+                : Rp {{ number_format($item->total_harga, 0, ',', '.') }}
+            </td>
+        </tr>
+
     </table>
 
     <table class="table table-bordered table-striped">
         <thead>
             <tr>
-                <th>Barang</th>
-                <th>Qty</th>
-                <th>Satuan</th>
+                <th>Operasional</th>
+                <th>Jumlah</th>
                 <th>Harga</th>
+                <th>Keterangan</th>
                 <th>Subtotal</th>
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td>Gas 12 Kg</td>
-                <td>1</td>
-                <td>Tabung</td>
-                <td>150.000</td>
-                <td>150.000</td>
-            </tr>
+            @forelse ($item->details as $detail)
+                <tr>
+                    <td>{{ $detail->operational->nama ?? '-' }}</td>
+                    <td>{{ $detail->qty }}</td>
+                    <td>Rp {{ number_format($detail->harga_satuan, 0, ',', '.') }}</td>
+                    <td>{{ $detail->keterangan ?? '-' }}</td>
+                    <td>Rp {{ number_format($detail->subtotal, 0, ',', '.') }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="5" class="text-center text-muted">
+                        Tidak ada detail operasional
+                    </td>
+                </tr>
+            @endforelse
         </tbody>
     </table>
+
 </x-modal-detail>
+
 
 <x-modal-form
     id="modalApprovalOperational"
@@ -353,9 +301,18 @@ MODAL DETAIL
     method="POST"
 >
     @csrf
-    @method('PUT')
+    @method('PATCH')
 
     <input type="hidden" name="status" id="approval_status">
+
+    <div class="form-group d-none" id="keterangan_wrapper">
+        <label>Keterangan Penolakan</label>
+        <textarea
+            name="keterangan"
+            class="form-control"
+            placeholder="Masukkan alasan penolakan"
+        ></textarea>
+    </div>
 
     <p>
         Apakah Anda yakin ingin mengubah status pengajuan ini menjadi
@@ -465,29 +422,25 @@ MODAL DETAIL
         });
 
         function applyFilter() {
-            let kitchen = $('#filterKitchen').val().toLowerCase();
-            let menu = $('#filterMenu').val().toLowerCase();
-            let status = $('#filterStatus').val().toLowerCase();
-            let date = $('#filterDate').val();
+            let kitchen = ($('#filterKitchen').val() || '').toLowerCase();
+            let status  = ($('#filterStatus').val() || '').toLowerCase();
+            let date    = $('#filterDate').val();
 
             $('tbody tr').each(function () {
-                let rowKitchen = $(this).data('kitchen')?.toLowerCase() || '';
-                let rowMenu = $(this).data('menu')?.toLowerCase() || '';
-                let rowStatus = $(this).data('status')?.toLowerCase() || '';
-                let rowDate = $(this).data('date') || '';
+                let rowKitchen = ($(this).data('kitchen') || '').toLowerCase();
+                let rowStatus  = ($(this).data('status') || '').toLowerCase();
+                let rowDate    = $(this).data('date') || '';
 
                 let show = true;
 
                 if (kitchen && rowKitchen !== kitchen) show = false;
-                if (menu && rowMenu !== menu) show = false;
                 if (status && rowStatus !== status) show = false;
                 if (date && rowDate !== date) show = false;
 
                 $(this).toggle(show);
             });
         }
-
-        $('#filterKitchen, #filterMenu, #filterStatus, #filterDate').on('change', applyFilter);
+        $('#filterKitchen, #filterStatus, #filterDate').on('change', applyFilter);
 
 
         $(document).on('click', '.btnEdit', function () {
@@ -527,8 +480,16 @@ MODAL DETAIL
             // endpoint approval (nanti sesuaikan route)
             modal.find('form').attr(
                 'action',
-                `/dashboard/transaksi/pengajuan-operasional/${id}/approval`
+                "{{ route('transaction.operational-approval.update-status', ':id') }}"
+                    .replace(':id', id)
             );
+
+            if (status === 'ditolak') {
+                $('#keterangan_wrapper').removeClass('d-none');
+            } else {
+                $('#keterangan_wrapper').addClass('d-none');
+                $('textarea[name="keterangan"]').val('');
+            }
 
             $('#approval_status').val(status);
             $('#approval_status_text').text(status.toUpperCase());
