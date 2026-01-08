@@ -302,7 +302,7 @@
 
     {{-- MODAL EDIT DETAIL (PERMINTAAN) --}}
     @if($mode === 'permintaan')
-        <x-modal-form id="modalEditDetail" size="modal-lg" title="Edit Detail Permintaan" action="" submitText="Update">
+        <x-modal-form id="modalEditDetail" size="modal-xl" title="Edit Detail Permintaan" action="" submitText="Update">
             @method('PUT')
 
             <div class="form-group">
@@ -453,10 +453,10 @@
                             <th>Bahan Baku</th>
                             <th>Qty Digunakan</th>
                             <th>Satuan</th>
-                            <th>Harga Dapur</th>
-                            <th>Harga Mitra</th>
-                            <th>Subtotal Dapur</th>
-                            <th>Subtotal Mitra</th>
+                            {{-- <th>Harga Dapur</th> --}}
+                            {{-- <th>Harga Mitra</th> --}}
+                            {{-- <th>Subtotal Dapur</th> --}}
+                            {{-- <th>Subtotal Mitra</th> --}}
                         </tr>
                     </thead>
                     <tbody>
@@ -471,10 +471,10 @@
                                 <td>{{ $detail->recipe?->bahan_baku?->nama ?? $detail->bahanBaku?->nama ?? '-' }}</td>
                                 <td>{{ number_format($detail->qty_digunakan, 2, ',', '.') }}</td>
                                 <td>{{ $detail->recipe?->bahan_baku?->unit?->satuan ?? $detail->bahanBaku?->unit?->satuan ?? '-' }}</td>
-                                <td>Rp {{ number_format($hargaDapur, 0, ',', '.') }}</td>
-                                <td>Rp {{ number_format($hargaMitra, 0, ',', '.') }}</td>
-                                <td>Rp {{ number_format($subtotalDapur, 0, ',', '.') }}</td>
-                                <td>Rp {{ number_format($subtotalMitra, 0, ',', '.') }}</td>
+                                {{-- <td>Rp {{ number_format($hargaDapur, 0, ',', '.') }}</td> --}}
+                                {{-- <td>Rp {{ number_format($hargaMitra, 0, ',', '.') }}</td> --}}
+                                {{-- <td>Rp {{ number_format($subtotalDapur, 0, ',', '.') }}</td> --}}
+                                {{-- <td>Rp {{ number_format($subtotalMitra, 0, ',', '.') }}</td> --}}
                             </tr>
                         @empty
                             <tr>
