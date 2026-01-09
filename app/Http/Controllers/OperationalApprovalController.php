@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\submissionOperational;
+use App\Models\Supplier;
 use Illuminate\Http\Request;
 
 class OperationalApprovalController extends Controller
@@ -13,11 +14,13 @@ class OperationalApprovalController extends Controller
     public function index()
     {
         //
-        $submissions = submissionOperational::with(['details.operational', 'kitchen'])
+        $submissions = submissionOperational::with(['details.operational', 'kitchen', 'supplier'])
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('transaction.operational-approval', compact('submissions'));
+        $suppliers = Supplier::orderBy('nama')->get();
+
+        return view('transaction.operational-approval', compact('submissions', 'suppliers'));
     }
 
     /**
@@ -63,7 +66,32 @@ class OperationalApprovalController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $submission = submissionOperational::findOrFail($id);
+
+        // ❗ Proteksi status
+        if ($submission->status !== 'diajukan') {
+            return back()->with('error', 'Data tidak dapat diubah karena status bukan diajukan');
+        }
+
+        // =====================
+        // VALIDATION (FLEKSIBEL)
+        // =====================
+        $request->validate([
+            'supplier_id' => 'nullable|exists:suppliers,id',
+            'keterangan'  => 'nullable|string',
+            'tanggal'     => 'nullable|date',
+        ]);
+
+        // =====================
+        // UPDATE DATA
+        // =====================
+        $submission->update([
+            'supplier_id' => $request->supplier_id ?? $submission->supplier_id,
+            'keterangan'  => $request->keterangan ?? $submission->keterangan,
+            'tanggal'     => $request->tanggal ?? $submission->tanggal,
+        ]);
+
+        return back()->with('success', 'Data pengajuan berhasil diperbarui');
     }
 
     /**

@@ -81,14 +81,15 @@ class PermissionSeeder extends Seeder
             'transaction.operational-submission.delete',
             'transaction.operational-submission.show',
             'transaction.operational-submission.update',
+            'transaction.operational-submission.invoice',
 
             'transaction.operational-approval.view',
             'transaction.operational-approval.store',
+            'transaction.operational-approval.update',
             'transaction.operational-approval.delete',
             'transaction.operational-approval.show',
             'transaction.operational-approval.update-status',
-
-
+            'transaction.operational-approval.invoice',
 
             'transaction.request-materials.view',
             'transaction.sale-kitchen.view',

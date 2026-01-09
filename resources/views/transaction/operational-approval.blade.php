@@ -59,7 +59,7 @@
 <div class="card">
     <div class="card-body">
 
-        <table class="table table-bordered table-striped">
+        <table class="table table-bordered table-striped" id="tableSubmission">
             <thead>
                 <tr>
                     <th>Kode</th>
@@ -128,6 +128,12 @@
                                 Terima
                             </button>
                         @endif
+                        @if($item->status === 'diterima')
+                            <a href="{{ route('transaction.operational-submission.invoice', $item->id) }}"
+                            class="btn btn-warning btn-sm">
+                                <i class="fas fa-print"></i> Cetak Invoice
+                            </a>
+                        @endif
                     </td>
 
                 </tr>
@@ -137,6 +143,8 @@
 
     </div>
 </div>
+
+
 
 <x-modal-form
     id="modalAddOperational"
@@ -222,12 +230,12 @@ MODAL DETAIL
 >
 
     <table class="table table-borderless">
-        <tr><th>Kode</th><td>: {{ $item->kode }}</td></tr>
-        <tr><th>Tanggal</th><td>: {{ \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y') }}</td></tr>
-        <tr><th>Dapur</th><td>: {{ $item->kitchen->nama ?? '-' }}</td></tr>
+        <tr><th width="140" class="py-1">Kode</th><td class="py-1">: {{ $item->kode }}</td></tr>
+        <tr><th width="140" class="py-1">Tanggal</th><td class="py-1">: {{ \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y') }}</td></tr>
+        <tr><th width="140" class="py-1">Dapur</th><td class="py-1">: {{ $item->kitchen->nama ?? '-' }}</td></tr>
         <tr>
-            <th>Status</th>
-            <td>
+            <th width="140" class="py-1">Status</th>
+            <td class="py-1">
                 :
                 <span class="badge badge-{{
                     $item->status === 'diterima' ? 'success' :
@@ -253,12 +261,47 @@ MODAL DETAIL
             @endif
         </tr>
         <tr>
-            <th>Total Biaya</th>
-            <td>
+            <th width="140" class="py-1">Total Biaya</th>
+            <td class="py-1">
                 : Rp {{ number_format($item->total_harga, 0, ',', '.') }}
             </td>
         </tr>
 
+        <tr>
+            <th width="140" class="py-1">Supplier</th>
+            <td class="py-1">
+                <form
+                    action="{{ route('transaction.operational-approval.update', $item->id) }}"
+                    method="POST"
+                    class="d-flex"
+                >
+                    @csrf
+                    @method('PATCH')
+
+                    <select
+                        name="supplier_id"
+                        class="form-control form-control-sm mr-2"
+                        {{ $item->status !== 'diajukan' ? 'disabled' : '' }}
+                    >
+                        <option value="">- Pilih Supplier -</option>
+                        @foreach($suppliers as $supplier)
+                            <option
+                                value="{{ $supplier->id }}"
+                                {{ $item->supplier_id == $supplier->id ? 'selected' : '' }}
+                            >
+                                {{ $supplier->nama }}
+                            </option>
+                        @endforeach
+                    </select>
+
+                    @if ($item->status === 'diajukan')
+                        <button class="btn btn-sm btn-primary">
+                            Simpan
+                        </button>
+                    @endif
+                </form>
+            </td>
+        </tr>
     </table>
 
     <table class="table table-bordered table-striped">
@@ -426,7 +469,7 @@ MODAL DETAIL
             let status  = ($('#filterStatus').val() || '').toLowerCase();
             let date    = $('#filterDate').val();
 
-            $('tbody tr').each(function () {
+            $('#tableSubmission tbody tr').each(function () {
                 let rowKitchen = ($(this).data('kitchen') || '').toLowerCase();
                 let rowStatus  = ($(this).data('status') || '').toLowerCase();
                 let rowDate    = $(this).data('date') || '';

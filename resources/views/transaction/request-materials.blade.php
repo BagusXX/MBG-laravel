@@ -46,9 +46,14 @@
                             <td>
                                 <button 
                                     type="button" 
-                                    class="btn btn-primary btn-sm"
+                                    class="btn btn-primary btn-sm btnDetailRequest"
                                     data-toggle="modal"
                                     data-target="#modalDetail"
+                                    data-kode="{{ $item->kode }}"
+                                    data-tanggal="{{ $item->tanggal }}"
+                                    data-dapur="{{ $item->kitchen->nama ?? '-' }}"
+                                    data-menu="{{ $item->menu->nama ?? '-' }}"
+                                    data-porsi="{{ $item->porsi }}"
                                 >
                                     Detail
                                 </button>
@@ -172,9 +177,13 @@
         size="modal-lg"
         title="Detail Permintaan"
     >
-        <p class="text-muted">
-            Detail pengajuan menu akan ditampilkan secara dinamis.
-        </p>
+        <div style="font-size: 16px; line-height: 2;">
+            <div><strong>Kode</strong>: <span id="detail-kode">-</span></div>
+            <div><strong>Tanggal</strong>: <span id="detail-tanggal">-</span></div>
+            <div><strong>Dapur</strong>: <span id="detail-dapur">-</span></div>
+            <div><strong>Menu</strong>: <span id="detail-menu">-</span></div>
+            <div><strong>Porsi</strong>: <span id="detail-porsi">-</span></div>
+        </div>
     </x-modal-detail>
 
 @endsection
@@ -199,6 +208,32 @@
                     `;
                 });
             });
+    });
+
+    // Populate modal detail when Detail button is clicked
+    $(document).on('click', '.btnDetailRequest', function () {
+        let kode = $(this).data('kode');
+        let tanggal = $(this).data('tanggal');
+        let dapur = $(this).data('dapur');
+        let menu = $(this).data('menu');
+        let porsi = $(this).data('porsi');
+
+        // Format tanggal dari YYYY-MM-DD ke DD-MM-YYYY
+        let tanggalFormatted = '-';
+        if (tanggal) {
+            let date = new Date(tanggal);
+            let day = String(date.getDate()).padStart(2, '0');
+            let month = String(date.getMonth() + 1).padStart(2, '0');
+            let year = date.getFullYear();
+            tanggalFormatted = `${day}-${month}-${year}`;
+        }
+
+        // Populate modal
+        $('#detail-kode').text(kode || '-');
+        $('#detail-tanggal').text(tanggalFormatted);
+        $('#detail-dapur').text(dapur || '-');
+        $('#detail-menu').text(menu || '-');
+        $('#detail-porsi').text(porsi || '-');
     });
 </script>
 @endpush

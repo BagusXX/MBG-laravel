@@ -1,51 +1,69 @@
 <?php
 
-// database/seeders/UserRoleSeeder.php
 namespace Database\Seeders;
 
 use App\Models\User;
 use App\Models\Kitchen;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 class UserRoleSeeder extends Seeder
 {
     public function run(): void
     {
+        // clear cache permission (WAJIB)
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // 1. Buat Roles
-        $roles = ['superadmin', 'operatorkoperasi', 'operatorDapur', 'mitra', 'dirut'];
-        foreach ($roles as $role) {
-            Role::firstOrCreate(['name' => $role, 'guard_name' => 'web']);
-        }
-
-        // 2. Definisi Data User
-        $userData = [
+        $users = [
+            // ================= SUPERADMIN =================
             [
-                'name' => 'Superadmin',
+                'name' => 'Super Admin',
                 'email' => 'superadmin@example.com',
                 'role' => 'superadmin',
-                'access_kitchens' => ['DPR11', 'DPR12'], // Akses semua
+                'kitchens' => Kitchen::pluck('kode')->toArray(), // semua dapur
+            ],
+
+            // ================= OPERATOR REGION =================
+            [
+                'name' => 'Operator Region Pantura Timur',
+                'email' => 'operator.region@example.com',
+                'role' => 'operatorRegion',
+                'kitchens' => Kitchen::where('region_id', 3)->pluck('kode')->toArray(),
+            ],
+
+            // ================= OPERATOR DAPUR =================
+            [
+                'name' => 'Operator Dapur DPR12',
+                'email' => 'operator.dapur12@example.com',
+                'role' => 'operatorDapur',
+                'kitchens' => Kitchen::where('kode', 'DPR12')->pluck('kode')->toArray(),
             ],
             [
-                'name' => 'Operator Dapur Pusat',
-                'email' => 'dapur.pusat@example.com',
+                'name' => 'Operator Dapur DPR13',
+                'email' => 'operator.dapur13@example.com',
                 'role' => 'operatorDapur',
-                'access_kitchens' => ['DPR12'], // Hanya Jakarta
+                'kitchens' => Kitchen::where('kode', 'DPR13')->pluck('kode')->toArray(),
             ],
+
+            // ================= OPERATOR KOPERASI =================
             [
-                'name' => 'Operator Dapur Bandung',
-                'email' => 'dapur.bandung@example.com',
-                'role' => 'operatorDapur',
-                'access_kitchens' => ['DPR13'], // Hanya Bandung
+                'name' => 'Operator Koperasi',
+                'email' => 'koperasi@example.com',
+                'role' => 'operatorKoperasi',
+                'kitchens' => Kitchen::pluck('kode')->toArray(),
+            ],
+
+            // ================= MITRA =================
+            [
+                'name' => 'Mitra Vendor',
+                'email' => 'mitra@example.com',
+                'role' => 'mitra',
+                'kitchens' => Kitchen::pluck('kode')->toArray(),
             ],
         ];
 
-        foreach ($userData as $data) {
-            // Create User
+        foreach ($users as $data) {
             $user = User::updateOrCreate(
                 ['email' => $data['email']],
                 [
@@ -54,17 +72,11 @@ class UserRoleSeeder extends Seeder
                 ]
             );
 
-            // Assign Role
-            $user->syncRoles($data['role']);
+            // assign role (role SUDAH ADA)
+            $user->syncRoles([$data['role']]);
 
-            // 3. Hubungkan ke Kitchens via Tabel Pivot
-            // Cari ID Kitchen berdasarkan Kode yang ada di array 'access_kitchens'
-            $kitchenKodes = Kitchen::whereIn('kode', $data['access_kitchens'])
-            ->pluck('kode')
-            ->toArray();
-            
-            // Hubungkan (sync akan menghapus yang lama dan mengisi yang baru, mencegah duplikat)
-            $user->kitchens()->sync($kitchenKodes);
+            // assign kitchens (pakai ID)
+            $user->kitchens()->sync($data['kitchens']);
         }
     }
 }

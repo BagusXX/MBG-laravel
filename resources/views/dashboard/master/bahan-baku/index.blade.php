@@ -28,7 +28,7 @@
                         <th>Kode</th>
                         <th>Nama Bahan</th>
                         <th>Satuan</th>
-                        <th>Harga</th>
+                        <th>Harga Satuan</th>
                         <th>Dapur</th>
                         <th>Aksi</th>
                     </tr>
@@ -65,6 +65,9 @@
                     @endforelse
                 </tbody>
             </table>
+            <div class="mt-3 d-flex justify-content-end">
+                {{ $items->links('pagination::bootstrap-4') }}
+            </div>
         </div>
     </div>
 

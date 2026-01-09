@@ -26,7 +26,7 @@ class SaleMaterialsKitchenController extends Controller
         ])
             ->where('status', 'selesai')
             ->latest()
-            ->get();
+            ->paginate(10);
 
         // Group by kode untuk menghindari duplikasi di tabel
         $sales = $submissions->groupBy('kode')->map(function ($group) {

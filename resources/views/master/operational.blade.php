@@ -35,7 +35,7 @@
                         <th>Kode</th>
                         <th>Dapur</th>
                         <th>Nama Biaya</th>
-                        <th>Harga</th>
+                        <th>Harga Satuan</th>
                         <th>Tanggal</th>
                         <th>Aksi</th>
                     </tr>
@@ -43,7 +43,7 @@
                 <tbody>
                     @forelse($operationals as $index => $operational)
                         <tr>
-                            <td>{{ $index + 1 }}</td>
+                            <td>{{ $operationals->firstItem() +  $index}}</td>
                             <td>{{ $operational->kode }}</td>
                             <td>{{ $operational->kitchen->nama ?? '-' }}</td>
                             <td>{{ $operational->nama }}</td>
@@ -80,6 +80,9 @@
                     @endforelse
                 </tbody>
             </table>
+            <div class="mt-3 d-flex justify-content-end">
+                {{ $operationals->links('pagination::bootstrap-4') }}
+            </div>
         </div>
     </div>
 
@@ -120,7 +123,7 @@
         </div>
 
         <div class="form-group mt-2">
-            <label>Harga Default</label>
+            <label>Harga Satuan</label>
             <input 
                 type="number" 
                 name="harga_default" 
@@ -180,7 +183,7 @@
         </div>
 
         <div class="form-group mt-2">
-            <label>Harga Default</label>
+            <label>Harga Satuan</label>
             <input 
                 type="number" 
                 name="harga_default"
