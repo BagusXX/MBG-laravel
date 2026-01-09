@@ -332,7 +332,7 @@
                         <i class="fas fa-truck"></i> {{ $child->supplier->nama ?? 'Tanpa Supplier' }}
                     </div>
                     <div>
-                        <span class="badge badge-{{ $child->status == 'approved' ? 'success' : 'secondary' }}">
+                        <span class="badge badge-{{ $child->status == 'disetujui' ? 'success' : 'secondary' }}">
                             {{ strtoupper($child->status) }}
                         </span>
                         <span class="ml-2 font-weight-bold">
@@ -353,7 +353,7 @@
 
                 {{-- Tombol Aksi per Child (Jika diperlukan) --}}
                 <div class="text-right mt-2">
-                    @if($child->status === 'approved')
+                    @if($child->status === 'disetujui')
                         <a href="{{ route('transaction.operational-submission.invoice', $child->id) }}" class="btn btn-xs btn-outline-secondary" target="_blank">
                             <i class="fas fa-print"></i> Cetak Invoice
                         </a>

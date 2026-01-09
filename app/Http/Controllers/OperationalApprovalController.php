@@ -159,7 +159,7 @@ class OperationalApprovalController extends Controller
             return back()->with('error', 'Pengajuan utama tidak boleh dihapus');
         }
 
-        if ($submission->status === 'approved') {
+        if ($submission->status === 'disetujui') {
             return back()->with('error', 'Permintaan sudah disetujui');
         }
 
@@ -171,7 +171,7 @@ class OperationalApprovalController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:approved,ditolak',
+            'status' => 'required|in:disetujui,ditolak',
             'keterangan' => 'required_if:status,ditolak'
         ]);
 

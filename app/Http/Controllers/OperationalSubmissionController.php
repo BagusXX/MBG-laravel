@@ -32,10 +32,11 @@ class OperationalSubmissionController extends Controller
         $submissions = submissionOperational::parent()
             ->pengajuan()
             ->with([
-                'kitchen', 
+                'kitchen',
                 'details.operational',
                 'children.supplier',
-                'children.details.operational'])
+                'children.details.operational'
+            ])
             ->whereIn('kitchen_kode', $kitchenCodes)
             ->orderBy('tanggal', 'desc')
             ->orderBy('created_at', 'desc')
@@ -85,7 +86,7 @@ class OperationalSubmissionController extends Controller
 
             $submission = SubmissionOperational::create([
                 'kode' => $newKode,
-                'parent_id' =>null,
+                'parent_id' => null,
                 'tipe' => 'pengajuan',
                 'kitchen_kode' => $request->kitchen_kode,
                 'supplier_id' => null,
@@ -179,24 +180,24 @@ class OperationalSubmissionController extends Controller
         $submission = submissionOperational::findOrFail($id);
 
         // ❌ Parent tidak boleh dihapus
-    if ($submission->isParent()) {
-        return back()->with(
-            'error',
-            'Pengajuan utama tidak boleh dihapus'
-        );
-    }
+        if ($submission->isParent()) {
+            return back()->with(
+                'error',
+                'Pengajuan utama tidak boleh dihapus'
+            );
+        }
 
-    // ❌ Approval yang sudah approved tidak boleh dihapus
-    if ($submission->status === 'disetujui') {
-        return back()->with(
-            'error',
-            'Data yang sudah disetujui tidak bisa dihapus'
-        );
-    }
+        // ❌ Approval yang sudah approved tidak boleh dihapus
+        if ($submission->status === 'disetujui') {
+            return back()->with(
+                'error',
+                'Data yang sudah disetujui tidak bisa dihapus'
+            );
+        }
 
-    $submission->delete();
+        $submission->delete();
 
-    return back()->with('success', 'Data berhasil dihapus');
+        return back()->with('success', 'Data berhasil dihapus');
     }
 
     public function invoice($id)
@@ -208,7 +209,7 @@ class OperationalSubmissionController extends Controller
         ])->findOrFail($id);
 
         // Proteksi: hanya yang disetujui
-        if (! $submission->isChild() || $submission->status !== 'approved') {
+        if (! $submission->isChild() || $submission->status !== 'disetujui') {
             abort(403, 'Invoice hanya untuk approval supplier yang disetujui');
         }
 
