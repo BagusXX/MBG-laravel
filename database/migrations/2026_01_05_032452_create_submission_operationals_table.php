@@ -23,13 +23,13 @@ return new class extends Migration
             $table->foreignId('supplier_id')->nullable()->constrained('suppliers')->nullOnDelete();
 
             // tipe record
-            $table->enum('tipe', ['pengajuan', 'approval']);
+            $table->enum('tipe', ['pengajuan', 'disetujui'])->default('pengajuan');
 
             $table->decimal('total_harga', 15, 2)->default(0);
             $table->enum('status', [ 
                 'diajukan',
                 'diproses',
-                'approved',
+                'disetujui',
                 'ditolak',
                 'selesai'])->default('diajukan');
             

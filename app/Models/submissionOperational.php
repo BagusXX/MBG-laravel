@@ -76,7 +76,7 @@ class submissionOperational extends Model
     // Approval
     public function scopeApproval($query)
     {
-        return $query->where('tipe', 'approval');
+        return $query->where('tipe', 'disetujui');
     }
 
     /*

@@ -58,10 +58,10 @@ class OperationalApprovalController extends Controller
             $child = submissionOperational::create([
                 'kode' => $childCode,
                 'parent_id' => $parent->id,
-                'tipe' => 'approval',
+                'tipe' => 'disetujui',
                 'kitchen_kode' => $parent->kitchen_kode,
                 'supplier_id' => $request->supplier_id,
-                'status' => 'approved',
+                'status' => 'disetujui',
                 'tanggal' => now(),
             ]);
 
@@ -160,12 +160,12 @@ class OperationalApprovalController extends Controller
         }
 
         if ($submission->status === 'approved') {
-            return back()->with('error', 'Approval sudah disetujui');
+            return back()->with('error', 'Permintaan sudah disetujui');
         }
 
         $submission->delete();
 
-        return back()->with('success', 'Approval berhasil dihapus');
+        return back()->with('success', 'Permintaan berhasil dihapus');
     }
 
     public function updateStatus(Request $request, $id)
