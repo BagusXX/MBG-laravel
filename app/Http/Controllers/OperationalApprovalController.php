@@ -85,7 +85,6 @@ class OperationalApprovalController extends Controller
 
             $child->update(['total_harga' => $total]);
             $parent->update(['status' => 'diproses']);
-
         });
 
         return back()->with('success', 'Approval supplier berhasil dibuat');

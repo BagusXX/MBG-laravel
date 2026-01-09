@@ -99,42 +99,6 @@
                             Detail
                         </button>
 
-                        {{-- =========================
-                        OPERATIONAL APPROVAL
-                        ========================= --}}
-                        @if ($item->status === 'diajukan')
-                            <button
-                                class="btn btn-success btn-sm btnApproval"
-                                data-id="{{ $item->id }}"
-                                data-status="diterima"
-                                data-supplier="{{ $item->supplier_id }}"
-                            >
-                                Selesai
-                            </button>
-
-                            <button
-                                class="btn btn-danger btn-sm btnApproval"
-                                data-id="{{ $item->id }}"
-                                data-status="ditolak"
-                            >
-                                Tolak
-                            </button>
-
-                        @elseif ($item->status === 'diproses')
-                            <button
-                                class="btn btn-info btn-sm btnApproval"
-                                data-id="{{ $item->id }}"
-                                data-status="diterima"
-                            >
-                                Terima
-                            </button>
-                        @endif
-                        @if($item->status === 'diterima')
-                            <a href="{{ route('transaction.operational-submission.invoice', $item->id) }}"
-                            class="btn btn-warning btn-sm">
-                                <i class="fas fa-print"></i> Cetak Invoice
-                            </a>
-                        @endif
                     </td>
 
                 </tr>
@@ -221,121 +185,186 @@
 </x-modal-form>
 
 {{-- =========================
-MODAL DETAIL
+     MODAL DETAIL (LOOP)
 ========================= --}}
 @foreach($submissions as $item)
 <x-modal-detail 
     id="modalDetail{{ $item->id }}"
     size="modal-lg"
-    title="Detail {{ $item->kode }}"
+    title="Detail Pengajuan: {{ $item->kode }}"
 >
-
-    <table class="table table-borderless">
+    {{-- 1. INFO HEADER (Tampilan Tetap Sama) --}}
+    <table class="table table-borderless mb-0">
         <tr><th width="140" class="py-1">Kode</th><td class="py-1">: {{ $item->kode }}</td></tr>
         <tr><th width="140" class="py-1">Tanggal</th><td class="py-1">: {{ \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y') }}</td></tr>
         <tr><th width="140" class="py-1">Dapur</th><td class="py-1">: {{ $item->kitchen->nama ?? '-' }}</td></tr>
         <tr>
-            <th width="140" class="py-1">Status</th>
+            <th width="140" class="py-1">Status Utama</th>
             <td class="py-1">
-                :
-                <span class="badge badge-{{
+                : <span class="badge badge-{{
                     $item->status === 'diterima' ? 'success' :
                     ($item->status === 'diproses' ? 'info' :
                     ($item->status === 'ditolak' ? 'danger' : 'warning'))
-                }}">
-                    {{ strtoupper($item->status) }}
-                </span>
-
-                {{-- KETERANGAN DITOLAK --}}
-                
+                }}">{{ strtoupper($item->status) }}</span>
             </td>
         </tr>
-        <tr>@if ($item->status === 'ditolak' && $item->keterangan)
-                <div class="mt-2 p-2 border rounded bg-light">
-                    <large class="text-danger font-weight-bold">
-                        Alasan Penolakan:
-                    </large>
-                    <div class="text-strong">
-                        {{ $item->keterangan }}
+    </table>
+
+    {{-- KETERANGAN JIKA DITOLAK --}}
+    @if ($item->status === 'ditolak' && $item->keterangan)
+        <div class="alert alert-danger mt-2 py-2">
+            <strong>Alasan Penolakan:</strong> {{ $item->keterangan }}
+        </div>
+    @endif
+
+    <hr>
+
+    {{-- 2. FORM PROSES APPROVAL (SPLIT ORDER) --}}
+    {{-- Form ini membungkus tabel agar checkbox bisa dikirim --}}
+    @if(in_array($item->status, ['diajukan', 'diproses']))
+    <form action="{{ route('transaction.operational-approval.store') }}" method="POST" class="form-split-order">
+        @csrf
+        <input type="hidden" name="parent_id" value="{{ $item->id }}">
+        
+        <div class="row align-items-end mb-2">
+            <div class="col-md-8">
+                <label class="font-weight-bold">Pilih Supplier untuk Barang Tercentang:</label>
+                <select name="supplier_id" class="form-control" required>
+                    <option value="">- Pilih Supplier -</option>
+                    @foreach($suppliers as $supplier)
+                        <option value="{{ $supplier->id }}">{{ $supplier->nama }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-4 text-right">
+                {{-- Tombol Submit ada di sini agar sebaris dengan form --}}
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fas fa-check-circle"></i> Proses Approval
+                </button>
+            </div>
+        </div>
+    @endif
+
+        {{-- 3. TABEL BARANG (Dengan Checkbox) --}}
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped mt-2">
+                <thead>
+                    <tr>
+                        {{-- Kolom Checkbox hanya muncul jika status belum final --}}
+                        @if(in_array($item->status, ['diajukan', 'diproses']))
+                        <th width="40" class="text-center">
+                            <input type="checkbox" class="checkAll" data-target=".item-check-{{ $item->id }}">
+                        </th>
+                        @endif
+                        <th>Barang Operasional</th>
+                        <th width="80" class="text-center">Qty</th>
+                        <th class="text-right">Harga</th>
+                        <th class="text-right">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($item->details as $detail)
+                        {{-- Logic Checkbox: Disable jika barang ini sudah masuk ke child (sudah diproses) --}}
+                        @php
+                            // Cek manual sederhana: apakah item ini sudah ada di children?
+                            // Kita asumsikan logic controller sebelumnya handle duplikasi, 
+                            // tapi visual helper di sini bagus.
+                            // (Opsional, kalau berat query bisa dihapus)
+                            $isProcessed = false; 
+                            /* $isProcessed = \App\Models\submissionOperationalDetails::whereHas('submission', function($q) use($item){
+                                $q->where('parent_id', $item->id);
+                            })->where('operational_id', $detail->operational_id)->exists(); 
+                            */
+                        @endphp
+
+                        <tr>
+                            @if(in_array($item->status, ['diajukan', 'diproses']))
+                            <td class="text-center align-middle">
+                                <input 
+                                    type="checkbox" 
+                                    name="items[]" 
+                                    value="{{ $detail->id }}" 
+                                    class="item-check-{{ $item->id }}"
+                                    {{ $isProcessed ? 'disabled checked' : '' }}
+                                >
+                            </td>
+                            @endif
+                            <td>
+                                {{ $detail->operational->nama ?? '-' }}<br>
+                                <small class="text-muted">{{ $detail->keterangan }}</small>
+                            </td>
+                            <td class="text-center">{{ $detail->qty }}</td>
+                            <td class="text-right">Rp {{ number_format($detail->harga_satuan, 0, ',', '.') }}</td>
+                            <td class="text-right">Rp {{ number_format($detail->subtotal, 0, ',', '.') }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">Tidak ada detail</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+                {{-- Footer Total --}}
+                <tfoot>
+                    <tr>
+                        <th colspan="{{ in_array($item->status, ['diajukan', 'diproses']) ? '4' : '3' }}" class="text-right">Total Keseluruhan</th>
+                        <th class="text-right">Rp {{ number_format($item->total_harga, 0, ',', '.') }}</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        
+    @if(in_array($item->status, ['diajukan', 'diproses']))
+    </form> {{-- Tutup Form --}}
+    @endif
+
+    {{-- 4. RIWAYAT APPROVAL (CHILDREN) --}}
+    {{-- Menampilkan list pecahan order yang sudah dibuat --}}
+    @if($item->children->count() > 0)
+        <div class="mt-4">
+            <h6 class="font-weight-bold text-secondary border-bottom pb-2">Riwayat Approval (Split Order)</h6>
+            
+            @foreach($item->children as $child)
+            <div class="card card-body bg-light p-3 mb-2 border">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <strong>{{ $child->kode }}</strong> 
+                        <span class="text-muted mx-2">|</span> 
+                        <i class="fas fa-truck"></i> {{ $child->supplier->nama ?? 'Tanpa Supplier' }}
+                    </div>
+                    <div>
+                        <span class="badge badge-{{ $child->status == 'approved' ? 'success' : 'secondary' }}">
+                            {{ strtoupper($child->status) }}
+                        </span>
+                        <span class="ml-2 font-weight-bold">
+                            Rp {{ number_format($child->total_harga, 0, ',', '.') }}
+                        </span>
                     </div>
                 </div>
-            @endif
-        </tr>
-        <tr>
-            <th width="140" class="py-1">Total Biaya</th>
-            <td class="py-1">
-                : Rp {{ number_format($item->total_harga, 0, ',', '.') }}
-            </td>
-        </tr>
 
-        <tr>
-            <th width="140" class="py-1">Supplier</th>
-            <td class="py-1">
-                <form
-                    action="{{ route('transaction.operational-approval.update', $item->id) }}"
-                    method="POST"
-                    class="d-flex"
-                >
-                    @csrf
-                    @method('PATCH')
+                {{-- Detail Barang di Approval ini --}}
+                <ul class="mb-0 pl-3" style="font-size: 0.9em;">
+                    @foreach($child->details as $cDetail)
+                        <li>
+                            {{ $cDetail->operational->nama ?? '-' }} 
+                            ({{ $cDetail->qty }} x {{ number_format($cDetail->harga_satuan) }})
+                        </li>
+                    @endforeach
+                </ul>
 
-                    <select
-                        name="supplier_id"
-                        class="form-control form-control-sm mr-2"
-                        {{ $item->status !== 'diajukan' ? 'disabled' : '' }}
-                    >
-                        <option value="">- Pilih Supplier -</option>
-                        @foreach($suppliers as $supplier)
-                            <option
-                                value="{{ $supplier->id }}"
-                                {{ $item->supplier_id == $supplier->id ? 'selected' : '' }}
-                            >
-                                {{ $supplier->nama }}
-                            </option>
-                        @endforeach
-                    </select>
-
-                    @if ($item->status === 'diajukan')
-                        <button class="btn btn-sm btn-primary">
-                            Simpan
-                        </button>
+                {{-- Tombol Aksi per Child (Jika diperlukan) --}}
+                <div class="text-right mt-2">
+                    @if($child->status === 'approved')
+                        <a href="{{ route('transaction.operational-submission.invoice', $child->id) }}" class="btn btn-xs btn-outline-secondary" target="_blank">
+                            <i class="fas fa-print"></i> Cetak Invoice
+                        </a>
                     @endif
-                </form>
-            </td>
-        </tr>
-    </table>
-
-    <table class="table table-bordered table-striped">
-        <thead>
-            <tr>
-                <th>Operasional</th>
-                <th>Jumlah</th>
-                <th>Harga</th>
-                <th>Keterangan</th>
-                <th>Subtotal</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($item->details as $detail)
-                <tr>
-                    <td>{{ $detail->operational->nama ?? '-' }}</td>
-                    <td>{{ $detail->qty }}</td>
-                    <td>Rp {{ number_format($detail->harga_satuan, 0, ',', '.') }}</td>
-                    <td>{{ $detail->keterangan ?? '-' }}</td>
-                    <td>Rp {{ number_format($detail->subtotal, 0, ',', '.') }}</td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="5" class="text-center text-muted">
-                        Tidak ada detail operasional
-                    </td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    @endif
 
 </x-modal-detail>
-
 
 <x-modal-form
     id="modalApprovalOperational"
@@ -392,6 +421,33 @@ MODAL DETAIL
 
 @push('js')
     <script>
+        // Validasi minimal 1 checkbox dipilih sebelum submit form split
+        $('form').on('submit', function(e){
+            // Cek apakah form ini adalah form approval operational
+            if($(this).find('input[name="items[]"]').length > 0) {
+                if($(this).find('input[name="items[]"]:checked').length === 0) {
+                    e.preventDefault();
+                    alert('Harap pilih minimal satu barang untuk diproses!');
+                }
+            }
+        });
+
+        $(document).on('change', '.checkAll', function() {
+            let target = $(this).data('target');
+            $(target).prop('checked', $(this).is(':checked'));
+        });
+
+        // 2. VALIDASI FORM SPLIT ORDER
+        $(document).on('submit', '.form-split-order', function(e) {
+            // Cari checkbox item di dalam form ini yang dicentang
+            let checkedItems = $(this).find('input[name="items[]"]:checked');
+            
+            if (checkedItems.length === 0) {
+                e.preventDefault(); // Batalkan submit
+                alert('Harap pilih minimal satu barang untuk diproses!');
+            }
+        });
+        
         $(document).ready(function () {
 
             /**

@@ -24,12 +24,13 @@ class submissionOperational extends Model
     ];
 
 
-    public function parent()
+    public function parentSubmission()
     {
         return $this->belongsTo(submissionOperational::class, 'parent_id');
     }
 
-    public function children(){
+    public function children()
+    {
         return $this->hasMany(submissionOperational::class, 'parent_id');
     }
 
