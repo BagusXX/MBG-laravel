@@ -15,6 +15,13 @@ return new class extends Migration
             $table->id();
             $table->foreignId('operational_submission_id')->constrained('submission_operationals')->cascadeOnDelete();
             $table->foreignId('operational_id')->constrained('operationals')->cascadeOnDelete();
+            // supplier di detail OPTIONAL
+            // (jika mau fleksibel per item)
+            $table->foreignId('supplier_id')
+                ->nullable()
+                ->constrained('suppliers')
+                ->nullOnDelete();
+
             $table->decimal('qty', 10, 2);
             $table->decimal('harga_satuan', 15, 2);
             $table->decimal('subtotal', 15, 2);

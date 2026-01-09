@@ -341,7 +341,7 @@ return [
         [
             'text' => 'Master',
             'icon' => 'fas fa-fw fa-utensils',
-            'can'  => 'master.kitchen.view',
+            'can'  => 'master.bahan-baku.view',
             'submenu' => [
                 [
                     'text' => 'Dapur',

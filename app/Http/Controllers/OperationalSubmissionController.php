@@ -29,7 +29,13 @@ class OperationalSubmissionController extends Controller
         $masterBarang = operationals::select('id', 'nama', 'kitchen_kode', 'harga_default')->get();
 
         // 3. Ambil Data Submission
-        $submissions = submissionOperational::with(['kitchen', 'details.operational', 'supplier'])
+        $submissions = submissionOperational::parent()
+            ->pengajuan()
+            ->with([
+                'kitchen', 
+                'details.operational',
+                'children.supplier',
+                'children.details.operational'])
             ->whereIn('kitchen_kode', $kitchenCodes)
             ->orderBy('tanggal', 'desc')
             ->orderBy('created_at', 'desc')
@@ -79,7 +85,10 @@ class OperationalSubmissionController extends Controller
 
             $submission = SubmissionOperational::create([
                 'kode' => $newKode,
+                'parent_id' =>null,
+                'tipe' => 'pengajuan',
                 'kitchen_kode' => $request->kitchen_kode,
+                'supplier_id' => null,
                 'status' => 'diajukan',
                 'total_harga' => 0,
                 'tanggal' => $request->tanggal,
@@ -169,14 +178,25 @@ class OperationalSubmissionController extends Controller
         //
         $submission = submissionOperational::findOrFail($id);
 
-        if ($submission->status === 'diterima') {
-            return back()->with('error', 'Pengajuan sudah diterima');
-        }
+        // ❌ Parent tidak boleh dihapus
+    if ($submission->isParent()) {
+        return back()->with(
+            'error',
+            'Pengajuan utama tidak boleh dihapus'
+        );
+    }
 
-        $submission->details()->delete();
-        $submission->delete();
+    // ❌ Approval yang sudah approved tidak boleh dihapus
+    if ($submission->status === 'approved') {
+        return back()->with(
+            'error',
+            'Data yang sudah disetujui tidak bisa dihapus'
+        );
+    }
 
-        return back()->with('success', 'Pengajuan dihapus');
+    $submission->delete();
+
+    return back()->with('success', 'Data berhasil dihapus');
     }
 
     public function invoice($id)
@@ -188,9 +208,10 @@ class OperationalSubmissionController extends Controller
         ])->findOrFail($id);
 
         // Proteksi: hanya yang disetujui
-        if ($submission->status !== 'diterima') {
-            abort(403, 'Invoice hanya tersedia untuk pengajuan yang disetujui');
+        if (! $submission->isChild() || $submission->status !== 'approved') {
+            abort(403, 'Invoice hanya untuk approval supplier yang disetujui');
         }
+
 
         $pdf = Pdf::loadView(
             'transaction.invoice-operational',

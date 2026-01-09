@@ -12,6 +12,7 @@ class submissionOperationalDetails extends Model
     protected $fillable = [
         'operational_submission_id',
         'operational_id',
+        'supplier_id',
         'qty',
         'harga_satuan',
         'subtotal',
@@ -25,4 +26,10 @@ class submissionOperationalDetails extends Model
     public function operational(){
         return $this->belongsTo(operationals::class,'operational_id'); 
     }
+        public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
+    }
+
+    
 }
