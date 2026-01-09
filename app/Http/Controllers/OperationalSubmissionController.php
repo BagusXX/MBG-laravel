@@ -187,7 +187,7 @@ class OperationalSubmissionController extends Controller
     }
 
     // ❌ Approval yang sudah approved tidak boleh dihapus
-    if ($submission->status === 'approved') {
+    if ($submission->status === 'disetujui') {
         return back()->with(
             'error',
             'Data yang sudah disetujui tidak bisa dihapus'
