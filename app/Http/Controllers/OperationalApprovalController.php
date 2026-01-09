@@ -53,7 +53,7 @@ class OperationalApprovalController extends Controller
             // hitung child ke-n
             $childCount = $parent->children()->count() + 1;
 
-            $childCode = $parent->kode . '_' . $childCount;
+            $childCode = $parent->kode . '-' . $childCount;
 
             $child = submissionOperational::create([
                 'kode' => $childCode,
@@ -87,7 +87,9 @@ class OperationalApprovalController extends Controller
             $parent->update(['status' => 'diproses']);
         });
 
-        return back()->with('success', 'Approval supplier berhasil dibuat');
+        return back()
+            ->with('success', 'Approval supplier berhasil dibuat')
+            ->with('reopen_modal', $parent->id);
     }
 
     /**

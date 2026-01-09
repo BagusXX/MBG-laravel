@@ -448,6 +448,20 @@
             }
         });
         
+        @if(session('reopen_modal'))
+            // Ambil ID dari session flash controller
+            let modalId = "#modalDetail{{ session('reopen_modal') }}";
+            
+            // Cek apakah modalnya ada di halaman
+            if($(modalId).length) {
+                // Tampilkan modal
+                $(modalId).modal('show');
+                
+                // Opsional: Beri notifikasi kecil (Toastr/Alert) jika pakai library
+                // toastr.success('Data berhasil disimpan, modal dibuka kembali.');
+            }
+        @endif
+        
         $(document).ready(function () {
 
             /**
