@@ -8,6 +8,7 @@ use App\Models\RecipeBahanBaku;
 use App\Models\Submission;
 use App\Models\SubmissionDetails;
 use App\Models\BahanBaku;
+use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -42,6 +43,7 @@ class SubmissionController extends Controller
         $submissions = Submission::with([
             'kitchen',
             'menu',
+            'supplier',
             'details.recipe.bahan_baku.unit',
             'details.bahanBaku.unit'
         ])
@@ -62,11 +64,15 @@ class SubmissionController extends Controller
             ? 'PEM' . str_pad(((int) substr($lastKode, -3)) + 1, 3, '0', STR_PAD_LEFT)
             : 'PEM001';
 
+        // Ambil suppliers untuk dropdown (hanya untuk mode permintaan)
+        $suppliers = $mode === 'permintaan' ? Supplier::orderBy('nama')->get() : collect();
+
         return view('transaction.submission', compact(
             'submissions',
             'kitchens',
             'nextKode',
-            'mode'
+            'mode',
+            'suppliers'
         ));
     }
 
@@ -350,27 +356,36 @@ class SubmissionController extends Controller
         return back()->with('success', 'Status berhasil diubah menjadi diproses');
     }
 
-    public function updateToComplete(Submission $submission)
+    public function updateToComplete(Request $request, Submission $submission)
     {
         // ❌ hanya bisa jika status = diproses
         if ($submission->status !== 'diproses') {
             abort(403, 'Hanya submission yang sedang diproses yang dapat diselesaikan');
         }
 
-        // ✅ CEK AKSES
-        $userKitchenIds = Kitchen::whereIn(
-            'kode',
-            auth()->user()->kitchens()->pluck('kode')
-        )->pluck('id');
-
-        if (!$userKitchenIds->contains($submission->kitchen_id)) {
-            abort(403, 'Anda tidak memiliki akses ke dapur ini');
+        // Validasi supplier_id untuk mode permintaan
+        // Cek apakah ini route permintaan (bukan pengajuan)
+        $mode = request()->routeIs('transaction.submission.index')
+            ? 'pengajuan'
+            : 'permintaan';
+            
+        if ($mode === 'permintaan') {
+            $request->validate([
+                'supplier_id' => 'required|exists:suppliers,id',
+            ]);
         }
 
         // Update status ke selesai
-        $submission->update([
+        $updateData = [
             'status' => 'selesai',
-        ]);
+        ];
+
+        // Simpan supplier_id jika ada (untuk mode permintaan)
+        if ($request->has('supplier_id') && $request->supplier_id) {
+            $updateData['supplier_id'] = $request->supplier_id;
+        }
+
+        $submission->update($updateData);
 
         return back()->with('success', 'Status berhasil diubah menjadi selesai');
     }

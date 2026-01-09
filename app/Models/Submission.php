@@ -17,6 +17,7 @@ class Submission extends Model
         'tanggal',
         'kitchen_id',
         'menu_id',
+        'supplier_id',
         'total_harga',
         'porsi',
         'status'
@@ -35,5 +36,10 @@ class Submission extends Model
     public function details()
     {
         return $this->hasMany(SubmissionDetails::class);
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
     }
 }

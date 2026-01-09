@@ -93,6 +93,13 @@
                     <p class="font-weight-bold mb-0">Porsi:</p>
                     <p>{{ $submission->porsi }}</p>
                 </div>
+                @if($submission->supplier)
+                    <div class="mb-3">
+                        <p class="font-weight-bold mb-0">Supplier:</p>
+                        <p>{{ $submission->supplier->nama }} ({{ $submission->supplier->kode }})</p>
+                        <p class="text-muted small mb-0">Kontak: {{ $submission->supplier->kontak }} - {{ $submission->supplier->nomor }}</p>
+                    </div>
+                @endif
                 <div>
                     <table class="table table-bordered table-striped">
                         <thead>
