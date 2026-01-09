@@ -189,18 +189,21 @@
 
                                             {{-- TOMBOL SELESAI --}}
                                             @if($item->status === 'diproses')
-                                                <form 
-                                                    action="{{ route('transaction.submission.to-complete', $item->id) }}" 
-                                                    method="POST" 
-                                                    class="d-inline"
-                                                    onsubmit="return confirm('Yakin ingin mengubah status menjadi selesai?')"
+                                                <button 
+                                                    type="button"
+                                                    class="btn btn-success btn-sm btnCompleteSubmission"
+                                                    data-toggle="modal"
+                                                    data-target="#modalCompleteSubmission"
+                                                    data-id="{{ $item->id }}"
+                                                    data-kode="{{ $item->kode }}"
+                                                    data-tanggal="{{ $item->tanggal }}"
+                                                    data-kitchen="{{ $item->kitchen->nama }}"
+                                                    data-menu="{{ $item->menu->nama }}"
+                                                    data-porsi="{{ $item->porsi }}"
+                                                    data-action="{{ route('transaction.submission.to-complete', $item->id) }}"
                                                 >
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <button type="submit" class="btn btn-success btn-sm">
-                                                        Selesai
-                                                    </button>
-                                                </form>
+                                                    Selesai
+                                                </button>
                                             @endif
                                         @endif
                                     </td>
@@ -399,13 +402,13 @@
                     {{-- Template Row Pertama --}}
                     <div class="form-row mb-3 bahan-tambah-group">
                         <div class="col-md-5">
-                            <select name="tambah_bahan_baku_id[]" class="form-control bahan-tambah-select" required>
+                            <select name="tambah_bahan_baku_id[]" class="form-control bahan-tambah-select">
                                 <option value="" disabled selected>Pilih Bahan</option>
                             </select>
                         </div>
 
                         <div class="col-md-3">
-                            <input type="number" step="any" min="0" name="tambah_recipe_jumlah[]" class="form-control" placeholder="Jumlah per porsi" required>
+                            <input type="number" step="any" min="0" name="tambah_recipe_jumlah[]" class="form-control" placeholder="Jumlah per porsi">
                             <small class="text-muted">Jumlah per porsi (akan dikalikan dengan porsi)</small>
                         </div>
 
@@ -416,6 +419,78 @@
                 </div>
             </div>
             
+        </x-modal-form>
+    @endif
+
+    {{-- MODAL KONFIRMASI SELESAI (PERMINTAAN) --}}
+    @if($mode === 'permintaan')
+        <x-modal-form id="modalCompleteSubmission" size="modal-xl" title="Konfirmasi Selesai" action="" submitText="Konfirmasi Selesai">
+            @method('PATCH')
+            @csrf
+
+            {{-- DETAIL SUBMISSION --}}
+            <h6 class="font-weight-bold mb-3">Detail Permintaan</h6>
+            <table class="table table-borderless mb-4">
+                <tr>
+                    <th width="140" class="py-1 pl-0">Kode</th>
+                    <td class="py-1" id="complete_kode">: -</td>
+                </tr>
+                <tr>
+                    <th width="140" class="py-1 pl-0">Tanggal</th>
+                    <td class="py-1" id="complete_tanggal">: -</td>
+                </tr>
+                <tr>
+                    <th width="140" class="py-1 pl-0">Dapur</th>
+                    <td class="py-1" id="complete_kitchen">: -</td>
+                </tr>
+                <tr>
+                    <th width="140" class="py-1 pl-0">Menu</th>
+                    <td class="py-1" id="complete_menu">: -</td>
+                </tr>
+                <tr>
+                    <th width="140" class="py-1 pl-0">Porsi</th>
+                    <td class="py-1" id="complete_porsi">: -</td>
+                </tr>
+            </table>
+
+            <hr>
+
+            {{-- DETAIL BAHAN BAKU --}}
+            <h6 class="font-weight-bold mb-3">Detail Bahan Baku</h6>
+            <div id="complete_bahan_baku_list" class="table-responsive mb-4">
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>Bahan Baku</th>
+                            <th>Qty Digunakan</th>
+                            <th>Satuan</th>
+                            <th>Harga Dapur</th>
+                            <th>Harga Mitra</th>
+                            <th>Subtotal Dapur</th>
+                            <th>Subtotal Mitra</th>
+                        </tr>
+                    </thead>
+                    <tbody id="complete_bahan_tbody">
+                        <tr>
+                            <td colspan="7" class="text-center text-muted">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <hr>
+
+            {{-- PILIH SUPPLIER --}}
+            <div class="form-group">
+                <label class="font-weight-bold">Pilih Supplier <span class="text-danger">*</span></label>
+                <select name="supplier_id" id="complete_supplier_id" class="form-control" required>
+                    <option value="" disabled selected>Pilih Supplier</option>
+                    @foreach($suppliers as $supplier)
+                        <option value="{{ $supplier->id }}">{{ $supplier->nama }} - {{ $supplier->kode }}</option>
+                    @endforeach
+                </select>
+                <small class="text-muted">Pilih supplier yang akan menangani permintaan ini</small>
+            </div>
         </x-modal-form>
     @endif
 
@@ -444,6 +519,16 @@
                         <th width="140" class="py-2">Porsi</th>
                         <td class="py-2">: {{ $item->porsi }}</td>
                     </tr>
+                    @if($mode === 'permintaan' && $item->supplier)
+                        <tr>
+                            <th width="140" class="py-2">Supplier</th>
+                            <td class="py-2">: {{ $item->supplier->nama }} ({{ $item->supplier->kode }})</td>
+                        </tr>
+                        {{-- <tr>
+                            <th width="140" class="py-2">Kontak Supplier</th>
+                            <td class="py-2">: {{ $item->supplier->kontak }} - {{ $item->supplier->nomor }}</td>
+                        </tr> --}}
+                    @endif
                 </table>
                 <table class="table table-bordered table-striped">
                     <thead>
@@ -1357,6 +1442,87 @@
         // Handler untuk tambah baris bahan baku dihapus - tidak diperlukan untuk mode permintaan
 
         // Handler untuk hapus baris bahan baku dihapus - tidak diperlukan untuk mode permintaan (hanya satu baris)
+
+        /**
+         * ======================================================
+         * HANDLER TOMBOL SELESAI (PERMINTAAN)
+         * ======================================================
+         */
+        $(document).on('click', '.btnCompleteSubmission', function () {
+            let submissionId = $(this).data('id');
+            let kode = $(this).data('kode');
+            let tanggal = $(this).data('tanggal');
+            let kitchen = $(this).data('kitchen');
+            let menu = $(this).data('menu');
+            let porsi = $(this).data('porsi');
+            let action = $(this).data('action');
+
+            // Set form action
+            $('#modalCompleteSubmission form').attr('action', action);
+
+            // Update detail di modal
+            $('#complete_kode').text(': ' + kode);
+            let tanggalFormatted = new Date(tanggal).toLocaleDateString('id-ID', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+            $('#complete_tanggal').text(': ' + tanggalFormatted);
+            $('#complete_kitchen').text(': ' + kitchen);
+            $('#complete_menu').text(': ' + menu);
+            $('#complete_porsi').text(': ' + porsi);
+
+            // Reset supplier
+            $('#complete_supplier_id').val('');
+
+            // Load detail bahan baku
+            loadCompleteSubmissionDetails(submissionId);
+        });
+
+        /**
+         * ======================================================
+         * LOAD DETAIL BAHAN BAKU UNTUK MODAL SELESAI
+         * ======================================================
+         */
+        function loadCompleteSubmissionDetails(submissionId) {
+            let tbody = $('#complete_bahan_tbody');
+            tbody.html('<tr><td colspan="7" class="text-center">Loading...</td></tr>');
+
+            let url = "{{ route('transaction.submission.details', ':id') }}";
+            url = url.replace(':id', submissionId);
+
+            $.get(url)
+                .done(function (data) {
+                    tbody.empty();
+
+                    if (data.length === 0) {
+                        tbody.html('<tr><td colspan="7" class="text-center text-muted">Data bahan baku tidak ditemukan</td></tr>');
+                        return;
+                    }
+
+                    data.forEach(function (detail) {
+                        let hargaDapur = detail.harga_dapur || 0;
+                        let hargaMitra = detail.harga_mitra || 0;
+                        let subtotalDapur = hargaDapur * detail.qty_digunakan;
+                        let subtotalMitra = hargaMitra * detail.qty_digunakan;
+
+                        tbody.append(`
+                            <tr>
+                                <td>${detail.bahan_baku_nama || '-'}</td>
+                                <td>${parseFloat(detail.qty_digunakan).toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                                <td>${detail.satuan || '-'}</td>
+                                <td>${formatRupiah(hargaDapur)}</td>
+                                <td>${formatRupiah(hargaMitra)}</td>
+                                <td>${formatRupiah(subtotalDapur)}</td>
+                                <td>${formatRupiah(subtotalMitra)}</td>
+                            </tr>
+                        `);
+                    });
+                })
+                .fail(function () {
+                    tbody.html('<tr><td colspan="7" class="text-center text-danger">Gagal memuat data bahan baku</td></tr>');
+                });
+        }
 
         /**
          * ======================================================

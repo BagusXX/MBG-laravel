@@ -161,6 +161,10 @@
                 <p><strong>Alamat:</strong> {{ $submission->kitchen->alamat ?? '-' }}</p>
                 <p><strong>Menu:</strong> {{ $submission->menu->nama ?? '-' }}</p>
                 <p><strong>Porsi:</strong> {{ $submission->porsi ?? '-' }}</p>
+                @if($submission->supplier)
+                    <p><strong>Supplier:</strong> {{ $submission->supplier->nama ?? '-' }} ({{ $submission->supplier->kode ?? '-' }})</p>
+                    <p><strong>Kontak Supplier:</strong> {{ $submission->supplier->kontak ?? '-' }} - {{ $submission->supplier->nomor ?? '-' }}</p>
+                @endif
             </div>
             <div class="info-box">
                 <h3>Informasi User</h3>

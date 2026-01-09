@@ -107,8 +107,9 @@
                                 class="btn btn-success btn-sm btnApproval"
                                 data-id="{{ $item->id }}"
                                 data-status="diterima"
+                                data-supplier="{{ $item->supplier_id }}"
                             >
-                                Setujui
+                                Selesai
                             </button>
 
                             <button
@@ -365,6 +366,28 @@ MODAL DETAIL
 
 @endforeach
 
+<x-modal-detail
+    id="modalSupplierRequired"
+    title="Supplier Belum Dipilih"
+    size="modal-md"
+>
+    <div class="alert alert-warning mb-3">
+        <strong>Perhatian!</strong><br>
+        Supplier wajib diisi sebelum pengajuan dapat disetujui.
+    </div>
+
+    <p>
+        Silakan buka <strong>Detail Pengajuan</strong> lalu pilih supplier
+        pada bagian <strong>Supplier</strong>.
+    </p>
+
+    <div class="text-right mt-3">
+        <button class="btn btn-secondary" data-dismiss="modal">
+            Tutup
+        </button>
+    </div>
+</x-modal-detail>
+
 @endsection
 
 @push('js')
@@ -518,6 +541,16 @@ MODAL DETAIL
             let id     = $(this).data('id');
             let status = $(this).data('status');
 
+            let supplier  = $(this).data('supplier'); 
+
+            // ==============================
+            // VALIDASI SUPPLIER SEBELUM SETUJUI
+            // ==============================
+            if (status === 'diterima' && (!supplier || supplier === '')) {
+                $('#modalSupplierRequired').modal('show');
+                return; 
+            }
+            
             let modal = $('#modalApprovalOperational');
 
             // endpoint approval (nanti sesuaikan route)

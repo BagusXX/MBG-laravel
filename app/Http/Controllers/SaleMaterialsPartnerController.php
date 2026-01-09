@@ -20,7 +20,8 @@ class SaleMaterialsPartnerController extends Controller
         // Ambil submission yang statusnya selesai sebagai data penjualan
         $submissions = Submission::with([
             'kitchen', 
-            'menu', 
+            'menu',
+            'supplier',
             'details.recipe.bahan_baku.unit',
             'details.bahanBaku.unit'
         ])
@@ -109,6 +110,7 @@ class SaleMaterialsPartnerController extends Controller
         $submission = Submission::with([
             'kitchen',
             'menu',
+            'supplier',
             'details.recipe.bahan_baku.unit',
             'details.bahanBaku.unit'
         ])
@@ -135,6 +137,7 @@ class SaleMaterialsPartnerController extends Controller
         $submission = Submission::with([
             'kitchen',
             'menu',
+            'supplier',
             'details.recipe.bahan_baku.unit',
             'details.bahanBaku.unit'
         ])
