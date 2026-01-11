@@ -85,7 +85,8 @@
                     <td>
                         <span class="badge badge-{{
                             $item->status === 'diterima' ? 'success' :
-                            ($item->status === 'ditolak' ? 'danger' : 'warning')
+                            ($item->status === 'diproses' ? 'info' :
+                            ($item->status === 'ditolak' ? 'danger' : 'warning'))
                         }}">
                             {{ strtoupper($item->status) }}
                         </span>
@@ -99,7 +100,7 @@
                         </button>
 
                         {{-- Tombol Hapus (Hanya jika belum diterima) --}}
-                        @if($item->status !== 'diterima')
+                        @if($item->status !== 'diproses' && $item->status !== 'diterima')
                         <x-button-delete
                             idTarget="#modalDeleteOperational"
                             formId="formDeleteOperational"
@@ -261,7 +262,8 @@
             <td class="py-1">
                 <span class="badge badge-{{
                     $item->status === 'diterima' ? 'success' :
-                    ($item->status === 'ditolak' ? 'danger' : 'warning')
+                    ($item->status === 'diproses' ? 'info' :
+                    ($item->status === 'ditolak' ? 'danger' : 'warning'))
                 }}">
                     {{ strtoupper($item->status) }}
                 </span>
@@ -279,12 +281,12 @@
                 </div>
             @endif
         </tr>
-        <tr>
+        <!-- <tr>
             <th width="140" class="py-1">Supplier</th>
             <td class="py-1">
                 : {{ $item->supplier->nama ?? '-' }}
             </td>
-        </tr>
+        </tr> -->
 
         <tr>
             <th width="140" class="py-1">Total Biaya</th>
