@@ -205,7 +205,7 @@
 
     {{-- MODAL DETAIL (SINGLE DYNAMIC MODAL) --}}
     <x-modal-detail id="modalDetailRecipe" size="modal-lg" title="Detail Racikan Menu">
-        <div id="detailContent" class="text-center py-4">
+        <div id="detailContent">
             <div class="spinner-border text-primary" role="status">
                 <span class="sr-only">Loading...</span>
             </div>
@@ -554,12 +554,18 @@
 
                             // Tabel Detail tanpa kolom harga dan tanpa footer total
                             const html = `
-                                        <div class="row mb-3 text-left">
-                                            <div class="col-md-6"><strong>Dapur:</strong> ${kitchenName}</div>
-                                            <div class="col-md-6"><strong>Menu ID:</strong> ${menuName}</div>
-                                        </div>
-                                        <table class="table table-sm table-bordered">
-                                            <thead class="thead-light">
+                                        <table class="table table-borderless">
+                                            <tr>
+                                                <th width="140" class="py-1 pl-0">Dapur</th>
+                                                <td class="py-1">: ${kitchenName}</td>
+                                            </tr>
+                                            <tr>
+                                                <th width="140" class="py-1 pl-0">Menu</th>
+                                                <td class="py-1">: ${menuName}</td>
+                                            </tr>
+                                        </table>
+                                        <table class="table table-bordered table-striped">
+                                            <thead>
                                                 <tr>
                                                     <th>Bahan Baku</th>
                                                     <th>Qty</th>

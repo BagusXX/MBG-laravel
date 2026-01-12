@@ -29,7 +29,7 @@ class DatabaseSeeder extends Seeder
                 $this->call(UnitsSeeder::class);
                 $this->call(MenuSeeder::class);
                 $this->call(BahanBakuSeeder::class);
-                // $this->call(RecipeBahanBakuSeeder::class);
+                $this->call(RecipeBahanBakuSeeder::class);
                 // $this->call(SubmissionsSeeder::class);
                 $this->call(SuppliersSeeder::class);
                 $this->call(KitchenSupplierSeeder::class);
