@@ -1,9 +1,9 @@
 @extends('adminlte::page')
 
-@section('title', 'Laporan Pengajuan Menu')
+@section('title', 'Laporan Selisih')
 
 @section('content_header')
-    <h1>Laporan Pengajuan Menu</h1>
+    <h1>Laporan Selisih</h1>
 @endsection
 
 @section('content')
@@ -45,16 +45,20 @@
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>No</th>
+                        <th width="50">No</th>
                         <th>Tanggal</th>
-                        <th>Nama Menu</th>
-                        <th>Porsi</th>
                         <th>Dapur</th>
+                        <th>Supplier</th>
+                        <th>Harga Dapur</th>
+                        <th>Harga Mitra</th>
+                        <th>Selisih</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
+                        <td></td>
+                        <td></td>
                         <td></td>
                         <td></td>
                         <td></td>
