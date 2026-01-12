@@ -123,9 +123,10 @@ class RolePermissionSeeder extends Seeder
                 'transaction.sale-partner.view',
                 'transaction.sales.view',
                 'transaction.purchase.view',
-                'report.submission.view',
-                'report.purchase.view',
-                'report.sales.view',
+                'report.sales-kitchen.view',
+                'report.sales-partner.view',
+                'report.purchase-operational.view',
+                'report.profit.view',
             ]);
     }
 }

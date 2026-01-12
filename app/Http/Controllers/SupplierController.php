@@ -2,45 +2,60 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Kitchen;
 use App\Models\region;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class SupplierController extends Controller
 {
 
     public function index()
     {
-        $suppliers = Supplier::with('region')
-            ->orderBy('id', 'asc')
-            ->paginate(10);
-        $regions = region::orderBy('nama_region')->get();
+        $user = auth()->user();
 
+        $userKitchenKode = $user->kitchens()->pluck('kode');
+
+
+        $suppliers = Supplier::with('kitchens')
+            ->whereHas('kitchens', function ($q) use ($userKitchenKode) {
+                $q->whereIn('kitchens.kode', $userKitchenKode);
+            })
+            ->orderBy('suppliers.id')
+            ->paginate(10);
+
+        $kitchens = Kitchen::whereIn('kode', $userKitchenKode)->get();
         $kodeBaru = $this->generateKode();
 
-        return view('master.supplier', compact('suppliers', 'regions', 'kodeBaru'));
+        return view('master.supplier', compact('suppliers', 'kitchens', 'kodeBaru'));
     }
 
 
     public function store(Request $request)
     {
+        $user = auth()->user();
+        $userKitchenKode = $user->kitchens()->pluck('kode')->toArray();
         // Validasi input
         $request->validate([
             'nama' => 'required|string|max:255',
             'alamat' => 'required|string|max:255',
-            'region_id' => 'required|exists:regions,id',
             'kontak' => 'required|string|max:255',
             'nomor' => 'required|string|max:20',
+            'kitchens' => ['required', 'array'],
+            'kitchens.*' => [Rule::in($userKitchenKode)],
         ]);
 
-        Supplier::create([
+        $supplier = Supplier::create([
             'kode' => self::generateKode(),
             'nama' => $request->nama,
             'alamat' => $request->alamat,
-            'region_id' => $request->region_id,
             'kontak' => $request->kontak,
             'nomor' => $request->nomor,
         ]);
+
+        // attach dapur
+        $supplier->kitchens()->sync($request->kitchens);
 
         return redirect()->route('master.supplier.index')->with('success', 'Supplier berhasil ditambahkan.');
     }
@@ -48,35 +63,59 @@ class SupplierController extends Controller
 
     public function edit(Supplier $supplier)
     {
-        $generatedCodes = [];
-        for ($i = 11; $i <= 99; $i++) {
-            $generatedCodes[$i] = 'SPR' . $i;
-        }
+        $user = auth()->user();
+        $userKitchenKode = $user->kitchens()->pluck('kode')->toArray();
 
-        return view('supplier.edit', compact('supplier', 'generatedCodes'));
+        // Cek akses: User hanya boleh edit jika punya akses ke salah satu kitchen supplier tsb
+        $hasAccess = $supplier->kitchens()
+            ->whereIn('kitchens.kode', $userKitchenKode)
+            ->exists();
+
+        abort_if(!$hasAccess, 403, 'Anda tidak memiliki akses ke supplier ini.');
+
+        // FIX: Hanya ambil kitchen milik user untuk pilihan dropdown
+        $kitchens = $user->kitchens;
+
+        // Ambil kitchen yang sudah terhubung untuk auto-select di view
+        // Hanya pluck ID atau Kode, tergantung value checkbox di view
+        $selectedKitchens = $supplier->kitchens->pluck('kode')->toArray();
+
+        // FIX: Tambahkan 'kitchens' dan 'selectedKitchens' ke compact
+        return view('supplier.edit', compact('supplier', 'kitchens', 'selectedKitchens'));
     }
 
 
     public function update(Request $request, Supplier $supplier)
     {
+        $user = auth()->user();
+        $userKitchenKode = $user->kitchens()->pluck('kode')->toArray();
+
+        // 🔐 authorization manual
+        $hasAccess = $supplier->kitchens()
+            ->whereIn('kitchens.kode', $userKitchenKode)
+            ->exists();
+
+        abort_if(!$hasAccess, 403, 'Anda tidak berhak mengubah supplier ini');
         // Validasi input
         $request->validate([
             'kode' => 'required|unique:suppliers,kode,' . $supplier->id,
             'nama' => 'required|string|max:255',
             'alamat' => 'required|string|max:255',
-            'region_id' => 'required|exists:regions,id',
             'kontak' => 'required|string|max:255',
             'nomor' => 'required|string|max:20',
+            'kitchens' => ['required', 'array'],
+            'kitchens.*' => [Rule::in($userKitchenKode)],
         ]);
 
         $supplier->update([
-            'kode' => $request->kode,
             'nama' => $request->nama,
             'alamat' => $request->alamat,
-            'region_id' => $request->region_id,
             'kontak' => $request->kontak,
             'nomor' => $request->nomor,
         ]);
+
+        // sync hanya kitchen milik user
+        $supplier->kitchens()->sync($request->kitchens);
 
         return redirect()->route('master.supplier.index')->with('success', 'Supplier berhasil diupdate.');
     }
@@ -84,25 +123,51 @@ class SupplierController extends Controller
 
     public function destroy(Supplier $supplier)
     {
+        $user = auth()->user();
+        $userKitchenKode = $user->kitchens()->pluck('kode')->toArray();
+
+        $supplierKitchen = $supplier->kitchens()->pluck('kitchens.kode')->toArray();
+
+        // jika ada kitchen supplier di luar milik user → block
+        $unauthorized = array_diff($supplierKitchen, $userKitchenKode);
+
+        abort_if(!empty($unauthorized), 403, 'Supplier ini terhubung dengan dapur lain');
+
+        $supplier->kitchens()->detach();
         $supplier->delete();
 
-        return redirect()->route('master.supplier.index')->with('success', 'Supplier berhasil dihapus.');
+        return redirect()
+            ->route('master.supplier.index')
+            ->with('success', 'Supplier berhasil dihapus.');
     }
+
+
 
     public static function generateKode()
     {
-        $lastSupplier = Supplier::orderByRaw('CAST(SUBSTRING(kode, 4) AS UNSIGNED) DESC')->first();
+        // 1. Ambil supplier dengan angka urut paling besar
+        // Kita pakai SUBSTRING & CAST agar sortingnya benar secara angka (bukan string)
+        // Contoh: Agar SPR10 dianggap lebih besar dari SPR2
+        $lastSupplier = Supplier::select('kode')
+            ->orderByRaw('CAST(SUBSTRING(kode, 4) AS UNSIGNED) DESC')
+            ->first();
 
-        $lastNumber = $lastSupplier
-            ? (int) substr($lastSupplier->kode, 3)
-            : 10;
-
-        $nextNumber = $lastNumber + 1;
-
-        if ($nextNumber > 99) {
-            throw new \Exception('Kode supplier sudah mencapai batas SPR99');
+        // 2. Ambil angka terakhir
+        if ($lastSupplier) {
+            // Hapus 'SPR' (3 karakter pertama) dan ambil sisanya sebagai integer
+            $lastNumber = (int) substr($lastSupplier->kode, 3);
+            $nextNumber = $lastNumber + 1;
+        } else {
+            // Jika belum ada data sama sekali
+            $nextNumber = 1;
         }
 
-        return 'SPR000' . $nextNumber;
+        // 3. Format kode dengan str_pad
+        // Parameter '3' artinya minimal 3 digit.
+        // Jika angka 1    -> SPR001
+        // Jika angka 99   -> SPR099
+        // Jika angka 100  -> SPR100 (Otomatis melebar)
+        // Jika angka 1000 -> SPR1000
+        return 'SPR' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
     }
 }

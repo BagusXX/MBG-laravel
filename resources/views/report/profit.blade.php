@@ -1,28 +1,64 @@
 @extends('adminlte::page')
 
-@section('title', 'Laporan Pengajuan Menu')
+@section('title', 'Laporan Selisih')
 
 @section('content_header')
-    <h1>Laporan Pengajuan Menu</h1>
+    <h1>Laporan Selisih</h1>
 @endsection
 
 @section('content')
     {{-- TABLE --}}
     <div class="card">
         <div class="card-body">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="row">
+                        {{-- FILTER TANGGAL "DARI" --}}
+                        <div class="col-md-4">
+                            <label>Dari</label>
+                            <input type="date" class="form-control ">
+                        </div>
+
+                        {{-- FILTER MENU "SAMPAI"--}}
+                        <div class="col-md-4">
+                            <label>Sampai</label>
+                            <input type="date" class="form-control ">
+                        </div>
+
+                        {{-- FILTER DAPUR --}}
+                        <div class="col-md-4">
+                            <label>Dapur</label>
+                            <select id="filterKitchen" class="form-control">
+                                <option value="">Semua Dapur</option>
+                                {{-- @foreach ($kitchens as $kitchen) --}}
+                                    {{-- <option value="{{ $kitchen->nama }}">{{ $kitchen->nama }}</option> --}}
+                                    <option value="">Dapur A</option>
+                                    <option value="">Dapur B</option>
+                                    <option value="">Dapur C</option>
+                                {{-- @endforeach --}}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>No</th>
+                        <th width="50">No</th>
                         <th>Tanggal</th>
-                        <th>Nama Menu</th>
-                        <th>Porsi</th>
                         <th>Dapur</th>
+                        <th>Supplier</th>
+                        <th>Harga Dapur</th>
+                        <th>Harga Mitra</th>
+                        <th>Selisih</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
+                        <td></td>
+                        <td></td>
                         <td></td>
                         <td></td>
                         <td></td>

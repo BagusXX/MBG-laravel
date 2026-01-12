@@ -169,7 +169,7 @@ return [
     'layout_topnav' => null,
     'layout_boxed' => null,
     'layout_fixed_sidebar' => true,
-    'layout_fixed_navbar' => null,
+    'layout_fixed_navbar' => true,
     'layout_fixed_footer' => null,
     'layout_dark_mode' => null,
 
@@ -490,27 +490,34 @@ return [
         [
             'text' => 'Laporan',
             'icon' => 'fas fa-fw fa-file-alt',
-            'can'  => 'report.submission.view',
+            'can'  => 'report.sales-kitchen.view',
             'submenu' => [
                 [
-                    'text' => 'Pengajuan Menu',
+                    'text' => 'Penjualan Dapur',
                     'icon' => 'fas fa-file-signature',
-                    'route' => 'report.submission',
-                    'can'   => 'report.submission.view',
+                    'route' => 'report.sales-kitchen',
+                    'can'   => 'report.sales-kitchen.view',
+                ],
+                
+                [
+                    'text' => 'Penjualan Mitra',
+                    'icon' => 'fas fa-file-signature',
+                    'route' => 'report.sales-partner',
+                    'can'   => 'report.sales-partner.view',
                 ],
 
                 [
-                    'text' => 'Beli Bahan Baku',
+                    'text' => 'Pembelian Operasional',
                     'icon' => 'fas fa-file-signature',
-                    'route' => 'report.purchase-materials',
-                    'can'   => 'report.purchase.view',
+                    'route' => 'report.purchase-operational',
+                    'can'   => 'report.purchase-operational.view',
                 ],
 
                 [
-                    'text' => 'Jual Bahan Baku',
+                    'text' => 'Laporan Selisih',
                     'icon' => 'fas fa-file-signature',
-                    'route' => 'report.sales-materials',
-                    'can'   => 'report.sales.view',
+                    'route' => 'report.profit',
+                    'can'   => 'report.profit.view',
                 ],
             ],
         ],

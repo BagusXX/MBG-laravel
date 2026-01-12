@@ -414,17 +414,21 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('dashboard/laporan')
         ->name('report.')
         ->group(function () {
-            Route::get('/pengajuan-menu', fn() => view('report.submission'))
-                ->middleware('permission:report.submission.view')
-                ->name('submission');
+            Route::get('/penjualan-dapur', fn() => view('report.sales-kitchen'))
+                ->middleware('permission:report.sales-kitchen.view')
+                ->name('sales-kitchen');
+            
+                Route::get('/penjualan-mitra', fn() => view('report.sales-partner'))
+                ->middleware('permission:report.sales-partner.view')
+                ->name('sales-partner');
 
-            Route::get('/pembelian-bahan-baku', fn() => view('report.purchase-materials'))
-                ->middleware('permission:report.purchase.view')
-                ->name('purchase-materials');
+            Route::get('/pembelian-operasional', fn() => view('report.purchase-operational'))
+                ->middleware('permission:report.purchase-operational.view')
+                ->name('purchase-operational');
 
-            Route::get('/penjualan-bahan-baku', fn() => view('report.sales-materials'))
-                ->middleware('permission:report.sales.view')
-                ->name('sales-materials');
+            Route::get('/selisih', fn() => view('report.profit'))
+                ->middleware('permission:report.profit.view')
+                ->name('profit');
         });
 
     Route::prefix('dashboard/profile')
