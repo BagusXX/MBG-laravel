@@ -32,6 +32,7 @@ class DatabaseSeeder extends Seeder
                 // $this->call(RecipeBahanBakuSeeder::class);
                 // $this->call(SubmissionsSeeder::class);
                 $this->call(SuppliersSeeder::class);
+                $this->call(KitchenSupplierSeeder::class);
                 // $this->call(SubmissionsDetailSeeder::class);
 
 

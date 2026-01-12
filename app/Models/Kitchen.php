@@ -54,4 +54,8 @@ class Kitchen extends Model
     public function operationaldetails(){
         return $this->hasMany(submissionOperational::class);
     }
+
+    public function suppliers(){
+        return $this->belongsToMany(Supplier::class, 'kitchen_suppliers','suppliers_id','kitchen_kode', 'id', 'kode');
+    }
 }

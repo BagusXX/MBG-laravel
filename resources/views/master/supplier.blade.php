@@ -35,7 +35,7 @@
                         <th>Kode</th>
                         <th>Nama</th>
                         <th>Alamat</th>
-                        <th>Region</th>
+                        <th>Dapur</th>
                         <th>Kontak Person</th>
                         <th>Nomor</th>
                         <th>Aksi</th>
@@ -48,7 +48,11 @@
                             <td>{{ $supplier->kode }}</td>
                             <td>{{ $supplier->nama }}</td>
                             <td>{{ $supplier->alamat }}</td>
-                            <td>{{ $supplier->region->nama_region ?? '-' }}</td>
+                            <td>
+                                @foreach($supplier->kitchens as $kitchen)
+                                    <span class="badge badge-info">{{ $kitchen->nama }}</span>
+                                @endforeach
+                            </td>
                             <td>{{ $supplier->kontak }}</td>
                             <td>{{ $supplier->nomor }}</td>
                             <td>
@@ -61,7 +65,7 @@
                                     data-kode="{{ $supplier->kode }}"
                                     data-nama="{{ $supplier->nama }}"
                                     data-alamat="{{ $supplier->alamat }}"
-                                    data-region="{{ $supplier->region_id }}"
+                                    data-kitchens="{{ json_encode($supplier->kitchens->pluck('kode')) }}"
                                     data-kontak="{{ $supplier->kontak }}"
                                     data-nomor="{{ $supplier->nomor }}"
                                 >
@@ -118,16 +122,21 @@
             <label for="alamat_supplier">Alamat</label>
             <input id="alamat_supplier" type="text" name="alamat" class="form-control" required />
         </div>
-       <div class="form-group mt-2">
-            <label>Region</label>
-            <select name="region_id" class="form-control" required>
-                <option value="">-- Pilih Region --</option>
-                @foreach($regions as $region)
-                    <option value="{{ $region->id }}">
-                        {{ $region->nama_region }}
-                    </option>
+        <div class="form-group mt-2">
+        <label>Pilih Dapur (Kitchen)</label>
+            <div class="row" style="max-height: 150px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
+                @foreach($kitchens as $kitchen)
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            {{-- Value menggunakan KODE sesuai validasi controller --}}
+                            <input class="form-check-input" type="checkbox" name="kitchens[]" value="{{ $kitchen->kode }}" id="add_kitchen_{{ $kitchen->kode }}">
+                            <label class="form-check-label" for="add_kitchen_{{ $kitchen->kode }}">
+                                {{ $kitchen->nama }}
+                            </label>
+                        </div>
+                    </div>
                 @endforeach
-            </select>
+            </div>
         </div>
 
         
@@ -172,15 +181,19 @@
             <input type="text" id="edit_alamat" name="alamat" class="form-control" required />
         </div>
         <div class="form-group mt-2">
-            <label>Region</label>
-            <select name="region_id" id="edit_region" class="form-control" required>
-                <option value="">-- Pilih Region --</option>
-                @foreach($regions as $region)
-                    <option value="{{ $region->id }}">
-                        {{ $region->nama_region }}
-                    </option>
+            <label>Pilih Dapur (Kitchen)</label>
+            <div class="row" style="max-height: 150px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
+                @foreach($kitchens as $kitchen)
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input edit-kitchen-checkbox" type="checkbox" name="kitchens[]" value="{{ $kitchen->kode }}" id="edit_kitchen_{{ $kitchen->kode }}">
+                            <label class="form-check-label" for="edit_kitchen_{{ $kitchen->kode }}">
+                                {{ $kitchen->nama }}
+                            </label>
+                        </div>
+                    </div>
                 @endforeach
-            </select>
+            </div>
         </div>
 
         <div class="form-group">
@@ -214,9 +227,24 @@
             document.getElementById('edit_kode').value = this.dataset.kode;
             document.getElementById('edit_nama').value = this.dataset.nama;
             document.getElementById('edit_alamat').value = this.dataset.alamat;
-            document.getElementById('edit_region').value = this.dataset.region;
             document.getElementById('edit_kontak').value = this.dataset.kontak;
             document.getElementById('edit_nomor').value = this.dataset.nomor;
+
+            // 1. Reset semua checkbox di modal edit menjadi tidak tercentang
+            document.querySelectorAll('.edit-kitchen-checkbox').forEach(box => box.checked = false);
+
+            // 2. Ambil data kitchens dari atribut tombol (format JSON array)
+            // Contoh data: ["K001", "K002"]
+            const connectedKitchens = JSON.parse(this.dataset.kitchens || '[]');
+
+            // 3. Loop kitchen yang terhubung, lalu centang checkbox yang sesuai valuenya
+            connectedKitchens.forEach(kodeKitchen => {
+                // Cari checkbox dengan value = kodeKitchen
+                const checkbox = document.querySelector(`.edit-kitchen-checkbox[value="${kodeKitchen}"]`);
+                if (checkbox) {
+                    checkbox.checked = true;
+                }
+            });
 
             // set action form
             const form = document.querySelector('#modalEditSupplier form');

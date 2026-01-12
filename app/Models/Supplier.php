@@ -15,14 +15,11 @@ class Supplier extends Model
         'kode',
         'nama',
         'alamat',
-        'region_id',
         'kontak',
         'nomor',
-        'region_id'
     ];
 
-    public function region()
-    {
-        return $this->belongsTo(region::class);
+    public function kitchens(){
+        return $this->belongsToMany(Kitchen::class,'kitchen_suppliers','suppliers_id','kitchen_kode','id','kode');
     }
 }

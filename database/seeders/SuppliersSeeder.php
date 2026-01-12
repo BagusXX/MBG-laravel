@@ -21,7 +21,7 @@ class SuppliersSeeder extends Seeder
                 'alamat' => 'Temanggung',
                 'kontak' => 'Wawan',
                 'nomor' => '088216194722',
-                'region_id' => 1, 
+                 
 
             ],
             [
@@ -30,7 +30,7 @@ class SuppliersSeeder extends Seeder
                 'alamat' => 'Semarang',
                 'kontak' => 'Wiwin',
                 'nomor' => '088216194723',
-                'region_id' => 3, 
+                
 
             ],
             [
@@ -39,7 +39,7 @@ class SuppliersSeeder extends Seeder
                 'alamat' => 'Ungaran',
                 'kontak' => 'Parjo',
                 'nomor' => '088216194722',
-                'region_id' => 4, 
+                
 
             ],
             [
@@ -48,7 +48,7 @@ class SuppliersSeeder extends Seeder
                 'alamat' => 'Tunjakan',
                 'kontak' => 'Anda',
                 'nomor' => '088216194722',
-                'region_id' => 2, 
+                 
 
             ],
 
