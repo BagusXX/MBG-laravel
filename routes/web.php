@@ -349,6 +349,10 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{id}/invoice', 'invoice')
                 ->middleware('permission:transaction.operational-approval.invoice')
                 ->name('invoice');
+
+            Route::delete('/child/{id}', 'destroyChild')
+                ->middleware('permission:transaction.operational-approval.delete')
+                ->name('destroy-child');
         });
 
     Route::prefix('dashboard/transaksi')

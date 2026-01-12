@@ -15,7 +15,7 @@ class OperationalApprovalController extends Controller
     public function index()
     {
         //
-        $submissions = submissionOperational::parent()
+        $submissions = submissionOperational::onlyParent()
             ->pengajuan()
             ->with(['details.operational', 'kitchen', 'supplier'])
             ->orderBy('created_at', 'desc')
@@ -47,7 +47,7 @@ class OperationalApprovalController extends Controller
             'items.*' => 'exists:submission_operational_details,id',
         ]);
 
-        $parent = submissionOperational::parent()->findOrFail($request->parent_id);
+        $parent = submissionOperational::onlyParent()->findOrFail($request->parent_id);
 
         DB::transaction(function () use ($parent, $request) {
             // hitung child ke-n
@@ -171,17 +171,64 @@ class OperationalApprovalController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:disetujui,ditolak',
-            'keterangan' => 'required_if:status,ditolak'
+            'keterangan' => 'required|string'
         ]);
 
-        $submission = SubmissionOperational::child()->findOrFail($id);
+        $submission = submissionOperational::onlyParent()->findOrFail($id);
+
+        // ❌ Tidak boleh ditolak jika sudah punya child
+        if ($submission->children()->exists()) {
+            return back()->with('error', 'Pengajuan tidak bisa ditolak karena sudah diproses');
+        }
+
+        // ❌ Status harus masih diajukan
+        if ($submission->status !== 'diajukan') {
+            return back()->with('error', 'Status pengajuan tidak valid untuk ditolak');
+        }
 
         $submission->update([
-            'status' => $request->status,
+            'status' => 'ditolak',
             'keterangan' => $request->keterangan
         ]);
 
-        return back()->with('success', 'Status pengajuan berhasil diperbarui');
+        return back()->with('success', 'Pengajuan operasional berhasil ditolak');
+    }
+
+    public function destroyChild($id)
+    {
+        $child = submissionOperational::with('parentSubmission')->findOrFail($id);
+        $parent = $child->parentSubmission;
+
+
+        // ❌ Pastikan ini child
+        if (! $child->isChild()) {
+            return back()->with('error', 'Data tidak valid');
+        }
+
+        // ❌ Parent harus diproses
+        if ($parent->status !== 'diproses') {
+            return back()->with(
+                'error',
+                'Approval tidak bisa dihapus karena status pengajuan sudah berubah'
+            );
+        }
+
+        // ❌ Child harus disetujui
+        if ($child->status !== 'disetujui') {
+            return back()->with(
+                'error',
+                'Hanya approval yang disetujui yang dapat dihapus'
+            );
+        }
+
+        $child->delete();
+
+        if (! $parent->children()->exists()) {
+            $parent->update(['status' => 'diajukan']);
+        }
+
+        return back()
+            ->with('success', 'Approval supplier berhasil dihapus')
+            ->with('reopen_modal', $parent->id);
     }
 }

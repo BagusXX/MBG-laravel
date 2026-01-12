@@ -56,7 +56,7 @@ class submissionOperational extends Model
     */
 
     // Parent saja (pengajuan awal)
-    public function scopeParent($query)
+    public function scopeOnlyParent($query)
     {
         return $query->whereNull('parent_id');
     }
@@ -101,7 +101,7 @@ class submissionOperational extends Model
     protected static function booted()
     {
         static::deleting(function ($submission) {
-            if ($submission->isParent()) {
+            if ($submission->isParent() && $submission->children()->exists()) {
                 throw new \Exception('Pengajuan utama tidak boleh dihapus');
             }
         });

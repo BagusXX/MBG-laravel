@@ -217,6 +217,24 @@
         </div>
     @endif
 
+    {{-- =========================
+     TOMBOL TOLAK (KHUSUS DIAJUKAN & BELUM ADA CHILD)
+    ========================= --}}
+    @if(
+    $item->status === 'diajukan' &&
+    $item->children->count() === 0
+    )
+        <div class="text-right mb-3">
+            <button
+                class="btn btn-danger btn-sm btnApproval"
+                data-id="{{ $item->id }}"
+                data-status="ditolak"
+            >
+                <i class="fas fa-times-circle mr-1"></i> Tolak Pengajuan
+            </button>
+        </div>
+    @endif
+
     <hr>
 
     {{-- 2. FORM PROSES APPROVAL (SPLIT ORDER) --}}
@@ -338,6 +356,21 @@
                         <span class="ml-2 font-weight-bold">
                             Rp {{ number_format($child->total_harga, 0, ',', '.') }}
                         </span>
+                        {{-- =========================
+                            BUTTON DELETE CHILD
+                        ========================= --}}
+                        @if(
+                            $item->status === 'diproses' &&
+                            $child->status === 'disetujui'
+                        )
+                            <button
+                                class="btn btn-xs btn-outline-danger ml-2 btnDeleteChild"
+                                data-id="{{ $child->id }}"
+                                title="Hapus approval supplier"
+                            >
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        @endif
                     </div>
                 </div>
 
@@ -417,6 +450,23 @@
     </div>
 </x-modal-detail>
 
+<x-modal-form
+    id="modalDeleteChild"
+    title="Hapus Approval Supplier"
+    action=""
+    submitText="Ya, Hapus"
+    method="POST"
+>
+    @csrf
+    @method('DELETE')
+
+    <p class="mb-0">
+        Apakah Anda yakin ingin menghapus approval supplier ini?
+    </p>
+</x-modal-form>
+
+
+
 @endsection
 
 @push('js')
@@ -461,6 +511,22 @@
                 // toastr.success('Data berhasil disimpan, modal dibuka kembali.');
             }
         @endif
+
+        $(document).on('click', '.btnDeleteChild', function () {
+
+        let id = $(this).data('id');
+
+        let modal = $('#modalDeleteChild');
+
+        modal.find('form').attr(
+            'action',
+            "{{ route('transaction.operational-approval.destroy-child', ':id') }}"
+                .replace(':id', id)
+        );
+
+        modal.modal('show');
+    });
+
         
         $(document).ready(function () {
 
@@ -608,40 +674,42 @@
          */
         $(document).on('click', '.btnApproval', function () {
 
-            let id     = $(this).data('id');
-            let status = $(this).data('status');
+        let id     = $(this).data('id');
+        let status = $(this).data('status');
 
-            let supplier  = $(this).data('supplier'); 
+        let approvalModal = $('#modalApprovalOperational');
 
-            // ==============================
-            // VALIDASI SUPPLIER SEBELUM SETUJUI
-            // ==============================
-            if (status === 'diterima' && (!supplier || supplier === '')) {
-                $('#modalSupplierRequired').modal('show');
-                return; 
-            }
-            
-            let modal = $('#modalApprovalOperational');
+        // cari modal detail terdekat (yang sedang terbuka)
+        let detailModal = $(this).closest('.modal');
 
-            // endpoint approval (nanti sesuaikan route)
-            modal.find('form').attr(
-                'action',
-                "{{ route('transaction.operational-approval.update-status', ':id') }}"
-                    .replace(':id', id)
-            );
+        // set action form
+        approvalModal.find('form').attr(
+            'action',
+            "{{ route('transaction.operational-approval.update-status', ':id') }}"
+                .replace(':id', id)
+        );
 
-            if (status === 'ditolak') {
-                $('#keterangan_wrapper').removeClass('d-none');
-            } else {
-                $('#keterangan_wrapper').addClass('d-none');
-                $('textarea[name="keterangan"]').val('');
-            }
+        if (status === 'ditolak') {
+            $('#keterangan_wrapper').removeClass('d-none');
+        } else {
+            $('#keterangan_wrapper').addClass('d-none');
+            $('textarea[name="keterangan"]').val('');
+        }
 
-            $('#approval_status').val(status);
-            $('#approval_status_text').text(status.toUpperCase());
+        $('#approval_status').val(status);
+        $('#approval_status_text').text(status.toUpperCase());
 
-            modal.modal('show');
+        // ============================
+        // TUTUP MODAL DETAIL DULU
+        // ============================
+        detailModal.modal('hide');
+
+        // setelah modal detail tertutup → buka approval
+        detailModal.one('hidden.bs.modal', function () {
+            approvalModal.modal('show');
         });
+    });
+
 
 
     </script>

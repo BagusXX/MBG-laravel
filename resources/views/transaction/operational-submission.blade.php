@@ -100,7 +100,10 @@
                         </button>
 
                         {{-- Tombol Hapus (Hanya jika belum diterima) --}}
-                        @if($item->status !== 'diproses' && $item->status !== 'diterima')
+                        @if(
+                        $item->status !== 'diproses' &&
+                        $item->status !== 'diterima' &&
+                        $item->children->count() === 0)
                         <x-button-delete
                             idTarget="#modalDeleteOperational"
                             formId="formDeleteOperational"

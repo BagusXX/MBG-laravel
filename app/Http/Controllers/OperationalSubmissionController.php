@@ -29,7 +29,7 @@ class OperationalSubmissionController extends Controller
         $masterBarang = operationals::select('id', 'nama', 'kitchen_kode', 'harga_default')->get();
 
         // 3. Ambil Data Submission
-        $submissions = submissionOperational::parent()
+        $submissions = submissionOperational::onlyParent()
             ->pengajuan()
             ->with([
                 'kitchen',
@@ -179,8 +179,8 @@ class OperationalSubmissionController extends Controller
         //
         $submission = submissionOperational::findOrFail($id);
 
-        // ❌ Parent tidak boleh dihapus
-        if ($submission->isParent()) {
+        // ❌ Parent tidak boleh dihapus + sudah punya child
+        if ($submission->isParent() && $submission->children_count > 0) {
             return back()->with(
                 'error',
                 'Pengajuan utama tidak boleh dihapus'
@@ -188,7 +188,7 @@ class OperationalSubmissionController extends Controller
         }
 
         // ❌ Approval yang sudah approved tidak boleh dihapus
-        if ($submission->status === 'disetujui') {
+        if ($submission->isChild() && $submission->status === 'disetujui') {
             return back()->with(
                 'error',
                 'Data yang sudah disetujui tidak bisa dihapus'
