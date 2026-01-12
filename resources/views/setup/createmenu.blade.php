@@ -556,7 +556,7 @@
                             const html = `
                                         <div class="row mb-3 text-left">
                                             <div class="col-md-6"><strong>Dapur:</strong> ${kitchenName}</div>
-                                            <div class="col-md-6"><strong>Menu ID:</strong> ${menuName}</div>
+                                            <div class="col-md-6"><strong>Menu:</strong> ${menuName}</div>
                                         </div>
                                         <table class="table table-sm table-bordered">
                                             <thead class="thead-light">
