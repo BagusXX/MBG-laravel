@@ -170,29 +170,53 @@ class OperationalApprovalController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
-        $request->validate([
-            'keterangan' => 'required|string'
-        ]);
-
         $submission = submissionOperational::onlyParent()->findOrFail($id);
+        $status = $request->status; // <-- INI PENTING
 
-        // ❌ Tidak boleh ditolak jika sudah punya child
-        if ($submission->children()->exists()) {
-            return back()->with('error', 'Pengajuan tidak bisa ditolak karena sudah diproses');
+        // =====================
+        // STATUS: DITOLAK
+        // =====================
+        if ($status === 'ditolak') {
+
+            $request->validate([
+                'keterangan' => 'required|string'
+            ]);
+
+            // ❌ Tidak boleh ditolak jika sudah punya child
+            if ($submission->children()->exists()) {
+                return back()->with('error', 'Pengajuan tidak bisa ditolak karena sudah diproses');
+            }
+
+            // ❌ Status harus masih diajukan
+            if ($submission->status !== 'diajukan') {
+                return back()->with('error', 'Status pengajuan tidak valid untuk ditolak');
+            }
+
+            $submission->update([
+                'status' => 'ditolak',
+                'keterangan' => $request->keterangan
+            ]);
         }
 
-        // ❌ Status harus masih diajukan
-        if ($submission->status !== 'diajukan') {
-            return back()->with('error', 'Status pengajuan tidak valid untuk ditolak');
+        // =====================
+        // STATUS: SELESAI
+        // =====================
+        elseif ($status === 'selesai') {
+
+            // ❌ Harus sudah diproses
+            if ($submission->status !== 'diproses') {
+                return back()->with('error', 'Pengajuan belum diproses');
+            }
+
+            $submission->update([
+                'status' => 'selesai',
+                'tanggal_selesai' => now()
+            ]);
         }
 
-        $submission->update([
-            'status' => 'ditolak',
-            'keterangan' => $request->keterangan
-        ]);
-
-        return back()->with('success', 'Pengajuan operasional berhasil ditolak');
+        return back()->with('success', 'Status pengajuan berhasil diperbarui');
     }
+
 
     public function destroyChild($id)
     {
@@ -230,5 +254,41 @@ class OperationalApprovalController extends Controller
         return back()
             ->with('success', 'Approval supplier berhasil dihapus')
             ->with('reopen_modal', $parent->id);
+    }
+    public function selesai($id)
+    {
+        $submission = submissionOperational::findOrFail($id);
+
+        // Validasi status
+        if ($submission->status !== 'Diproses') {
+            return back()->with('error', 'Pengajuan belum diproses');
+        }
+
+        $submission->status = 'Selesai';
+        $submission->tanggal_selesai = now(); // jika ada kolom
+        $submission->save();
+
+        return back()->with('success', 'Pengajuan berhasil diselesaikan');
+    }
+
+    public function invoiceParent($id)
+    {
+        $parent = submissionOperational::with([
+            'kitchen',
+            'children.details.operational',
+            'children.supplier'
+        ])
+            ->onlyParent()
+            ->findOrFail($id);
+
+        // ❌ hanya boleh jika selesai
+        if ($parent->status !== 'selesai') {
+            abort(403, 'Invoice hanya tersedia untuk pengajuan selesai');
+        }
+
+        return view(
+            'transaction.invoiceOperational-parent',
+            compact('parent')
+        );
     }
 }

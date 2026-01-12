@@ -85,8 +85,9 @@
                     <td>
                         <span class="badge badge-{{
                             $item->status === 'diterima' ? 'success' :
+                            ($item->status === 'selesai' ? 'success' :
                             ($item->status === 'diproses' ? 'info' :
-                            ($item->status === 'ditolak' ? 'danger' : 'warning'))
+                            ($item->status === 'ditolak' ? 'danger' : 'warning')))
                         }}">
                             {{ strtoupper($item->status) }}
                         </span>
@@ -111,10 +112,12 @@
                             text="Hapus"
                         />
                         @endif
-                        @if($item->status === 'diterima')
-                            <a href="{{ route('transaction.operational-submission.invoice', $item->id) }}"
-                            class="btn btn-warning btn-sm">
-                                <i class="fas fa-print mr-1"></i>Invoice
+                        @if($item->status === 'selesai')
+                            <a href="{{ route('transaction.operational-submission.invoice-parent', $item->id) }}"
+                            target="_blank"
+                            class="btn btn-warning btn-sm"
+                            title="Cetak Invoice Rekapitulasi">
+                                <i class="fas fa-print"></i>
                             </a>
                         @endif
                     </td>
@@ -144,6 +147,8 @@
     action="{{ route('transaction.operational-submission.store') }}"
     submitText="Simpan Pengajuan"
 >
+    @csrf
+
     <div class="form-group">
         <label>Kode</label>
         <input 
@@ -189,7 +194,7 @@
             <div id="operasional-wrapper">
                 <div class="form-row mb-3 operasional-group">
                     <div class="col-md-3">
-                        <select name="items[0][barang_id]" class="form-control" required>
+                        <select name="items[0][barang_id]" class="form-control"required>
                             <option value="" disabled selected>Pilih Barang</option>
                             @foreach ($masterBarang as $barang)
                                 <option 
@@ -204,7 +209,7 @@
                     </div>
 
                     <div class="col-md-1">
-                        <input type="number" name="items[0][qty]" class="form-control" min="1" required />
+                        <input type="number" name="items[0][qty]" class="form-control qty-input" min="1" required />
                     </div>
 
                     <div class="col-md-2">
@@ -265,8 +270,9 @@
             <td class="py-1">
                 <span class="badge badge-{{
                     $item->status === 'diterima' ? 'success' :
+                    ($item->status === 'selesai' ? 'success' :
                     ($item->status === 'diproses' ? 'info' :
-                    ($item->status === 'ditolak' ? 'danger' : 'warning'))
+                    ($item->status === 'ditolak' ? 'danger' : 'warning')))
                 }}">
                     {{ strtoupper($item->status) }}
                 </span>
@@ -322,6 +328,53 @@
             @endforeach
         </tbody>
     </table>
+    {{-- TAMBAHKAN BAGIAN INI: RIWAYAT APPROVAL / SUPPLIER --}}
+    @if($item->children->count() > 0)
+        <div class="mt-4">
+            <h6 class="font-weight-bold text-secondary border-bottom pb-2">Rincian per Supplier (Split Order)</h6>
+            
+            @foreach($item->children as $child)
+            <div class="card card-body bg-light p-3 mb-2 border">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <strong>{{ $child->kode }}</strong> 
+                        <span class="text-muted mx-2">|</span> 
+                        <i class="fas fa-truck"></i> {{ $child->supplier->nama ?? 'Tanpa Supplier' }}
+                    </div>
+                    <div>
+                        <span class="badge badge-{{ $child->status == 'disetujui' ? 'success' : 'secondary' }}">
+                            {{ strtoupper($child->status) }}
+                        </span>
+                        <span class="ml-2 font-weight-bold">
+                            Rp {{ number_format($child->total_harga, 0, ',', '.') }}
+                        </span>
+                    </div>
+                </div>
+
+                {{-- List Barang Child --}}
+                <ul class="mb-0 pl-3" style="font-size: 0.9em;">
+                    @foreach($child->details as $cDetail)
+                        <li>
+                            {{ $cDetail->operational->nama ?? '-' }} 
+                            ({{ $cDetail->qty }} x {{ number_format($cDetail->harga_satuan) }})
+                        </li>
+                    @endforeach
+                </ul>
+
+                {{-- Tombol Invoice Satuan (Child) --}}
+                <div class="text-right mt-2">
+                    @if($child->status === 'disetujui')
+                        <a href="{{ route('transaction.operational-submission.invoice', $child->id) }}" 
+                           class="btn btn-xs btn-outline-secondary" 
+                           target="_blank">
+                            <i class="fas fa-print"></i> Cetak Invoice Supplier
+                        </a>
+                    @endif
+                </div>
+            </div>
+            @endforeach
+        </div>
+    @endif
 </x-modal-detail>
 
 @endforeach
@@ -358,21 +411,13 @@
 
     $(document).ready(function() {
 
-        let index = 1;
-
     // ADD BARANG
     $('#add-operasional').on('click', function () {
         let $wrapper = $('#operasional-wrapper');
         let $firstRow = $wrapper.find('.operasional-group:first');
         let $newRow = $firstRow.clone();
 
-        $newRow.find('select, input, textarea').each(function () {
-            let name = $(this).attr('name');
-            if (name) {
-                name = name.replace(/\[\d+\]/, '[' + index + ']');
-                $(this).attr('name', name).val('');
-            }
-        });
+        $newRow.find('select, input, textarea').val('');
 
         $newRow.find('.remove-operasional').removeClass('d-none');
 

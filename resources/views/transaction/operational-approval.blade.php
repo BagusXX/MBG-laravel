@@ -85,22 +85,37 @@
                     <td>
                         <span class="badge badge-{{
                            $item->status === 'diterima' ? 'success' :
+                           ($item->status === 'selesai' ? 'success' :
                             ($item->status === 'diproses' ? 'info' :
-                            ($item->status === 'ditolak' ? 'danger' : 'warning'))
+                            ($item->status === 'ditolak' ? 'danger' : 'warning')))
                         }}">
                             {{ strtoupper($item->status) }}
                         </span>
                     </td>
                     <td>
+                        <div class="btn-group-vertical btn-group-sm py-1">
                         {{-- DETAIL (TETAP ADA) --}}
                         <button class="btn btn-primary btn-sm"
                             data-toggle="modal"
                             data-target="#modalDetail{{ $item->id }}">
                             Detail
                         </button>
+                        </div>
 
+                        <div class="btn-group-vertical btn-group-sm">
+                        @if ($item->status === 'selesai')
+                            <div class="text-right mb-3">
+                                <a
+                                    href="{{ route('transaction.operational-approval.invoice-parent', $item->id) }}"
+                                    target="_blank"
+                                    class="btn btn-outline-secondary btn-sm"
+                                >
+                                    <i class="fas fa-print mr-1"></i> Cetak Invoice
+                                </a>
+                            </div>
+                        @endif
+                        </div>
                     </td>
-
                 </tr>
                 @endforeach
             </tbody>
@@ -203,8 +218,9 @@
             <td class="py-1">
                 : <span class="badge badge-{{
                     $item->status === 'diterima' ? 'success' :
+                    ($item->status === 'selesai' ? 'success' :
                     ($item->status === 'diproses' ? 'info' :
-                    ($item->status === 'ditolak' ? 'danger' : 'warning'))
+                    ($item->status === 'ditolak' ? 'danger' : 'warning')))
                 }}">{{ strtoupper($item->status) }}</span>
             </td>
         </tr>
@@ -231,6 +247,18 @@
                 data-status="ditolak"
             >
                 <i class="fas fa-times-circle mr-1"></i> Tolak Pengajuan
+            </button>
+        </div>
+    @endif
+
+    @if ($item->status === 'diproses')
+        <div class="text-right mb-3">
+            <button
+                class="btn btn-success btn-sm btnApproval"
+                data-id="{{ $item->id }}"
+                data-status="selesai"
+            >
+                <i class="fas fa-check-circle mr-1"></i> Selesaikan Pengajuan
             </button>
         </div>
     @endif

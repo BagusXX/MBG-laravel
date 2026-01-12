@@ -223,4 +223,24 @@ class OperationalSubmissionController extends Controller
             'Invoice-Operasional-' . $submission->kode . '.pdf'
         );
     }
+    // Tambahkan method ini di paling bawah class
+    public function invoiceParent($id)
+    {
+        $parent = submissionOperational::with([
+            'kitchen',
+            'children.details.operational',
+            'children.supplier'
+        ])
+            ->onlyParent()
+            ->findOrFail($id);
+
+        // Validasi: Hanya bisa cetak jika status 'selesai'
+        if ($parent->status !== 'selesai') {
+            abort(403, 'Invoice rekapitulasi hanya tersedia untuk pengajuan yang sudah selesai.');
+        }
+
+        // Kita gunakan view yang SAMA dengan yang dibuat untuk Approval
+        // agar desainnya konsisten 100%
+        return view('transaction.invoiceOperational-parent', compact('parent'));
+    }
 }
