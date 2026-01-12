@@ -10,27 +10,37 @@ class MenuSeeder extends Seeder
 {
     public function run(): void
     {
-        $data = [
-            ['kode' => 'MNDPR0100001', 'nama' => 'Nasi Goreng Spesial', 'kitchen_kode' => 'DPR11'],
-            ['kode' => 'MNDPR0100002', 'nama' => 'Mie Ayam Jamur', 'kitchen_kode' => 'DPR11'],
-            ['kode' => 'MNDPR0200001', 'nama' => 'Sate Ayam Madura', 'kitchen_kode' => 'DPR12'],
-            ['kode' => 'MNDPR0200002', 'nama' => 'Gado-Gado Surabaya', 'kitchen_kode' => 'DPR12'],
-            ['kode' => 'MNDPR0300001', 'nama' => 'Rendang Daging Sapi', 'kitchen_kode' => 'DPR13'],
-            ['kode' => 'MNDPR0300002', 'nama' => 'Ayam Bakar Taliwang', 'kitchen_kode' => 'DPR13'],
+        $daftarMenu = [
+            [ 'nama' => 'Nasi Goreng Spesial'],
+            [ 'nama' => 'Mie Ayam Jamur'],
+            [ 'nama' => 'Sate Ayam Madura'],
+            [ 'nama' => 'Gado-Gado Surabaya'],
+            [ 'nama' => 'Rendang Daging Sapi'],
+            [ 'nama' => 'Ayam Bakar Taliwang'],
         ];
 
-        foreach ($data as $item) {
-            $kitchen = Kitchen::where('kode', $item['kitchen_kode'])->first();
+        $semuaDapur = Kitchen::all();
 
-            if ($kitchen) {
+        foreach ($semuaDapur as $dapur) {
+            foreach ($daftarMenu as $index => $menu) {
+            
+                // 3. Generate Nomor Urut (5 digit: 00001, 00002, dst)
+                $nomorUrut = str_pad($index + 1, 5, '0', STR_PAD_LEFT);
+                
+                /** * 4. Generate Kode Menu
+                 * Format: MN + KODE_DAPUR + NOMOR_URUT
+                 * Hasil: MNDPR1100001
+                 */
+                $kodeMenu = 'MN' . $dapur->kode . $nomorUrut;
+
                 Menu::updateOrCreate(
-                    ['kode' => $item['kode']],
+                    ['kode' => $kodeMenu],
                     [
-                        'nama' => $item['nama'],
-                        'kitchen_id' => $kitchen->id,
+                        'nama' => $menu['nama'],
+                        'kitchen_id' => $dapur->id,
                     ]
                 );
             }
-        }
-    }
+        }   
+    }    
 }
