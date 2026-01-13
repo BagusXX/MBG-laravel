@@ -330,40 +330,6 @@
                     <td class="py-1" id="modal_detail_porsi">: -</td>
                 </tr>
             </table>
-            {{-- <input type="hidden" name="_mode" value="permintaan">
-
-            <div class="form-group">
-                <label>Kode</label>
-                <input type="text" id="edit_kode" class="form-control" readonly style="background:#e9ecef">
-            </div>
-
-            <div class="form-group">
-                <label>Tanggal</label>
-                <input type="date" id="edit_tanggal" name="tanggal" class="form-control" readonly style="background:#e9ecef">
-            </div>
-
-            <div class="form-group">
-                <label>Dapur</label>
-                <select id="edit_kitchen_id" class="form-control" disabled style="background:#e9ecef">
-                    <option disabled selected>Pilih Dapur</option>
-                    @foreach($kitchens as $kitchen)
-                        <option value="{{ $kitchen->id }}">{{ $kitchen->nama }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Menu</label>
-                <select id="edit_menu_id" class="form-control" disabled style="background:#e9ecef">
-                    <option disabled selected>Pilih dapur terlebih dahulu</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Porsi</label>
-                <input type="number" id="edit_porsi" min="1" class="form-control" readonly style="background:#e9ecef">
-            </div> --}}
-
             <hr>
             <h6 class="font-weight-bold mb-3">Detail Bahan Baku</h6>
             <div id="edit_bahan_baku_list" class="table-responsive mb-3">
