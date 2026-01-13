@@ -348,13 +348,11 @@
                     </thead>
                     <tbody id="edit_bahan_tbody">
                         <tr>
-                            <td colspan="8" class="text-center text-muted">Pilih menu untuk melihat detail bahan baku</td>
+                            {{-- <td colspan="8" class="text-center text-muted">Pilih menu untuk melihat detail bahan baku</td> --}}
                         </tr>
                     </tbody>
                 </table>
             </div>
-            
-
             <hr class="my-4">
             <h6 class="font-weight-bold mb-3">Tambah Bahan Baku Manual</h6>
             <div class="form-group">
@@ -502,10 +500,6 @@
                             <th>Bahan Baku</th>
                             <th>Qty Digunakan</th>
                             <th>Satuan</th>
-                            {{-- <th>Harga Dapur</th> --}}
-                            {{-- <th>Harga Mitra</th> --}}
-                            {{-- <th>Subtotal Dapur</th> --}}
-                            {{-- <th>Subtotal Mitra</th> --}}
                         </tr>
                     </thead>
                     <tbody>
@@ -520,10 +514,6 @@
                                 <td>{{ $detail->recipe?->bahan_baku?->nama ?? $detail->bahanBaku?->nama ?? '-' }}</td>
                                 <td>{{ number_format($detail->qty_digunakan, 2, ',', '.') }}</td>
                                 <td>{{ $detail->recipe?->bahan_baku?->unit?->satuan ?? $detail->bahanBaku?->unit?->satuan ?? '-' }}</td>
-                                {{-- <td>Rp {{ number_format($hargaDapur, 0, ',', '.') }}</td> --}}
-                                {{-- <td>Rp {{ number_format($hargaMitra, 0, ',', '.') }}</td> --}}
-                                {{-- <td>Rp {{ number_format($subtotalDapur, 0, ',', '.') }}</td> --}}
-                                {{-- <td>Rp {{ number_format($subtotalMitra, 0, ',', '.') }}</td> --}}
                             </tr>
                         @empty
                             <tr>
@@ -711,9 +701,9 @@
                     });
 
                     // Load detail bahan baku jika menu sudah dipilih
-                    if (selectedMenuId) {
-                        loadBahanBakuByMenu(selectedMenuId);
-                    }
+                    // if (selectedMenuId) {
+                    //     loadBahanBakuByMenu(selectedMenuId);
+                    // }
                 })
                 .fail(function () {
                     menuSelect.html('<option disabled selected>Gagal memuat menu</option>');
@@ -903,8 +893,15 @@
          * ======================================================
          */
         function loadBahanBakuByMenu(menuId, kitchenId, porsi = 1) {
+            console.log('LOAD DIPANGGIL', menuId, kitchenId, porsi);
+
+            if (!menuId || !kitchenId) {
+                console.warn('Menu atau Kitchen belum valid', menuId, kitchenId);
+                return;
+            }
+
             let tbody = $('#edit_bahan_tbody');
-            tbody.html('<tr><td colspan="8" class="text-center">Loading...</td></tr>');
+            // tbody.html('<tr><td colspan="8" class="text-center">Loading...</td></tr>');
 
             // Load dari recipe
             let url = "{{ route('recipe.detail', [':menu', ':kitchen']) }}";
@@ -914,7 +911,9 @@
                 .done(function (data) {
                     tbody.empty();
 
-                    if (data.length === 0) {
+                    if (!Array.isArray(data) || data.length === 0) {
+                        console.log(data);
+                        console.log(Array.isArray(data), data.length);
                         tbody.html('<tr><td colspan="8" class="text-center text-muted">Tidak ada bahan baku untuk menu ini</td></tr>');
                         return;
                     }
@@ -927,18 +926,18 @@
                         let subtotalDapur = hargaDapur * qty;
                         let subtotalMitra = hargaMitra * qty;
 
-                        tbody.append(`
-                            <tr>
-                                <td>${recipe.bahan_baku?.nama || '-'}</td>
-                                <td>${parseFloat(qty).toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                                <td>${recipe.bahan_baku?.unit?.satuan || '-'}</td>
-                                <td>${formatRupiah(hargaDapur)}</td>
-                                <td>${formatRupiah(hargaMitra)}</td>
-                                <td>${formatRupiah(subtotalDapur)}</td>
-                                <td>${formatRupiah(subtotalMitra)}</td>
-                                <td></td>
-                            </tr>
-                        `);
+                        // tbody.append(`
+                        //     <tr>
+                        //         <td>${recipe.bahan_baku?.nama || '-'}</td>
+                        //         <td>${parseFloat(qty).toLocaleString('id-ID', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                        //         <td>${recipe.bahan_baku?.unit?.satuan || '-'}</td>
+                        //         <td>${formatRupiah(hargaDapur)}</td>
+                        //         <td>${formatRupiah(hargaMitra)}</td>
+                        //         <td>${formatRupiah(subtotalDapur)}</td>
+                        //         <td>${formatRupiah(subtotalMitra)}</td>
+                        //         <td></td>
+                        //     </tr>
+                        // `);
                     });
                 })
                 .fail(function () {
@@ -957,6 +956,18 @@
          * ======================================================
          */
         $(document).on('click', '.btnEditDetail', function () {
+            const menuId = $(this).data('menu-id');
+            const kitchenId = $(this).data('kitchen-id');
+            const porsi = $(this).data('porsi') || 1;
+
+            console.log('DATA DARI BUTTON', {
+                menuId,
+                kitchenId,
+                porsi
+            });
+
+            loadBahanBakuByMenu(menuId, kitchenId, porsi);
+
             let submissionId = $(this).data('id');
             currentSubmissionId = submissionId; // Simpan untuk digunakan di fungsi lain
             
