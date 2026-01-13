@@ -25,12 +25,10 @@
                 <label>Dapur</label>
                 <select id="filterKitchen" class="form-control">
                     <option value="">Semua Dapur</option>
-                    @foreach ($submissions->pluck('kitchen')->unique('id') as $kitchen)
-                        @if($kitchen)
-                            <option value="{{ strtolower($kitchen->nama) }}">
-                                {{ $kitchen->nama }}
+                    @foreach ($kitchens as $k)
+                            <option value="{{ strtolower($k->nama) }}">
+                                {{ $k->nama }}
                             </option>
-                        @endif
                     @endforeach
                 </select>
             </div>
@@ -41,7 +39,7 @@
                     <option value="">Semua Status</option>
                     <option value="diajukan">Diajukan</option>
                     <option value="diproses">Diproses</option>
-                    <option value="diterima">Diterima</option>
+                    <option value="selesai">Selesai</option>
                     <option value="ditolak">Ditolak</option>
                 </select>
 
@@ -67,7 +65,7 @@
                     <th>Dapur</th>
                     <th>Total</th>
                     <th>Status</th>
-                    <th width="180">Aksi</th>
+                    <th width="230" class="text-center">Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -92,8 +90,8 @@
                             {{ strtoupper($item->status) }}
                         </span>
                     </td>
-                    <td>
-                        <div class="btn-group-vertical btn-group-sm py-1">
+                    <td class="text-center">
+                        <div class="btn-group-vertical btn-group-sm ">
                         {{-- DETAIL (TETAP ADA) --}}
                         <button class="btn btn-primary btn-sm"
                             data-toggle="modal"
@@ -104,11 +102,11 @@
 
                         <div class="btn-group-vertical btn-group-sm">
                         @if ($item->status === 'selesai')
-                            <div class="text-right mb-3">
+                            <div class="text-right">
                                 <a
                                     href="{{ route('transaction.operational-approval.invoice-parent', $item->id) }}"
                                     target="_blank"
-                                    class="btn btn-outline-secondary btn-sm"
+                                    class="btn btn-warning btn-sm"
                                 >
                                     <i class="fas fa-print mr-1"></i> Cetak Invoice
                                 </a>
@@ -278,9 +276,16 @@
                 <select name="supplier_id" class="form-control" required>
                     <option value="">- Pilih Supplier -</option>
                     @foreach($suppliers as $supplier)
-                        <option value="{{ $supplier->id }}">{{ $supplier->nama }}</option>
+                        @if($supplier->kitchens->contains('kode', $item->kitchen_kode))
+                            <option value="{{ $supplier->id }}">{{ $supplier->nama }}</option>
+                        @endif
                     @endforeach
                 </select>
+                @if($suppliers->where(fn($s)=>$s->kitchens->contains('kode', $item->kitchen_kode))->isEmpty())
+                    <small class="text-danger">
+                        Tidak ada Supplier yang terdaftar untuk dapur ini
+                    </small>
+                @endif
             </div>
             <div class="col-md-4 text-right">
                 {{-- Tombol Submit ada di sini agar sebaris dengan form --}}

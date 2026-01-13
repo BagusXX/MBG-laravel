@@ -1438,9 +1438,6 @@
                     $('.bahan-tambah-select').html('<option disabled selected>Gagal memuat bahan baku</option>');
                 });
         }
-
-        // Handler untuk tambah baris bahan baku dihapus - tidak diperlukan untuk mode permintaan
-
         // Handler untuk hapus baris bahan baku dihapus - tidak diperlukan untuk mode permintaan (hanya satu baris)
 
         /**

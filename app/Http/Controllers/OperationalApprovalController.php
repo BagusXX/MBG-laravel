@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\submissionOperational;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class OperationalApprovalController extends Controller
@@ -14,16 +15,27 @@ class OperationalApprovalController extends Controller
      */
     public function index()
     {
-        //
+        $user = Auth::user();
+
+        // ==================================================================
+        // 1. FILTER DAPUR BERDASARKAN ROLE (LOGIK SAMA DENGAN SUBMISSION)
+        // ==================================================================
+
+        // Cek permission/role untuk melihat semua dapur
+        // Sesuaikan 'Super Admin' dengan nama role di DB Anda
+        // Atau gunakan permission: if ($user->can('view_all_kitchens'))
+        $kitchens = $user->kitchens()->orderBy('nama')->get();
+        $kitchenCodes = $kitchens->pluck('kode'); // A
+
         $submissions = submissionOperational::onlyParent()
             ->pengajuan()
             ->with(['details.operational', 'kitchen', 'supplier'])
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $suppliers = Supplier::orderBy('nama')->get();
+        $suppliers = Supplier::with('kitchens')->orderBy('nama')->get();
 
-        return view('transaction.operational-approval', compact('submissions', 'suppliers'));
+        return view('transaction.operational-approval', compact('submissions', 'suppliers', 'kitchens'));
     }
 
     /**
