@@ -17,10 +17,11 @@ class Submission extends Model
         'tanggal',
         'kitchen_id',
         'menu_id',
-        'supplier_id',
-        'total_harga',
         'porsi',
-        'status'
+        'total_harga',
+        'status',
+        'parent_id',
+        'supplier_id'
     ];
 
     public function kitchen()
@@ -31,6 +32,16 @@ class Submission extends Model
     public function menu()
     {
         return $this->belongsTo(Menu::class);
+    }
+
+    public function parent()
+    {
+        return $this->belongsTo(self::class, 'parent_id');
+    }
+
+    public function children()
+    {
+        return $this->hasMany(self::class, 'parent_id');
     }
 
     public function details()

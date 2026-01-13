@@ -10,6 +10,14 @@ return new class extends Migration {
     {
         Schema::create('submissions', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('parent_id')
+                ->nullable()
+                ->constrained('submissions')
+                ->nullOnDelete();
+             $table->foreignId('supplier_id')
+                ->nullable()
+                ->constrained('suppliers')
+                ->nullOnDelete();
             $table->string('kode')->unique();
             $table->date('tanggal');
             $table->foreignId('kitchen_id')->constrained('kitchens')->onDelete('cascade');
@@ -21,6 +29,7 @@ return new class extends Migration {
                 'diproses',
                 'diterima',
                 'ditolak',
+                'selesai',
             ])->default('diajukan');
             $table->timestamps();
             $table->softDeletes();
