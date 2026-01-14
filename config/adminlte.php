@@ -507,7 +507,7 @@ return [
                 ],
 
                 [
-                    'text' => 'Pemmbelian Operasional',
+                    'text' => 'Pembelian Operasional',
                     'icon' => 'fas fa-file-signature',
                     'route' => 'report.purchase-operational',
                     'can'   => 'report.purchase-operational.view',

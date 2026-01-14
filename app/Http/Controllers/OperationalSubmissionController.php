@@ -22,14 +22,14 @@ class OperationalSubmissionController extends Controller
 
         // 1. Ambil List Kitchen User (Untuk Dropdown & Query)
         // Pastikan relasi di model User bernama 'kitchens'
-        $kitchens = $user->kitchens;
+        $kitchens = $user->kitchens()->orderBy('nama')->get();
         $kitchenCodes = $kitchens->pluck('kode'); // Asumsi 'kode' adalah PK/FK
 
         // 2. Ambil Master Barang (Untuk Dropdown Barang)
         $masterBarang = operationals::select('id', 'nama', 'kitchen_kode', 'harga_default')->get();
 
         // 3. Ambil Data Submission
-        $submissions = submissionOperational::parent()
+        $submissions = submissionOperational::onlyParent()
             ->pengajuan()
             ->with([
                 'kitchen',
@@ -77,12 +77,26 @@ class OperationalSubmissionController extends Controller
 
             // Menggunakan lockForUpdate untuk mencegah duplicate nomor urut di traffic tinggi
             $lastSubmission = SubmissionOperational::where('kode', 'like', $prefix . '%')
-                ->orderBy('id', 'desc')
+                ->orderBy('kode', 'desc')
                 ->lockForUpdate()
                 ->first();
 
-            $nextNumber = $lastSubmission ? ((int) substr($lastSubmission->kode, 4)) + 1 : 1;
-            $newKode = $prefix . sprintf("%04d", $nextNumber);
+            if ($lastSubmission) {
+                // Ambil 4 digit terakhir
+                $lastNumber = (int) substr($lastSubmission->kode, 4);
+                $nextNumber = $lastNumber + 1;
+            } else {
+                $nextNumber = 1;
+            }
+
+            // Loop untuk memastikan kode benar-benar belum ada (Double check)
+            do {
+                $newKode = $prefix . sprintf("%04d", $nextNumber);
+                $exists = SubmissionOperational::where('kode', $newKode)->exists();
+                if ($exists) {
+                    $nextNumber++;
+                }
+            } while ($exists);
 
             $submission = SubmissionOperational::create([
                 'kode' => $newKode,
@@ -179,8 +193,8 @@ class OperationalSubmissionController extends Controller
         //
         $submission = submissionOperational::findOrFail($id);
 
-        // ❌ Parent tidak boleh dihapus
-        if ($submission->isParent()) {
+        // ❌ Parent tidak boleh dihapus + sudah punya child
+        if ($submission->isParent() && $submission->children_count > 0) {
             return back()->with(
                 'error',
                 'Pengajuan utama tidak boleh dihapus'
@@ -188,7 +202,7 @@ class OperationalSubmissionController extends Controller
         }
 
         // ❌ Approval yang sudah approved tidak boleh dihapus
-        if ($submission->status === 'disetujui') {
+        if ($submission->isChild() && $submission->status === 'disetujui') {
             return back()->with(
                 'error',
                 'Data yang sudah disetujui tidak bisa dihapus'
@@ -222,5 +236,25 @@ class OperationalSubmissionController extends Controller
         return $pdf->download(
             'Invoice-Operasional-' . $submission->kode . '.pdf'
         );
+    }
+    // Tambahkan method ini di paling bawah class
+    public function invoiceParent($id)
+    {
+        $parent = submissionOperational::with([
+            'kitchen',
+            'children.details.operational',
+            'children.supplier'
+        ])
+            ->onlyParent()
+            ->findOrFail($id);
+
+        // Validasi: Hanya bisa cetak jika status 'selesai'
+        if ($parent->status !== 'selesai') {
+            abort(403, 'Invoice rekapitulasi hanya tersedia untuk pengajuan yang sudah selesai.');
+        }
+
+        // Kita gunakan view yang SAMA dengan yang dibuat untuk Approval
+        // agar desainnya konsisten 100%
+        return view('transaction.invoiceOperational-parent', compact('parent'));
     }
 }

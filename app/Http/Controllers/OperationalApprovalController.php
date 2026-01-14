@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\submissionOperational;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class OperationalApprovalController extends Controller
@@ -14,16 +15,27 @@ class OperationalApprovalController extends Controller
      */
     public function index()
     {
-        //
-        $submissions = submissionOperational::parent()
+        $user = Auth::user();
+
+        // ==================================================================
+        // 1. FILTER DAPUR BERDASARKAN ROLE (LOGIK SAMA DENGAN SUBMISSION)
+        // ==================================================================
+
+        // Cek permission/role untuk melihat semua dapur
+        // Sesuaikan 'Super Admin' dengan nama role di DB Anda
+        // Atau gunakan permission: if ($user->can('view_all_kitchens'))
+        $kitchens = $user->kitchens()->orderBy('nama')->get();
+        $kitchenCodes = $kitchens->pluck('kode'); // A
+
+        $submissions = submissionOperational::onlyParent()
             ->pengajuan()
             ->with(['details.operational', 'kitchen', 'supplier'])
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $suppliers = Supplier::orderBy('nama')->get();
+        $suppliers = Supplier::with('kitchens')->orderBy('nama')->get();
 
-        return view('transaction.operational-approval', compact('submissions', 'suppliers'));
+        return view('transaction.operational-approval', compact('submissions', 'suppliers', 'kitchens'));
     }
 
     /**
@@ -47,7 +59,7 @@ class OperationalApprovalController extends Controller
             'items.*' => 'exists:submission_operational_details,id',
         ]);
 
-        $parent = submissionOperational::parent()->findOrFail($request->parent_id);
+        $parent = submissionOperational::onlyParent()->findOrFail($request->parent_id);
 
         DB::transaction(function () use ($parent, $request) {
             // hitung child ke-n
@@ -170,18 +182,125 @@ class OperationalApprovalController extends Controller
 
     public function updateStatus(Request $request, $id)
     {
-        $request->validate([
-            'status' => 'required|in:disetujui,ditolak',
-            'keterangan' => 'required_if:status,ditolak'
-        ]);
+        $submission = submissionOperational::onlyParent()->findOrFail($id);
+        $status = $request->status; // <-- INI PENTING
 
-        $submission = SubmissionOperational::child()->findOrFail($id);
+        // =====================
+        // STATUS: DITOLAK
+        // =====================
+        if ($status === 'ditolak') {
 
-        $submission->update([
-            'status' => $request->status,
-            'keterangan' => $request->keterangan
-        ]);
+            $request->validate([
+                'keterangan' => 'required|string'
+            ]);
+
+            // ❌ Tidak boleh ditolak jika sudah punya child
+            if ($submission->children()->exists()) {
+                return back()->with('error', 'Pengajuan tidak bisa ditolak karena sudah diproses');
+            }
+
+            // ❌ Status harus masih diajukan
+            if ($submission->status !== 'diajukan') {
+                return back()->with('error', 'Status pengajuan tidak valid untuk ditolak');
+            }
+
+            $submission->update([
+                'status' => 'ditolak',
+                'keterangan' => $request->keterangan
+            ]);
+        }
+
+        // =====================
+        // STATUS: SELESAI
+        // =====================
+        elseif ($status === 'selesai') {
+
+            // ❌ Harus sudah diproses
+            if ($submission->status !== 'diproses') {
+                return back()->with('error', 'Pengajuan belum diproses');
+            }
+
+            $submission->update([
+                'status' => 'selesai',
+                'tanggal_selesai' => now()
+            ]);
+        }
 
         return back()->with('success', 'Status pengajuan berhasil diperbarui');
+    }
+
+
+    public function destroyChild($id)
+    {
+        $child = submissionOperational::with('parentSubmission')->findOrFail($id);
+        $parent = $child->parentSubmission;
+
+
+        // ❌ Pastikan ini child
+        if (! $child->isChild()) {
+            return back()->with('error', 'Data tidak valid');
+        }
+
+        // ❌ Parent harus diproses
+        if ($parent->status !== 'diproses') {
+            return back()->with(
+                'error',
+                'Approval tidak bisa dihapus karena status pengajuan sudah berubah'
+            );
+        }
+
+        // ❌ Child harus disetujui
+        if ($child->status !== 'disetujui') {
+            return back()->with(
+                'error',
+                'Hanya approval yang disetujui yang dapat dihapus'
+            );
+        }
+
+        $child->delete();
+
+        if (! $parent->children()->exists()) {
+            $parent->update(['status' => 'diajukan']);
+        }
+
+        return back()
+            ->with('success', 'Approval supplier berhasil dihapus')
+            ->with('reopen_modal', $parent->id);
+    }
+    public function selesai($id)
+    {
+        $submission = submissionOperational::findOrFail($id);
+
+        // Validasi status
+        if ($submission->status !== 'Diproses') {
+            return back()->with('error', 'Pengajuan belum diproses');
+        }
+
+        $submission->status = 'Selesai';
+        $submission->tanggal_selesai = now(); // jika ada kolom
+        $submission->save();
+
+        return back()->with('success', 'Pengajuan berhasil diselesaikan');
+    }
+
+    public function invoiceParent($id)
+    {
+        $parent = submissionOperational::with([
+            'kitchen',
+            'children.details.operational',
+            'children.supplier'
+        ])
+            ->onlyParent()
+            ->findOrFail($id);
+
+        // ❌ hanya boleh jika selesai
+        if ($parent->status !== 'selesai') {
+            abort(403, 'Invoice hanya tersedia untuk pengajuan selesai');
+        }
+
+        return view(
+            'transaction.invoiceOperational-parent',
+            compact('parent')
+        );
     }
 }

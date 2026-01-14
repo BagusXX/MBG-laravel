@@ -82,6 +82,7 @@ class PermissionSeeder extends Seeder
             'transaction.operational-submission.show',
             'transaction.operational-submission.update',
             'transaction.operational-submission.invoice',
+            'transaction.operational-submission.invoice-parent',
 
             'transaction.operational-approval.view',
             'transaction.operational-approval.store',
@@ -90,6 +91,7 @@ class PermissionSeeder extends Seeder
             'transaction.operational-approval.show',
             'transaction.operational-approval.update-status',
             'transaction.operational-approval.invoice',
+            'transaction.operational-approval.invoice-parent',
 
             'transaction.request-materials.view',
             'transaction.sale-kitchen.view',

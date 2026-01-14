@@ -42,7 +42,8 @@
                 <select id="filterStatus" class="form-control">
                     <option value="">Semua Status</option>
                     <option value="diajukan">Diajukan</option>
-                    <option value="diterima">Diterima</option>
+                    <option value="diproses">Diproses</option>
+                    <option value="selesai">Selesai</option>
                     <option value="ditolak">Ditolak</option>
                 </select>
             </div>
@@ -85,8 +86,9 @@
                     <td>
                         <span class="badge badge-{{
                             $item->status === 'diterima' ? 'success' :
+                            ($item->status === 'selesai' ? 'success' :
                             ($item->status === 'diproses' ? 'info' :
-                            ($item->status === 'ditolak' ? 'danger' : 'warning'))
+                            ($item->status === 'ditolak' ? 'danger' : 'warning')))
                         }}">
                             {{ strtoupper($item->status) }}
                         </span>
@@ -100,7 +102,10 @@
                         </button>
 
                         {{-- Tombol Hapus (Hanya jika belum diterima) --}}
-                        @if($item->status !== 'diproses' && $item->status !== 'diterima')
+                        @if(
+                        $item->status !== 'diproses' &&
+                        $item->status !== 'diterima' &&
+                        $item->children->count() === 0)
                         <x-button-delete
                             idTarget="#modalDeleteOperational"
                             formId="formDeleteOperational"
@@ -108,10 +113,12 @@
                             text="Hapus"
                         />
                         @endif
-                        @if($item->status === 'diterima')
-                            <a href="{{ route('transaction.operational-submission.invoice', $item->id) }}"
-                            class="btn btn-warning btn-sm">
-                                <i class="fas fa-print mr-1"></i>Invoice
+                        @if($item->status === 'selesai')
+                            <a href="{{ route('transaction.operational-submission.invoice-parent', $item->id) }}"
+                            target="_blank"
+                            class="btn btn-warning btn-sm"
+                            title="Cetak Invoice Rekapitulasi">
+                                <i class="fas fa-print"></i> Cetak Invoice
                             </a>
                         @endif
                     </td>
@@ -141,6 +148,8 @@
     action="{{ route('transaction.operational-submission.store') }}"
     submitText="Simpan Pengajuan"
 >
+    @csrf
+
     <div class="form-group">
         <label>Kode</label>
         <input 
@@ -186,7 +195,7 @@
             <div id="operasional-wrapper">
                 <div class="form-row mb-3 operasional-group">
                     <div class="col-md-3">
-                        <select name="items[0][barang_id]" class="form-control" required>
+                        <select name="items[0][barang_id]" class="form-control"required>
                             <option value="" disabled selected>Pilih Barang</option>
                             @foreach ($masterBarang as $barang)
                                 <option 
@@ -201,7 +210,7 @@
                     </div>
 
                     <div class="col-md-1">
-                        <input type="number" name="items[0][qty]" class="form-control" min="1" required />
+                        <input type="number" name="items[0][qty]" class="form-control qty-input" min="1" required />
                     </div>
 
                     <div class="col-md-2">
@@ -212,8 +221,7 @@
                         <textarea name="items[0][keterangan]"
                             class="form-control"
                             rows="1"
-                            placeholder="Contoh: untuk gas dapur / perbaikan alat">
-                        </textarea>
+                            placeholder="Contoh: untuk gas dapur / perbaikan alat"></textarea>
                     </div>
 
                     <div class="col-md-1">
@@ -262,8 +270,9 @@
             <td class="py-1">
                 <span class="badge badge-{{
                     $item->status === 'diterima' ? 'success' :
+                    ($item->status === 'selesai' ? 'success' :
                     ($item->status === 'diproses' ? 'info' :
-                    ($item->status === 'ditolak' ? 'danger' : 'warning'))
+                    ($item->status === 'ditolak' ? 'danger' : 'warning')))
                 }}">
                     {{ strtoupper($item->status) }}
                 </span>
@@ -319,6 +328,53 @@
             @endforeach
         </tbody>
     </table>
+    {{-- TAMBAHKAN BAGIAN INI: RIWAYAT APPROVAL / SUPPLIER --}}
+    @if($item->children->count() > 0)
+        <div class="mt-4">
+            <h6 class="font-weight-bold text-secondary border-bottom pb-2">Rincian per Supplier (Split Order)</h6>
+            
+            @foreach($item->children as $child)
+            <div class="card card-body bg-light p-3 mb-2 border">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <strong>{{ $child->kode }}</strong> 
+                        <span class="text-muted mx-2">|</span> 
+                        <i class="fas fa-truck"></i> {{ $child->supplier->nama ?? 'Tanpa Supplier' }}
+                    </div>
+                    <div>
+                        <span class="badge badge-{{ $child->status == 'disetujui' ? 'success' : 'secondary' }}">
+                            {{ strtoupper($child->status) }}
+                        </span>
+                        <span class="ml-2 font-weight-bold">
+                            Rp {{ number_format($child->total_harga, 0, ',', '.') }}
+                        </span>
+                    </div>
+                </div>
+
+                {{-- List Barang Child --}}
+                <ul class="mb-0 pl-3" style="font-size: 0.9em;">
+                    @foreach($child->details as $cDetail)
+                        <li>
+                            {{ $cDetail->operational->nama ?? '-' }} 
+                            ({{ $cDetail->qty }} x {{ number_format($cDetail->harga_satuan) }})
+                        </li>
+                    @endforeach
+                </ul>
+
+                {{-- Tombol Invoice Satuan (Child) --}}
+                <div class="text-right mt-2">
+                    @if($child->status === 'disetujui')
+                        <a href="{{ route('transaction.operational-submission.invoice', $child->id) }}" 
+                           class="btn btn-xs btn-outline-secondary" 
+                           target="_blank">
+                            <i class="fas fa-print"></i> Cetak Invoice Supplier
+                        </a>
+                    @endif
+                </div>
+            </div>
+            @endforeach
+        </div>
+    @endif
 </x-modal-detail>
 
 @endforeach
@@ -354,121 +410,121 @@
 }
 
     $(document).ready(function() {
+    
+    // Hitung jumlah baris yang ada saat ini untuk menentukan index selanjutnya
+    // Kita mulai dari 1 karena index 0 sudah ada di HTML (form bawaan)
+    let itemIndex = 1;
 
-        let index = 1;
-
-    // ADD BARANG
+    // --- LOGIC TAMBAH BARANG ---
     $('#add-operasional').on('click', function () {
         let $wrapper = $('#operasional-wrapper');
         let $firstRow = $wrapper.find('.operasional-group:first');
+        
+        // 1. Clone baris pertama
         let $newRow = $firstRow.clone();
 
-        $newRow.find('select, input, textarea').each(function () {
-            let name = $(this).attr('name');
-            if (name) {
-                name = name.replace(/\[\d+\]/, '[' + index + ']');
-                $(this).attr('name', name).val('');
+        // 2. Reset nilai input di baris baru agar kosong
+        $newRow.find('select, input, textarea').val('');
+        
+        // 3. Tampilkan tombol hapus (karena di baris pertama tombol ini hidden)
+        $newRow.find('.remove-operasional').removeClass('d-none');
+
+        // ============================================================
+        // BAGIAN PENTING: UPDATE ATRIBUT NAME
+        // Mengubah items[0][...] menjadi items[1][...], items[2][...], dst
+        // ============================================================
+        $newRow.find('select, input, textarea').each(function() {
+            let oldName = $(this).attr('name'); 
+            if (oldName) {
+                // Regex ini mencari angka di dalam kurung siku [0] dan menggantinya dengan index baru
+                let newName = oldName.replace(/\[\d+\]/, '[' + itemIndex + ']');
+                $(this).attr('name', newName);
             }
         });
 
-        $newRow.find('.remove-operasional').removeClass('d-none');
-
+        // 4. Masukkan baris baru ke tampilan
         $wrapper.append($newRow);
 
+        // 5. Jalankan filter dapur untuk baris baru (agar pilihan barang sesuai dapur)
         let kitchenKode = $('#selectKitchen').val();
         if (kitchenKode) {
-            filterBarangByKitchen(kitchenKode, false);
+            // Terapkan filter hanya pada baris baru ini
+            let newSelect = $newRow.find('select[name*="[barang_id]"]');
+            filterSingleSelect(newSelect, kitchenKode);
         }
 
-        index++;
+        // 6. Naikkan counter index untuk baris berikutnya
+        itemIndex++;
     });
 
 
-        // REMOVE BARANG
-        $(document).on('click', '.remove-operasional', function () {
-            $(this).closest('.operasional-group').remove();
+    // --- LOGIC HAPUS BARANG ---
+    $(document).on('click', '.remove-operasional', function () {
+        $(this).closest('.operasional-group').remove();
+    });
+
+
+    // --- LOGIC FILTER DAPUR (HELPER) ---
+    // Fungsi ini memfilter satu dropdown spesifik
+    function filterSingleSelect($selectElement, kitchenKode) {
+        $selectElement.find('option').each(function () {
+            let optKitchen = $(this).data('kitchen');
+            // Tampilkan jika tidak ada data-kitchen (option default) atau cocok
+            if (!optKitchen || optKitchen == kitchenKode) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
         });
+    }
 
-        /**
-         * ---------------------------------------
-         * 1. FILTER LOGIC
-         * ---------------------------------------
-         */
-        function applyFilter() {
-            let kitchen = $('#filterKitchen').val().toLowerCase();
-            let status = $('#filterStatus').val().toLowerCase();
-            let date = $('#filterDate').val();
-
-            $('#tableSubmission tbody tr').each(function () {
-                let rowKitchen = $(this).data('kitchen').toLowerCase();
-                let rowStatus = $(this).data('status').toLowerCase();
-                let rowDate = $(this).data('date');
-
-                let show = true;
-                if (kitchen && rowKitchen !== kitchen) show = false;
-                if (status && rowStatus !== status) show = false;
-                if (date && rowDate !== date) show = false;
-
-                $(this).toggle(show);
-            });
-        }
-
-        $('#filterKitchen, #filterStatus, #filterDate').on('change', applyFilter);
-
-        /**
-         * ---------------------------------------
-         * 2. DYNAMIC FORM (TAMBAH BARANG)
-         * ---------------------------------------
-         */
-        let rowIdx = 1;
-
-        // Fungsi Hapus Baris
-        $(document).on('click', '.remove-row', function() {
-            $(this).closest('tr').remove();
-            calculateGrandTotal();
+    // Fungsi untuk memfilter SEMUA dropdown (dipakai saat ganti dapur utama)
+    function filterAllBarangByKitchen(kitchenKode) {
+        $('#operasional-wrapper select[name*="[barang_id]"]').each(function () {
+            filterSingleSelect($(this), kitchenKode);
+            $(this).val(''); // Reset pilihan saat ganti dapur
         });
+    }
 
+    // Event saat Dapur dipilih (Header Form)
+    $('#selectKitchen').on('change', function () {
+        let kitchenKode = $(this).val();
+        filterAllBarangByKitchen(kitchenKode);
+    });
 
-        $(document).on('change', 'select[name*="[barang_id]"]', function () {
-            let harga = $(this).find(':selected').data('harga') || 0;
-            let row = $(this).closest('.operasional-group');
+    // Event saat Barang dipilih (Auto isi Harga)
+    $(document).on('change', 'select[name*="[barang_id]"]', function () {
+        let harga = $(this).find(':selected').data('harga') || 0;
+        let row = $(this).closest('.operasional-group');
+        row.find('.harga-input').val(harga);
+    });
 
-            row.find('.harga-input').val(harga);
+    // Reset Form saat modal ditutup
+    $('#modalAddOperational').on('hidden.bs.modal', function () {
+        $(this).find('form')[0].reset();
+        // Hapus baris tambahan, sisakan baris pertama saja
+        $('#operasional-wrapper .operasional-group:not(:first)').remove();
+        itemIndex = 1; // Reset index kembali ke 1
+    });
+
+    // Helper Filter Tampilan Tabel Utama (Search)
+    $('#filterKitchen, #filterStatus, #filterDate').on('change', function() {
+        let kitchen = $('#filterKitchen').val()?.toLowerCase() || '';
+        let status = $('#filterStatus').val()?.toLowerCase() || '';
+        let date = $('#filterDate').val();
+
+        $('#tableSubmission tbody tr').each(function () {
+            let rKitchen = $(this).data('kitchen')?.toLowerCase() || '';
+            let rStatus = $(this).data('status')?.toLowerCase() || '';
+            let rDate = $(this).data('date') || '';
+            
+            let show = true;
+            if (kitchen && rKitchen !== kitchen) show = false;
+            if (status && rStatus !== status) show = false;
+            if (date && rDate !== date) show = false;
+            $(this).toggle(show);
         });
-
-        function filterBarangByKitchen(kitchenKode) {
-            $('#operasional-wrapper select[name*="[barang_id]"]').each(function () {
-                let select = $(this);
-
-                select.find('option').each(function () {
-                    let optKitchen = $(this).data('kitchen');
-
-                    // option default
-                    if (!optKitchen) {
-                        $(this).show();
-                        return;
-                    }
-
-                    if (optKitchen === kitchenKode) {
-                        $(this).show();
-                    } else {
-                        $(this).hide();
-                    }
-                });
-
-                // reset pilihan barang
-               if (reset) {
-                    select.val('');
-                }
-            });
-        }
-
-
-        // Event saat dapur dipilih
-        $('#selectKitchen').on('change', function () {
-            let kitchenKode = $(this).val();
-            filterBarangByKitchen(kitchenKode, true);
-        });
+    });
 
         function calculateGrandTotal() {
             let total = 0;

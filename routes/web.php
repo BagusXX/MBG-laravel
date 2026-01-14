@@ -316,6 +316,11 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{id}/invoice', 'invoice')
                 ->middleware('permission:transaction.operational-submission.invoice')
                 ->name('invoice');
+
+            // TAMBAHKAN INI: Route Invoice Parent (Rekapitulasi)
+            Route::get('/{id}/invoice-parent', 'invoiceParent')
+                ->middleware('permission:transaction.operational-submission.invoice-parent')
+                ->name('invoice-parent');
         });
 
     Route::prefix('dashboard/transaksi/daftar-operasional')
@@ -350,6 +355,16 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{id}/invoice', 'invoice')
                 ->middleware('permission:transaction.operational-approval.invoice')
                 ->name('invoice');
+
+            Route::delete('/child/{id}', 'destroyChild')
+                ->middleware('permission:transaction.operational-approval.delete')
+                ->name('destroy-child');
+            Route::put('/{id}/selesai', 'selesai')
+                ->middleware('permission:transaction.operational-approval.selesai')
+                ->name('selesai');
+            Route::get('/{id}/invoice-parent', 'invoiceParent')
+                ->middleware('permission:transaction.operational-approval.invoice-parent')
+                ->name('invoice-parent');
         });
 
     Route::prefix('dashboard/transaksi')

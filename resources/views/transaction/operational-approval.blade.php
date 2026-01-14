@@ -25,12 +25,10 @@
                 <label>Dapur</label>
                 <select id="filterKitchen" class="form-control">
                     <option value="">Semua Dapur</option>
-                    @foreach ($submissions->pluck('kitchen')->unique('id') as $kitchen)
-                        @if($kitchen)
-                            <option value="{{ strtolower($kitchen->nama) }}">
-                                {{ $kitchen->nama }}
+                    @foreach ($kitchens as $k)
+                            <option value="{{ strtolower($k->nama) }}">
+                                {{ $k->nama }}
                             </option>
-                        @endif
                     @endforeach
                 </select>
             </div>
@@ -41,7 +39,7 @@
                     <option value="">Semua Status</option>
                     <option value="diajukan">Diajukan</option>
                     <option value="diproses">Diproses</option>
-                    <option value="diterima">Diterima</option>
+                    <option value="selesai">Selesai</option>
                     <option value="ditolak">Ditolak</option>
                 </select>
 
@@ -67,7 +65,7 @@
                     <th>Dapur</th>
                     <th>Total</th>
                     <th>Status</th>
-                    <th width="180">Aksi</th>
+                    <th width="230" class="text-center">Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -85,22 +83,37 @@
                     <td>
                         <span class="badge badge-{{
                            $item->status === 'diterima' ? 'success' :
+                           ($item->status === 'selesai' ? 'success' :
                             ($item->status === 'diproses' ? 'info' :
-                            ($item->status === 'ditolak' ? 'danger' : 'warning'))
+                            ($item->status === 'ditolak' ? 'danger' : 'warning')))
                         }}">
                             {{ strtoupper($item->status) }}
                         </span>
                     </td>
-                    <td>
+                    <td class="text-center">
+                        <div class="btn-group-vertical btn-group-sm ">
                         {{-- DETAIL (TETAP ADA) --}}
                         <button class="btn btn-primary btn-sm"
                             data-toggle="modal"
                             data-target="#modalDetail{{ $item->id }}">
                             Detail
                         </button>
+                        </div>
 
+                        <div class="btn-group-vertical btn-group-sm">
+                        @if ($item->status === 'selesai')
+                            <div class="text-right">
+                                <a
+                                    href="{{ route('transaction.operational-approval.invoice-parent', $item->id) }}"
+                                    target="_blank"
+                                    class="btn btn-warning btn-sm"
+                                >
+                                    <i class="fas fa-print mr-1"></i> Cetak Invoice
+                                </a>
+                            </div>
+                        @endif
+                        </div>
                     </td>
-
                 </tr>
                 @endforeach
             </tbody>
@@ -203,8 +216,9 @@
             <td class="py-1">
                 : <span class="badge badge-{{
                     $item->status === 'diterima' ? 'success' :
+                    ($item->status === 'selesai' ? 'success' :
                     ($item->status === 'diproses' ? 'info' :
-                    ($item->status === 'ditolak' ? 'danger' : 'warning'))
+                    ($item->status === 'ditolak' ? 'danger' : 'warning')))
                 }}">{{ strtoupper($item->status) }}</span>
             </td>
         </tr>
@@ -214,6 +228,36 @@
     @if ($item->status === 'ditolak' && $item->keterangan)
         <div class="alert alert-danger mt-2 py-2">
             <strong>Alasan Penolakan:</strong> {{ $item->keterangan }}
+        </div>
+    @endif
+
+    {{-- =========================
+     TOMBOL TOLAK (KHUSUS DIAJUKAN & BELUM ADA CHILD)
+    ========================= --}}
+    @if(
+    $item->status === 'diajukan' &&
+    $item->children->count() === 0
+    )
+        <div class="text-right mb-3">
+            <button
+                class="btn btn-danger btn-sm btnApproval"
+                data-id="{{ $item->id }}"
+                data-status="ditolak"
+            >
+                <i class="fas fa-times-circle mr-1"></i> Tolak Pengajuan
+            </button>
+        </div>
+    @endif
+
+    @if ($item->status === 'diproses')
+        <div class="text-right mb-3">
+            <button
+                class="btn btn-success btn-sm btnApproval"
+                data-id="{{ $item->id }}"
+                data-status="selesai"
+            >
+                <i class="fas fa-check-circle mr-1"></i> Selesaikan Pengajuan
+            </button>
         </div>
     @endif
 
@@ -232,9 +276,16 @@
                 <select name="supplier_id" class="form-control" required>
                     <option value="">- Pilih Supplier -</option>
                     @foreach($suppliers as $supplier)
-                        <option value="{{ $supplier->id }}">{{ $supplier->nama }}</option>
+                        @if($supplier->kitchens->contains('kode', $item->kitchen_kode))
+                            <option value="{{ $supplier->id }}">{{ $supplier->nama }}</option>
+                        @endif
                     @endforeach
                 </select>
+                @if($suppliers->where(fn($s)=>$s->kitchens->contains('kode', $item->kitchen_kode))->isEmpty())
+                    <small class="text-danger">
+                        Tidak ada Supplier yang terdaftar untuk dapur ini
+                    </small>
+                @endif
             </div>
             <div class="col-md-4 text-right">
                 {{-- Tombol Submit ada di sini agar sebaris dengan form --}}
@@ -338,6 +389,21 @@
                         <span class="ml-2 font-weight-bold">
                             Rp {{ number_format($child->total_harga, 0, ',', '.') }}
                         </span>
+                        {{-- =========================
+                            BUTTON DELETE CHILD
+                        ========================= --}}
+                        @if(
+                            $item->status === 'diproses' &&
+                            $child->status === 'disetujui'
+                        )
+                            <button
+                                class="btn btn-xs btn-outline-danger ml-2 btnDeleteChild"
+                                data-id="{{ $child->id }}"
+                                title="Hapus approval supplier"
+                            >
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        @endif
                     </div>
                 </div>
 
@@ -417,6 +483,23 @@
     </div>
 </x-modal-detail>
 
+<x-modal-form
+    id="modalDeleteChild"
+    title="Hapus Approval Supplier"
+    action=""
+    submitText="Ya, Hapus"
+    method="POST"
+>
+    @csrf
+    @method('DELETE')
+
+    <p class="mb-0">
+        Apakah Anda yakin ingin menghapus approval supplier ini?
+    </p>
+</x-modal-form>
+
+
+
 @endsection
 
 @push('js')
@@ -461,6 +544,22 @@
                 // toastr.success('Data berhasil disimpan, modal dibuka kembali.');
             }
         @endif
+
+        $(document).on('click', '.btnDeleteChild', function () {
+
+        let id = $(this).data('id');
+
+        let modal = $('#modalDeleteChild');
+
+        modal.find('form').attr(
+            'action',
+            "{{ route('transaction.operational-approval.destroy-child', ':id') }}"
+                .replace(':id', id)
+        );
+
+        modal.modal('show');
+    });
+
         
         $(document).ready(function () {
 
@@ -608,40 +707,42 @@
          */
         $(document).on('click', '.btnApproval', function () {
 
-            let id     = $(this).data('id');
-            let status = $(this).data('status');
+        let id     = $(this).data('id');
+        let status = $(this).data('status');
 
-            let supplier  = $(this).data('supplier'); 
+        let approvalModal = $('#modalApprovalOperational');
 
-            // ==============================
-            // VALIDASI SUPPLIER SEBELUM SETUJUI
-            // ==============================
-            if (status === 'diterima' && (!supplier || supplier === '')) {
-                $('#modalSupplierRequired').modal('show');
-                return; 
-            }
-            
-            let modal = $('#modalApprovalOperational');
+        // cari modal detail terdekat (yang sedang terbuka)
+        let detailModal = $(this).closest('.modal');
 
-            // endpoint approval (nanti sesuaikan route)
-            modal.find('form').attr(
-                'action',
-                "{{ route('transaction.operational-approval.update-status', ':id') }}"
-                    .replace(':id', id)
-            );
+        // set action form
+        approvalModal.find('form').attr(
+            'action',
+            "{{ route('transaction.operational-approval.update-status', ':id') }}"
+                .replace(':id', id)
+        );
 
-            if (status === 'ditolak') {
-                $('#keterangan_wrapper').removeClass('d-none');
-            } else {
-                $('#keterangan_wrapper').addClass('d-none');
-                $('textarea[name="keterangan"]').val('');
-            }
+        if (status === 'ditolak') {
+            $('#keterangan_wrapper').removeClass('d-none');
+        } else {
+            $('#keterangan_wrapper').addClass('d-none');
+            $('textarea[name="keterangan"]').val('');
+        }
 
-            $('#approval_status').val(status);
-            $('#approval_status_text').text(status.toUpperCase());
+        $('#approval_status').val(status);
+        $('#approval_status_text').text(status.toUpperCase());
 
-            modal.modal('show');
+        // ============================
+        // TUTUP MODAL DETAIL DULU
+        // ============================
+        detailModal.modal('hide');
+
+        // setelah modal detail tertutup → buka approval
+        detailModal.one('hidden.bs.modal', function () {
+            approvalModal.modal('show');
         });
+    });
+
 
 
     </script>
