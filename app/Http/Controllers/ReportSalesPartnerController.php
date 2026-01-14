@@ -4,14 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use App\Models\Kitchen;
 use App\Models\SubmissionDetails;
 use App\Models\Supplier;
-use SebastianBergmann\CodeCoverage\Report\Xml\Report;
-use Barryvdh\DomPDF\Facade\Pdf;
 
-class ReportSalesKitchenController extends Controller
+class ReportSalesPartnerController extends Controller
 {
     public function index(Request $request)
     {
@@ -49,19 +46,6 @@ class ReportSalesKitchenController extends Controller
 
         $reports = $query->paginate(10)->withQueryString();
 
-        $totalPageSubtotal = $reports->getCollection()->sum(function ($item) {
-    return ($item->submission->porsi ?? 0) * ($item->harga_dapur ?? 0);
-});
-
-        return view('report.sales-kitchen', compact('kitchens', 'reports', 'suppliers', 'totalPageSubtotal'));
-    }
-
-    public function printInvoice(Request $request)
-    {
-        $reports = Report::query();
-        $data = $reports->get();
-
-        $pdf = PDF::loadview('report.invoiceReport-sales-kitchen', compact('data'));
-        return $pdf->download('invoice-penjualan-dapur' . now()->format('d-m-Y') . '.pdf');
+        return view('report.sales-partner', compact('kitchens', 'reports', 'suppliers'));
     }
 }

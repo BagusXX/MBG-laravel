@@ -22,6 +22,7 @@ use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\SaleMaterialsKitchenController;
 use App\Http\Controllers\SaleMaterialsPartnerController;
 use App\Http\Controllers\ReportSalesKitchenController;
+use App\Http\Controllers\ReportSalesPartnerController;
 
 require __DIR__ . '/auth.php';
 
@@ -418,8 +419,8 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/penjualan-dapur',[ReportSalesKitchenController::class, 'index'])
                 ->middleware('permission:report.sales-kitchen.view')
                 ->name('sales-kitchen');
-            
-                Route::get('/penjualan-mitra', fn() => view('report.sales-partner'))
+
+                Route::get('/penjualan-mitra', [ReportSalesPartnerController::class, 'index'])
                 ->middleware('permission:report.sales-partner.view')
                 ->name('sales-partner');
 
