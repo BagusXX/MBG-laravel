@@ -446,9 +446,9 @@ Route::middleware(['auth'])->group(function () {
                 ->middleware('permission:report.sales-kitchen.view')
                 ->name('sales-kitchen');
 
-                Route::get('/penjualan-mitra', [ReportSalesPartnerController::class, 'index'])
-                ->middleware('permission:report.sales-partner.view')
-                ->name('sales-partner');
+            Route::get('/penjualan-mitra', [ReportSalesPartnerController::class, 'index'])
+            ->middleware('permission:report.sales-partner.view')
+            ->name('sales-partner');
 
             Route::get('/pembelian-operasional', fn() => view('report.purchase-operational'))
                 ->middleware('permission:report.purchase-operational.view')
