@@ -109,8 +109,10 @@ class PermissionSeeder extends Seeder
 
             // REPORT
             'report.sales-kitchen.view',
+            'report.sales-kitchen.invoice',
             'report.sales-partner.view',
             'report.purchase-operational.view',
+            'report.purchase-operational.invoice',
             'report.profit.view',
         ];
 

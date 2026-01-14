@@ -19,6 +19,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\OperationalController;
 use App\Http\Controllers\OperationalSubmissionController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\ReportPurchaseOperationalController;
 use App\Http\Controllers\SaleMaterialsKitchenController;
 use App\Http\Controllers\SaleMaterialsPartnerController;
 use App\Http\Controllers\ReportSalesKitchenController;
@@ -415,11 +416,19 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('dashboard/laporan')
         ->name('report.')
         ->group(function () {
-            Route::get('/penjualan-dapur',[ReportSalesKitchenController::class, 'index'])
+            Route::get('/penjualan-dapur', [ReportSalesKitchenController::class, 'index'])
                 ->middleware('permission:report.sales-kitchen.view')
                 ->name('sales-kitchen');
-            
-                Route::get('/penjualan-mitra', fn() => view('report.sales-partner'))
+
+            Route::get('/pembelian-operational', [ReportPurchaseOperationalController::class, 'index'])
+                ->middleware('permission:report.purchase-operational.view')
+                ->name('purchase-operational');
+
+            Route::get('/pembelian-operational/invoice', [ReportPurchaseOperationalController::class, 'invoice'])
+                ->middleware('permission:report.purchase-operational.invoice')
+                ->name('report.purchase-operational.invoice');
+
+            Route::get('/penjualan-mitra', fn() => view('report.sales-partner'))
                 ->middleware('permission:report.sales-partner.view')
                 ->name('sales-partner');
 
