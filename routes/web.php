@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SubmissionApprovalController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\BahanBakuController;
@@ -209,23 +210,6 @@ Route::middleware(['auth'])->group(function () {
                 ->middleware('permission:transaction.submission.store')
                 ->name('store');
 
-            Route::delete('/{submission}', 'destroy')
-                ->middleware('permission:transaction.submission.delete')
-                ->name('destroy');
-
-            Route::get('/menu-by-kitchen/{kitchen}', 'getMenuByKitchen')
-                ->middleware('permission:transaction.submission.view')
-                ->name('menu-by-kitchen');
-
-            Route::get('/{submission}/details', 'getSubmissionDetails')
-                ->middleware('permission:transaction.submission.view')
-                ->name('details');
-
-            Route::get('/{submission}/data', 'getSubmissionData')
-                ->middleware('permission:transaction.submission.view')
-                ->name('data');
-
-            // ✅ DETAIL
             Route::get('/{submission}/detail', 'show')
                 ->middleware('permission:transaction.submission.show')
                 ->name('detail');
@@ -234,30 +218,72 @@ Route::middleware(['auth'])->group(function () {
                 ->middleware('permission:transaction.submission.update')
                 ->name('update');
 
-            Route::patch('/{submission}/to-process', 'updateToProcess')
-                ->middleware('permission:transaction.submission.update')
-                ->name('to-process');
+            Route::delete('/{submission}', 'destroy')
+                ->middleware('permission:transaction.submission.delete')
+                ->name('destroy');
 
-            Route::patch('/{submission}/to-complete', 'updateToComplete')
-                ->middleware('permission:transaction.submission.update')
-                ->name('to-complete');
 
+            // Helpers
+            Route::get('/helper/menu-by-kitchen/{kitchenId}', 'getMenuByKitchen')
+                ->middleware('permission:transaction.submission.view')
+                ->name('menu-by-kitchen');
+        });
+
+
+    // Route Approval Pengajuan Menu
+    Route::prefix('dashboard/transaksi/approval-menu')
+        ->name('transaction.submission-approval.')
+        ->controller(SubmissionApprovalController::class)
+        ->group(function () {
+
+            Route::get('/', 'index')
+                ->middleware('permission:transaction.submission-approval.view')
+                ->name('index');
+
+            // [AJAX] Ambil Data Header Submission
+            Route::get('/{submission}/data', 'getSubmissionData')
+                ->middleware('permission:transaction.submission-approval.view')
+                ->name('data');
+
+            // [AJAX] Ambil List Detail Bahan (PENTING: Sebelumnya route ini belum ada)
+            Route::get('/{submission}/details', 'getDetails')
+                ->middleware('permission:transaction.submission-approval.view')
+                ->name('details');
+
+            // [AJAX] Ambil List Bahan Baku untuk Tambah Manual (PENTING: Sebelumnya belum ada)
+            Route::get('/helper/bahan-baku/{kitchen}', 'getBahanBakuByKitchen')
+                ->middleware('permission:transaction.submission-approval.add-bahan-baku')
+                ->name('helper.bahan-baku');
+
+            // Update Harga (Bulk Update)
             Route::patch('/{submission}/update-harga', 'updateHarga')
-                ->middleware('permission:transaction.submission.update')
+                ->middleware('permission:transaction.submission-approval.update-harga')
                 ->name('update-harga');
 
-            Route::delete('/{submission}/details/{detail}', 'deleteDetail')
-                ->middleware('permission:transaction.submission.update')
+            // Tambah Bahan Manual
+            // PERBAIKAN: Nama method disesuaikan dengan Controller ('addManualBahan')
+            Route::post('/{submission}/add-manual', 'addManualBahan')
+                ->middleware('permission:transaction.submission-approval.add-bahan-baku')
+                ->name('add-manual');
+
+            // Hapus Detail Item
+            Route::delete('/{submission}/detail/{detail}', 'deleteDetail')
+                ->middleware('permission:transaction.submission-approval.delete-detail')
                 ->name('delete-detail');
 
-            Route::post('/{submission}/add-bahan-baku', 'addBahanBakuManual')
-                ->middleware('permission:transaction.submission.update')
-                ->name('add-bahan-baku');
+            // Update Status (Terima / Tolak / Selesai)
+            // PERBAIKAN: Menggunakan satu route ke 'updateStatus'
+            // Frontend nanti kirim body: { status: 'selesai' } atau { status: 'ditolak' }
+            Route::patch('/{submission}/status', 'updateStatus')
+                ->middleware('permission:transaction.submission-approval.process') // Sesuaikan permission
+                ->name('update-status');
 
-            Route::get('/bahan-baku-by-kitchen/{kitchen}', 'getBahanBakuByKitchen')
-                ->middleware('permission:transaction.submission.view')
-                ->name('bahan-baku-by-kitchen');
+            // Split ke Supplier
+            Route::post('/{submission}/split', 'splitToSupplier')
+                ->middleware('permission:transaction.submission-approval.split')
+                ->name('split');
         });
+
 
 
     Route::prefix('dashboard/transaksi/jual-bahan-baku-dapur')

@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class RecipeBahanBaku extends Model
 {
     //
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $table = 'recipe_bahan_baku';
     protected $fillable = [

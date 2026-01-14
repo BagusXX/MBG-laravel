@@ -440,8 +440,8 @@ return [
                 [
                     'text' => 'Daftar Permintaan',
                     'icon' => 'fas fa-clipboard-list',
-                    'route' => 'transaction.request-materials',
-                    'can'  => 'transaction.request-materials.view',
+                    'route' => 'transaction.submission-approval.index',
+                    'can'  => 'transaction.submission-approval.view',
                 ],
                 [
                     'text' => 'Pengajuan Operasional',
