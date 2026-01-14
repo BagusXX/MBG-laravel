@@ -15,7 +15,6 @@ return new class extends Migration {
 
             $table->decimal('jumlah', 15, 4);
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 

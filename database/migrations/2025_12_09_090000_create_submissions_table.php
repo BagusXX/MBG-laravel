@@ -16,12 +16,22 @@ return new class extends Migration {
             $table->foreignId('menu_id')->constrained('menus')->onDelete('cascade');
             $table->integer('porsi');
             $table->decimal('total_harga', 15, 2)->default(0);
+            $table->enum('tipe', ['pengajuan', 'disetujui'])->default('pengajuan');
             $table->enum('status', [
                 'diajukan',
                 'diproses',
                 'diterima',
                 'ditolak',
+                'selesai',
             ])->default('diajukan');
+            $table->foreignId('parent_id')
+                ->nullable()
+                ->constrained('submissions')
+                ->nullOnDelete();
+            $table->foreignId('supplier_id')
+                ->nullable()
+                ->constrained('suppliers')
+                ->nullOnDelete();
             $table->timestamps();
             $table->softDeletes();
         });

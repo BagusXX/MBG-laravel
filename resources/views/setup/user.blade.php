@@ -4,6 +4,17 @@
 
 @section('css')
     <link rel="stylesheet" href="{{ asset('css/notification-pop-up.css') }}">
+    {{-- Sedikit style tambahan agar area checkbox lebih rapi --}}
+    <style>
+        .checkbox-group-container {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ced4da;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+    </style>
 @endsection
 
 @section('content_header')
@@ -62,7 +73,6 @@
                                 @endif
                             </td>
 
-                            {{-- REGION --}}
                             {{-- REGION --}}
                             <td>
                                 @if($user->kitchens->isNotEmpty())
@@ -133,24 +143,27 @@
             <input type="password" placeholder="Masukkan password" class="form-control" name="password" required>
         </div>
 
-        {{-- AREA INPUT DAPUR DINAMIS (ADD) --}}
+        {{-- AREA INPUT DAPUR CHECKBOX (ADD) --}}
         <div class="form-group">
-            <label>Dapur</label>
-            <div id="kitchen-wrapper-add">
-                {{-- Default 1 Input --}}
-                <div class="input-group mb-2">
-                    <select class="form-control" name="kitchen_kode[]" required>
-                        <option value="" disabled selected>Pilih Dapur</option>
-                        @foreach($kitchens as $kitchen)
-                            <option value="{{ $kitchen->kode }}">{{ $kitchen->nama }}</option>
-                        @endforeach
-                    </select>
+            <label>Pilih Dapur</label>
+            <div class="checkbox-group-container">
+                <div class="row">
+                    @foreach($kitchens as $kitchen)
+                        <div class="col-md-6"> {{-- Dibagi 2 kolom agar rapi --}}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" 
+                                    name="kitchen_kode[]" 
+                                    value="{{ $kitchen->kode }}" 
+                                    id="add_kitchen_{{ $kitchen->kode }}">
+                                <label class="form-check-label" for="add_kitchen_{{ $kitchen->kode }}">
+                                    {{ $kitchen->nama }}
+                                </label>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
             </div>
-            {{-- Tombol Tambah --}}
-            <button type="button" class="btn btn-success btn-sm mt-1" onclick="addKitchenRow('kitchen-wrapper-add')">
-                <i class="fas fa-plus"></i> Tambah Dapur Lain
-            </button>
+            <small class="text-muted">* Bisa memilih lebih dari satu dapur</small>
         </div>
 
         <div class="form-group">
@@ -192,49 +205,29 @@
                 <input type="password" class="form-control" name="password">
             </div>
 
-            {{-- AREA INPUT DAPUR DINAMIS (EDIT) --}}
+            {{-- AREA INPUT DAPUR CHECKBOX (EDIT) --}}
             <div class="form-group">
-                <label>Dapur</label>
-                <div id="kitchen-wrapper-edit-{{ $user->id }}">
-
-                    {{-- Loop data dapur yang sudah ada --}}
-                    @foreach($user->kitchens as $userKitchen)
-                        <div class="input-group mb-2">
-                            <select class="form-control" name="kitchen_kode[]" required>
-                                @foreach($kitchens as $kitchen)
-                                    <option value="{{ $kitchen->kode }}" {{ $userKitchen->kode == $kitchen->kode ? 'selected' : '' }}>
+                <label>Pilih Dapur</label>
+                <div class="checkbox-group-container">
+                    <div class="row">
+                        @foreach($kitchens as $kitchen)
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    {{-- Cek apakah user memiliki dapur ini, jika ya maka checked --}}
+                                    <input class="form-check-input" type="checkbox" 
+                                        name="kitchen_kode[]" 
+                                        value="{{ $kitchen->kode }}" 
+                                        id="edit_kitchen_{{ $user->id }}_{{ $kitchen->kode }}"
+                                        {{ $user->kitchens->contains('kode', $kitchen->kode) ? 'checked' : '' }}>
+                                    
+                                    <label class="form-check-label" for="edit_kitchen_{{ $user->id }}_{{ $kitchen->kode }}">
                                         {{ $kitchen->nama }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            {{-- Tombol Hapus Baris --}}
-                            <div class="input-group-append">
-                                <button class="btn btn-danger" type="button" onclick="removeRow(this)">
-                                    <i class="fas fa-trash"></i>
-                                </button>
+                                    </label>
+                                </div>
                             </div>
-                        </div>
-                    @endforeach
-
-                    {{-- Jika user belum punya dapur, tampilkan 1 kosong --}}
-                    @if($user->kitchens->isEmpty())
-                        <div class="input-group mb-2">
-                            <select class="form-control" name="kitchen_kode[]" required>
-                                <option value="" disabled selected>Pilih Dapur</option>
-                                @foreach($kitchens as $kitchen)
-                                    <option value="{{ $kitchen->kode }}">{{ $kitchen->nama }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    @endif
-
+                        @endforeach
+                    </div>
                 </div>
-
-                {{-- Tombol Tambah --}}
-                <button type="button" class="btn btn-success btn-sm mt-1"
-                    onclick="addKitchenRow('kitchen-wrapper-edit-{{ $user->id }}')">
-                    <i class="fas fa-plus"></i> Tambah Dapur Lain
-                </button>
             </div>
 
             <div class="form-group">
@@ -252,14 +245,14 @@
 
         {{-- MODAL DELETE --}}
         @if(!$user->hasRole('superadmin'))
-    <x-modal-delete
-        id="modalDeleteUser{{ $user->id }}"
-        formId="formDeleteUser{{ $user->id }}"
-        title="Konfirmasi Hapus"
-        message="Apakah Anda yakin ingin menghapus user {{ $user->name }}?"
-        confirmText="Hapus"
-    />
-@endif
+            <x-modal-delete
+                id="modalDeleteUser{{ $user->id }}"
+                formId="formDeleteUser{{ $user->id }}"
+                title="Konfirmasi Hapus"
+                message="Apakah Anda yakin ingin menghapus user {{ $user->name }}?"
+                confirmText="Hapus"
+            />
+        @endif
 
     @endforeach
 
@@ -268,39 +261,8 @@
 @section('js')
     <script>
         // ==========================================
-        // 1. LOGIKA DYNAMIC INPUT DAPUR
-        // ==========================================
-
-        // Simpan opsi select ke variabel JS agar mudah dicopy
-        const kitchenOptions = `
-                    <option value="" disabled selected>Pilih Dapur</option>
-                    @foreach($kitchens as $kitchen)
-                        <option value="{{ $kitchen->kode }}">{{ $kitchen->nama }}</option>
-                    @endforeach
-                `;
-
-        function addKitchenRow(wrapperId) {
-            let newRow = `
-                        <div class="input-group mb-2">
-                            <select class="form-control" name="kitchen_kode[]" required>
-                                ${kitchenOptions}
-                            </select>
-                            <div class="input-group-append">
-                                <button class="btn btn-danger" type="button" onclick="removeRow(this)">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-            document.getElementById(wrapperId).insertAdjacentHTML('beforeend', newRow);
-        }
-
-        function removeRow(button) {
-            button.closest('.input-group').remove();
-        }
-
-        // ==========================================
-        // 2. LOGIKA AUTO EMAIL GENERATOR
+        // LOGIKA AUTO EMAIL GENERATOR
+        // (Logika dynamic row dihapus karena sudah pakai checkbox)
         // ==========================================
         function generateEmail(name) {
             let email = name.toLowerCase()
