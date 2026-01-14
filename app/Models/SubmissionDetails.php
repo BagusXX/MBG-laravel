@@ -69,9 +69,9 @@ class SubmissionDetails extends Model
             }
 
             // Parent → harga dapur boleh, harga mitra harus null
-            if ($detail->isParent()) {
-                $detail->harga_mitra = null;
-            }
+            // if ($detail->isParent()) {
+            //     $detail->harga_mitra = null;
+            // }
 
             // Child → harga mitra wajib
             if ($detail->isChild() && is_null($detail->harga_mitra)) {

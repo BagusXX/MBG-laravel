@@ -56,6 +56,7 @@ class SubmissionController extends Controller
                 'qty_digunakan' => $qty,
                 'harga_satuan' => $harga,
                 'harga_dapur' => $harga,
+                'harga_mitra' => $harga,
                 'subtotal_harga' => $subtotal,
             ]);
 
