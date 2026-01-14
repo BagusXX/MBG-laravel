@@ -1,26 +1,24 @@
 @extends('adminlte::page')
 
-@section('title', 'Pengajuan Operasional')
+@section('title', 'Pengajuan Menu')
 
 @section('css')
     <link rel="stylesheet" href="{{ asset('css/notification-pop-up.css') }}">
 @endsection
 
 @section('content_header')
-    <h1>Pengajuan Operasional</h1>
+    <h1>Pengajuan Bahan Baku (Menu)</h1>
 @endsection
 
 @section('content')
 
 <div id="notification-container"></div>
 
-
 {{-- BUTTON ADD --}}
 <x-button-add
-    idTarget="#modalAddOperational"
-    text="Tambah Pengajuan Operasional"
+    idTarget="#modalAddSubmission"
+    text="Tambah Pengajuan Menu"
 />
-
 
 {{-- FILTER SECTION --}}
 <div class="card mb-3">
@@ -31,7 +29,6 @@
                 <select id="filterKitchen" class="form-control">
                     <option value="">Semua Dapur</option>
                     @foreach($kitchens as $k)
-                        {{-- Menggunakan nama untuk display di filter JS --}}
                         <option value="{{ $k->nama }}">{{ $k->nama }}</option>
                     @endforeach
                 </select>
@@ -42,7 +39,8 @@
                 <select id="filterStatus" class="form-control">
                     <option value="">Semua Status</option>
                     <option value="diajukan">Diajukan</option>
-                    <option value="diterima">Diterima</option>
+                    <option value="diproses">Diproses</option>
+                    <option value="selesai">Selesai</option>
                     <option value="ditolak">Ditolak</option>
                 </select>
             </div>
@@ -64,10 +62,11 @@
                     <th>Kode</th>
                     <th>Tanggal</th>
                     <th>Dapur</th>
-                    <th>Jml Item</th>
+                    <th>Menu</th>
+                    <th>Porsi</th>
                     <th>Total Biaya</th>
                     <th>Status</th>
-                    <th width="230" class="text-center">Aksi</th>
+                    <th width="150" class="text-center">Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -75,18 +74,20 @@
                 <tr 
                     data-kitchen="{{ $item->kitchen->nama ?? '' }}"
                     data-status="{{ $item->status }}"
-                    data-date="{{ $item->created_at->format('Y-m-d') }}"
+                    data-date="{{ \Carbon\Carbon::parse($item->tanggal)->format('Y-m-d') }}"
                 >
                     <td>{{ $item->kode }}</td>
-                    <td>{{ $item->created_at->format('d-m-Y') }}</td>
+                    <td>{{ \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y') }}</td>
                     <td>{{ $item->kitchen->nama ?? '-' }}</td>
-                    <td>{{ $item->details->count() }} Item</td>
+                    <td>{{ $item->menu->nama ?? '-' }}</td>
+                    <td>{{ $item->porsi }}</td>
                     <td>Rp {{ number_format($item->total_harga, 0, ',', '.') }}</td>
                     <td>
                         <span class="badge badge-{{
                             $item->status === 'diterima' ? 'success' :
+                            ($item->status === 'selesai' ? 'success' :
                             ($item->status === 'diproses' ? 'info' :
-                            ($item->status === 'ditolak' ? 'danger' : 'warning'))
+                            ($item->status === 'ditolak' ? 'danger' : 'warning')))
                         }}">
                             {{ strtoupper($item->status) }}
                         </span>
@@ -96,401 +97,220 @@
                         <button class="btn btn-info btn-sm"
                             data-toggle="modal"
                             data-target="#modalDetail{{ $item->id }}">
-                            Detail
+                            <i class="fas fa-eye"></i>
                         </button>
 
-                        {{-- Tombol Hapus (Hanya jika belum diterima) --}}
-                        @if($item->status !== 'diproses' && $item->status !== 'diterima')
+                        {{-- Tombol Hapus (Hanya jika status diajukan) --}}
+                        @if($item->status === 'diajukan')
                         <x-button-delete
-                            idTarget="#modalDeleteOperational"
-                            formId="formDeleteOperational"
-                            action="{{ route('transaction.operational-submission.destroy', $item->id) }}"
-                            text="Hapus"
+                            idTarget="#modalDeleteSubmission"
+                            formId="formDeleteSubmission"
+                            action="{{ route('transaction.submission.destroy', $item->id) }}"
+                            text=""
                         />
-                        @endif
-                        @if($item->status === 'diterima')
-                            <a href="{{ route('transaction.operational-submission.invoice', $item->id) }}"
-                            class="btn btn-warning btn-sm">
-                                <i class="fas fa-print mr-1"></i>Invoice
-                            </a>
                         @endif
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="text-center py-4 text-muted">
+                    <td colspan="8" class="text-center py-4 text-muted">
                         <i class="fas fa-inbox fa-3x mb-3"></i><br>
-                        Belum ada data pengajuan operasional.
+                        Belum ada data pengajuan bahan baku.
                     </td>
                 </tr>
                 @endforelse
             </tbody>
         </table>
+        <div class="mt-3">
+            {{ $submissions->links() }}
+        </div>
     </div>
 </div>
 
 {{-- =========================
-    MODAL TAMBAH (DYNAMIC FORM)
+    MODAL TAMBAH
 ========================= --}}
-
-
 <x-modal-form 
-    id="modalAddOperational"
-    size="modal-xl"
-    title="Tambah Pengajuan Operasional"
-    action="{{ route('transaction.operational-submission.store') }}"
+    id="modalAddSubmission"
+    size="modal-lg"
+    title="Tambah Pengajuan Bahan Baku"
+    action="{{ route('transaction.submission.store') }}"
     submitText="Simpan Pengajuan"
 >
-    <div class="form-group">
-        <label>Kode</label>
-        <input 
-            type="text"
-            class="form-control"
-            value="(Otomatis dibuat setelah disimpan)"
-            readonly
-            style="background:#e9ecef"
-        >
+    @csrf
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>Kode Pengajuan</label>
+                <input type="text" class="form-control" value="{{ $nextKode }}" readonly>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>Tanggal</label>
+                <input type="date" name="tanggal" class="form-control" value="{{ date('Y-m-d') }}" required>
+            </div>
+        </div>
     </div>
-
-    <div class="form-group">
-        <label>Tanggal</label>
-        <input type="date"
-            name="tanggal"
-            class="form-control"
-            value="{{ old('tanggal', now()->format('Y-m-d')) }}"
-            required>
-    </div>
-
 
     <div class="form-group">
         <label>Dapur</label>
-        <select name="kitchen_kode" id="selectKitchen" class="form-control" required>
-            <option disabled selected>Pilih Dapur</option>
+        <select name="kitchen_id" id="selectKitchenStore" class="form-control" required>
+            <option value="" disabled selected>Pilih Dapur</option>
             @foreach($kitchens as $k)
-                <option value="{{ $k->kode }}">{{ $k->nama }}</option>
+                <option value="{{ $k->id }}">{{ $k->nama }}</option>
             @endforeach
         </select>
     </div>
 
-
-    {{-- Tabel input barang --}}
-    <div class="form-group">
-        <div class="form-row mb-2">
-            <div class="col-md-3 font-weight-bold">Barang Operasional</div>
-            <div class="col-md-1 font-weight-bold">Qty</div>
-            <div class="col-md-2 font-weight-bold">Harga</div>
-            <div class="col-md-5 font-weight-bold">Keterangan</div>
-            <div class="col-md-1"></div>
-        </div>
-
-            <div id="operasional-wrapper">
-                <div class="form-row mb-3 operasional-group">
-                    <div class="col-md-3">
-                        <select name="items[0][barang_id]" class="form-control" required>
-                            <option value="" disabled selected>Pilih Barang</option>
-                            @foreach ($masterBarang as $barang)
-                                <option 
-                                    value="{{ $barang->id }}"
-                                    data-kitchen="{{ $barang->kitchen_kode }}"
-                                    data-harga="{{ $barang->harga_default }}"
-                                >
-                                    {{ $barang->nama }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="col-md-1">
-                        <input type="number" name="items[0][qty]" class="form-control" min="1" required />
-                    </div>
-
-                    <div class="col-md-2">
-                        <input type="number" name="items[0][harga_satuan]"class="form-control harga-input"required/>
-                    </div>
-                    
-                    <div class="col-md-5">
-                        <textarea name="items[0][keterangan]"
-                            class="form-control"
-                            rows="1"
-                            placeholder="Contoh: untuk gas dapur / perbaikan alat">
-                        </textarea>
-                    </div>
-
-                    <div class="col-md-1">
-                        <button type="button"
-                            class="btn btn-outline-danger btn-sm remove-operasional d-none h-100"
-                            style="width:35px">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                </div>
+    <div class="row">
+        <div class="col-md-8">
+            <div class="form-group">
+                <label>Menu</label>
+                <select name="menu_id" id="selectMenuStore" class="form-control" required disabled>
+                    <option value="" disabled selected>Pilih Menu (Pilih Dapur Terlebih Dahulu)</option>
+                </select>
             </div>
-
-            <button type="button" id="add-operasional"
-                class="btn btn-outline-primary btn-block mt-2">
-                <i class="fas fa-plus mr-1"></i>Tambah Barang Operasional
-            </button>
         </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label>Jumlah Porsi</label>
+                <input type="number" name="porsi" class="form-control" min="1" placeholder="0" required>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-info mt-2">
+        <i class="fas fa-info-circle"></i> Sistem akan otomatis menghitung rincian bahan baku berdasarkan resep menu yang dipilih.
+    </div>
 </x-modal-form>
 
-
 {{-- =========================
-    MODAL DETAIL (LOOPING)
+    MODAL DETAIL
 ========================= --}}
 @foreach($submissions as $item)
 <x-modal-detail 
     id="modalDetail{{ $item->id }}"
     size="modal-lg"
-    title="Detail Pengajuan Operasional"
+    title="Detail Pengajuan Bahan Baku"
 >
-    <table class="table table-borderless">
-        <tr>
-            <th width="140" class="py-1">Kode</th>
-            <td class="py-1">: {{ $item->kode }}</td>
-        </tr>
-        <tr>
-            <th width="140" class="py-1">Tanggal</th>
-            <td class="py-1">: {{ $item->created_at->format('d-m-Y') }}</td>
-        </tr>
-        <tr>
-            <th width="140" class="py-1">Dapur</th>
-            <td class="py-1">: {{ $item->kitchen->nama ?? '-' }}</td>
-        </tr>
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <table class="table table-sm table-borderless">
+                <tr><th width="120">Kode</th><td>: {{ $item->kode }}</td></tr>
+                <tr><th>Tanggal</th><td>: {{ \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y') }}</td></tr>
+                <tr><th>Dapur</th><td>: {{ $item->kitchen->nama ?? '-' }}</td></tr>
+            </table>
+        </div>
+        <div class="col-md-6">
+            <table class="table table-sm table-borderless">
+                <tr><th width="120">Menu</th><td>: {{ $item->menu->nama ?? '-' }}</td></tr>
+                <tr><th>Porsi</th><td>: {{ $item->porsi }} Porsi</td></tr>
+                <tr><th>Total Estimasi</th><td>: <strong>Rp {{ number_format($item->total_harga, 0, ',', '.') }}</strong></td></tr>
+            </table>
+        </div>
+    </div>
 
-        <tr>
-            <th width="140" class="py-1">Status</th>
-            <td class="py-1">
-                <span class="badge badge-{{
-                    $item->status === 'diterima' ? 'success' :
-                    ($item->status === 'diproses' ? 'info' :
-                    ($item->status === 'ditolak' ? 'danger' : 'warning'))
-                }}">
-                    {{ strtoupper($item->status) }}
-                </span>
-            </td>
-        </tr>
-        <tr>
-            @if ($item->status === 'ditolak' && $item->keterangan)
-                <div class="mt-2 p-2 border rounded bg-light">
-                    <large class="text-danger font-weight-bold">
-                        Alasan Penolakan:
-                    </large>
-                    <div class="text-strong">
-                        {{ $item->keterangan }}
-                    </div>
-                </div>
-            @endif
-        </tr>
-        <!-- <tr>
-            <th width="140" class="py-1">Supplier</th>
-            <td class="py-1">
-                : {{ $item->supplier->nama ?? '-' }}
-            </td>
-        </tr> -->
-
-        <tr>
-            <th width="140" class="py-1">Total Biaya</th>
-            <td class="py-1">
-                : Rp {{ number_format($item->total_harga, 0, ',', '.') }}
-            </td>
-        </tr>
-
-    </table>
-
-    <table class="table table-bordered table-striped">
-        <thead>
+    <table class="table table-bordered table-sm">
+        <thead class="bg-light">
             <tr>
-                <th>Barang</th>
-                <th class="text-center">Jumlah</th>
-                <th class="text-right">Harga</th>
-                <th>Keterangan</th>
+                <th>Bahan Baku</th>
+                <th class="text-center">Qty Digunakan</th>
+                <th class="text-right">Harga Satuan</th>
                 <th class="text-right">Subtotal</th>
             </tr>
         </thead>
         <tbody>
             @foreach($item->details as $det)
-                <tr>
-                    <td>{{ $det->operational->nama ?? '-' }}</td>
-                    <td class="text-center">{{ $det->qty }}</td>
-                    <td class="text-right">Rp {{ number_format($det->harga_satuan,0,',','.') }}</td>
-                    <td>{{ $det->keterangan ?? '-' }}</td>
-                    <td class="text-right">Rp {{ number_format($det->subtotal,0,',','.') }}</td>
-                </tr>
+            <tr>
+                <td>{{ $det->bahanBaku->nama ?? '-' }}</td>
+                <td class="text-center">
+                    {{ number_format($det->qty_digunakan, 2) }} {{ $det->bahanBaku->unit->nama ?? '' }}
+                </td>
+                <td class="text-right">Rp {{ number_format($det->harga_satuan, 0, ',', '.') }}</td>
+                <td class="text-right">Rp {{ number_format($det->subtotal_harga, 0, ',', '.') }}</td>
+            </tr>
             @endforeach
         </tbody>
+        <tfoot>
+            <tr class="font-weight-bold">
+                <td colspan="3" class="text-right">TOTAL</td>
+                <td class="text-right">Rp {{ number_format($item->total_harga, 0, ',', '.') }}</td>
+            </tr>
+        </tfoot>
     </table>
 </x-modal-detail>
-
 @endforeach
 
-{{-- MODAL KONFIRMASI DELETE --}}
 <x-modal-delete 
-    id="modalDeleteOperational"
-    formId="formDeleteOperational"
+    id="modalDeleteSubmission"
+    formId="formDeleteSubmission"
     title="Konfirmasi Hapus" 
-    message="Apakah Anda yakin ingin menghapus pengajuan operasional ini?" 
-    confirmText="Hapus" 
+    message="Apakah Anda yakin ingin menghapus pengajuan ini?" 
 />
-
 
 @endsection
 
-@section('js') {{-- Menggunakan section js, sesuaikan jika Anda pakai push('js') --}}
+@section('js')
 <script>
-    function showNotification(type, message) {
-    const container = document.getElementById('notification-container');
-    if (!container) return;
-
-    const notif = document.createElement('div');
-    notif.className = `notification ${type} show`;
-    notif.innerText = message;
-
-    container.appendChild(notif);
-
-    setTimeout(() => {
-        notif.classList.remove('show');
-        notif.remove();
-    }, 3000);
-}
-
     $(document).ready(function() {
-
-        let index = 1;
-
-    // ADD BARANG
-    $('#add-operasional').on('click', function () {
-        let $wrapper = $('#operasional-wrapper');
-        let $firstRow = $wrapper.find('.operasional-group:first');
-        let $newRow = $firstRow.clone();
-
-        $newRow.find('select, input, textarea').each(function () {
-            let name = $(this).attr('name');
-            if (name) {
-                name = name.replace(/\[\d+\]/, '[' + index + ']');
-                $(this).attr('name', name).val('');
-            }
-        });
-
-        $newRow.find('.remove-operasional').removeClass('d-none');
-
-        $wrapper.append($newRow);
-
-        let kitchenKode = $('#selectKitchen').val();
-        if (kitchenKode) {
-            filterBarangByKitchen(kitchenKode, false);
-        }
-
-        index++;
-    });
-
-
-        // REMOVE BARANG
-        $(document).on('click', '.remove-operasional', function () {
-            $(this).closest('.operasional-group').remove();
-        });
-
-        /**
-         * ---------------------------------------
-         * 1. FILTER LOGIC
-         * ---------------------------------------
-         */
-        function applyFilter() {
-            let kitchen = $('#filterKitchen').val().toLowerCase();
-            let status = $('#filterStatus').val().toLowerCase();
+        // --- FILTER TABLE ---
+        $('#filterKitchen, #filterStatus, #filterDate').on('change', function() {
+            let kitchen = $('#filterKitchen').val()?.toLowerCase() || '';
+            let status = $('#filterStatus').val()?.toLowerCase() || '';
             let date = $('#filterDate').val();
 
             $('#tableSubmission tbody tr').each(function () {
-                let rowKitchen = $(this).data('kitchen').toLowerCase();
-                let rowStatus = $(this).data('status').toLowerCase();
-                let rowDate = $(this).data('date');
-
+                let rKitchen = $(this).data('kitchen')?.toLowerCase() || '';
+                let rStatus = $(this).data('status')?.toLowerCase() || '';
+                let rDate = $(this).data('date') || '';
+                
                 let show = true;
-                if (kitchen && rowKitchen !== kitchen) show = false;
-                if (status && rowStatus !== status) show = false;
-                if (date && rowDate !== date) show = false;
-
+                if (kitchen && rKitchen !== kitchen) show = false;
+                if (status && rStatus !== status) show = false;
+                if (date && rDate !== date) show = false;
                 $(this).toggle(show);
             });
-        }
-
-        $('#filterKitchen, #filterStatus, #filterDate').on('change', applyFilter);
-
-        /**
-         * ---------------------------------------
-         * 2. DYNAMIC FORM (TAMBAH BARANG)
-         * ---------------------------------------
-         */
-        let rowIdx = 1;
-
-        // Fungsi Hapus Baris
-        $(document).on('click', '.remove-row', function() {
-            $(this).closest('tr').remove();
-            calculateGrandTotal();
         });
 
+        // --- FETCH MENU BERDASARKAN DAPUR ---
+        // Karena data menu biasanya banyak, disarankan menggunakan AJAX
+        // Namun jika data menu dilempar via variable $menus, bisa gunakan logic filter JS seperti di bawah
+        $('#selectKitchenStore').on('change', function() {
+            let kitchenId = $(this).val();
+            let menuSelect = $('#selectMenuStore');
+            
+            menuSelect.prop('disabled', false).html('<option value="" disabled selected>Memuat Menu...</option>');
 
-        $(document).on('change', 'select[name*="[barang_id]"]', function () {
-            let harga = $(this).find(':selected').data('harga') || 0;
-            let row = $(this).closest('.operasional-group');
-
-            row.find('.harga-input').val(harga);
-        });
-
-        function filterBarangByKitchen(kitchenKode) {
-            $('#operasional-wrapper select[name*="[barang_id]"]').each(function () {
-                let select = $(this);
-
-                select.find('option').each(function () {
-                    let optKitchen = $(this).data('kitchen');
-
-                    // option default
-                    if (!optKitchen) {
-                        $(this).show();
-                        return;
-                    }
-
-                    if (optKitchen === kitchenKode) {
-                        $(this).show();
-                    } else {
-                        $(this).hide();
-                    }
-                });
-
-                // reset pilihan barang
-               if (reset) {
-                    select.val('');
+            // Simulasi fetch menu. Jika Anda sudah punya route untuk ambil menu per kitchen:
+            $.ajax({
+                url: "{{ url('api/get-menu-by-kitchen') }}/" + kitchenId, // Sesuaikan route API Anda
+                method: "GET",
+                success: function(data) {
+                    menuSelect.html('<option value="" disabled selected>Pilih Menu</option>');
+                    data.forEach(function(menu) {
+                        menuSelect.append(`<option value="${menu.id}">${menu.nama}</option>`);
+                    });
+                },
+                error: function() {
+                    menuSelect.html('<option value="" disabled selected>Gagal memuat menu</option>');
                 }
             });
-        }
-
-
-        // Event saat dapur dipilih
-        $('#selectKitchen').on('change', function () {
-            let kitchenKode = $(this).val();
-            filterBarangByKitchen(kitchenKode, true);
         });
-
-        function calculateGrandTotal() {
-            let total = 0;
-            $('#inputContainer tr').each(function() {
-                let price = parseFloat($(this).find('.price-input').val()) || 0;
-                let qty = parseFloat($(this).find('.qty-input').val()) || 0;
-                total += (price * qty);
-            });
-            
-            // Format Rupiah untuk Grand Total
-            $('#grandTotalDisplay').text("Rp " + total.toLocaleString('id-ID'));
-        }
-
-        // Reset Modal Form saat ditutup (Opsional, agar bersih saat dibuka lagi)
-        $('#modalAddOperational').on('hidden.bs.modal', function () {
-            // Uncomment baris di bawah jika ingin mereset form setiap kali tutup modal
-            // $(this).find('form')[0].reset();
-            // $('#inputContainer').find('tr:not(:first)').remove(); // Hapus baris tambahan
-            // calculateGrandTotal();
-        });
-        
     });
-</script>
 
+    // Helper notification (jika diperlukan untuk response AJAX)
+    function showNotification(type, message) {
+        const container = document.getElementById('notification-container');
+        if (!container) return;
+        const notif = document.createElement('div');
+        notif.className = `notification ${type} show`;
+        notif.innerText = message;
+        container.appendChild(notif);
+        setTimeout(() => {
+            notif.classList.remove('show');
+            setTimeout(() => notif.remove(), 300);
+        }, 3000);
+    }
+</script>
 @endsection

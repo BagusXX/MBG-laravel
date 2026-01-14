@@ -10,20 +10,13 @@ return new class extends Migration {
     {
         Schema::create('submissions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('parent_id')
-                ->nullable()
-                ->constrained('submissions')
-                ->nullOnDelete();
-             $table->foreignId('supplier_id')
-                ->nullable()
-                ->constrained('suppliers')
-                ->nullOnDelete();
             $table->string('kode')->unique();
             $table->date('tanggal');
             $table->foreignId('kitchen_id')->constrained('kitchens')->onDelete('cascade');
             $table->foreignId('menu_id')->constrained('menus')->onDelete('cascade');
             $table->integer('porsi');
             $table->decimal('total_harga', 15, 2)->default(0);
+            $table->enum('tipe', ['pengajuan', 'disetujui'])->default('pengajuan');
             $table->enum('status', [
                 'diajukan',
                 'diproses',
@@ -31,6 +24,14 @@ return new class extends Migration {
                 'ditolak',
                 'selesai',
             ])->default('diajukan');
+            $table->foreignId('parent_id')
+                ->nullable()
+                ->constrained('submissions')
+                ->nullOnDelete();
+            $table->foreignId('supplier_id')
+                ->nullable()
+                ->constrained('suppliers')
+                ->nullOnDelete();
             $table->timestamps();
             $table->softDeletes();
         });

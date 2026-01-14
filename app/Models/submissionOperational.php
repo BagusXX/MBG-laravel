@@ -56,7 +56,7 @@ class submissionOperational extends Model
     */
 
     // Parent saja (pengajuan awal)
-    public function scopeParent($query)
+    public function scopeOnlyParent($query)
     {
         return $query->whereNull('parent_id');
     }
@@ -100,8 +100,20 @@ class submissionOperational extends Model
     // Parent tidak boleh dihapus
     protected static function booted()
     {
+        static::saving(function ($submission) {
+        // Child wajib punya supplier
+        if ($submission->isChild() && empty($submission->supplier_id)) {
+            throw new \Exception('Submission child wajib memiliki supplier');
+        }
+
+        // Parent tidak boleh punya supplier
+        if ($submission->isParent() && ! empty($submission->supplier_id)) {
+            throw new \Exception('Submission parent tidak boleh memiliki supplier');
+        }
+        });    
+
         static::deleting(function ($submission) {
-            if ($submission->isParent()) {
+            if ($submission->isParent() && $submission->children()->exists()) {
                 throw new \Exception('Pengajuan utama tidak boleh dihapus');
             }
         });

@@ -4,224 +4,249 @@ namespace App\Http\Controllers;
 
 use App\Models\Kitchen;
 use App\Models\Menu;
+use App\Models\RecipeBahanBaku;
 use App\Models\Submission;
 use App\Models\SubmissionDetails;
+use Illuminate\Auth\Middleware\Authorize;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class SubmissionController extends Controller
 {
+    /* ================= HELPER ================= */
+
+    protected function userKitchenCodes()
+    {
+        return auth()->user()->kitchens()->pluck('kode');
+    }
+
+    protected function generateKode(): string
+    {
+        $last = Submission::withTrashed()
+            ->orderByRaw('CAST(SUBSTRING(kode, 4) AS UNSIGNED) DESC')
+            ->lockForUpdate()
+            ->value('kode');
+
+        $next = $last ? ((int) substr($last, -3)) + 1 : 1;
+        return 'PEM' . str_pad($next, 3, '0', STR_PAD_LEFT);
+    }
+
+    // Hapus "Menu" dari type hint parameter kedua
+    protected function syncDetails(Submission $submission, $recipes)
+    {
+        $submission->details()->delete();
+
+        $total = 0;
+
+        // $recipes di sini sudah berupa kumpulan baris dari tabel recipe_bahan_baku
+        // Jadi kita langsung loop saja
+        foreach ($recipes as $recipe) {
+
+            $qty = $recipe->jumlah * $submission->porsi;
+
+            // Pastikan relasi bahan_baku ter-load atau gunakan optional chaining
+            $harga = $recipe->bahan_baku->harga ?? 0;
+            $subtotal = $qty * $harga;
+
+            $submission->details()->create([
+                'recipe_bahan_baku_id' => $recipe->id,
+                'bahan_baku_id' => $recipe->bahan_baku_id,
+                'qty_digunakan' => $qty,
+                'harga_satuan' => $harga,
+                'harga_dapur' => $harga,
+                'subtotal_harga' => $subtotal,
+            ]);
+
+            $total += $subtotal;
+        }
+
+        $submission->update(['total_harga' => $total]);
+    }
+
+    /* ================= INDEX ================= */
+
     public function index()
     {
-        $user = auth()->user();
-
-        // Ambil dapur hanya milik user yang sedang login
-        $kitchens = $user->kitchens()->get();
+        $kitchenCodes = $this->userKitchenCodes();
 
         $submissions = Submission::with([
             'kitchen',
             'menu',
-            'details.recipe.bahan_baku.unit',
+            'details.recipeBahanBaku.bahan_baku.unit',
             'details.bahanBaku.unit'
         ])
-            // Filter data hanya dari dapur milik user
-            ->whereIn('kitchen_id', $kitchens->pluck('id'))
+            ->onlyParent()
+            ->pengajuan()
+            ->whereHas('kitchen', fn($q) => $q->whereIn('kode', $kitchenCodes))
             ->latest()
             ->paginate(10);
 
-        // Generate Kode untuk tampilan form
-        $lastKode = Submission::withTrashed()->orderByDesc('id')->value('kode');
-        $nextKode = $lastKode
-            ? 'PEM' . str_pad(((int) substr($lastKode, -3)) + 1, 3, '0', STR_PAD_LEFT)
-            : 'PEM001';
-
-        return view('transaction.submission', compact(
-            'submissions',
-            'kitchens',
-            'nextKode'
-        ));
+        return view('transaction.submission', [
+            'submissions' => $submissions,
+            'kitchens' => auth()->user()->kitchens,
+            'nextKode' => $this->generateKode(),
+        ]);
     }
+
+    /* ================= STORE ================= */
 
     public function store(Request $request)
     {
-        $user = auth()->user();
-
-        // Validasi akses dapur
-        $allowedKitchenIds = Kitchen::whereIn(
-            'kode',
-            $user->kitchens()->pluck('kode')
-        )->pluck('id');
+        $kitchenCodes = $this->userKitchenCodes();
 
         $request->validate([
             'tanggal' => 'required|date',
-            'kitchen_id' => ['required', Rule::in($allowedKitchenIds)],
+            'kitchen_id' => [
+                'required',
+                Rule::exists('kitchens', 'id')->where(
+                    fn($q) => $q->whereIn('kode', $kitchenCodes)
+                ),
+            ],
             'menu_id' => [
                 'required',
-                Rule::exists('menus', 'id')->where('kitchen_id', $request->kitchen_id),
+                Rule::exists('menus', 'id')->where('kitchen_id', $request->kitchen_id)
             ],
             'porsi' => 'required|integer|min:1',
         ]);
 
         DB::transaction(function () use ($request) {
-            $lastKode = Submission::withTrashed()
-                ->select('kode')
-                ->orderByRaw('CAST(SUBSTRING(kode, 4) AS UNSIGNED) DESC')
-                ->lockForUpdate()
-                ->value('kode');
 
-            $nextNumber = $lastKode ? ((int) substr($lastKode, -3)) + 1 : 1;
-            $kode = 'PEM' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
-
-            $menu = Menu::with('recipes.bahan_baku')
-                ->where('id', $request->menu_id)
+            // --- UBAHAN UTAMA DI SINI ---
+            // Kita cari daftar resep langsung dari model RecipeBahanBaku
+            $recipes = RecipeBahanBaku::with('bahan_baku')
+                ->where('menu_id', $request->menu_id)
                 ->where('kitchen_id', $request->kitchen_id)
-                ->firstOrFail();
+                ->get();
+
+            // Validasi manual: Jika tidak ada resep ditemukan
+            if ($recipes->isEmpty()) {
+                // Opsional: Ambil nama menu untuk pesan error yg lebih bagus
+                $namaMenu = \App\Models\Menu::find($request->menu_id)->nama ?? 'Terpilih';
+                throw new \Exception("Menu '$namaMenu' tidak memiliki resep/bahan baku di dapur ini.");
+            }
 
             $submission = Submission::create([
-                'kode' => $kode,
+                'kode' => $this->generateKode(),
                 'tanggal' => $request->tanggal,
                 'kitchen_id' => $request->kitchen_id,
-                'menu_id' => $menu->id,
+                'menu_id' => $request->menu_id, // Menu ID langsung dari request
                 'porsi' => $request->porsi,
-                'total_harga' => 0,
+                'tipe' => 'pengajuan',
                 'status' => 'diajukan',
             ]);
 
-            $totalHarga = 0;
-
-            foreach ($menu->recipes as $recipe) {
-                $qty = $recipe->jumlah * $request->porsi;
-                $harga = $recipe->bahan_baku->harga;
-                $subtotal = $qty * $harga;
-
-                SubmissionDetails::create([
-                    'submission_id' => $submission->id,
-                    'recipe_bahan_baku_id' => $recipe->id,
-                    'qty_digunakan' => $qty,
-                    'harga_satuan_saat_itu' => $harga,
-                    'harga_dapur' => $harga,
-                    'harga_mitra' => $harga,
-                    'subtotal_harga' => $subtotal,
-                ]);
-
-                $totalHarga += $subtotal;
-            }
-
-            $submission->update(['total_harga' => $totalHarga]);
+            // Kirim variable $recipes (Collection) ke fungsi sync
+            $this->syncDetails($submission, $recipes);
         });
 
-        return redirect()
-            ->route('transaction.submission.index')
-            ->with('success', 'Submission berhasil dibuat');
+        return back()->with('success', 'Pengajuan berhasil dibuat');
     }
+
+    /* ================= UPDATE ================= */
 
     public function update(Request $request, Submission $submission)
     {
-        if ($submission->status === 'selesai') {
-            abort(403, 'Submission yang sudah selesai tidak dapat diubah');
-        }
+        abort_if(!$submission->isParent(), 403);
+        abort_if($submission->status !== 'diajukan', 403);
 
-        $user = auth()->user();
-        
-        $allowedKitchenIds = Kitchen::whereIn(
-            'kode',
-            $user->kitchens()->pluck('kode')
-        )->pluck('id');
+        $kitchenCodes = $this->userKitchenCodes();
+        abort_if(!in_array($submission->kitchen->kode, $kitchenCodes->toArray()), 403);
 
-        if (!$allowedKitchenIds->contains($submission->kitchen_id)) {
-            abort(403, 'Anda tidak memiliki akses ke dapur ini');
-        }
+        $request->validate([
+            'menu_id' => [
+                'required',
+                Rule::exists('menus', 'id')->where('kitchen_id', $request->kitchen_id)
+            ],
+            'porsi' => 'required|integer|min:1',
+        ]);
 
-        if ($request->filled(['kitchen_id', 'menu_id', 'porsi'])) {
-            $request->validate([
-                'kitchen_id' => ['required', Rule::in($allowedKitchenIds->toArray())],
-                'menu_id' => [
-                    'required',
-                    Rule::exists('menus', 'id')->where('kitchen_id', $request->kitchen_id),
-                ],
-                'porsi' => 'required|integer|min:1',
+        DB::transaction(function () use ($request, $submission) {
+
+            // --- UBAHAN UTAMA DI SINI ---
+            // Ambil resep langsung dari RecipeBahanBaku
+            $recipes = RecipeBahanBaku::with('bahan_baku')
+                ->where('menu_id', $request->menu_id)
+                ->where('kitchen_id', $submission->kitchen_id)
+                ->get();
+
+            if ($recipes->isEmpty()) {
+                $namaMenu = \App\Models\Menu::find($request->menu_id)->nama ?? 'Terpilih';
+                throw new \Exception("Menu '$namaMenu' tidak memiliki resep/bahan baku.");
+            }
+
+            $submission->update([
+                'menu_id' => $request->menu_id,
+                'porsi' => $request->porsi,
             ]);
 
-            DB::transaction(function () use ($request, $submission) {
-                $menu = Menu::with('recipes.bahan_baku')
-                    ->where('id', $request->menu_id)
-                    ->where('kitchen_id', $request->kitchen_id)
-                    ->firstOrFail();
+            $this->syncDetails($submission, $recipes);
+        });
 
-                $submission->update([
-                    'kitchen_id' => $request->kitchen_id,
-                    'menu_id' => $menu->id,
-                    'porsi' => $request->porsi,
-                ]);
-
-                $submission->details()->delete();
-                $totalHarga = 0;
-
-                foreach ($menu->recipes as $recipe) {
-                    $qty = $recipe->jumlah * $request->porsi;
-                    $harga = $recipe->bahan_baku->harga;
-                    $subtotal = $qty * $harga;
-
-                    SubmissionDetails::create([
-                        'submission_id' => $submission->id,
-                        'recipe_bahan_baku_id' => $recipe->id,
-                        'qty_digunakan' => $qty,
-                        'harga_satuan_saat_itu' => $harga,
-                        'subtotal_harga' => $subtotal,
-                    ]);
-
-                    $totalHarga += $subtotal;
-                }
-
-                $submission->update(['total_harga' => $totalHarga]);
-            });
-
-            return back()->with('success', 'Data permintaan berhasil diperbarui');
-        }
-        
-        return back();
+        return back()->with('success', 'Pengajuan berhasil diperbarui');
     }
+
+    /* ================= DESTROY ================= */
 
     public function destroy(Submission $submission)
     {
-        $user = auth()->user();
+        abort_if(!$submission->isParent(), 403);
+        abort_if($submission->status !== 'diajukan', 403);
 
-        if (!$submission->kitchen) {
-            abort(404, 'Dapur tidak ditemukan');
-        }
-
-        if (!$user->kitchens()->where('kitchens.id', $submission->kitchen_id)->exists()) {
-            abort(403, 'Anda tidak memiliki akses ke dapur ini');
-        }
-
-        if ($submission->status === 'diproses') {
-            abort(403, 'Submission yang sedang diproses tidak dapat dihapus');
-        }
+        $kitchenCodes = $this->userKitchenCodes();
+        abort_if(!in_array($submission->kitchen->kode, $kitchenCodes->toArray()), 403);
 
         $submission->delete();
-        return back()->with('success', 'Submission berhasil dihapus');
-    }
 
-    public function getMenuByKitchen(Kitchen $kitchen)
+        return back()->with('success', 'Pengajuan berhasil dihapus');
+    }
+    // Tambahkan di dalam SubmissionController
+
+    public function getMenuByKitchen($kitchenId)
     {
-        if (!auth()->user()->kitchens->pluck('kode')->contains($kitchen->kode)) {
-            abort(403, 'Anda tidak memiliki akses ke dapur ini');
-        }
+        $kitchenCodes = $this->userKitchenCodes();
 
-        return response()->json(
-            $kitchen->menus()->select('id', 'nama')->get()
-        );
+        // Query dimulai dari RecipeBahanBaku
+        $menus = RecipeBahanBaku::query()
+            ->where('kitchen_id', $kitchenId)
+            // Filter keamanan: pastikan dapurnya milik user
+            ->whereHas('kitchen', fn($q) => $q->whereIn('kode', $kitchenCodes))
+            // Filter menu: pastikan menunya aktif (tidak soft delete)
+            ->whereHas('menu', fn($q) => $q->whereNull('deleted_at'))
+            // Ambil Menu ID unik saja
+            ->select('menu_id')
+            ->distinct()
+            ->with('menu:id,nama') // Load nama menunya
+            ->get()
+            ->map(function ($item) {
+                // Format ulang output agar bersih (id & nama saja)
+                return [
+                    'id' => $item->menu_id,
+                    'nama' => $item->menu->nama ?? 'Unknown Menu'
+                ];
+            });
+
+        return response()->json($menus);
     }
-    
+
+
     public function show(Submission $submission)
     {
-        $userKitchenKode = auth()->user()->kitchens->pluck('kode');
-        if (!$userKitchenKode->contains($submission->kitchen->kode)) {
-            abort(403, 'Tidak memiliki akses ke data ini');
-        }
+        abort_if(!$submission->isParent(), 403);
 
-        $submission->load(['kitchen', 'menu', 'details.recipe.bahan_baku.unit']);
-        return view('transaction.submission_detail', compact('submission'));
+        $kitchenCodes = $this->userKitchenCodes();
+        abort_if(!in_array($submission->kitchen->kode, $kitchenCodes->toArray()), 403);
+
+        $submission->load([
+            'kitchen',
+            'menu',
+            // 'details.recipeBahanBaku.bahan_baku.unit',
+            'details.bahanBaku.unit'
+        ]);
+
+        // return view('transaction.submission-detail', compact('submission'));
+        return response()->json($submission);
     }
+
 }

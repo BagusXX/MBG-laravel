@@ -76,12 +76,23 @@ class PermissionSeeder extends Seeder
             'transaction.submission.show',
             'transaction.submission.update',
 
+            // TRANSACTION - SUBMISSION APPROVAL
+            'transaction.submission-approval.view',
+            'transaction.submission-approval.update',
+            'transaction.submission-approval.process',
+            'transaction.submission-approval.complete',
+            'transaction.submission-approval.split',
+            'transaction.submission-approval.update-harga',
+            'transaction.submission-approval.add-bahan-baku',
+            'transaction.submission-approval.delete-detail',
+
             'transaction.operational-submission.view',
             'transaction.operational-submission.store',
             'transaction.operational-submission.delete',
             'transaction.operational-submission.show',
             'transaction.operational-submission.update',
             'transaction.operational-submission.invoice',
+            'transaction.operational-submission.invoice-parent',
 
             'transaction.operational-approval.view',
             'transaction.operational-approval.store',
@@ -90,6 +101,7 @@ class PermissionSeeder extends Seeder
             'transaction.operational-approval.show',
             'transaction.operational-approval.update-status',
             'transaction.operational-approval.invoice',
+            'transaction.operational-approval.invoice-parent',
 
             'transaction.request-materials.view',
             'transaction.sale-kitchen.view',
@@ -106,9 +118,10 @@ class PermissionSeeder extends Seeder
             'transaction.purchase.view',
 
             // REPORT
-            'report.submission.view',
-            'report.purchase.view',
-            'report.sales.view',
+            'report.sales-kitchen.view',
+            'report.sales-partner.view',
+            'report.purchase-operational.view',
+            'report.profit.view',
         ];
 
 

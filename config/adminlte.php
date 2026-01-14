@@ -440,8 +440,8 @@ return [
                 [
                     'text' => 'Daftar Permintaan',
                     'icon' => 'fas fa-clipboard-list',
-                    'route' => 'transaction.request-materials',
-                    'can'  => 'transaction.request-materials.view',
+                    'route' => 'transaction.submission-approval.index',
+                    'can'  => 'transaction.submission-approval.view',
                 ],
                 [
                     'text' => 'Pengajuan Operasional',
@@ -490,27 +490,34 @@ return [
         [
             'text' => 'Laporan',
             'icon' => 'fas fa-fw fa-file-alt',
-            'can'  => 'report.submission.view',
+            'can'  => 'report.sales-kitchen.view',
             'submenu' => [
                 [
-                    'text' => 'Pengajuan Menu',
+                    'text' => 'Penjualan Dapur',
                     'icon' => 'fas fa-file-signature',
-                    'route' => 'report.submission',
-                    'can'   => 'report.submission.view',
+                    'route' => 'report.sales-kitchen',
+                    'can'   => 'report.sales-kitchen.view',
+                ],
+                
+                [
+                    'text' => 'Penjualan Mitra',
+                    'icon' => 'fas fa-file-signature',
+                    'route' => 'report.sales-partner',
+                    'can'   => 'report.sales-partner.view',
                 ],
 
                 [
-                    'text' => 'Beli Bahan Baku',
+                    'text' => 'Pembelian Operasional',
                     'icon' => 'fas fa-file-signature',
-                    'route' => 'report.purchase-materials',
-                    'can'   => 'report.purchase.view',
+                    'route' => 'report.purchase-operational',
+                    'can'   => 'report.purchase-operational.view',
                 ],
 
                 [
-                    'text' => 'Jual Bahan Baku',
+                    'text' => 'Laporan Selisih',
                     'icon' => 'fas fa-file-signature',
-                    'route' => 'report.sales-materials',
-                    'can'   => 'report.sales.view',
+                    'route' => 'report.profit',
+                    'can'   => 'report.profit.view',
                 ],
             ],
         ],
