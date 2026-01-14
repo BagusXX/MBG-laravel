@@ -281,6 +281,14 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/{submission}/split', 'splitToSupplier')
                 ->middleware('permission:transaction.submission-approval.split')
                 ->name('split');
+
+            Route::delete('/child/{submission}', 'destroyChild')
+                ->middleware('permission:transaction.submission-approval.delete-detail') // Gunakan permission yang relevan
+                ->name('destroy-child');
+
+            Route::get('/{submission}/invoice', [SubmissionApprovalController::class, 'printInvoice'])->name('invoice');
+            Route::get('/{submission}/parent-invoice', [SubmissionApprovalController::class, 'printParentInvoice'])
+                ->name('print-parent-invoice');
         });
 
 
@@ -441,7 +449,7 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('dashboard/laporan')
         ->name('report.')
         ->group(function () {
-            Route::get('/penjualan-dapur',[ReportSalesKitchenController::class, 'index'])
+            Route::get('/penjualan-dapur', [ReportSalesKitchenController::class, 'index'])
                 ->middleware('permission:report.sales-kitchen.view')
                 ->name('sales-kitchen');
 
