@@ -19,17 +19,17 @@ class submissionOperationalDetails extends Model
         'keterangan'
     ];
 
-    public function submission(){
-        return $this->belongsTo(submissionOperational::class, 'operational_submission_id');
+    public function submission()
+    {
+        return $this->belongsTo(submissionOperational::class, 'operational_submission_id', 'id');
     }
 
-    public function operational(){
-        return $this->belongsTo(operationals::class,'operational_id'); 
+    public function operational()
+    {
+        return $this->belongsTo(operationals::class, 'operational_id');
     }
-        public function supplier()
+    public function supplier()
     {
         return $this->belongsTo(Supplier::class);
     }
-
-    
 }

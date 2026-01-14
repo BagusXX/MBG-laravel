@@ -118,4 +118,9 @@ class submissionOperational extends Model
             }
         });
     }
+
+    public function parent()
+    {
+        return $this->belongsTo(submissionOperational::class, 'parent_id');
+    }
 }
