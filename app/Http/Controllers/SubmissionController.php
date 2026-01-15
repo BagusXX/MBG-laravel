@@ -193,7 +193,7 @@ class SubmissionController extends Controller
     public function destroy(Submission $submission)
     {
         abort_if(!$submission->isParent(), 403);
-        abort_if($submission->status !== 'diajukan', 403);
+        abort_if(!in_array($submission->status, ['diajukan', 'ditolak']), 403);
 
         $kitchenCodes = $this->userKitchenCodes();
         abort_if(!in_array($submission->kitchen->kode, $kitchenCodes->toArray()), 403);
@@ -249,5 +249,4 @@ class SubmissionController extends Controller
         // return view('transaction.submission-detail', compact('submission'));
         return response()->json($submission);
     }
-
 }

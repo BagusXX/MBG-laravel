@@ -64,7 +64,7 @@
                     <th>Dapur</th>
                     <th>Menu</th>
                     <th>Porsi</th>
-                    <th>Total Biaya</th>
+                    {{-- <th>Total Biaya</th> --}}
                     <th>Status</th>
                     <th width="150" class="text-center">Aksi</th>
                 </tr>
@@ -81,7 +81,7 @@
                     <td>{{ $item->kitchen->nama ?? '-' }}</td>
                     <td>{{ $item->menu->nama ?? '-' }}</td>
                     <td>{{ $item->porsi }}</td>
-                    <td>Rp {{ number_format($item->total_harga, 0, ',', '.') }}</td>
+                    {{-- <td>Rp {{ number_format($item->total_harga, 0, ',', '.') }}</td> --}}
                     <td>
                         <span class="badge badge-{{
                             $item->status === 'diterima' ? 'success' :
@@ -99,16 +99,16 @@
                             data-id="{{ $item->id }}"
                             data-toggle="modal"
                             data-target="#modalDetail">
-                            <i class="fas fa-eye"></i>
+                            Detail
                         </button>
 
                         {{-- Tombol Hapus (Hanya jika status diajukan) --}}
-                        @if($item->status === 'diajukan')
+                        @if($item->status === 'diajukan' || $item->status === 'ditolak')
                         <x-button-delete
                             idTarget="#modalDeleteSubmission"
                             formId="formDeleteSubmission"
                             action="{{ route('transaction.submission.destroy', $item->id) }}"
-                            text=""
+                            text="Hapus"
                         />
                         @endif
                     </td>
@@ -201,7 +201,7 @@
     <div class="row mb-3">
         <div class="col-md-6">
             <table class="table table-borderless table-sm">
-                <tr><th width="30%">Kode</th><td>: <span id="det-kode" class="font-weight-bold">-</span></td></tr>
+                <tr><th width="30%">Kode</th><td>: <span id="det-kode" >-</span></td></tr>
                 <tr><th>Tanggal</th><td>: <span id="det-tanggal">-</span></td></tr>
                 <tr><th>Status</th><td>: <span id="det-status">-</span></td></tr>
             </table>
@@ -210,18 +210,18 @@
             <table class="table table-borderless table-sm">
                 <tr><th width="30%">Dapur</th><td>: <span id="det-dapur">-</span></td></tr>
                 <tr><th>Menu</th><td>: <span id="det-menu">-</span></td></tr>
-                <tr><th>Porsi</th><td>: <span id="det-porsi" class="font-weight-bold">-</span></td></tr>
+                <tr><th>Porsi</th><td>: <span id="det-porsi">-</span></td></tr>
             </table>
         </div>
     </div>
 
     {{-- Table Items --}}
     <div class="table-responsive">
-        <table class="table table-bordered table-striped table-sm">
-            <thead class="thead-light">
+        <table class="table table-bordered table-striped">
+            <thead>
                 <tr>
                     <th>Bahan Baku</th>
-                    <th class="text-center">Qty</th>
+                    <th class="text-center">Jumlah</th>
                     <th class="text-center">Satuan</th>
                 </tr>
             </thead>
@@ -278,17 +278,17 @@
     $(document).ready(function() {
         // --- FILTER TABLE ---
         $('#filterKitchen, #filterStatus, #filterDate').on('change', function() {
-            let kitchen = $('#filterKitchen').val()?.toLowerCase() || '';
+            let kitchen = $('#filterKitchen').val();
             let status = $('#filterStatus').val()?.toLowerCase() || '';
             let date = $('#filterDate').val();
 
             $('#tableSubmission tbody tr').each(function () {
-                let rKitchen = $(this).data('kitchen')?.toLowerCase() || '';
+                let rKitchen = $(this).data('kitchen');
                 let rStatus = $(this).data('status')?.toLowerCase() || '';
                 let rDate = $(this).data('date') || '';
                 
                 let show = true;
-                if (kitchen && String(rKitchen) !== String(kitchen)) show = false;
+                if (kitchen && String(rKitchen) !== String(kitchen)) show = false;  
                 if (status && rStatus !== status) show = false;
                 if (date && rDate !== date) show = false;
                 $(this).toggle(show);

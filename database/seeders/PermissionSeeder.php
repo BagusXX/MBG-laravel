@@ -85,6 +85,8 @@ class PermissionSeeder extends Seeder
             'transaction.submission-approval.update-harga',
             'transaction.submission-approval.add-bahan-baku',
             'transaction.submission-approval.delete-detail',
+            'transaction.submission-approval.invoice',
+            'transaction.submission-approval.parent-invoice',
 
             'transaction.operational-submission.view',
             'transaction.operational-submission.store',

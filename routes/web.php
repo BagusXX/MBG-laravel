@@ -287,8 +287,12 @@ Route::middleware(['auth'])->group(function () {
                 ->middleware('permission:transaction.submission-approval.delete-detail') // Gunakan permission yang relevan
                 ->name('destroy-child');
 
-            Route::get('/{submission}/invoice', [SubmissionApprovalController::class, 'printInvoice'])->name('invoice');
+            Route::get('/{submission}/invoice', [SubmissionApprovalController::class, 'printInvoice'])
+                ->middleware('permission:transaction.submission-approval.invoice')
+                ->name('invoice');
+
             Route::get('/{submission}/parent-invoice', [SubmissionApprovalController::class, 'printParentInvoice'])
+                ->middleware('permission:transaction.submission-approval.parent-invoice')
                 ->name('print-parent-invoice');
         });
 

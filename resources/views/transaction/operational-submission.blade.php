@@ -251,60 +251,67 @@
     size="modal-lg"
     title="Detail Pengajuan Operasional"
 >
-    <table class="table table-borderless">
-        <tr>
-            <th width="140" class="py-1">Kode</th>
-            <td class="py-1">: {{ $item->kode }}</td>
-        </tr>
-        <tr>
-            <th width="140" class="py-1">Tanggal</th>
-            <td class="py-1">: {{ $item->created_at->format('d-m-Y') }}</td>
-        </tr>
-        <tr>
-            <th width="140" class="py-1">Dapur</th>
-            <td class="py-1">: {{ $item->kitchen->nama ?? '-' }}</td>
-        </tr>
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <table class="table table-borderless">
+                <tr>
+                    <th width="140" class="py-1">Kode</th>
+                    <td class="py-1">: {{ $item->kode }}</td>
+                </tr>
+                <tr>
+                    <th width="140" class="py-1">Tanggal</th>
+                    <td class="py-1">: {{ $item->created_at->format('d-m-Y') }}</td>
+                </tr>
+                <tr>
+                    <th width="140" class="py-1">Dapur</th>
+                    <td class="py-1">: {{ $item->kitchen->nama ?? '-' }}</td>
+                </tr>
+            </table>
+        </div>
+        <div class="col-md-6">
+            <table>
+                <tr>
+                    <th width="140" class="py-1">Status</th>
+                    <td class="py-1">
+                        <span class="badge badge-{{
+                            $item->status === 'diterima' ? 'success' :
+                            ($item->status === 'selesai' ? 'success' :
+                            ($item->status === 'diproses' ? 'info' :
+                            ($item->status === 'ditolak' ? 'danger' : 'warning')))
+                        }}">
+                            {{ strtoupper($item->status) }}
+                        </span>
+                    </td>
+                </tr>
+                <tr>
+                    @if ($item->status === 'ditolak' && $item->keterangan)
+                        <div class="mt-2 p-2 border rounded bg-light">
+                            <large class="text-danger font-weight-bold">
+                                Alasan Penolakan:
+                            </large>
+                            <div class="text-strong">
+                                {{ $item->keterangan }}
+                            </div>
+                        </div>
+                    @endif
+                </tr>
+                <!-- <tr>
+                    <th width="140" class="py-1">Supplier</th>
+                    <td class="py-1">
+                        : {{ $item->supplier->nama ?? '-' }}
+                    </td>
+                </tr> -->
 
-        <tr>
-            <th width="140" class="py-1">Status</th>
-            <td class="py-1">
-                <span class="badge badge-{{
-                    $item->status === 'diterima' ? 'success' :
-                    ($item->status === 'selesai' ? 'success' :
-                    ($item->status === 'diproses' ? 'info' :
-                    ($item->status === 'ditolak' ? 'danger' : 'warning')))
-                }}">
-                    {{ strtoupper($item->status) }}
-                </span>
-            </td>
-        </tr>
-        <tr>
-            @if ($item->status === 'ditolak' && $item->keterangan)
-                <div class="mt-2 p-2 border rounded bg-light">
-                    <large class="text-danger font-weight-bold">
-                        Alasan Penolakan:
-                    </large>
-                    <div class="text-strong">
-                        {{ $item->keterangan }}
-                    </div>
-                </div>
-            @endif
-        </tr>
-        <!-- <tr>
-            <th width="140" class="py-1">Supplier</th>
-            <td class="py-1">
-                : {{ $item->supplier->nama ?? '-' }}
-            </td>
-        </tr> -->
+                <tr>
+                    <th width="140" class="py-1">Total Biaya</th>
+                    <td class="py-1">
+                        : Rp {{ number_format($item->total_harga, 0, ',', '.') }}
+                    </td>
+                </tr>
 
-        <tr>
-            <th width="140" class="py-1">Total Biaya</th>
-            <td class="py-1">
-                : Rp {{ number_format($item->total_harga, 0, ',', '.') }}
-            </td>
-        </tr>
-
-    </table>
+            </table>
+        </div>
+    </div>
 
     <table class="table table-bordered table-striped">
         <thead>
