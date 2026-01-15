@@ -23,20 +23,14 @@ class DatabaseSeeder extends Seeder
                 $this->call(RegionSeeder::class);
                 $this->call(KitchenSeeder::class);
                 $this->call(UserRoleSeeder::class);
-                
                 $this->call(SuperAdminPermissionSeeder::class);
                 $this->call(OperationalSeeder::class);
                 $this->call(UnitsSeeder::class);
                 $this->call(MenuSeeder::class);
                 $this->call(BahanBakuSeeder::class);
                 $this->call(RecipeBahanBakuSeeder::class);
-                // $this->call(SubmissionsSeeder::class);
                 $this->call(SuppliersSeeder::class);
                 $this->call(KitchenSupplierSeeder::class);
-                // $this->call(SubmissionsDetailSeeder::class);
-
-
-                // $this->call(SellsSeeder::class);
-                // $this->call(PurchaseSeeder::class);
+                
         }
 }
