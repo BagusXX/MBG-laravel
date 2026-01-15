@@ -4,14 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use App\Models\Kitchen;
 use App\Models\SubmissionDetails;
 use App\Models\Supplier;
-use SebastianBergmann\CodeCoverage\Report\Xml\Report;
 use Barryvdh\DomPDF\Facade\Pdf;
 
-class ReportSalesKitchenController extends Controller
+class ReportSalesPartnerController extends Controller
 {
     public function index(Request $request)
     {
@@ -53,11 +51,7 @@ class ReportSalesKitchenController extends Controller
 
         $reports = $query->paginate(10)->withQueryString();
 
-        $totalPageSubtotal = $reports->getCollection()->sum(function ($item) {
-            return ($item->submission->porsi ?? 0) * ($item->harga_dapur ?? 0);
-        });
-
-        return view('report.sales-kitchen', compact('kitchens', 'reports', 'suppliers', 'totalPageSubtotal'));
+        return view('report.sales-partner', compact('kitchens', 'reports', 'suppliers'));
     }
 
     public function invoice(Request $request)
@@ -95,8 +89,8 @@ class ReportSalesKitchenController extends Controller
         return ($item->submission->porsi ?? 0) * ($item->harga_dapur ?? 0);
     });
 
-    $pdf = PDF::loadView('report.invoiceReport-sales-kitchen', compact('submission','reports', 'totalPageSubtotal'));
+    $pdf = PDF::loadView('report.invoiceReport-sales-partner', compact('submission','reports', 'totalPageSubtotal'));
 
-    return $pdf->download('laporan penjualan dapur.pdf');
+    return $pdf->download('laporan penjualan mitra.pdf');
     }
 }
