@@ -20,6 +20,7 @@ class Submission extends Model
         'porsi',
         'total_harga',
         'status',
+        'keterangan',
         'parent_id',
         'supplier_id',
         'tipe'

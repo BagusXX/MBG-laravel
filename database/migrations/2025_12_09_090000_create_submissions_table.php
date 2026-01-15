@@ -24,6 +24,7 @@ return new class extends Migration {
                 'ditolak',
                 'selesai',
             ])->default('diajukan');
+            $table->text('keterangan')->nullable();
             $table->foreignId('parent_id')
                 ->nullable()
                 ->constrained('submissions')
