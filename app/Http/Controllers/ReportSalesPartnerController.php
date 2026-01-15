@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Kitchen;
 use App\Models\SubmissionDetails;
 use App\Models\Supplier;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReportSalesPartnerController extends Controller
 {
@@ -20,6 +21,10 @@ class ReportSalesPartnerController extends Controller
             'bahanBaku',
             'submission.supplier'
         ]);
+
+        $query->whereHas('submission', function ($q) {
+            $q->whereNotNull('parent_id');
+        });
 
         if ($request->filled('from_date')) {
             $query->whereHas('submission', fn ($q) =>
@@ -47,5 +52,45 @@ class ReportSalesPartnerController extends Controller
         $reports = $query->paginate(10)->withQueryString();
 
         return view('report.sales-partner', compact('kitchens', 'reports', 'suppliers'));
+    }
+
+    public function invoice(Request $request)
+    {
+        $query = SubmissionDetails::with(['submission.kitchen', 'bahanBaku', 'submission.supplier']); 
+
+        $query->whereHas('submission', function ($q) {
+            $q->whereNotNull('parent_id');
+        });
+
+    if ($request->from_date && $request->to_date) {
+        $query->whereHas('submission', function($q) use ($request) {
+            $q->whereBetween('tanggal', [$request->from_date, $request->to_date]);
+        });
+    }
+
+    if ($request->kitchen_id) {
+        $query->whereHas('submission', function($q) use ($request) {
+            $q->where('kitchen_id', $request->kitchen_id);
+        });
+    }
+
+    if ($request->supplier_id) {
+        $query->whereHas('submission', function($q) use ($request) {
+            $q->where('supplier_id', $request->supplier_id);
+        });
+    }
+
+    
+    $reports = $query->get();
+
+    $submission = $reports->first()->submission ?? null;
+
+    $totalPageSubtotal = $reports->sum(function ($item) {
+        return ($item->submission->porsi ?? 0) * ($item->harga_dapur ?? 0);
+    });
+
+    $pdf = PDF::loadView('report.invoiceReport-sales-partner', compact('submission','reports', 'totalPageSubtotal'));
+
+    return $pdf->download('laporan penjualan mitra.pdf');
     }
 }

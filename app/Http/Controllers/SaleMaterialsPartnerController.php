@@ -22,7 +22,7 @@ class SaleMaterialsPartnerController extends Controller
             'kitchen', 
             'menu',
             'supplier',
-            'details.recipe.bahan_baku.unit',
+            'details.recipeBahanBaku.bahan_baku.unit',
             'details.bahanBaku.unit'
         ])
             ->where('status', 'selesai')
@@ -111,7 +111,7 @@ class SaleMaterialsPartnerController extends Controller
             'kitchen',
             'menu',
             'supplier',
-            'details.recipe.bahan_baku.unit',
+            'details.recipeBahanBaku.bahan_baku.unit',
             'details.bahanBaku.unit'
         ])
             ->where('kode', $kode)
@@ -138,7 +138,7 @@ class SaleMaterialsPartnerController extends Controller
             'kitchen',
             'menu',
             'supplier',
-            'details.recipe.bahan_baku.unit',
+            'details.recipeBahanBaku.bahan_baku.unit',
             'details.bahanBaku.unit'
         ])
             ->where('kode', $kode)

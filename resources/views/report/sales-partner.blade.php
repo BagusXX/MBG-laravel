@@ -53,8 +53,11 @@
                                 <button type="submit" class="btn btn-primary mr-2">
                                     <i class="fa fa-search"></i> Filter
                                 </button>
-                                <a href="{{ route('report.sales-kitchen') }}" class="btn btn-danger">
+                                <a href="{{ route('report.sales-partner') }}" class="btn btn-danger">
                                     <i class="fa fa-undo"></i> Reset
+                                </a>
+                                <a href="{{ route('report.sales-partner.invoice', request()->all()) }}" class="btn btn-warning ml-2">
+                                    <i class="fa fa-print"></i> Cetak Invoice
                                 </a>
                             </div>
                         </div>
@@ -95,7 +98,13 @@
 
                         <td>{{ $report->submission->porsi }}</td>
                         <td>{{ $report->submission->kitchen->nama}}</td>
-                        <td>{{ $report->submission->supplier->nama }}</td>
+                        <td>     
+                            @if ($report->submission->supplier_id)
+                                {{ optional($report->submission->supplier)->nama }}
+                            @else
+                            -
+                            @endif
+                        </td>
                         <td>
                             @if ($report->recipe_bahan_baku_id)
                                 {{ optional(

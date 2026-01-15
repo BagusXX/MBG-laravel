@@ -266,7 +266,7 @@ class SubmissionApprovalController extends Controller
                     'bahan_baku_id' => $detail->bahan_baku_id,
                     'qty_digunakan' => $detail->qty_digunakan,
                     'harga_satuan' => $detail->harga_satuan,
-                    'harga_dapur' => null, // Child ke supplier tidak butuh harga dapur
+                    'harga_dapur' => $detail->harga_dapur, // Child ke supplier tidak butuh harga dapur
                     'harga_mitra' => $hargaMitra,
                     'subtotal_harga' => $subtotal,
                 ]);

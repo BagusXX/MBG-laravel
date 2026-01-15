@@ -57,7 +57,7 @@
                                     <i class="fa fa-undo"></i> Reset
                                 </a>
                                 <a href="{{ route('report.sales-kitchen.invoice', request()->all()) }}" class="btn btn-warning ml-2">
-                                    <i class="fa fa-file-pdf"></i> Cetak Invoice
+                                    <i class="fa fa-print"></i> Cetak Invoice
                                 </a>
                             </div>
                         </div>
@@ -86,9 +86,7 @@
                         <td>{{ \Carbon\Carbon::parse($report->submission->tanggal)->format('d-m-Y') }}</td>
                         <td>
                             @if ($report->recipe_bahan_baku_id)
-                                {{ optional(\App\Models\BahanBaku::find($report->recipe_bahan_baku_id))->nama }}
-                            @elseif ($report->bahan_baku_id)
-                                {{ optional($report->bahanBaku)->nama }}
+                                {{ optional(\App\Models\BahanBaku::find($report->bahan_baku_id))->nama }}
                             @else
                                 -
                             @endif
@@ -96,7 +94,13 @@
 
                         <td>{{ $report->submission->porsi }}</td>
                         <td>{{ $report->submission->kitchen->nama}}</td>
-                        <td>{{ $report->submission->supplier->nama }}</td>
+                        <td>
+                            @if ($report->submission->supplier_id)
+                                {{ optional($report->submission->supplier)->nama }}
+                            @else-
+
+                            @endif
+                        </td>
                         <td>
                             @if ($report->recipe_bahan_baku_id)
                                 {{ optional(
@@ -121,7 +125,7 @@
                 <tfoot>
                     <tr>
                         <td colspan="8" class="text-right"><strong>Total Harga :</strong></td>
-                        <td class="text-right"><strong>Rp {{ number_format($totalPageSubtotal, 0, ',', ',') }}</strong></td>
+                        <td class="text-left"><strong>Rp {{ number_format($totalPageSubtotal, 0, '.', '.') }}</strong></td>
                     </tr>
                 </tfoot>
             </table>

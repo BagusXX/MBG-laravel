@@ -4,14 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use App\Models\Kitchen;
 use App\Models\SubmissionDetails;
 use App\Models\Supplier;
-use SebastianBergmann\CodeCoverage\Report\Xml\Report;
 use Barryvdh\DomPDF\Facade\Pdf;
 
-class ReportSalesKitchenController extends Controller
+class ProfitController extends Controller
 {
     public function index(Request $request)
     {
@@ -57,7 +55,7 @@ class ReportSalesKitchenController extends Controller
             return ($item->submission->porsi ?? 0) * ($item->harga_dapur ?? 0);
         });
 
-        return view('report.sales-kitchen', compact('kitchens', 'reports', 'suppliers', 'totalPageSubtotal'));
+        return view('report.profit', compact('kitchens', 'reports', 'suppliers', 'totalPageSubtotal'));
     }
 
     public function invoice(Request $request)

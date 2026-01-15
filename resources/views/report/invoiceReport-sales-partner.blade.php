@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice Laporan Pembelian Dapur</title>
+    <title>Invoice Laporan Pembelian Mitra</title>
 
     {{-- ===== STYLE SAMA DENGAN PURCHASE ===== --}}
     <style>
@@ -137,7 +137,7 @@
     <div class="header">
         <h1>INVOICE</h1>
         <h1>LAPORAN PENJUALAN</h1>
-        <h1>DAPUR</h1>
+        <h1>MITRA</h1>
     </div>
 
     {{-- INFO --}}
@@ -168,7 +168,7 @@
                 <th >Dapur</th>
                 <th >Supplier</th>
                 <th >Satuan</th>
-                <th >Harga Dapur</th>
+                <th >Harga Mitra</th>
                 <th >Subtotal</th>
             </tr>
         </thead>
@@ -187,8 +187,8 @@
                             @endif
                     </td>
                     <td >{{ $item->bahanBaku->unit->satuan ?? '-' }}</td>
-                    <td >Rp {{ number_format($item->harga_dapur, 0, ',', '.') }}</td>
-                    <td >Rp {{ number_format(($item->submission->porsi ?? 0) * ($item->harga_dapur ?? 0), 0, ',', '.') }}</td>
+                    <td >Rp {{ number_format($item->harga_mitra, 0, ',', '.') }}</td>
+                    <td >Rp {{ number_format(($item->submission->porsi ?? 0) * ($item->harga_mitra ?? 0), 0, ',', '.') }}</td>
                 </tr>
             @endforeach
         </tbody>
