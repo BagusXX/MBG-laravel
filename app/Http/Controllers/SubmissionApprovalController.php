@@ -58,19 +58,21 @@ class SubmissionApprovalController extends Controller
         abort_if(!$submission->isParent(), 403, 'Aksi ini hanya untuk Pengajuan Utama (Parent)');
         abort_if(in_array($submission->status, ['selesai', 'ditolak']), 403, 'Pengajuan sudah ditutup');
 
-        $request->validate([
+        $rules = [
             'status' => 'required|in:selesai,ditolak',
-        ]);
+        ];
 
         if ($request->status === 'ditolak') {
             $rules['keterangan'] = 'required|string|min:5';
         }
 
-        $request->validate($rules);
+        $validated = $request->validate($rules);
 
         $submission->update([
-            'status' => $request->status,
-            'keterangan' => $request->status === 'ditolak' ? $request->keterangan : null
+            'status' => $validated['status'],
+            'keterangan' => $validated['status'] === 'ditolak'
+                ? $validated['keterangan']
+                : null,
         ]);
 
         return back()->with('success', 'Status berhasil diperbarui');

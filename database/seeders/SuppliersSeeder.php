@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Kitchen;
+use App\Models\Supplier;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -13,48 +15,17 @@ class SuppliersSeeder extends Seeder
      */
     public function run(): void
     {
-        //
-        $data = [
-            [
-                'kode' => 'SPR0001',
-                'nama' => 'Haryanto',
-                'alamat' => 'Temanggung',
-                'kontak' => 'Wawan',
-                'nomor' => '088216194722',
-                 
+        $kitchenCodes = Kitchen::pluck('kode')->toArray();
 
-            ],
-            [
-                'kode' => 'SPR0002',
-                'nama' => 'Haryanti',
-                'alamat' => 'Semarang',
-                'kontak' => 'Wiwin',
-                'nomor' => '088216194723',
-                
+        Supplier::factory(10)->create()->each(function ($supplier) use ($kitchenCodes) {
 
-            ],
-            [
-                'kode' => 'SPR0003',
-                'nama' => 'Reisa',
-                'alamat' => 'Ungaran',
-                'kontak' => 'Parjo',
-                'nomor' => '088216194722',
-                
+            $randomKitchenCodes = collect($kitchenCodes)
+                ->shuffle()
+                ->take(rand(3, count($kitchenCodes)))
+                ->toArray();
 
-            ],
-            [
-                'kode' => 'SPR0004',
-                'nama' => 'Hasan',
-                'alamat' => 'Tunjakan',
-                'kontak' => 'Anda',
-                'nomor' => '088216194722',
-                 
-
-            ],
-
-        ];
-
-        DB::table('suppliers')->insert($data);
+            $supplier->kitchens()->attach($randomKitchenCodes);
+        });
 
     }
 }
