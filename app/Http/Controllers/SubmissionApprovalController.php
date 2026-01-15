@@ -180,7 +180,7 @@ class SubmissionApprovalController extends Controller
 
     public function getSubmissionData(Submission $submission)
     {
-        $submission->load(['kitchen', 'menu', 'children.supplier']); // Load children & suppliernya
+        $submission->load(['kitchen', 'menu', 'children.supplier', 'children.details.bahanBaku']); // Load children & suppliernya
 
         // Format data children untuk riwayat
         $history = $submission->children->map(function ($child) {
@@ -190,7 +190,14 @@ class SubmissionApprovalController extends Controller
                 'supplier_nama' => $child->supplier->nama ?? 'Umum',
                 'status' => $child->status,
                 'total' => $child->total_harga,
-                'item_count' => $child->details()->count() // Opsional: jumlah item
+                'item_count' => $child->details()->count(), // Opsional: jumlah item
+                'items' => $child->details->map(function ($detail) {
+                    return [
+                        'nama' => $detail->bahanBaku->nama ?? '-',
+                        'qty' => $detail->qty_digunakan,
+                        'harga' => $detail->harga_mitra ?? $detail->harga_satuan,
+                    ];
+                })->values()
             ];
         });
 

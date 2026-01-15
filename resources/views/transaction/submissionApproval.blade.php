@@ -145,56 +145,88 @@
             <div class="modal-body modal-body-scroll">
                 
                 {{-- INFO & HEADER ACTIONS --}}
-                <div class="d-flex justify-content-between align-items-start mb-3 border-bottom pb-3">
+                <div class=" mb-3 border-bottom pb-3">
                     <table class="table-borderless" style="width: 50%">
-                        <tr><td width="120" class="font-weight-bold">Dapur</td><td>: <span id="infoDapur"></span></td></tr>
-                        <tr><td class="font-weight-bold">Tanggal</td><td>: <span id="infoTanggal"></span></td></tr>
-                        <tr><td class="font-weight-bold">Status</td><td>: <span id="infoStatusBadge"></span></td></tr>
+                        <tr><th width="120" class="py-1">Dapur</th><td class="py-1">: <span id="infoDapur"></span></td></tr>
+                        <tr><th class="py-1">Tanggal</th><td class="py-1">: <span id="infoTanggal"></span></td></tr>
+                        <tr><th class="py-1">Status</th><td class="py-1">: <span id="infoStatusBadge"></span></td></tr>
                     </table>
 
                     {{-- Actions --}}
-                    <div id="wrapperActions">
+                    <div id="wrapperActions" class="text-right">
                          {{-- Tombol Tolak (Muncul saat Diajukan) --}}
                         <button type="button" class="btn btn-danger d-none" id="btnTolakParent">
                             <i class="fas fa-times mr-2"></i> Tolak
                         </button>
                         {{-- Tombol Selesai (Muncul saat Diproses) --}}
-                        <button type="button" class="btn btn-success btn-lg d-none" id="btnSelesaiParent">
+                        <button type="button" class="btn btn-success btn-md d-none" id="btnSelesaiParent">
                             <i class="fas fa-check-circle mr-2"></i> Selesaikan Pengajuan
                         </button>
                     </div>
                 </div>
 
                 {{-- PANEL SUPPLIER (SPLIT ORDER) --}}
-                <div id="panelSupplier" class="d-none mb-4 p-3 bg-white rounded border shadow-sm">
-                    <label class="font-weight-bold text-primary">Pilih Supplier untuk Barang Tercentang:</label>
-                    <div class="row">
+                {{-- <div id="panelSupplier" class="d-none mb-4 p-3 bg-white rounded border shadow-sm"> --}}
+                    {{-- <div id="panelSupplier" class="d-flex align-items-end mb-2">
                         <div class="col-md-8">
-                            <select id="selectSupplierSplit" class="form-control" style="width: 100%">
+                            <label class="font-weight-bold mb-1">Pilih Supplier untuk Barang Tercentang:</label>
+                            <select id="selectSupplierSplit" class="form-control" required>
                                 <option value="">- Memuat data... -</option>
                                 @foreach($suppliers as $s)
                                     <option value="{{ $s->id }}">{{ $s->nama }}</option>
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-4 text-right">
                             <button type="button" class="btn btn-primary btn-block" id="btnSplitOrder">
                                 <i class="fas fa-paper-plane mr-1"></i> Proses Split Order
                             </button>
                         </div>
+                    </div> --}}
+                    <div id="panelSupplier" class="row align-items-end mb-3">
+                        <div class="col-md-8">
+                            <div class="form-group mb-0">
+                                <label class="font-weight-bold text-primary d-block mb-1">
+                                    Pilih Supplier untuk Barang Tercentang:
+                                </label>
+    
+                                <select 
+                                    id="selectSupplierSplit"
+                                    class="form-control"
+                                    {{-- style="width: 100%" --}}
+                                    required
+                                >
+                                    <option value="" selected disabled>- Pilih Supplier Khusus Dapur Ini -</option>
+                                    @foreach($suppliers as $s)
+                                        <option value="{{ $s->id }}">{{ $s->nama }}</option>
+                                    @endforeach
+                                </select>
+
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <button type="button"
+                                    class="btn btn-primary btn-block"
+                                    id="btnSplitOrder">
+                                <i class="fas fa-paper-plane mr-1"></i>
+                                Proses Split Order
+                            </button>
+                        </div>
                     </div>
-                </div>
+
+                {{-- </div> --}}
 
                 {{-- TABEL RINCIAN --}}
                 <form id="formUpdateHarga">
                     <div class="table-responsive">
-                        <table class="table table-bordered table-hover table-middle">
-                            <thead class="thead-light">
+                        <table class="table table-bordered table-striped">
+                            <thead>
                                 <tr>
                                     <th width="40" class="text-center">
                                         <input type="checkbox" id="checkAll">
                                     </th>
-                                    <th>Barang Operasional</th>
+                                    <th>Bahan Baku</th>
                                     <th width="90" class="text-center">Qty</th>
                                     <th width="80" class="text-center">Satuan</th>
                                     {{-- DUA KOLOM HARGA DITAMPILKAN --}}
@@ -273,7 +305,7 @@
     $(document).ready(function() {
         
         $('#selectBahanManual').select2({ dropdownParent: $('#modalAddBahanManual') });
-        $('#selectSupplierSplit').select2({ dropdownParent: $('#modalApproval') });
+        // $('#selectSupplierSplit').select2({ dropdownParent: $('#modalApproval') });
 
         $('form').on('wheel', 'input[type=number]', function(e) {
             $(this).blur();
@@ -358,6 +390,19 @@
                 if(data.history && data.history.length > 0) {
                     data.history.forEach(h => {
                         let invoiceUrl = "{{ url('dashboard/transaksi/approval-menu') }}/" + h.id + "/invoice";
+                        let itemsHtml = '';
+                        if (h.items && h.items.length > 0) {
+                            h.items.forEach(item => {
+                                itemsHtml += `
+                                    <li>
+                                        ${item.nama}
+                                        (${item.qty} x ${formatRupiah(item.harga)})
+                                    </li>
+                                `;
+                            });
+                        } else {
+                            itemsHtml = `<li class="text-muted font-italic">Tidak ada item</li>`;
+                        }
                         historyHtml += `
                             <div class="card mb-2 border">
                                 <div class="card-body p-3">
@@ -381,9 +426,9 @@
                                     </div>
 
                                     {{-- Opsional: List Item Ringkas (Jika ingin seperti gambar referensi) --}}
-                                    {{-- <ul class="mb-2 text-muted small pl-3">
-                                        <li>Contoh Item...</li>
-                                    </ul> --}}
+                                    <ul class="mb-0 pl-3" style="font-size: 0.9em;">
+                                        ${itemsHtml}
+                                    </ul>
 
                                     {{-- TOMBOL CETAK INVOICE (Posisi Kanan Bawah) --}}
                                     <div class="text-right mt-2 border-top pt-2">
@@ -424,7 +469,7 @@
                                 <input type="checkbox" class="check-item" value="${item.id}">
                             </td>
                             <td class="align-middle">
-                                <span class="font-weight-bold text-dark">${item.bahan_baku?.nama || '-'}</span>
+                                <span class= text-dark">${item.bahan_baku?.nama || '-'}</span>
                                 ${manualLabel}
                                 <small class="text-muted">${item.bahan_baku?.unit?.nama || ''}</small>
                                 <input type="hidden" name="details[${item.id}][id]" value="${item.id}">
@@ -451,7 +496,7 @@
                                     value="${parseFloat(item.harga_mitra || 0)}" placeholder="0">
                             </td>
 
-                            <td class="text-right align-middle font-weight-bold">
+                            <td class="text-right align-middle">
                                 ${formatRupiah(subtotal)}
                             </td>
                             <td class="text-center align-middle">
