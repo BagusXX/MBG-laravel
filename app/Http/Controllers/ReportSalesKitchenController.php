@@ -58,10 +58,30 @@ class ReportSalesKitchenController extends Controller
 
     public function printInvoice(Request $request)
     {
-        $reports = Report::query();
-        $data = $reports->get();
+        $query = SubmissionDetails::query(); // Sesuaikan dengan model kamu
 
-        $pdf = PDF::loadview('report.invoiceReport-sales-kitchen', compact('data'));
-        return $pdf->download('invoice-penjualan-dapur' . now()->format('d-m-Y') . '.pdf');
+    if ($request->from_date && $request->to_date) {
+        $query->whereHas('submission', function($q) use ($request) {
+            $q->whereBetween('tanggal', [$request->from_date, $request->to_date]);
+        });
+    }
+
+    if ($request->kitchen_id) {
+        $query->whereHas('submission', function($q) use ($request) {
+            $q->where('kitchen_id', $request->kitchen_id);
+        });
+    }
+
+    if ($request->supplier_id) {
+        $query->whereHas('submission', function($q) use ($request) {
+            $q->where('supplier_id', $request->supplier_id);
+        });
+    }
+
+    $reports = $query()->get();
+
+    $pdf = PDF::loadView('report.invoiceReport-sales-kitchen', compact('reports'));
+
+    return $pdf->download('laporan penjualan dapur.pdf');
     }
 }

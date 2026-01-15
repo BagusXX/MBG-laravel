@@ -56,7 +56,7 @@
                                 <a href="{{ route('report.sales-kitchen') }}" class="btn btn-danger">
                                     <i class="fa fa-undo"></i> Reset
                                 </a>
-                                <a href="{{ route('report.sales-kitchen.Invoice', request()->all()) }}" class="btn btn-warning">
+                                <a href="{{ route('report.sales-kitchen.invoice', request()->all()) }}" class="btn btn-warning ml-2">
                                     <i class="fa fa-file-pdf"></i> Cetak Invoice
                                 </a>
                             </div>

@@ -446,6 +446,9 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/penjualan-dapur', [ReportSalesKitchenController::class, 'index'])
                 ->middleware('permission:report.sales-kitchen.view')
                 ->name('sales-kitchen');
+            Route::get('/penjualan-dapur/invoice', [ReportSalesKitchenController::class, 'invoice'])
+                ->middleware('permission:report.sales-kitchen.invoice')
+                ->name('sales-kitchen.invoice');
 
             Route::get('/pembelian-operational', [ReportPurchaseOperationalController::class, 'index'])
                 ->middleware('permission:report.purchase-operational.view')
@@ -453,7 +456,7 @@ Route::middleware(['auth'])->group(function () {
 
             Route::get('/pembelian-operational/invoice', [ReportPurchaseOperationalController::class, 'invoice'])
                 ->middleware('permission:report.purchase-operational.invoice')
-                ->name('report.purchase-operational.invoice');
+                ->name('purchase-operational.invoice');
 
             Route::get('/penjualan-mitra', [ReportSalesPartnerController::class, 'index'])
             ->middleware('permission:report.sales-partner.view')
