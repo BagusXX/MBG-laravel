@@ -283,6 +283,14 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/{submission}/split', 'splitToSupplier')
                 ->middleware('permission:transaction.submission-approval.split')
                 ->name('split');
+
+            Route::delete('/child/{submission}', 'destroyChild')
+                ->middleware('permission:transaction.submission-approval.delete-detail') // Gunakan permission yang relevan
+                ->name('destroy-child');
+
+            Route::get('/{submission}/invoice', [SubmissionApprovalController::class, 'printInvoice'])->name('invoice');
+            Route::get('/{submission}/parent-invoice', [SubmissionApprovalController::class, 'printParentInvoice'])
+                ->name('print-parent-invoice');
         });
 
 

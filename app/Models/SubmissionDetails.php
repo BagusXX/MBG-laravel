@@ -59,9 +59,9 @@ class SubmissionDetails extends Model
         static::saving(function ($detail) {
 
             // Qty tidak boleh diubah (selalu dari recipe x porsi)
-            if ($detail->isDirty('qty_digunakan') && $detail->exists) {
-                throw new \LogicException('Qty bahan baku tidak boleh diubah');
-            }
+            // if ($detail->isDirty('qty_digunakan') && $detail->exists) {
+            //     throw new \LogicException('Qty bahan baku tidak boleh diubah');
+            // }
 
             // Harga satuan wajib ada
             if (is_null($detail->harga_satuan)) {

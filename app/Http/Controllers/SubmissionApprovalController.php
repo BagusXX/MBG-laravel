@@ -55,7 +55,7 @@ class SubmissionApprovalController extends Controller
 
     public function updateStatus(Request $request, Submission $submission)
     {
-        abort_if(!$submission->isChild(), 403, 'Hanya child submission');
+        abort_if(!$submission->isParent(), 403, 'Aksi ini hanya untuk Pengajuan Utama (Parent)');
         abort_if($submission->status === 'selesai', 403, 'Sudah selesai');
 
         $request->validate([
@@ -80,35 +80,52 @@ class SubmissionApprovalController extends Controller
         );
     }
 
+    // app/Http/Controllers/SubmissionApprovalController.php
+
     public function updateHarga(Request $request, Submission $submission)
     {
-        $this->ensureEditable($submission);
+        // 1. Cek Status
+        if (in_array($submission->status, ['selesai', 'ditolak'])) {
+            return response()->json(['message' => 'Pengajuan sudah terkunci dan tidak bisa diedit.'], 403);
+        }
 
+        // 2. Validasi (Gunakan 'nullable' agar input kosong tidak error)
         $request->validate([
             'details' => 'required|array',
             'details.*.id' => 'required|exists:submission_details,id',
-            'details.*.qty_digunakan' => 'required|numeric|min:0.0001',
-            'details.*.harga_dapur' => 'required|numeric|min:0',
-            'details.*.harga_mitra' => 'required|numeric|min:0',
+            'details.*.qty_digunakan' => 'required|numeric|min:0', // Qty wajib angka
+            'details.*.harga_dapur' => 'nullable|numeric|min:0', // Boleh kosong/0
+            'details.*.harga_mitra' => 'nullable|numeric|min:0', // Boleh kosong/0
         ]);
 
         DB::transaction(function () use ($request, $submission) {
             foreach ($request->details as $row) {
-                $detail = SubmissionDetails::where('id', $row['id'])
-                    ->where('submission_id', $submission->id)
-                    ->firstOrFail();
+                $detail = SubmissionDetails::find($row['id']);
 
-                $detail->update([
-                    'qty_digunakan' => $row['qty_digunakan'],
-                    'harga_dapur' => $row['harga_dapur'],
-                    'harga_mitra' => $row['harga_mitra'],
-                ]);
+                // Pastikan detail milik submission ini (Security check)
+                if ($detail && $detail->submission_id === $submission->id) {
+
+                    // Jika input kosong/null, anggap 0
+                    $hargaDapur = $row['harga_dapur'] ?? 0;
+                    $hargaMitra = $row['harga_mitra'] ?? 0;
+
+                    // Update Data
+                    $detail->update([
+                        'qty_digunakan' => $row['qty_digunakan'],
+                        'harga_dapur' => $hargaDapur,
+                        'harga_mitra' => $hargaMitra,
+                        // Subtotal akan dihitung otomatis oleh Model (booted/saving)
+                        // Tapi jika ingin memaksa update timestamp agar trigger observer:
+                        'updated_at' => now(),
+                    ]);
+                }
             }
 
+            // Hitung ulang total parent
             $this->recalculateTotal($submission);
         });
 
-        return response()->json(['success' => true]);
+        return response()->json(['success' => true, 'message' => 'Perubahan berhasil disimpan']);
     }
 
     public function addManualBahan(Request $request, Submission $submission)
@@ -128,6 +145,7 @@ class SubmissionApprovalController extends Controller
 
             SubmissionDetails::create([
                 'submission_id' => $submission->id,
+                'recipe_bahan_baku_id' => null,
                 'bahan_baku_id' => $bahan->id,
                 'qty_digunakan' => $request->qty_digunakan,
                 'harga_satuan' => $bahan->harga,
@@ -176,91 +194,157 @@ class SubmissionApprovalController extends Controller
             ];
         });
 
+        $availableSuppliers = $submission->kitchen->suppliers->values();
+
         return response()->json([
             'id' => $submission->id,
             'kode' => $submission->kode,
-            'tanggal' => $submission->tanggal,
+            'tanggal' => date('d-m-Y', strtotime($submission->tanggal)),
             'kitchen' => $submission->kitchen->nama,
             'menu' => $submission->menu->nama,
             'porsi' => $submission->porsi,
             'status' => $submission->status,
-            'history' => $history // <--- Kirim data riwayat ke JS
+            'history' => $history,
+            'suppliers' => $availableSuppliers // <--- Kirim data riwayat ke JS
         ]);
     }
 
-    public function splitToSupplier(Request $request, Submission $parent)
+
+    public function splitToSupplier(Request $request, Submission $submission)
     {
+        // Cek apakah data benar-benar ada (Debugging - Hapus nanti jika sudah fix)
+        // dd($submission->toArray()); 
 
-
-        // Validasi input checkbox
-        $request->validate([
-            'supplier_id' => 'required|exists:suppliers,id',
-            'selected_details' => 'required|array', // Array ID dari checkbox
-            'selected_details.*' => 'exists:submission_details,id',
-        ]);
-
-        if ($parent->status === 'diajukan') {
-            $parent->update(['status' => 'diproses']);
+        // Logic auto-update status jika masih diajukan
+        if ($submission->status === 'diajukan') {
+            $submission->update(['status' => 'diproses']);
         }
 
-        abort_if(in_array($parent->status, ['selesai', 'ditolak']), 403, 'Pengajuan sudah ditutup');
+        // Validasi Status
+        abort_if(in_array($submission->status, ['selesai', 'ditolak']), 403, 'Pengajuan sudah ditutup');
 
         $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
             'selected_details' => 'required|array',
             'selected_details.*' => 'exists:submission_details,id',
         ]);
-        
-        DB::transaction(function () use ($parent, $request) {
-            // 1. Buat Child Submission
+
+        DB::transaction(function () use ($submission, $request) {
+
+            // 1. GENERATE KODE CHILD
+            // Format: KODE_PARENT-1, KODE_PARENT-2, dst.
+            $childSequence = Submission::where('parent_id', $submission->id)->count() + 1;
+            $childKode = $submission->kode . '-' . $childSequence;
+
+            // 2. BUAT CHILD SUBMISSION
             $child = Submission::create([
-                'kode' => $parent->kode . '-' . (Submission::where('parent_id', $parent->id)->count() + 1),
+                'kode' => $childKode,
                 'tanggal' => now(),
-                'kitchen_id' => $parent->kitchen_id,
-                'menu_id' => $parent->menu_id,
-                'porsi' => $parent->porsi,
+                'kitchen_id' => $submission->kitchen_id, // Data diambil dari $submission
+                'menu_id' => $submission->menu_id,       // Data diambil dari $submission
+                'porsi' => $submission->porsi,           // Data diambil dari $submission
                 'total_harga' => 0,
                 'tipe' => 'disetujui',
-                'status' => 'diproses', // Atau 'disetujui' sesuai flow Anda
-                'parent_id' => $parent->id,
+                'status' => 'diproses',
+                'parent_id' => $submission->id,
                 'supplier_id' => $request->supplier_id,
             ]);
 
             $total = 0;
 
-            // 2. Ambil detail yang DICENTANG saja
-            $detailsToMove = SubmissionDetails::whereIn('id', $request->selected_details)->get();
+            // 3. PINDAHKAN DETAIL YANG DICENTANG
+            $detailsToCopy = SubmissionDetails::whereIn('id', $request->selected_details)->get();
 
-            foreach ($detailsToMove as $detail) {
+            foreach ($detailsToCopy as $detail) {
+                // Gunakan harga mitra jika ada, jika tidak pakai harga dapur
                 $hargaMitra = $detail->harga_mitra ?? $detail->harga_dapur;
                 $subtotal = $hargaMitra * $detail->qty_digunakan;
 
-                // Copy ke Child
                 SubmissionDetails::create([
                     'submission_id' => $child->id,
                     'recipe_bahan_baku_id' => $detail->recipe_bahan_baku_id,
                     'bahan_baku_id' => $detail->bahan_baku_id,
                     'qty_digunakan' => $detail->qty_digunakan,
                     'harga_satuan' => $detail->harga_satuan,
-                    'harga_dapur' => null,
+                    'harga_dapur' => null, // Child ke supplier tidak butuh harga dapur
                     'harga_mitra' => $hargaMitra,
                     'subtotal_harga' => $subtotal,
                 ]);
 
                 $total += $subtotal;
-
-                // OPSIONAL: Apakah item di Parent dihapus setelah di-split?
-                // Jika YA, uncomment baris bawah:
-                // $detail->delete(); 
             }
 
+            // Update total harga child
             $child->update(['total_harga' => $total]);
-
-            // Update total parent jika item dihapus (jika pakai opsi hapus)
-            // $this->recalculateTotal($parent);
         });
 
         return response()->json(['success' => true, 'message' => 'Order berhasil dipisah ke supplier']);
     }
+    // app/Http/Controllers/SubmissionApprovalController.php
 
+    public function destroyChild(Submission $submission)
+    {
+        // 1. Pastikan yang dihapus adalah Child (PO Supplier)
+        abort_if(!$submission->isChild(), 403, 'Hanya split order (child) yang bisa dihapus di sini.');
+
+        // 2. Cek Status (Opsional: Jangan izinkan hapus jika sudah selesai/diterima supplier)
+        if ($submission->status === 'selesai') {
+            return response()->json(['message' => 'PO ini sudah selesai, tidak bisa dihapus.'], 403);
+        }
+
+        DB::transaction(function () use ($submission) {
+            // Hapus detailnya dulu (karena cascade kadang perlu trigger manual tergantung db engine)
+            $submission->details()->delete();
+
+            // Hapus headernya
+            $submission->delete(); // SoftDelete jika aktif, atau Force Delete
+        });
+
+        return response()->json(['success' => true, 'message' => 'Split order berhasil dihapus.']);
+    }
+
+    public function getBahanBakuByKitchen($kitchenId)
+    {
+        // Pastikan Kitchen ID valid/ada
+        if (!$kitchenId) {
+            return response()->json([], 400);
+        }
+
+        // Ambil bahan baku berdasarkan kitchen_id
+        // Menggunakan 'values()' agar array index di-reset (antisipasi JS object vs array)
+        $bahan = BahanBaku::where('kitchen_id', $kitchenId)
+            ->whereNull('deleted_at') // Pastikan tidak terhapus (jika pakai soft deletes)
+            ->with('unit')            // Load relasi satuan agar tampil di dropdown (kg, gram, dll)
+            ->orderBy('nama')
+            ->get()
+            ->values();
+
+        return response()->json($bahan);
+    }
+
+    public function printInvoice(Submission $submission)
+    {
+        // Pastikan memuat relasi yang dibutuhkan untuk invoice
+        $submission->load(['kitchen', 'supplier', 'details.bahanBaku.unit', 'details.recipeBahanBaku']);
+
+        return view('transaction.invoice-submission', compact('submission'));
+    }
+
+    // app/Http/Controllers/SubmissionApprovalController.php
+
+    public function printParentInvoice(Submission $submission)
+    {
+        // 1. Pastikan ini adalah Parent dan Status Selesai
+        abort_if(!$submission->isParent(), 404);
+
+        // 2. Load semua relasi: Children (Split Order), Supplier, dan Detail Barang
+        $submission->load([
+            'kitchen',
+            'children.supplier',
+            'children.details.bahanBaku.unit'
+        ]);
+
+        // 3. Kirim ke view invoice parent
+        return view('transaction.invoice-submissionParent', compact('submission'));
+    }
 }

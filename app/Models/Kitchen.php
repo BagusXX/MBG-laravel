@@ -51,11 +51,20 @@ class Kitchen extends Model
         return $this->hasMany(operationals::class);
     }
 
-    public function operationaldetails(){
+    public function operationaldetails()
+    {
         return $this->hasMany(submissionOperational::class);
     }
 
-    public function suppliers(){
-        return $this->belongsToMany(Supplier::class, 'kitchen_suppliers','suppliers_id','kitchen_kode', 'id', 'kode');
+    public function suppliers()
+    {
+        return $this->belongsToMany(
+            Supplier::class,      // Model Lawan
+            'kitchen_suppliers',  // Tabel Pivot
+            'kitchen_kode',       // Foreign Key milik Kitchen di Pivot
+            'suppliers_id',       // Foreign Key milik Supplier di Pivot
+            'kode',               // Local Key di tabel Kitchen (menggunakan 'kode')
+            'id'                  // Local Key di tabel Supplier (menggunakan 'id')
+        );
     }
 }

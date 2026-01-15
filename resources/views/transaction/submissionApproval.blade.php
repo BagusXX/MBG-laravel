@@ -5,6 +5,7 @@
 @section('css')
     <link rel="stylesheet" href="{{ asset('css/notification-pop-up.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <style>
         /* Agar input number tidak ada panah spin up/down (opsional, biar rapi) */
         input[type=number]::-webkit-inner-spin-button, 
@@ -13,6 +14,10 @@
             margin: 0; 
         }
         .table-middle td { vertical-align: middle; }
+
+        input[type=number] {
+            -moz-appearance: textfield; /* Untuk Firefox */
+        }
     </style>
 @endsection
 
@@ -96,13 +101,25 @@
                         </span>
                     </td>
                     <td class="text-center">
-                        <button
-                            class="btn btn-primary btn-sm btn-proses"
-                            data-id="{{ $item->id }}"
-                            data-kitchen-id="{{ $item->kitchen_id }}"
-                        >
-                            <i class="fas fa-edit"></i> Review
-                        </button>
+                        <div class="btn-group btn-group-sm">
+                            {{-- Tombol Review (Selalu Muncul) --}}
+                            <button class="btn btn-primary btn-proses" 
+                                    data-id="{{ $item->id }}" 
+                                    data-kitchen-id="{{ $item->kitchen_id }}"
+                                    title="Detail / Review">
+                                <i class="fas fa-eye"></i> Detail
+                            </button>
+
+                            {{-- Tombol Cetak Invoice (Hanya Muncul Jika Status SELESAI) --}}
+                            @if($item->status === 'selesai')
+                                <a href="{{ route('transaction.submission-approval.print-parent-invoice', $item->id) }}" 
+                                target="_blank" 
+                                class="btn btn-secondary" 
+                                title="Cetak Rekap Invoice">
+                                    <i class="fas fa-print"></i>  Cetak Invoice
+                                </a>
+                            @endif
+                        </div>
                     </td>
                 </tr>
                 @endforeach
@@ -154,7 +171,7 @@
                     <div class="row">
                         <div class="col-md-8">
                             <select id="selectSupplierSplit" class="form-control" style="width: 100%">
-                                <option value="">- Pilih Supplier -</option>
+                                <option value="">- Memuat data... -</option>
                                 @foreach($suppliers as $s)
                                     <option value="{{ $s->id }}">{{ $s->nama }}</option>
                                 @endforeach
@@ -179,6 +196,7 @@
                                     </th>
                                     <th>Barang Operasional</th>
                                     <th width="90" class="text-center">Qty</th>
+                                    <th width="80" class="text-center">Satuan</th>
                                     {{-- DUA KOLOM HARGA DITAMPILKAN --}}
                                     <th width="140" class="text-right">Hrg Dapur</th>
                                     <th width="140" class="text-right">Hrg Mitra</th>
@@ -244,16 +262,22 @@
 
 @section('js')
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script>
     let currentSubmissionId = null;
     let currentKitchenId = null;
 
     const formatRupiah = (num) => 'Rp ' + parseFloat(num).toLocaleString('id-ID', {minimumFractionDigits: 0});
+    toastr.options = { "closeButton": true, "progressBar": true, "positionClass": "toast-top-right" };
 
     $(document).ready(function() {
         
         $('#selectBahanManual').select2({ dropdownParent: $('#modalAddBahanManual') });
         $('#selectSupplierSplit').select2({ dropdownParent: $('#modalApproval') });
+
+        $('form').on('wheel', 'input[type=number]', function(e) {
+            $(this).blur();
+        });
 
         // --- BUKA MODAL ---
         $('.btn-proses').on('click', function() {
@@ -261,6 +285,36 @@
             currentKitchenId = $(this).data('kitchen-id');
             loadAllData();
             $('#modalApproval').modal('show');
+        });
+
+        // --- HAPUS CHILD SUBMISSION (SPLIT ORDER) ---
+        $(document).on('click', '.btn-delete-child', function() {
+            let childId = $(this).data('id');
+            
+            if(confirm('Yakin ingin membatalkan/menghapus split order ini?')) {
+                // Tampilkan loading sementara
+                let btn = $(this);
+                let originalContent = btn.html();
+                btn.html('<i class="fas fa-spinner fa-spin"></i>').prop('disabled', true);
+
+                $.ajax({
+                    url: "{{ url('dashboard/transaksi/approval-menu/child') }}/" + childId,
+                    type: 'DELETE',
+                    data: { _token: '{{ csrf_token() }}' },
+                    success: function(res) {
+                        alert('Split order berhasil dihapus.');
+                        loadAllData(); // Reload data modal agar list riwayat terupdate
+                    },
+                    error: function(xhr) {
+                        btn.html(originalContent).prop('disabled', false);
+                        let msg = 'Gagal menghapus data.';
+                        if(xhr.responseJSON && xhr.responseJSON.message) {
+                            msg += '\n' + xhr.responseJSON.message;
+                        }
+                        alert(msg);
+                    }
+                });
+            }
         });
 
         function loadAllData() {
@@ -287,20 +341,56 @@
                     $('#btnSelesaiParent, #panelSupplier').removeClass('d-none');
                 }
 
+                let supplierOpts = '<option value="">- Pilih Supplier Khusus Dapur Ini -</option>';
+                if (data.suppliers && data.suppliers.length > 0) {
+                    data.suppliers.forEach(s => {
+                        supplierOpts += `<option value="${s.id}">${s.nama}</option>`;
+                    });
+                } else {
+                    supplierOpts = '<option value="" disabled>Tidak ada supplier untuk dapur ini</option>';
+                }
+                
+                // Masukkan HTML option ke dalam Select
+                $('#selectSupplierSplit').html(supplierOpts);
+
                 // Render Riwayat
                 let historyHtml = '';
                 if(data.history && data.history.length > 0) {
                     data.history.forEach(h => {
+                        let invoiceUrl = "{{ url('dashboard/transaksi/approval-menu') }}/" + h.id + "/invoice";
                         historyHtml += `
-                            <div class="alert alert-light border d-flex justify-content-between align-items-center mb-2 p-2">
-                                <div>
-                                    <strong class="text-dark">${h.kode}</strong> 
-                                    <span class="text-muted mx-2">|</span> 
-                                    <i class="fas fa-truck mr-1 text-info"></i> ${h.supplier_nama}
-                                </div>
-                                <div>
-                                    <span class="badge badge-success mr-3">DISETUJUI</span>
-                                    <strong class="mr-3">${formatRupiah(h.total)}</strong>
+                            <div class="card mb-2 border">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <strong class="text-dark" style="font-size: 1.1em;">${h.kode}</strong> 
+                                            <span class="text-muted mx-2">|</span> 
+                                            <i class="fas fa-truck mr-1 text-secondary"></i> ${h.supplier_nama}
+                                        </div>
+                                        <div class="d-flex align-items-center">
+                                            <span class="badge badge-success mr-3 px-2 py-1">DISETUJUI</span>
+                                            <strong class="mr-3 text-dark" style="font-size: 1.1em;">${formatRupiah(h.total)}</strong>
+                                            
+                                            {{-- Tombol Hapus --}}
+                                            <button class="btn btn-sm btn-outline-danger btn-delete-child" 
+                                                    data-id="${h.id}" 
+                                                    title="Hapus Split Order">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {{-- Opsional: List Item Ringkas (Jika ingin seperti gambar referensi) --}}
+                                    {{-- <ul class="mb-2 text-muted small pl-3">
+                                        <li>Contoh Item...</li>
+                                    </ul> --}}
+
+                                    {{-- TOMBOL CETAK INVOICE (Posisi Kanan Bawah) --}}
+                                    <div class="text-right mt-2 border-top pt-2">
+                                        <a href="${invoiceUrl}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                            <i class="fas fa-print mr-1"></i> Cetak Invoice
+                                        </a>
+                                    </div>
                                 </div>
                             </div>`;
                     });
@@ -326,6 +416,7 @@
                     grandTotal += subtotal;
 
                     let manualLabel = item.recipe_bahan_baku_id === null ? '<small class="text-info d-block font-italic">(Manual)</small>' : '';
+                    let namaSatuan = item.bahan_baku?.unit?.satuan || '-';
 
                     html += `
                         <tr>
@@ -341,6 +432,9 @@
                             <td class="align-middle px-1">
                                 <input type="number" step="0.0001" class="form-control form-control-sm text-center bg-light" 
                                     name="details[${item.id}][qty_digunakan]" value="${parseFloat(item.qty_digunakan)}">
+                            </td>
+                            <td class="text-center align-middle">
+                                <span class="badge badge-light border">${namaSatuan}</span>
                             </td>
                             
                             {{-- KOLOM HARGA DAPUR --}}
@@ -385,43 +479,92 @@
         $('#btnSplitOrder').on('click', function() {
             let supplierId = $('#selectSupplierSplit').val();
             let selectedIds = [];
-            $('.check-item:checked').each(function() { selectedIds.push($(this).val()); });
+            
+            // Pastikan class '.check-item' sesuai dengan yang ada di render tabel HTML
+            $('.check-item:checked').each(function() {
+                selectedIds.push($(this).val());
+            });
+
+            // Debugging: Cek di Console browser apakah ID tertangkap
+            console.log("Supplier:", supplierId);
+            console.log("Items:", selectedIds);
 
             if(!supplierId) { alert('Harap pilih supplier!'); return; }
             if(selectedIds.length === 0) { alert('Harap centang minimal satu barang!'); return; }
 
-            if(confirm(`Proses ${selectedIds.length} item ke supplier terpilih?`)) {
+            if(confirm(`Yakin ingin memproses ${selectedIds.length} item ke supplier ini?`)) {
                 $.ajax({
                     url: "{{ url('dashboard/transaksi/approval-menu') }}/" + currentSubmissionId + "/split",
                     type: "POST",
                     data: {
                         _token: "{{ csrf_token() }}",
                         supplier_id: supplierId,
-                        selected_details: selectedIds
+                        selected_details: selectedIds // Pastikan nama key ini sama dengan di $request->validate
                     },
                     success: function(res) {
                         alert('Order berhasil dipisah.');
                         $('#selectSupplierSplit').val('').trigger('change');
                         $('#checkAll').prop('checked', false);
+                        // Penting: Reload data agar status berubah jadi 'DIPROSES' di tampilan
                         loadAllData(); 
                     },
-                    error: function() { alert('Gagal memproses.'); }
+                    error: function(xhr) {
+                        // Tampilkan pesan error spesifik dari server jika ada
+                        let msg = 'Gagal memproses.';
+                        if(xhr.responseJSON && xhr.responseJSON.message) {
+                            msg += '\n' + xhr.responseJSON.message;
+                        }
+                        alert(msg);
+                        console.error(xhr.responseText);
+                    }
                 });
             }
         });
 
-        // Update Harga
+        // --- UPDATE HARGA (FORM SUBMIT) ---
         $('#formUpdateHarga').on('submit', function(e) {
             e.preventDefault();
+            
+            // Disable tombol simpan agar tidak double klik
+            let btn = $('#btnSimpanHarga');
+            let originalText = btn.html();
+            btn.html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...').prop('disabled', true);
+
             $.ajax({
                 url: "{{ url('dashboard/transaksi/approval-menu') }}/" + currentSubmissionId + "/update-harga",
                 type: 'PATCH',
                 data: $(this).serialize() + '&_token={{ csrf_token() }}',
-                success: function() {
-                    alert('Data berhasil diperbarui');
+                success: function(response) {
+                    toastr.success(response.message || 'Data berhasil diperbarui'); // Gunakan toastr jika ada, atau alert
+                    // alert('Data berhasil diperbarui'); 
                     loadDetails();
+                    loadAllData(); // Reload header total
                 },
-                error: function() { alert('Gagal menyimpan perubahan.'); }
+                error: function(xhr) {
+                    // LOGIKA ERROR HANDLING LEBIH BAIK
+                    let msg = 'Gagal menyimpan perubahan.';
+                    
+                    if (xhr.responseJSON) {
+                        // Jika error validasi Laravel (422)
+                        if (xhr.responseJSON.errors) {
+                            msg += '\n';
+                            $.each(xhr.responseJSON.errors, function(key, value) {
+                                msg += '- ' + value[0] + '\n';
+                            });
+                        } 
+                        // Jika error message biasa (403/500)
+                        else if (xhr.responseJSON.message) {
+                            msg = xhr.responseJSON.message;
+                        }
+                    }
+                    
+                    alert(msg);
+                    console.error(xhr);
+                },
+                complete: function() {
+                    // Kembalikan tombol seperti semula
+                    btn.html(originalText).prop('disabled', false);
+                }
             });
         });
 
@@ -431,7 +574,7 @@
              $('#selectBahanManual').empty().append('<option>Loading...</option>');
              $.get(url, function(data) {
                  let opts = '<option value="">Pilih Bahan</option>';
-                 data.forEach(b => opts += `<option value="${b.id}">${b.nama} (${b.unit?.nama})</option>`);
+                 data.forEach(b => opts += `<option value="${b.id}">${b.nama} (${b.unit?.satuan})</option>`);
                  $('#selectBahanManual').html(opts);
                  $('#modalAddBahanManual').modal('show');
              });
@@ -492,6 +635,15 @@
                            (date === '' || rDate === date);
                 $(this).toggle(show);
             });
+        });
+
+        // FIX SCROLL: Mengatasi masalah scroll hilang saat modal kedua ditutup
+        $('#modalAddBahanManual').on('hidden.bs.modal', function () {
+            // Cek apakah modal approval (modal utama) masih terbuka
+            if ($('#modalApproval').hasClass('show')) {
+                // Paksa tambahkan class modal-open ke body agar scroll tetap jalan
+                $('body').addClass('modal-open');
+            }
         });
 
     });
