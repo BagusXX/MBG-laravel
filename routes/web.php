@@ -24,6 +24,8 @@ use App\Http\Controllers\ReportPurchaseOperationalController;
 use App\Http\Controllers\SaleMaterialsKitchenController;
 use App\Http\Controllers\SaleMaterialsPartnerController;
 use App\Http\Controllers\ReportSalesKitchenController;
+use App\Http\Controllers\ReportSalesPartnerController;
+use App\Http\Controllers\ProfitController;
 
 require __DIR__ . '/auth.php';
 
@@ -457,6 +459,9 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/penjualan-dapur', [ReportSalesKitchenController::class, 'index'])
                 ->middleware('permission:report.sales-kitchen.view')
                 ->name('sales-kitchen');
+            Route::get('/penjualan-dapur/invoice', [ReportSalesKitchenController::class, 'invoice'])
+                ->middleware('permission:report.sales-kitchen.invoice')
+                ->name('sales-kitchen.invoice');
 
             Route::get('/pembelian-operational', [ReportPurchaseOperationalController::class, 'index'])
                 ->middleware('permission:report.purchase-operational.view')
@@ -464,17 +469,25 @@ Route::middleware(['auth'])->group(function () {
 
             Route::get('/pembelian-operational/invoice', [ReportPurchaseOperationalController::class, 'invoice'])
                 ->middleware('permission:report.purchase-operational.invoice')
-                ->name('report.purchase-operational.invoice');
+                ->name('purchase-operational.invoice');
 
-            Route::get('/penjualan-mitra', fn() => view('report.sales-partner'))
-                ->middleware('permission:report.sales-partner.view')
-                ->name('sales-partner');
+            Route::get('/penjualan-mitra', [ReportSalesPartnerController::class, 'index'])
+            ->middleware('permission:report.sales-partner.view')
+            ->name('sales-partner');
+
+            Route::get('/penjualan-mitra', [ReportSalesPartnerController::class, 'index'])
+            ->middleware('permission:report.sales-partner.view')
+            ->name('sales-partner');
+
+            Route::get('/penjualan-mitra/invoice', [ReportSalesPartnerController::class, 'invoice'])
+            ->middleware('permission:report.sales-partner.invoice')
+            ->name('sales-partner.invoice');
 
             Route::get('/pembelian-operasional', fn() => view('report.purchase-operational'))
                 ->middleware('permission:report.purchase-operational.view')
                 ->name('purchase-operational');
 
-            Route::get('/selisih', fn() => view('report.profit'))
+            Route::get('/selisih', [ProfitController::class, 'index'])
                 ->middleware('permission:report.profit.view')
                 ->name('profit');
         });

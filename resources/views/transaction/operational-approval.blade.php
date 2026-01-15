@@ -252,7 +252,7 @@
     @if ($item->status === 'diproses')
         <div class="text-right mb-3">
             <button
-                class="btn btn-success btn-sm btnApproval"
+                class="btn btn-success btn-md btnApproval"
                 data-id="{{ $item->id }}"
                 data-status="selesai"
             >
@@ -272,9 +272,9 @@
         
         <div class="row align-items-end mb-2">
             <div class="col-md-8">
-                <label class="font-weight-bold">Pilih Supplier untuk Barang Tercentang:</label>
+                <label class="font-weight-bold text-primary">Pilih Supplier untuk Barang Tercentang:</label>
                 <select name="supplier_id" class="form-control" required>
-                    <option value="">- Pilih Supplier -</option>
+                    <option value="" selected disabled>- Pilih Supplier -</option>
                     @foreach($suppliers as $supplier)
                         @if($supplier->kitchens->contains('kode', $item->kitchen_kode))
                             <option value="{{ $supplier->id }}">{{ $supplier->nama }}</option>

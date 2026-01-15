@@ -22,7 +22,7 @@ class SaleMaterialsKitchenController extends Controller
             'kitchen', 
             'menu',
             'supplier',
-            'details.recipe.bahan_baku.unit',
+            'details.recipeBahanBaku.bahan_baku.unit',
             'details.bahanBaku.unit'
         ])
             ->where('status', 'selesai')
@@ -64,7 +64,7 @@ class SaleMaterialsKitchenController extends Controller
         }
 
         $details = $submission->details()->with([
-            'recipe.bahan_baku.unit',
+            'recipeBahanBaku.bahan_baku.unit',
             'bahanBaku.unit'
         ])->get();
 
@@ -149,7 +149,7 @@ class SaleMaterialsKitchenController extends Controller
             'kitchen',
             'menu',
             'supplier',
-            'details.recipe.bahan_baku.unit',
+            'details.recipeBahanBaku.bahan_baku.unit',
             'details.bahanBaku.unit'
         ])
             ->where('kode', $kode)
@@ -176,7 +176,7 @@ class SaleMaterialsKitchenController extends Controller
             'kitchen',
             'menu',
             'supplier',
-            'details.recipe.bahan_baku.unit',
+            'details.recipeBahanBaku.bahan_baku.unit',
             'details.bahanBaku.unit'
         ])
             ->where('kode', $kode)

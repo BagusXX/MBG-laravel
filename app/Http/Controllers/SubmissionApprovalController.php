@@ -56,15 +56,24 @@ class SubmissionApprovalController extends Controller
     public function updateStatus(Request $request, Submission $submission)
     {
         abort_if(!$submission->isParent(), 403, 'Aksi ini hanya untuk Pengajuan Utama (Parent)');
-        abort_if($submission->status === 'selesai', 403, 'Sudah selesai');
+        abort_if(in_array($submission->status, ['selesai', 'ditolak']), 403, 'Pengajuan sudah ditutup');
 
         $request->validate([
             'status' => 'required|in:selesai,ditolak',
         ]);
 
-        $submission->update(['status' => $request->status]);
+        if ($request->status === 'ditolak') {
+            $rules['keterangan'] = 'required|string|min:5';
+        }
 
-        return back()->with('success', 'Status child diperbarui');
+        $request->validate($rules);
+
+        $submission->update([
+            'status' => $request->status,
+            'keterangan' => $request->status === 'ditolak' ? $request->keterangan : null
+        ]);
+
+        return back()->with('success', 'Status berhasil diperbarui');
     }
 
 
@@ -180,7 +189,7 @@ class SubmissionApprovalController extends Controller
 
     public function getSubmissionData(Submission $submission)
     {
-        $submission->load(['kitchen', 'menu', 'children.supplier']); // Load children & suppliernya
+        $submission->load(['kitchen', 'menu', 'children.supplier', 'children.details.bahanBaku']); // Load children & suppliernya
 
         // Format data children untuk riwayat
         $history = $submission->children->map(function ($child) {
@@ -190,7 +199,14 @@ class SubmissionApprovalController extends Controller
                 'supplier_nama' => $child->supplier->nama ?? 'Umum',
                 'status' => $child->status,
                 'total' => $child->total_harga,
-                'item_count' => $child->details()->count() // Opsional: jumlah item
+                'item_count' => $child->details()->count(), // Opsional: jumlah item
+                'items' => $child->details->map(function ($detail) {
+                    return [
+                        'nama' => $detail->bahanBaku->nama ?? '-',
+                        'qty' => $detail->qty_digunakan,
+                        'harga' => $detail->harga_mitra ?? $detail->harga_satuan,
+                    ];
+                })->values()
             ];
         });
 
@@ -266,7 +282,7 @@ class SubmissionApprovalController extends Controller
                     'bahan_baku_id' => $detail->bahan_baku_id,
                     'qty_digunakan' => $detail->qty_digunakan,
                     'harga_satuan' => $detail->harga_satuan,
-                    'harga_dapur' => null, // Child ke supplier tidak butuh harga dapur
+                    'harga_dapur' => $detail->harga_dapur, // Child ke supplier tidak butuh harga dapur
                     'harga_mitra' => $hargaMitra,
                     'subtotal_harga' => $subtotal,
                 ]);

@@ -69,7 +69,7 @@
                                     <i class="fa fa-undo"></i> Reset
                                 </a>
                                 <button type="submit" 
-                                        formaction="{{ route('report.report.purchase-operational.invoice') }}" 
+                                        formaction="{{ route('report.purchase-operational.invoice') }}" 
                                         formtarget="_blank" 
                                         class="btn btn-warning">
                                     <i class="fa fa-print"></i> Cetak invoice
