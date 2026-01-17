@@ -90,7 +90,7 @@ class ReportSalesPartnerController extends Controller
     $submission = $reports->first()->submission ?? null;
 
     $totalPageSubtotal = $reports->sum(function ($item) {
-        return ($item->submission->porsi ?? 0) * ($item->harga_dapur ?? 0);
+        return ($item->submission->porsi ?? 0) * ($item->harga_mitra ?? 0);
     });
 
     $pdf = PDF::loadView('report.invoiceReport-sales-partner', compact('submission','reports', 'totalPageSubtotal'));

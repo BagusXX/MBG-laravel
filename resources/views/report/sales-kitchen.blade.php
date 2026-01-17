@@ -57,7 +57,7 @@
                                     <i class="fa fa-undo"></i> Reset
                                 </a>
                                 <a href="{{ route('report.sales-kitchen.invoice', request()->all()) }}" class="btn btn-warning ml-2">
-                                    <i class="fa fa-print"></i> Cetak Invoice
+                                    <i class="fa fa-print"></i> Print
                                 </a>
                             </div>
                         </div>

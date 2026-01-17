@@ -135,8 +135,8 @@
 
     {{-- HEADER --}}
     <div class="header">
-        <h1>LAPORAN PENJUALAN</h1>
-        <h1>MITRA</h1>
+        <h1>LAPORAN</h1>
+        <h1>PENJUALAN MITRA</h1>
     </div>
 
     {{-- INFO --}}
