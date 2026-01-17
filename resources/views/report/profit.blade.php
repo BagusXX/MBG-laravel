@@ -12,7 +12,7 @@
         <div class="card-body">
             <div class="card mb-3">
                 <div class="card-body">
-                    <form action="{{ route('report.sales-kitchen') }}" method="GET">
+                    <form action="{{ route('report.profit') }}" method="GET">
                         <div class="row align-items-end">
                             {{-- FILTER TANGGAL "DARI" --}}
                             <div class="col-md-3">
@@ -53,11 +53,11 @@
                                 <button type="submit" class="btn btn-primary mr-2">
                                     <i class="fa fa-search"></i> Filter
                                 </button>
-                                <a href="{{ route('report.sales-partner') }}" class="btn btn-danger">
+                                <a href="{{ route('report.profit') }}" class="btn btn-danger">
                                     <i class="fa fa-undo"></i> Reset
                                 </a>
-                                <a href="{{ route('report.sales-partner.invoice', request()->all()) }}" class="btn btn-warning ml-2">
-                                    <i class="fa fa-print"></i> Cetak Invoice
+                                <a href="{{ route('report.profit.invoice', request()->all()) }}" class="btn btn-warning ml-2">
+                                    <i class="fa fa-print"></i> Print
                                 </a>
                             </div>
                         </div>
@@ -102,6 +102,12 @@
                     </tr>
                 @endforelse
             </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="6" class="text-right"><strong>Total Selisih :</strong></td>
+                    <td class="text-left"><strong>Rp{{ number_format($totalPageSubtotal, 0, '.', '.') }}</strong></td>
+                </tr>
+            </tfoot>
             </table>
         </div>
     </div>

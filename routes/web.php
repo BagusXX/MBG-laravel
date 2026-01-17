@@ -475,21 +475,17 @@ Route::middleware(['auth'])->group(function () {
             ->middleware('permission:report.sales-partner.view')
             ->name('sales-partner');
 
-            Route::get('/penjualan-mitra', [ReportSalesPartnerController::class, 'index'])
-            ->middleware('permission:report.sales-partner.view')
-            ->name('sales-partner');
-
             Route::get('/penjualan-mitra/invoice', [ReportSalesPartnerController::class, 'invoice'])
             ->middleware('permission:report.sales-partner.invoice')
             ->name('sales-partner.invoice');
 
-            Route::get('/pembelian-operasional', fn() => view('report.purchase-operational'))
-                ->middleware('permission:report.purchase-operational.view')
-                ->name('purchase-operational');
-
             Route::get('/selisih', [ProfitController::class, 'index'])
                 ->middleware('permission:report.profit.view')
                 ->name('profit');
+
+            Route::get('/selisih/invoice', [ProfitController::class, 'invoice'])
+                ->middleware('permission:report.profit.invoice')
+                ->name('profit.invoice');
         });
 
     Route::prefix('dashboard/profile')

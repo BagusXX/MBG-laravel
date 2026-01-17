@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laporan Pembelian Dapur</title>
+    <title>Laporan Selisih Pembelian</title>
 
     {{-- ===== STYLE SAMA DENGAN PURCHASE ===== --}}
     <style>
@@ -136,7 +136,7 @@
     {{-- HEADER --}}
     <div class="header">
         <h1>LAPORAN</h1>
-        <h1>PENJUALAN DAPUR</h1>
+        <h1>SELISIH PENJUALAN</h1>
     </div>
 
     {{-- INFO --}}
@@ -162,21 +162,17 @@
         <thead>
             <tr>
                 <th>Tanggal</th>
-                <th>Bahan Baku</th>
-                <th >Porsi</th>
-                <th >Dapur</th>
-                <th >Supplier</th>
-                <th >Satuan</th>
-                <th >Harga Dapur</th>
-                <th >Subtotal</th>
+                <th>Dapur</th>
+                <th>Supplier</th>
+                <th>Harga Dapur</th>
+                <th>Harga Mitra</th>
+                <th>Selisih</th>
             </tr>
         </thead>
         <tbody>
             @foreach ($reports as $index => $item)
                 <tr>
                     <td>{{ \Carbon\Carbon::parse($item->submission->tanggal)->locale('id')->isoFormat('DD MMM YYYY') }}</td>
-                    <td>{{ $item->bahanBaku->nama ?? '-' }}</td>
-                    <td >{{ number_format($item->submission->porsi, 0, ',', '.') }}</td>
                     <td>{{ $item->submission->kitchen->nama}}</td>
                     <td>
                         @if ($item->submission->supplier_id)
@@ -185,9 +181,9 @@
 
                             @endif
                     </td>
-                    <td >{{ $item->bahanBaku->unit->satuan ?? '-' }}</td>
-                    <td >Rp{{ number_format($item->harga_dapur, 0, ',', '.') }}</td>
-                    <td >Rp{{ number_format(($item->submission->porsi ?? 0) * ($item->harga_dapur ?? 0), 0, ',', '.') }}</td>
+                    <td>Rp{{ number_format($item->harga_dapur, 0, ',', '.') }}</td>
+                    <td>Rp{{ number_format($item->harga_mitra, 0, ',', '.') }}</td>
+                    <td>Rp{{ number_format(($item->harga_dapur ?? 0) - ($item->harga_mitra ?? 0), 0, ',', '.') }}</td>
                 </tr>
             @endforeach
         </tbody>
@@ -197,7 +193,7 @@
     @if ($reports->count() > 0)
         <div class="total-section">
             <div class="total-row grand-total">
-                <span>TOTAL KESELURUHAN:</span>
+                <span>TOTAL SELISIH:</span>
                 <span>Rp {{ number_format($totalPageSubtotal, 0, ',', '.') }}</span>
             </div>
         </div>
