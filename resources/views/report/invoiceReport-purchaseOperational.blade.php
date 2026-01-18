@@ -130,8 +130,7 @@
 
     {{-- HEADER --}}
     <div class="header">
-        <h1>INVOICE</h1>
-        <h1>LAPORAN PEMBELIAN OPERASIONAL</h1>
+        <h1>LAPORAN OPERASIONAL DAPUR</h1>
         <p>
             Periode:
             {{ $fromDate ? \Carbon\Carbon::parse($fromDate)->format('d-m-Y') : '...' }}
@@ -147,11 +146,6 @@
             <p><strong>Total Transaksi:</strong> {{ $reports->count() }}</p>
             <p><strong>Dicetak:</strong> {{ now()->locale('id')->isoFormat('DD MMMM YYYY') }}</p>
         </div>
-
-        <div class="info-box">
-            <h3>Keterangan</h3>
-            <p>Laporan pembelian operasional ini dihasilkan otomatis oleh sistem.</p>
-        </div>
     </div>
 
     {{-- TABLE --}}
@@ -161,12 +155,12 @@
                 <th width="5%" class="text-center">No</th>
                 <th width="12%">Tanggal</th>
                 <th width="15%">Dapur</th>
-                <th width="15%">Supplier</th>
+                <th width="10%">Supplier</th>
                 <th width="15%">Barang</th>
                 <th width="15%">Keterangan</th>
-                <th width="6%" class="text-right">Qty</th>
-                <th width="9%" class="text-right">Harga</th>
-                <th width="8%" class="text-right">Subtotal</th>
+                <th width="4%" class="text-right">Jumlah</th>
+                <th width="12%" class="text-right">Harga</th>
+                <th width="12%" class="text-right">Subtotal</th>
             </tr>
         </thead>
         <tbody>
@@ -186,8 +180,8 @@
                     <td>{{ $item->operational->nama ?? '-' }}</td>
                     <td>{{ $item->keterangan ?? $item->submission->keterangan ?? '-' }}</td>
                     <td class="text-right">{{ number_format($item->qty, 0, ',', '.') }}</td>
-                    <td class="text-right">Rp {{ number_format($item->harga_satuan, 0, ',', '.') }}</td>
-                    <td class="text-right">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</td>
+                    <td class="text-right">Rp{{ number_format($item->harga_satuan, 0, ',', '.') }}</td>
+                    <td class="text-right">Rp{{ number_format($item->subtotal, 0, ',', '.') }}</td>
                 </tr>
                 @php $grandTotal += $item->subtotal; @endphp
             @empty

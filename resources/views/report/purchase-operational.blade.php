@@ -72,7 +72,7 @@
                                         formaction="{{ route('report.purchase-operational.invoice') }}" 
                                         formtarget="_blank" 
                                         class="btn btn-warning">
-                                    <i class="fa fa-print"></i> Cetak invoice
+                                    <i class="fa fa-print"></i> Cetak Laporan
                                 </button>
                             </div>
 

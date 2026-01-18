@@ -68,7 +68,7 @@
 
 {{-- TABLE DATA --}}
 <div class="card">
-    <div class="card-body table-responsive">
+    <div class="card-body">
         <table class="table table-bordered table-striped" id="tableApproval">
             <thead>
                 <tr>
@@ -107,18 +107,18 @@
                                     data-id="{{ $item->id }}" 
                                     data-kitchen-id="{{ $item->kitchen_id }}"
                                     title="Detail / Review">
-                                <i class="fas fa-eye"></i> Detail
+                                Detail
                             </button>
 
                             {{-- Tombol Cetak Invoice (Hanya Muncul Jika Status SELESAI) --}}
-                            @if($item->status === 'selesai')
+                            {{-- @if($item->status === 'selesai')
                                 <a href="{{ route('transaction.submission-approval.print-parent-invoice', $item->id) }}" 
                                 target="_blank" 
                                 class="btn btn-secondary" 
                                 title="Cetak Rekap Invoice">
                                     <i class="fas fa-print"></i>  Cetak Invoice
                                 </a>
-                            @endif
+                            @endif --}}
                         </div>
                     </td>
                 </tr>
@@ -207,7 +207,7 @@
 
                         <div class="col-md-4">
                             <button type="button"
-                                    class="btn btn-primary btn-block"
+                                    class="btn btn-primary btn-block action-only"
                                     id="btnSplitOrder">
                                 <i class="fas fa-paper-plane mr-1"></i>
                                 Proses Split Order
@@ -223,7 +223,7 @@
                         <table class="table table-bordered table-striped">
                             <thead>
                                 <tr>
-                                    <th width="40" class="text-center">
+                                    <th width="40" class="text-center action-only">
                                         <input type="checkbox" id="checkAll">
                                     </th>
                                     <th>Bahan Baku</th>
@@ -233,7 +233,7 @@
                                     <th width="140" class="text-right">Hrg Dapur</th>
                                     <th width="140" class="text-right">Hrg Mitra</th>
                                     <th width="150" class="text-right">Subtotal</th>
-                                    <th width="50"></th>
+                                    <th width="50" class="action-only"></th>
                                 </tr>
                             </thead>
                             <tbody id="wrapperDetails">
@@ -243,17 +243,17 @@
                                 <tr>
                                     <td colspan="5" class="text-right font-weight-bold">Total Keseluruhan</td>
                                     <td class="text-right font-weight-bold" id="infoTotal"></td>
-                                    <td></td>
+                                    <td class="action-only"></td>
                                 </tr>
                             </tfoot>
                         </table>
                     </div>
                     
                     <div class="d-flex justify-content-between mt-2">
-                         <button type="button" class="btn btn-outline-secondary btn-sm" id="btnTambahBahan">
+                         <button type="button" class="btn btn-outline-secondary btn-sm action-only" id="btnTambahBahan">
                             <i class="fas fa-plus mr-1"></i> Tambah Item Manual
                         </button>
-                        <button type="submit" class="btn btn-sm btn-warning" id="btnSimpanHarga">
+                        <button type="submit" class="btn btn-sm btn-warning action-only" id="btnSimpanHarga">
                             <i class="fas fa-save mr-1"></i> Simpan Perubahan Harga/Qty
                         </button>
                     </div>
@@ -298,6 +298,7 @@
 <script>
     let currentSubmissionId = null;
     let currentKitchenId = null;
+    let isReadonlyStatus = false; // <--- TAMBAHKAN INI
 
     const formatRupiah = (num) => 'Rp ' + parseFloat(num).toLocaleString('id-ID', {minimumFractionDigits: 0});
     toastr.options = { "closeButton": true, "progressBar": true, "positionClass": "toast-top-right" };
@@ -358,19 +359,26 @@
                 let badgeClass = data.status === 'diproses' ? 'info' : (data.status === 'selesai' ? 'success' : 'warning');
                 $('#infoStatusBadge').html(`<span class="badge badge-${badgeClass}">${data.status.toUpperCase()}</span>`);
 
+                isReadonlyStatus = (data.status === 'selesai');
+
                 // Reset Tampilan Tombol
                 $('#btnTolakParent, #btnSelesaiParent, #panelSupplier').addClass('d-none');
-                
+
+                // PASTIKAN tombol aksi muncul kembali (default)
+                $('.action-only').removeClass('d-none');
+
+                setReadonlyMode(false);
+
                 // Logic Tampilan berdasarkan Status
                 if (data.status === 'diajukan') {
                     $('#btnTolakParent').removeClass('d-none');
-                    // Jika diajukan, kita anggap manager akan memulai proses -> tombol split belum muncul, 
-                    // atau muncul tapi harus ubah status dulu? 
-                    // Sesuai request sebelumnya: Diajukan -> tombol "Proses" -> berubah jadi Diproses.
-                    // Di sini kita langsung tampilkan panel supplier jika user punya akses
-                    $('#panelSupplier').removeClass('d-none'); // Asumsi manager bisa langsung split
+                    $('#panelSupplier').removeClass('d-none');
                 } else if (data.status === 'diproses') {
                     $('#btnSelesaiParent, #panelSupplier').removeClass('d-none');
+                } else if (data.status === 'selesai') {
+                    // MODE READONLY
+                    $('.action-only').addClass('d-none'); // Sembunyikan tombol Simpan, Tambah, Split
+                    setReadonlyMode(true); // Matikan input form
                 }
 
                 let supplierOpts = '<option value="">- Pilih Supplier Khusus Dapur Ini -</option>';
@@ -417,7 +425,7 @@
                                             <strong class="mr-3 text-dark" style="font-size: 1.1em;">${formatRupiah(h.total)}</strong>
                                             
                                             {{-- Tombol Hapus --}}
-                                            <button class="btn btn-sm btn-outline-danger btn-delete-child" 
+                                            <button class="btn btn-sm btn-outline-danger btn-delete-child action-only" 
                                                     data-id="${h.id}" 
                                                     title="Hapus Split Order">
                                                 <i class="fas fa-trash-alt"></i>
@@ -452,6 +460,7 @@
             $.get("{{ url('dashboard/transaksi/approval-menu') }}/" + currentSubmissionId + "/details", function(data) {
                 let html = '';
                 let grandTotal = 0;
+                let isReadonly = false;
 
                 data.forEach(item => {
                     // Logic: Jika harga mitra diisi (>0), pakai harga mitra. Jika tidak, pakai harga dapur.
@@ -465,7 +474,7 @@
 
                     html += `
                         <tr>
-                            <td class="text-center align-middle">
+                            <td class="text-center align-middle action-only">
                                 <input type="checkbox" class="check-item" value="${item.id}">
                             </td>
                             <td class="align-middle">
@@ -499,7 +508,7 @@
                             <td class="text-right align-middle">
                                 ${formatRupiah(subtotal)}
                             </td>
-                            <td class="text-center align-middle">
+                            <td class="text-center align-middle action-only">
                                 <button type="button" class="btn btn-link text-danger btn-delete-detail" data-id="${item.id}">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
@@ -512,6 +521,11 @@
                 
                 $('#wrapperDetails').html(html);
                 $('#infoTotal').text(formatRupiah(grandTotal));
+
+                if (isReadonlyStatus) {
+                    setReadonlyMode(true);
+                }
+                // --
             });
         }
 
@@ -648,6 +662,28 @@
                 });
             }
         });
+
+        function setReadonlyMode(isReadonly) {
+            // Disable input & checkbox
+            $('#wrapperDetails input, #wrapperDetails select').prop('disabled', isReadonly);
+
+            // Disable tombol aksi
+            $('#btnSplitOrder').prop('disabled', isReadonly);
+            $('#btnSimpanHarga').prop('disabled', isReadonly);
+            $('#btnTambahBahan').prop('disabled', isReadonly);
+            $('#checkAll').prop('disabled', isReadonly);
+
+            // Hide tombol delete detail
+            if (isReadonly) {
+                $('.action-only').addClass('d-none'); // Sembunyikan kolom
+                $('.btn-delete-detail').addClass('d-none');
+                $('.btn-delete-child').addClass('d-none');
+            } else {
+                $('.action-only').removeClass('d-none'); // Munculkan kolom
+                $('.btn-delete-detail').removeClass('d-none');
+                $('.btn-delete-child').removeClass('d-none');
+            }
+        }
 
         // Status Actions
         function updateStatus(status) {
