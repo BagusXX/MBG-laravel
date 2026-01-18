@@ -57,7 +57,7 @@
                                     <i class="fa fa-undo"></i> Reset
                                 </a>
                                 <a href="{{ route('report.sales-kitchen.invoice', request()->all()) }}" class="btn btn-warning ml-2">
-                                    <i class="fa fa-print"></i> Cetak Invoice
+                                    <i class="fa fa-print"></i> Print
                                 </a>
                             </div>
                         </div>
@@ -113,8 +113,8 @@
                             @endif
                         </td>
 
-                        <td>Rp {{ number_format($report->harga_dapur, 0, ',', '.') }}</td>
-                        <td>Rp {{ number_format(($report->submission->porsi ?? 0) * ($report->harga_dapur ?? 0), 0, ',', '.') }}</td>
+                        <td>Rp{{ number_format($report->harga_dapur, 0, ',', '.') }}</td>
+                        <td>Rp{{ number_format(($report->submission->porsi ?? 0) * ($report->harga_dapur ?? 0), 0, ',', '.') }}</td>
                     </tr>
                     @empty
                     <tr>
@@ -125,7 +125,7 @@
                 <tfoot>
                     <tr>
                         <td colspan="8" class="text-right"><strong>Total Harga :</strong></td>
-                        <td class="text-left"><strong>Rp {{ number_format($totalPageSubtotal, 0, '.', '.') }}</strong></td>
+                        <td class="text-left"><strong>Rp{{ number_format($totalPageSubtotal, 0, '.', '.') }}</strong></td>
                     </tr>
                 </tfoot>
             </table>

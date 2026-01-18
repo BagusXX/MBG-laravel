@@ -12,7 +12,7 @@
         <div class="card-body">
             <div class="card mb-3">
                 <div class="card-body">
-                    <form action="{{ route('report.sales-kitchen') }}" method="GET">
+                    <form action="{{ route('report.sales-partner') }}" method="GET">
                         <div class="row align-items-end">
                             {{-- FILTER TANGGAL "DARI" --}}
                             <div class="col-md-3">
@@ -57,7 +57,7 @@
                                     <i class="fa fa-undo"></i> Reset
                                 </a>
                                 <a href="{{ route('report.sales-partner.invoice', request()->all()) }}" class="btn btn-warning ml-2">
-                                    <i class="fa fa-print"></i> Cetak Invoice
+                                    <i class="fa fa-print"></i> Print
                                 </a>
                             </div>
                         </div>
@@ -117,8 +117,8 @@
                             @endif
                         </td>
 
-                        <td>Rp {{ number_format($report->harga_mitra, 0, ',', '.') }}</td>
-                        <td>Rp {{ number_format(($report->submission->porsi ?? 0) * ($report->harga_mitra ?? 0), 0, ',', '.') }}</td>
+                        <td>Rp{{ number_format($report->harga_mitra, 0, ',', '.') }}</td>
+                        <td>Rp{{ number_format(($report->submission->porsi ?? 0) * ($report->harga_mitra ?? 0), 0, ',', '.') }}</td>
                     </tr>
                     @empty
                     <tr>
@@ -126,6 +126,12 @@
                     </tr>
                     @endforelse
                 </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="8" class="text-right"><strong>Total Harga :</strong></td>
+                        <td class="text-left"><strong>Rp{{ number_format($totalPageSubtotal, 0, '.', '.') }}</strong></td>
+                    </tr>
+                </tfoot>
             </table>
             <div class="d-flex justify-content-end align-items-center mt-3">
                 <div class="mt-3 d-flex justify-content-end">

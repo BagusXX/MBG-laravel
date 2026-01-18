@@ -52,7 +52,7 @@ class ProfitController extends Controller
         $reports = $query->paginate(10)->withQueryString();
 
         $totalPageSubtotal = $reports->getCollection()->sum(function ($item) {
-            return ($item->submission->porsi ?? 0) * ($item->harga_dapur ?? 0);
+            return ($item->harga_dapur ?? 0) - ($item->harga_mitra ?? 0);
         });
 
         return view('report.profit', compact('kitchens', 'reports', 'suppliers', 'totalPageSubtotal'));
@@ -90,11 +90,11 @@ class ProfitController extends Controller
     $submission = $reports->first()->submission ?? null;
 
     $totalPageSubtotal = $reports->sum(function ($item) {
-        return ($item->submission->porsi ?? 0) * ($item->harga_dapur ?? 0);
+        return ($item->harga_dapur ?? 0) - ($item->harga_mitra ?? 0);
     });
 
-    $pdf = PDF::loadView('report.invoiceReport-sales-kitchen', compact('submission','reports', 'totalPageSubtotal'));
+    $pdf = PDF::loadView('report.invoiceReport-profit', compact('submission','reports', 'totalPageSubtotal'));
 
-    return $pdf->download('laporan penjualan dapur.pdf');
+    return $pdf->download('laporan selisih penjualan.pdf');
     }
 }

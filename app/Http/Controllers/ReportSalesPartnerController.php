@@ -51,7 +51,11 @@ class ReportSalesPartnerController extends Controller
 
         $reports = $query->paginate(10)->withQueryString();
 
-        return view('report.sales-partner', compact('kitchens', 'reports', 'suppliers'));
+        $totalPageSubtotal = $reports->sum(function ($item) {
+            return ($item->submission->porsi ?? 0) * ($item->harga_mitra ?? 0);
+        });
+
+        return view('report.sales-partner', compact('kitchens', 'reports', 'suppliers', 'totalPageSubtotal'));
     }
 
     public function invoice(Request $request)
@@ -86,7 +90,7 @@ class ReportSalesPartnerController extends Controller
     $submission = $reports->first()->submission ?? null;
 
     $totalPageSubtotal = $reports->sum(function ($item) {
-        return ($item->submission->porsi ?? 0) * ($item->harga_dapur ?? 0);
+        return ($item->submission->porsi ?? 0) * ($item->harga_mitra ?? 0);
     });
 
     $pdf = PDF::loadView('report.invoiceReport-sales-partner', compact('submission','reports', 'totalPageSubtotal'));

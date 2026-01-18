@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice Laporan Pembelian Dapur</title>
+    <title>Laporan Pembelian Dapur</title>
 
     {{-- ===== STYLE SAMA DENGAN PURCHASE ===== --}}
     <style>
@@ -135,15 +135,14 @@
 
     {{-- HEADER --}}
     <div class="header">
-        <h1>INVOICE</h1>
-        <h1>LAPORAN PENJUALAN</h1>
-        <h1>DAPUR</h1>
+        <h1>LAPORAN</h1>
+        <h1>PENJUALAN DAPUR</h1>
     </div>
 
     {{-- INFO --}}
     <div class="invoice-info">
         <div class="info-box">
-            {{-- <h3>Informasi Supplier</h3> --}}
+            <h3>Informasi Laporan</h3>
             <p><strong>Total bahan Baku:</strong> {{ $reports->count() }}</p>
             <p><strong>Dicetak:</strong> {{ now()->locale('id')->isoFormat('DD MMMM YYYY') }}</p>
         </div>
@@ -175,7 +174,7 @@
         <tbody>
             @foreach ($reports as $index => $item)
                 <tr>
-                    <td>{{ \Carbon\Carbon::parse($item->submission->tanggal)->format('d-m-Y') }}</td>
+                    <td>{{ \Carbon\Carbon::parse($item->submission->tanggal)->locale('id')->isoFormat('DD MMM YYYY') }}</td>
                     <td>{{ $item->bahanBaku->nama ?? '-' }}</td>
                     <td >{{ number_format($item->submission->porsi, 0, ',', '.') }}</td>
                     <td>{{ $item->submission->kitchen->nama}}</td>
@@ -187,8 +186,8 @@
                             @endif
                     </td>
                     <td >{{ $item->bahanBaku->unit->satuan ?? '-' }}</td>
-                    <td >Rp {{ number_format($item->harga_dapur, 0, ',', '.') }}</td>
-                    <td >Rp {{ number_format(($item->submission->porsi ?? 0) * ($item->harga_dapur ?? 0), 0, ',', '.') }}</td>
+                    <td >Rp{{ number_format($item->harga_dapur, 0, ',', '.') }}</td>
+                    <td >Rp{{ number_format(($item->submission->porsi ?? 0) * ($item->harga_dapur ?? 0), 0, ',', '.') }}</td>
                 </tr>
             @endforeach
         </tbody>
