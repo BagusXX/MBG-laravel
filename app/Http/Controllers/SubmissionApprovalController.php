@@ -7,6 +7,7 @@ use App\Models\Submission;
 use App\Models\SubmissionDetails;
 use App\Models\BahanBaku;
 use App\Models\Supplier;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -345,7 +346,16 @@ class SubmissionApprovalController extends Controller
         // Pastikan memuat relasi yang dibutuhkan untuk invoice
         $submission->load(['kitchen', 'supplier', 'details.bahanBaku.unit', 'details.recipeBahanBaku']);
 
-        return view('transaction.invoice-submission', compact('submission'));
+        // Generate PDF
+        // 'setPaper' bisa disesuaikan ('a4', 'letter', 'f4', dll)
+        $pdf = Pdf::loadView('transaction.invoice-submission', compact('submission'))
+            ->setPaper('a4', 'portrait');
+
+        // OPSI A: Langsung Download (Browser tidak buka tab baru, file langsung terunduh)
+        return $pdf->download('PO-' . $submission->kode . '.pdf');
+
+        // OPSI B: Stream (Buka PDF di tab browser yang sama - jika ingin print manual dari PDF reader)
+        // return $pdf->stream('PO-' . $submission->kode . '.pdf');
     }
 
     // app/Http/Controllers/SubmissionApprovalController.php

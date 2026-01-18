@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Invoice Laporan Pembelian Operasional</title>
+    <title>Laporan Pembelian Operasional</title>
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -67,8 +67,8 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
-            font-size: 11pt;
+            /* margin-bottom: 20px;
+            font-size: 11pt; */
         }
 
         table thead {
@@ -85,7 +85,7 @@
         table td {
             padding: 10px;
             border-bottom: 1px solid #ddd;
-            vertical-align: top;
+            /* vertical-align: top; */
         }
 
         table tr:nth-child(even) {
@@ -131,12 +131,6 @@
     {{-- HEADER --}}
     <div class="header">
         <h1>LAPORAN OPERASIONAL DAPUR</h1>
-        <p>
-            Periode:
-            {{ $fromDate ? \Carbon\Carbon::parse($fromDate)->format('d-m-Y') : '...' }}
-            s/d
-            {{ $toDate ? \Carbon\Carbon::parse($toDate)->format('d-m-Y') : '...' }}
-        </p>
     </div>
 
     {{-- INFO --}}

@@ -55,7 +55,7 @@
                     <option value="diajukan">Diajukan</option>
                     <option value="diproses">Diproses</option>
                     <option value="selesai">Selesai</option>
-                    <option value="ditolak">Ditolak</option>
+                    {{-- <option value="ditolak">Ditolak</option> --}}
                 </select>
             </div>
             <div class="col-md-4">
@@ -94,8 +94,7 @@
                     <td>
                         <span class="badge badge-{{
                             $item->status === 'selesai' ? 'success' :
-                            ($item->status === 'diproses' ? 'info' :
-                            ($item->status === 'ditolak' ? 'danger' : 'warning'))
+                            ($item->status === 'diproses' ? 'info' : 'warning')
                         }}">
                             {{ strtoupper($item->status) }}
                         </span>
@@ -155,9 +154,9 @@
                     {{-- Actions --}}
                     <div id="wrapperActions" class="text-right">
                          {{-- Tombol Tolak (Muncul saat Diajukan) --}}
-                        <button type="button" class="btn btn-danger d-none" id="btnTolakParent">
+                        {{-- <button type="button" class="btn btn-danger d-none" id="btnTolakParent">
                             <i class="fas fa-times mr-2"></i> Tolak
-                        </button>
+                        </button> --}}
                         {{-- Tombol Selesai (Muncul saat Diproses) --}}
                         <button type="button" class="btn btn-success btn-md d-none" id="btnSelesaiParent">
                             <i class="fas fa-check-circle mr-2"></i> Selesaikan Pengajuan
@@ -243,7 +242,7 @@
                                 <tr>
                                     <td colspan="5" class="text-right font-weight-bold">Total Keseluruhan</td>
                                     <td class="text-right font-weight-bold" id="infoTotal"></td>
-                                    <td class="action-only"></td>
+                                    {{-- <td class="action-only"></td> --}}
                                 </tr>
                             </tfoot>
                         </table>
@@ -440,7 +439,7 @@
 
                                     {{-- TOMBOL CETAK INVOICE (Posisi Kanan Bawah) --}}
                                     <div class="text-right mt-2 border-top pt-2">
-                                        <a href="${invoiceUrl}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                        <a href="${invoiceUrl}" class="btn btn-sm btn-outline-secondary">
                                             <i class="fas fa-print mr-1"></i> Cetak Invoice
                                         </a>
                                     </div>
