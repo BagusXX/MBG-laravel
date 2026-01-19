@@ -457,20 +457,6 @@ return [
                 ],
 
                 [
-                    'text' => 'Jual Bahan Baku Dapur',
-                    'icon' => 'fas fa-store',
-                    'route' => 'transaction.sale-materials-kitchen.index',
-                    'can'   => 'transaction.sale-kitchen.view',
-                ],
-
-                [
-                    'text' => 'Jual Bahan Baku Mitra',
-                    'icon' => 'fas fa-handshake',
-                    'route' => 'transaction.sale-materials-partner.index',
-                    'can'   => 'transaction.sale-partner.view',
-                ],
-
-                [
                     'text' => 'Beli Bahan Baku',
                     'icon' => 'fas fa-cart-plus',
                     'route' => 'transaction.purchase-materials.index',
@@ -492,15 +478,29 @@ return [
             'icon' => 'fas fa-fw fa-file-alt',
             'can'  => 'report.sales-kitchen.view',
             'submenu' => [
+                
                 [
                     'text' => 'Penjualan Dapur',
+                    'icon' => 'fas fa-file-signature',
+                    'route' => 'transaction.sale-materials-kitchen.index',
+                    'can'   => 'transaction.sale-kitchen.view',
+                ],
+
+                [
+                    'text' => 'Penjualan Mitra',
+                    'icon' => 'fas fa-file-signature',
+                    'route' => 'transaction.sale-materials-partner.index',
+                    'can'   => 'transaction.sale-partner.view',
+                ],
+                [
+                    'text' => 'Bahan Baku Dapur',
                     'icon' => 'fas fa-file-signature',
                     'route' => 'report.sales-kitchen',
                     'can'   => 'report.sales-kitchen.view',
                 ],
                 
                 [
-                    'text' => 'Penjualan Mitra',
+                    'text' => 'Bahan Baku Mitra',
                     'icon' => 'fas fa-file-signature',
                     'route' => 'report.sales-partner',
                     'can'   => 'report.sales-partner.view',

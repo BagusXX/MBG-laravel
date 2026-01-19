@@ -71,8 +71,11 @@
                     <tr>
                         <th width="50">No</th>
                         <th>Tanggal</th>
-                        <th>Dapur</th>
-                        <th>Supplier</th>
+                        {{-- <th>Dapur</th> --}}
+                        {{-- <th>Supplier</th> --}}
+                        <th>Bahan Baku</th>
+                        <th>Satuan</th>
+                        <th>Porsi</th>
                         <th>Harga Dapur</th>
                         <th>Harga Mitra</th>
                         <th>Selisih</th>
@@ -93,14 +96,35 @@
                         <tr>
                             <td>{{ $reports->firstItem() + $loop->index }}</td>
                             <td>{{ \Carbon\Carbon::parse($report->submission->tanggal)->format('d-m-Y') }}</td>
-                            <td>{{ $report->submission->kitchen->nama}}</td>
+                            {{-- <td>{{ $report->submission->kitchen->nama}}</td>
                             <td>
                                 @if ($report->submission->supplier_id)
                                     {{ optional($report->submission->supplier)->nama }}
                                 @else
                                     -
                                 @endif
+                            </td> --}}
+                            <td>
+                                @if ($report->recipe_bahan_baku_id)
+                                    {{ optional(\App\Models\BahanBaku::find($report->recipe_bahan_baku_id))->nama }}
+                                @elseif ($report->bahan_baku_id)
+                                    {{ optional($report->bahanBaku)->nama }}
+                                @else
+                                    -
+                                @endif
                             </td>
+                            <td>
+                                @if ($report->recipe_bahan_baku_id)
+                                {{ optional(
+                                    optional(\App\Models\BahanBaku::find($report->recipe_bahan_baku_id))->unit)->satuan ?? '-' }}
+                                @elseif ($report->bahan_baku_id)
+                                {{ optional(
+                                    optional($report->bahanBaku)->unit)->satuan ?? '-' }}
+                                @else
+                                -
+                                @endif
+                            </td>
+                            <td>{{ $report->submission->porsi }}</td>
                             <td>Rp {{ number_format($hargaDapurTotal, 0, ',', '.') }}</td>
                             <td>Rp {{ number_format($hargaMitraTotal, 0, ',', '.') }}</td>
                             <td>Rp {{ number_format($selisihTotal, 0, ',', '.') }}</td>
@@ -114,7 +138,7 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="6" class="text-right"><strong>Total Selisih :</strong></td>
+                        <td colspan="7" class="text-right"><strong>Total Selisih :</strong></td>
                         <td class="text-left"><strong>Rp{{ number_format($totalPageSubtotal, 0, '.', '.') }}</strong></td>
                     </tr>
                 </tfoot>

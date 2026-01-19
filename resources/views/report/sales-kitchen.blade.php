@@ -27,7 +27,7 @@
                             </div>
                             
                             {{-- FILTER DAPUR --}}
-                            <div class="col-md-2">
+                            <div class="col-md-3">
                                 <label>Dapur</label>
                                 <select name="kitchen_id" class="form-control">
                                     <option value="">Semua Dapur</option>
@@ -38,7 +38,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-3">
                                 <label>Supplier</label>
                                 <select name="supplier_id" class="form-control">
                                     <option value="">Semua Supplier</option>
@@ -84,8 +84,8 @@
                         <th>Dapur</th>
                         <th>Supplier</th>
                         <th>Bahan Baku</th>
-                        <th>Porsi</th>
                         <th width="50">Satuan</th>
+                        <th>Porsi</th>
                         <th>Harga</th>
                         <th>Subtotal</th>
                     </tr>
@@ -113,18 +113,18 @@
                             @endif
                         </td>
 
-                        <td>{{ $report->submission->porsi }}</td>
                         <td>
                             @if ($report->recipe_bahan_baku_id)
-                                {{ optional(
-                                    optional(\App\Models\BahanBaku::find($report->recipe_bahan_baku_id))->unit)->satuan ?? '-' }}
+                            {{ optional(
+                                optional(\App\Models\BahanBaku::find($report->recipe_bahan_baku_id))->unit)->satuan ?? '-' }}
                             @elseif ($report->bahan_baku_id)
-                                {{ optional(
-                                    optional($report->bahanBaku)->unit)->satuan ?? '-' }}
+                            {{ optional(
+                                optional($report->bahanBaku)->unit)->satuan ?? '-' }}
                             @else
-                                -
+                            -
                             @endif
                         </td>
+                        <td>{{ $report->submission->porsi }}</td>
 
                         <td>Rp{{ number_format($report->harga_dapur, 0, ',', '.') }}</td>
                         <td>Rp{{ number_format(($report->submission->porsi ?? 0) * ($report->harga_dapur ?? 0), 0, ',', '.') }}</td>
