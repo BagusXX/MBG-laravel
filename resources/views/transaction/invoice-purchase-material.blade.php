@@ -44,6 +44,21 @@
             font-size: 14px;
         }
 
+        .layout-table {
+        width: 100%;
+        margin-bottom: 20px;
+        border-collapse: collapse;
+        }
+
+        .layout-table td {
+            vertical-align: top; /* Pastikan teks mulai dari atas */
+            padding: 0;
+        }
+
+        /* Helper untuk lebar kolom */
+        .w-50 { width: 50%; }
+        .w-33 { width: 33.33%; }
+
         .invoice-info {
             display: flex;
             justify-content: space-between;
@@ -182,22 +197,27 @@
             <p>Kode Transaksi: <strong>{{ $purchase->first()->kode }}</strong></p>
         </div>
 
-        <div class="invoice-info">
-            <div class="info-box">
-                <h3>Informasi Supplier</h3>
-                <p><strong>Nama Supplier:</strong> {{ $purchase->Supplier->nama }}</p>
-                <p><strong>Telepon:</strong> {{ $purchase->Supplier->nomor ?? '-' }}</p>
-                <p><strong>Alamat:</strong> {{ $purchase->Supplier->alamat ?? '-' }}</p>
-            </div>
-            <div class="info-box">
-                <h3>Detail Transaksi</h3>
-                <p><strong>Tanggal Beli:</strong>
-                    {{ \Carbon\Carbon::parse($purchase->tanggal)->locale('id')->isoFormat('DD MMMM YYYY') }}</p>
-                <p><strong>Petugas:</strong> {{ $purchase->user->name ?? '-' }}</p>
-                <p><strong>Email:</strong> {{ $purchase->user->email ?? '-' }}</p>
-            </div>
-        </div>
-
+        <table class="layout-table">
+            <tr>
+            <td class="w-50">
+                <div class="info-box">
+                    <h3>Informasi Supplier</h3>
+                    <p><strong>Nama Supplier:</strong> {{ $purchase->Supplier->nama }}</p>
+                    <p><strong>Telepon:</strong> {{ $purchase->Supplier->nomor ?? '-' }}</p>
+                    <p><strong>Alamat:</strong> {{ $purchase->Supplier->alamat ?? '-' }}</p>
+                </div>
+            </td>
+            <td class="w-50 text-left">
+                <div class="info-box">
+                    <h3>Detail Transaksi</h3>
+                    <p><strong>Tanggal Beli:</strong>
+                        {{ \Carbon\Carbon::parse($purchase->tanggal)->locale('id')->isoFormat('DD MMMM YYYY') }}</p>
+                        <p><strong>Petugas:</strong> {{ $purchase->user->name ?? '-' }}</p>
+                        <p><strong>Email:</strong> {{ $purchase->user->email ?? '-' }}</p>
+                </div>
+            </td>
+            </tr>
+        </table>        
         <table>
             <thead>
                 <tr>
@@ -223,24 +243,19 @@
                 @endforeach
             </tbody>
         </table>
-
-        <div class="total-section">
+        
+        {{-- <div class="total-section"> --}}
             <div class="total-row grand-total">
                 <span>TOTAL PEMBAYARAN:</span>
                 <span>Rp {{ number_format($purchase->total, 0, ',', '.') }}</span>
             </div>
-        </div>
-
-        <div class="footer">
-            <p>Terima kasih atas kepercayaan Anda</p>
-            <p>Invoice ini dibuat secara otomatis oleh sistem</p>
-        </div>
+            {{-- </div> --}}
+            
+            <div class="footer">
+                <p>Terima kasih atas kepercayaan Anda</p>
+                <p>Invoice ini dibuat secara otomatis oleh sistem</p>
+            </div>
     </div>
 </body>
-
-<script>
-    // Menjalankan fungsi print saat halaman selesai dimuat
-    window.onload = function() {};
-</script>
 
 </html>

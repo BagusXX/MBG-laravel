@@ -87,6 +87,8 @@ class ProfitController extends Controller
     
     $reports = $query->get();
 
+    $today= date('d-m-Y');
+
     $submission = $reports->first()->submission ?? null;
 
     $totalPageSubtotal = $reports->sum(function ($item) {
@@ -95,6 +97,6 @@ class ProfitController extends Controller
 
     $pdf = PDF::loadView('report.invoiceReport-profit', compact('submission','reports', 'totalPageSubtotal'));
 
-    return $pdf->download('laporan selisih penjualan.pdf');
+    return $pdf->download('laporan selisih penjualan_' .$today. '.pdf');
     }
 }

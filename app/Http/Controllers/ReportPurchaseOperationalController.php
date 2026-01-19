@@ -186,6 +186,8 @@ class ReportPurchaseOperationalController extends Controller
 
         $reports = $query->get();
 
+        $today = date('d-m-Y');
+
         // ============================================================
         // 2. GENERATE PDF
         // ============================================================
@@ -197,6 +199,6 @@ class ReportPurchaseOperationalController extends Controller
 
         $pdf->setPaper('a4', 'landscape'); // Landscape agar muat banyak kolom
 
-        return $pdf->stream('Laporan_Pembelian_Operasional.pdf');
+        return $pdf->stream('Laporan Pembelian Operasional_' .$today. '.pdf');
     }
 }

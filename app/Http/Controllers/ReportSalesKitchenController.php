@@ -89,6 +89,8 @@ class ReportSalesKitchenController extends Controller
     
     $reports = $query->get();
 
+    $today = date('d-m-Y');
+
     $submission = $reports->first()->submission ?? null;
 
     $totalPageSubtotal = $reports->sum(function ($item) {
@@ -97,6 +99,6 @@ class ReportSalesKitchenController extends Controller
 
     $pdf = PDF::loadView('report.invoiceReport-sales-kitchen', compact('submission','reports', 'totalPageSubtotal'));
 
-    return $pdf->download('laporan penjualan dapur.pdf');
+    return $pdf->download('laporan penjualan dapur_' .$today. '.pdf');
     }
 }

@@ -87,6 +87,8 @@ class ReportSalesPartnerController extends Controller
     
     $reports = $query->get();
 
+    $today = date('d-m-Y');
+
     $submission = $reports->first()->submission ?? null;
 
     $totalPageSubtotal = $reports->sum(function ($item) {
@@ -95,6 +97,6 @@ class ReportSalesPartnerController extends Controller
 
     $pdf = PDF::loadView('report.invoiceReport-sales-partner', compact('submission','reports', 'totalPageSubtotal'));
 
-    return $pdf->download('laporan penjualan mitra.pdf');
+    return $pdf->download('laporan penjualan mitra_' .$today. '.pdf');
     }
 }

@@ -115,7 +115,8 @@ class PurchaseBahanBakuController extends Controller
             'user'
         ])->findOrFail($id);
         $pdf = Pdf::loadView('transaction.invoice-purchase-material', compact('purchase'));
-        return $pdf->download('Invoice-' . $purchase->kode . '.pdf');
+        $pdf->setPaper('a4', 'portrait');
+        return $pdf->download('Invoice-pembelian-bahan baku-' . $purchase->kode . '.pdf');
     }
 
     public function destroy($id)
