@@ -17,8 +17,11 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
+        $user = $request->user();
+
         return view('profile.edit', [
-            'user' => $request->user(),
+            'user' => $user,
+            'kitchens' => $user->kitchens()->orderBy('nama')->get(),
         ]);
     }
 
