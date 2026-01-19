@@ -28,12 +28,7 @@
 @section('content')
 
 {{-- ALERT SUCCESS/ERROR --}}
-@if(session('success'))
-<div class="alert alert-success alert-dismissible fade show" role="alert">
-    {{ session('success') }}
-    <button type="button" class="close" data-dismiss="alert">&times;</button>
-</div>
-@endif
+<x-notification-pop-up />
 
 {{-- FILTER SECTION --}}
 <div class="card mb-3">
@@ -292,6 +287,8 @@
 @endsection
 
 @section('js')
+@include('components.modal-confirm')
+@include('components.notification-pop-up-script')
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script>
@@ -321,32 +318,44 @@
 
         // --- HAPUS CHILD SUBMISSION (SPLIT ORDER) ---
         $(document).on('click', '.btn-delete-child', function() {
-            let childId = $(this).data('id');
+            let btn = $(this);
+            let childId = btn.data('id');
             
-            if(confirm('Yakin ingin membatalkan/menghapus split order ini?')) {
-                // Tampilkan loading sementara
-                let btn = $(this);
-                let originalContent = btn.html();
-                btn.html('<i class="fas fa-spinner fa-spin"></i>').prop('disabled', true);
-
-                $.ajax({
-                    url: "{{ url('dashboard/transaksi/approval-menu/child') }}/" + childId,
-                    type: 'DELETE',
-                    data: { _token: '{{ csrf_token() }}' },
-                    success: function(res) {
-                        alert('Split order berhasil dihapus.');
-                        loadAllData(); // Reload data modal agar list riwayat terupdate
-                    },
-                    error: function(xhr) {
-                        btn.html(originalContent).prop('disabled', false);
-                        let msg = 'Gagal menghapus data.';
-                        if(xhr.responseJSON && xhr.responseJSON.message) {
-                            msg += '\n' + xhr.responseJSON.message;
+            confirmAction({
+                type: 'delete',
+                title: 'Konfirmasi Hapus',
+                message: `Yakin ingin menghapus split order ini?`,
+                confirmText: 'Hapus',
+                onConfirm: function() {
+                    // Tampilkan loading sementara
+                    let originalContent = btn.html();
+                    btn.html('<i class="fas fa-spinner fa-spin"></i>').prop('disabled', true);
+    
+                    $.ajax({
+                        url: "{{ url('dashboard/transaksi/approval-menu/child') }}/" + childId,
+                        type: 'DELETE',
+                        data: { _token: '{{ csrf_token() }}' },
+                        success: function(res) {
+                            btn.html(originalContent).prop('disabled', false);
+    
+                            showNotificationPopUp('success', 'Split order berhasil dihapus.');
+                            loadAllData(); // Reload data modal agar list riwayat terupdate
+                        },
+                        error: function(xhr) {
+                            let msg = xhr.responseJSON?.message ?? 'Gagal menghapus data.';
+                            showNotificationPopUp('error', msg);
+                        },
+    
+                        complete: function () {
+                            btn.html(originalContent).prop('disabled', false)
                         }
-                        alert(msg);
-                    }
-                });
-            }
+                    });
+                }
+            });
+        });
+
+        $('#confirmActionModal').on('hidden.bs.modal', function () {
+            $('body').addClass('modal-open');
         });
 
         function loadAllData() {
@@ -543,40 +552,44 @@
                 selectedIds.push($(this).val());
             });
 
-            // Debugging: Cek di Console browser apakah ID tertangkap
-            console.log("Supplier:", supplierId);
-            console.log("Items:", selectedIds);
-
-            if(!supplierId) { alert('Harap pilih supplier!'); return; }
-            if(selectedIds.length === 0) { alert('Harap centang minimal satu barang!'); return; }
-
-            if(confirm(`Yakin ingin memproses ${selectedIds.length} item ke supplier ini?`)) {
-                $.ajax({
-                    url: "{{ url('dashboard/transaksi/approval-menu') }}/" + currentSubmissionId + "/split",
-                    type: "POST",
-                    data: {
-                        _token: "{{ csrf_token() }}",
-                        supplier_id: supplierId,
-                        selected_details: selectedIds // Pastikan nama key ini sama dengan di $request->validate
-                    },
-                    success: function(res) {
-                        alert('Order berhasil dipisah.');
-                        $('#selectSupplierSplit').val('').trigger('change');
-                        $('#checkAll').prop('checked', false);
-                        // Penting: Reload data agar status berubah jadi 'DIPROSES' di tampilan
-                        loadAllData(); 
-                    },
-                    error: function(xhr) {
-                        // Tampilkan pesan error spesifik dari server jika ada
-                        let msg = 'Gagal memproses.';
-                        if(xhr.responseJSON && xhr.responseJSON.message) {
-                            msg += '\n' + xhr.responseJSON.message;
-                        }
-                        alert(msg);
-                        console.error(xhr.responseText);
-                    }
-                });
+            if(!supplierId) {
+                showNotificationPopUp('warning', 'Harap pilih supplier!')
+                return; 
             }
+
+            if(selectedIds.length === 0) {
+                showNotificationPopUp('warning', 'Harap centang minimal satu barang!')
+                return; 
+            }
+
+            confirmAction({
+                title: 'Konfirmasi Split Order',
+                message: `Yakin ingin memproses ${selectedIds.length} item ke supplier ini?`,
+                confirmText: 'Proses',
+                onConfirm: function() {
+                    $.ajax({
+                        url: "{{ url('dashboard/transaksi/approval-menu') }}/" + currentSubmissionId + "/split",
+                        type: "POST",
+                        data: {
+                            _token: "{{ csrf_token() }}",
+                            supplier_id: supplierId,
+                            selected_details: selectedIds // Pastikan nama key ini sama dengan di $request->validate
+                        },
+                        success: function(res) {
+                            showNotificationPopUp('success', 'Order berhasil dipisah.')
+                            
+                            $('#selectSupplierSplit').val('').trigger('change');
+                            $('#checkAll').prop('checked', false);
+                            // Penting: Reload data agar status berubah jadi 'DIPROSES' di tampilan
+                            loadAllData(); 
+                        },
+                        error: function(xhr) {
+                            let msg = xhr.responseJSON?.message ?? 'Gagal memproses.';
+                            showNotificationPopUp('error', msg);
+                        }
+                    });
+                }
+            });
         });
 
         // --- UPDATE HARGA (FORM SUBMIT) ---
@@ -652,14 +665,30 @@
 
         // Delete Detail
         $(document).on('click', '.btn-delete-detail', function() {
-            if(confirm('Hapus item?')) {
-                $.ajax({
-                    url: "{{ url('dashboard/transaksi/approval-menu') }}/" + currentSubmissionId + "/detail/" + $(this).data('id'),
-                    type: 'DELETE',
-                    data: {_token: '{{ csrf_token() }}'},
-                    success: function() { loadDetails(); }
-                });
-            }
+            let btn = $(this);
+            let childId = btn.data('id');
+            // if(confirm('Hapus item?')) {
+            confirmAction({
+                type: 'delete',
+                title: 'Konfirmasi Hapus',
+                message: `Yakin ingin menghapus item ini?`,
+                confirmText: 'Hapus',
+                onConfirm: function() {
+                    $.ajax({
+                        url: "{{ url('dashboard/transaksi/approval-menu') }}/" + currentSubmissionId + "/detail/" + childId,
+                        type: 'DELETE',
+                        data: {_token: '{{ csrf_token() }}'},
+                        success: function() {
+                            showNotificationPopUp('success', 'Item berhasil dihapus.');
+                            loadDetails();
+                        },
+
+                        error: function() {
+                            showNotificationPopUp('error', 'Gagal menghapus item.');
+                        }
+                    });
+                }
+            });
         });
 
         function setReadonlyMode(isReadonly) {
@@ -695,9 +724,15 @@
         
         // Finalize (Selesai)
         $('#btnSelesaiParent').click(function () {
-            if(confirm('Selesaikan seluruh pengajuan?')) {
-                updateStatus('selesai');
-            }
+            confirmAction({
+                type: 'success',
+                title: 'Konfirmasi Selesai',
+                message: `Selesaikan seluruh pengajuan?`,
+                confirmText: 'Selesai',
+                onConfirm: function() {
+                    updateStatus('selesai');
+                }
+            });
         });
 
         // Filter Frontend

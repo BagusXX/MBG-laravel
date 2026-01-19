@@ -252,7 +252,8 @@ class SubmissionApprovalController extends Controller
 
             // 1. GENERATE KODE CHILD
             // Format: KODE_PARENT-1, KODE_PARENT-2, dst.
-            $childSequence = Submission::where('parent_id', $submission->id)->count() + 1;
+            $childSequence = Submission::withTrashed()
+            ->where('parent_id', $submission->id)->count() + 1;
             $childKode = $submission->kode . '-' . $childSequence;
 
             // 2. BUAT CHILD SUBMISSION

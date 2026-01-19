@@ -199,6 +199,6 @@ class ReportPurchaseOperationalController extends Controller
 
         $pdf->setPaper('a4', 'landscape'); // Landscape agar muat banyak kolom
 
-        return $pdf->stream('Laporan Pembelian Operasional_' . $today . '.pdf');
+        return $pdf->download('Laporan_Pembelian_Operasional.pdf');
     }
 }
