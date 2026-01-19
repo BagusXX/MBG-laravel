@@ -103,7 +103,7 @@
                         
                         @forelse($reports as $index => $item)
                             <tr>
-                                <td class="text-center">{{ $index + 1 }}</td>
+                                <td class="text-center">{{ $reports->firstItem() + $index}}</td>
                                 <td>
                                     {{ \Carbon\Carbon::parse($item->submission->tanggal)->format('d-m-Y') }}
                                 </td>
@@ -145,6 +145,12 @@
                     </tfoot>
                     @endif
                 </table>
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                <div class="mt-3 d-flex justify-content-end">
+                {{ $reports->links('pagination::bootstrap-4') }}
+                </div>
+                
+            </div>
             </div>
 
         </div>

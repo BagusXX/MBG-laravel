@@ -82,7 +82,7 @@
                 <tbody>
                     @forelse ($reports as $report )
                     <tr>
-                        <td>{{ $loop->iteration }}</td>
+                        <td>{{ $reports->firstItem() + $loop->index }}</td>
                         <td>{{ \Carbon\Carbon::parse($report->submission->tanggal)->format('d-m-Y') }}</td>
                         <td>
                             @if ($report->recipe_bahan_baku_id)

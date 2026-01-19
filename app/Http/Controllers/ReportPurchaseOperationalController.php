@@ -78,7 +78,7 @@ class ReportPurchaseOperationalController extends Controller
                 ->whereColumn('id', 'submission_operational_details.operational_submission_id')
         );
 
-        $reports = $query->get();
+        $reports = $query->paginate(10)->withQueryString();
 
         return view('report.purchase-operational', compact('kitchens', 'reports', 'suppliers'));
     }
@@ -199,6 +199,6 @@ class ReportPurchaseOperationalController extends Controller
 
         $pdf->setPaper('a4', 'landscape'); // Landscape agar muat banyak kolom
 
-        return $pdf->stream('Laporan Pembelian Operasional_' .$today. '.pdf');
+        return $pdf->stream('Laporan Pembelian Operasional_' . $today . '.pdf');
     }
 }
