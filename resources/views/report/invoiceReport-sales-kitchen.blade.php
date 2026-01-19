@@ -67,7 +67,7 @@
         .info-box p {
             color: #666;
             font-size: 14px;
-            margin: 0px 0;
+            margin: 5px 0;
         }
 
         table {
@@ -90,11 +90,6 @@
 
         table td {
             padding: 10px;
-            border-bottom: 1px solid #ddd;
-        }
-
-        table th, table td {
-            padding: 8px 4px;
             border-bottom: 1px solid #ddd;
         }
 

@@ -99,6 +99,8 @@ class ReportSalesKitchenController extends Controller
 
     $pdf = PDF::loadView('report.invoiceReport-sales-kitchen', compact('submission','reports', 'totalPageSubtotal'));
 
+    $pdf->setPaper('a4', 'landscape');
+    
     return $pdf->download('laporan penjualan dapur_' .$today. '.pdf');
     }
 }
