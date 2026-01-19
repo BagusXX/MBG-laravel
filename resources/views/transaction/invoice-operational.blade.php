@@ -42,11 +42,20 @@
             font-size: 14px;
         }
 
-        .invoice-info {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 30px;
+        .layout-table {
+        width: 100%;
+        margin-bottom: 20px;
+        border-collapse: collapse;
         }
+
+        .layout-table td {
+            vertical-align: top; /* Pastikan teks mulai dari atas */
+            padding: 0;
+        }
+
+        /* Helper untuk lebar kolom */
+        .w-50 { width: 50%; }
+        .w-33 { width: 33.33%; }
 
         .info-box {
             flex: 1;
@@ -131,23 +140,29 @@
     </div>
 
     {{-- INFO --}}
-    <div class="invoice-info">
+    <table class="layout-table">
+    <tr>
+        <td class="w-50">
         <div class="info-box">
             <h3>Informasi Supplier</h3>
             <p><strong>Nama Supplier:</strong> {{ $submission->supplier->nama ?? '-' }}</p>
             <p><strong>Telepon:</strong> {{ $submission->supplier->nomor ?? '-' }}</p>
             <p><strong>Alamat:</strong> {{ $submission->supplier->alamat ?? '-' }}</p>
         </div>
+        </td>
 
-        <div class="info-box">
-            <h3>Detail Operasional</h3>
-            <p><strong>Tanggal:</strong>
-                {{ \Carbon\Carbon::parse($submission->tanggal)->locale('id')->isoFormat('DD MMMM YYYY') }}
-            </p>
-            <p><strong>Dapur:</strong> {{ $submission->kitchen->nama ?? '-' }}</p>
-            <p><strong>Status:</strong> {{ strtoupper($submission->status) }}</p>
-        </div>
-    </div>
+        <td class="w-50">
+            <div class="info-box">
+                <h3>Detail Operasional</h3>
+                <p><strong>Tanggal:</strong>
+                    {{ \Carbon\Carbon::parse($submission->tanggal)->locale('id')->isoFormat('DD MMMM YYYY') }}
+                </p>
+                <p><strong>Dapur:</strong> {{ $submission->kitchen->nama ?? '-' }}</p>
+                <p><strong>Status:</strong> {{ strtoupper($submission->status) }}</p>
+            </div>
+        </td>
+        </tr>
+    </table>
 
     {{-- TABLE --}}
     <table>

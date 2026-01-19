@@ -175,9 +175,9 @@
             <p><strong>Tanggal Pengajuan:</strong>
                 {{ \Carbon\Carbon::parse($parent->tanggal)->locale('id')->isoFormat('DD MMMM YYYY') }}
             </p>
-            <p><strong>Tanggal Selesai:</strong>
-                {{ $parent->tanggal_selesai ? \Carbon\Carbon::parse($parent->tanggal_selesai)->locale('id')->isoFormat('DD MMMM YYYY') : '-' }}
-            </p>
+            {{-- <p><strong>Tanggal Selesai:</strong>
+                {{ $parent->tanggal_selesai ? \Carbon\Carbon::parse($parent->updated_at)->locale('id')->isoFormat('DD MMMM YYYY') : '-' }}
+            </p> --}}
             <p><strong>Status:</strong> {{ strtoupper($parent->status) }}</p>
         </div>
     </div>

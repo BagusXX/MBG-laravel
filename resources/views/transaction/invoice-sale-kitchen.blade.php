@@ -149,7 +149,8 @@
         </div> --}}
 
         <div class="header">
-            <h1>INVOICE PENJUALAN BAHAN BAKU DAPUR</h1>
+            <h1>INVOICE PENJUALAN </h1>
+            <h1>BAHAN BAKU DAPUR</h1>
             <p>Kode Transaksi: <strong>{{ $submission->kode }}</strong></p>
         </div>
 
@@ -159,17 +160,17 @@
                 <p><strong>Tanggal:</strong> {{ \Carbon\Carbon::parse($submission->tanggal)->format('d F Y') }}</p>
                 <p><strong>Dapur:</strong> {{ $submission->kitchen->nama ?? '-' }}</p>
                 <p><strong>Alamat:</strong> {{ $submission->kitchen->alamat ?? '-' }}</p>
-                <p><strong>Menu:</strong> {{ $submission->menu->nama ?? '-' }}</p>
-                <p><strong>Porsi:</strong> {{ $submission->porsi ?? '-' }}</p>
                 @if($submission->supplier)
-                    <p><strong>Supplier:</strong> {{ $submission->supplier->nama ?? '-' }} ({{ $submission->supplier->kode ?? '-' }})</p>
-                    <p><strong>Kontak Supplier:</strong> {{ $submission->supplier->kontak ?? '-' }} - {{ $submission->supplier->nomor ?? '-' }}</p>
+                <p><strong>Supplier:</strong> {{ $submission->supplier->nama ?? '-' }} ({{ $submission->supplier->kode ?? '-' }})</p>
+                <p><strong>Kontak Supplier:</strong> {{ $submission->supplier->kontak ?? '-' }} - {{ $submission->supplier->nomor ?? '-' }}</p>
                 @endif
             </div>
             <div class="info-box">
-                <h3>Informasi User</h3>
-                <p><strong>Nama:</strong> {{ auth()->user()->name ?? '-' }}</p>
-                <p><strong>Email:</strong> {{ auth()->user()->email ?? '-' }}</p>
+                <h3>Informasi Menu</h3>
+                {{-- <p><strong>Nama:</strong> {{ auth()->user()->name ?? '-' }}</p>
+                <p><strong>Email:</strong> {{ auth()->user()->email ?? '-' }}</p> --}}
+                <p><strong>Menu:</strong> {{ $submission->menu->nama ?? '-' }}</p>
+                <p><strong>Porsi:</strong> {{ $submission->porsi ?? '-' }}</p>
             </div>
         </div>
 
@@ -208,12 +209,12 @@
             </tbody>
         </table>
 
-        <div class="total-section">
+        {{-- <div class="total-section"> --}}
             <div class="total-row grand-total">
                 <span>TOTAL HARGA:</span>
                 <span>Rp {{ number_format($totalHarga, 0, ',', '.') }}</span>
             </div>
-        </div>
+        {{-- </div> --}}
 
         <div class="footer">
             <p>Terima kasih atas kepercayaan Anda</p>

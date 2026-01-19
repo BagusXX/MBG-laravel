@@ -352,7 +352,7 @@ class SubmissionApprovalController extends Controller
             ->setPaper('a4', 'portrait');
 
         // OPSI A: Langsung Download (Browser tidak buka tab baru, file langsung terunduh)
-        return $pdf->download('PO-' . $submission->kode . '.pdf');
+        return $pdf->download($submission->kode . '.pdf');
 
         // OPSI B: Stream (Buka PDF di tab browser yang sama - jika ingin print manual dari PDF reader)
         // return $pdf->stream('PO-' . $submission->kode . '.pdf');

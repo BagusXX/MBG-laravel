@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Purchase Order - {{ $submission->kode }}</title>
+    <title>Invoice Pengajuan Menu - {{ $submission->kode }}</title>
 
     <style>
         /* --- STYLE DARI REFERENSI (SERAGAM) --- */
@@ -191,7 +191,8 @@
 
     {{-- HEADER --}}
     <div class="header">
-        <h1>PURCHASE ORDER (PO)</h1>
+        <h1>Invoice</h1>
+        <h1>Pengajuan Menu</h1>
         <p>Kode: {{ $submission->kode }}</p>
     </div>
 
