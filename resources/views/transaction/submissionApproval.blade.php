@@ -147,7 +147,7 @@
                     <div class="col-md-6">
                         <table class="table-borderless" style="width: 50%">
                             <tr><th width="120" class="py-1">Kode</th><td class="py-1">: <span id="modalTitleKode"></span></td></tr>
-                            <tr><th class="py-1">Tanggal Pengajuan</th><td class="py-1">: <span id="infoTanggal"></span></td></tr>
+                            <tr><th width="60%"class="py-1">Tanggal Pengajuan</th><td class="py-1">: <span id="infoTanggal"></span></td></tr>
                             <tr><th class="py-1 ">Status</th><td class="py-1">: <span id="infoStatusBadge"></span></td></tr>
                         </table>
                     </div>

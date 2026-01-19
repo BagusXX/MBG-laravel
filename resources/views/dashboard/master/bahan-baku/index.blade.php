@@ -53,9 +53,9 @@
                                     Edit
                                 </button>
 
-                                <x-button-delete idTarget="#modalDeleteMaterials" formId="formDeleteMaterials"
+                                {{-- <x-button-delete idTarget="#modalDeleteMaterials" formId="formDeleteMaterials"
                                     action="{{ route('dashboard.master.bahan-baku.destroy', $item->id) }}"
-                                    text="Hapus" />
+                                    text="Hapus" /> --}}
                             </td>
                         </tr>
                     @empty

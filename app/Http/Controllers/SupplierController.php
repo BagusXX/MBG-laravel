@@ -10,6 +10,17 @@ use Illuminate\Validation\Rule;
 
 class SupplierController extends Controller
 {
+    /**
+     * Helper untuk cek akses
+     * Hanya 'superadmin' dan 'operator koperasi' yang boleh return true
+     */
+    private function canManage()
+    {
+        $user = auth()->user();
+        // Sesuaikan 'role' dengan nama kolom di database user Anda
+        // atau gunakan $user->hasRole(...) jika pakai Spatie
+        return $user->hasAnyRole(['superadmin', 'operatorKoperasi']);
+    }
 
     public function index()
     {
@@ -28,12 +39,17 @@ class SupplierController extends Controller
         $kitchens = Kitchen::whereIn('kode', $userKitchenKode)->get();
         $kodeBaru = $this->generateKode();
 
-        return view('master.supplier', compact('suppliers', 'kitchens', 'kodeBaru'));
+        $canManage = $this->canManage();
+
+        return view('master.supplier', compact('suppliers', 'kitchens', 'kodeBaru', 'canManage'));
     }
 
 
     public function store(Request $request)
     {
+        // 1. Cek Role (Hanya Operator Koperasi & Superadmin)
+        abort_if(!$this->canManage(), 403, 'Anda tidak memiliki akses untuk menambah data.');
+
         $user = auth()->user();
         $userKitchenKode = $user->kitchens()->pluck('kode')->toArray();
         // Validasi input
@@ -63,6 +79,9 @@ class SupplierController extends Controller
 
     public function edit(Supplier $supplier)
     {
+        // 1. Cek Role Terlebih Dahulu
+        abort_if(!$this->canManage(), 403, 'Anda tidak memiliki akses untuk mengedit data.');
+
         $user = auth()->user();
         $userKitchenKode = $user->kitchens()->pluck('kode')->toArray();
 
@@ -87,6 +106,9 @@ class SupplierController extends Controller
 
     public function update(Request $request, Supplier $supplier)
     {
+        // 1. Cek Role
+        abort_if(!$this->canManage(), 403, 'Anda tidak memiliki akses untuk mengubah data.');
+
         $user = auth()->user();
         $userKitchenKode = $user->kitchens()->pluck('kode')->toArray();
 
@@ -123,6 +145,9 @@ class SupplierController extends Controller
 
     public function destroy(Supplier $supplier)
     {
+        // 1. Cek Role
+        abort_if(!$this->canManage(), 403, 'Anda tidak memiliki akses untuk menghapus data.');
+
         $user = auth()->user();
         $userKitchenKode = $user->kitchens()->pluck('kode')->toArray();
 

@@ -7,15 +7,27 @@ use Illuminate\Http\Request;
 
 class UnitController extends Controller
 {
+    private function canManage()
+    {
+        $user = auth()->user();
+        // Sesuaikan 'role' dengan nama kolom di database user Anda
+        // atau gunakan $user->hasRole(...) jika pakai Spatie
+        return $user->hasAnyRole(['superadmin', 'operatorKoperasi']);
+    }
+
     public function index()
     {
         $units = Unit::orderBy('id', 'desc')->paginate(10);
 
-        return view('master.unit', compact('units'));
+        $canManage = $this->canManage();
+
+        return view('master.unit', compact('units', 'canManage'));
     }
 
     public function store(Request $request)
     {
+        abort_if(!$this->canManage(), 403, 'Anda tidak memiliki akses untuk menambah data.');
+
         $request->validate([
             'satuan' => 'required|string|max:20',
             'keterangan' => 'nullable|string|max:20',
@@ -32,6 +44,8 @@ class UnitController extends Controller
 
     public function update(Request $request, $id)
     {
+        abort_if(!$this->canManage(), 403, 'Anda tidak memiliki akses untuk menambah data.');
+
         $request->validate([
             'satuan' => 'required|string|max:17',
             'keterangan' => 'nullable|string|max:20',
@@ -50,6 +64,8 @@ class UnitController extends Controller
 
     public function destroy($id)
     {
+        abort_if(!$this->canManage(), 403, 'Anda tidak memiliki akses untuk menambah data.');
+
         $unit = Unit::findOrFail($id);
         $unit->delete();
 

@@ -12,10 +12,12 @@
 
 @section('content')
     {{-- BUTTON ADD --}}
+    @if($canManage)
     <x-button-add 
         idTarget="#modalAddUnit" 
         text="Tambah Satuan" 
     />
+    @endif
 
     <x-notification-pop-up />
 
@@ -25,10 +27,12 @@
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>No</th>
+                        <th width="50px">No</th>
                         <th>Satuan</th>
                         <th>Keterangan</th>
+                        @if($canManage)
                         <th>Aksi</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
@@ -37,6 +41,7 @@
                             <td>{{ $units->firstItem() + $index }}</td>
                             <td>{{ $unit->satuan }}</td>
                             <td>{{ $unit->keterangan ?? '-' }}</td>
+                            @if($canManage)
                             <td>
                                 <button 
                                     type="button"
@@ -56,10 +61,11 @@
                                     text="Hapus" 
                                 />
                             </td>
+                            @endif
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="text-center">Belum ada data satuan</td>
+                            <td colspan="{{ $canManage ? '4' : '3' }}" class="text-center">Belum ada data satuan</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -71,6 +77,7 @@
     </div>
 
     {{-- MODAL ADD SATUAN --}}
+    @if($canManage)
     <x-modal-form
         id="modalAddUnit"
         title="Tambah Satuan"
@@ -116,10 +123,12 @@
         message="Apakah Anda yakin ingin menghapus data ini?" 
         confirmText="Hapus" 
     />
+    @endif
 
 @endsection
 
 @section('js')
+    @if($canManage)
     <script>
         document.addEventListener('DOMContentLoaded', function () {
 
@@ -140,4 +149,5 @@
 
         });
     </script>
+    @endif
 @endsection
