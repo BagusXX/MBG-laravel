@@ -54,7 +54,7 @@
                 </select>
             </div>
             <div class="col-md-4">
-                <label>Tanggal</label>
+                <label>Tanggal Pengajuan</label>
                 <input type="date" id="filterDate" class="form-control">
             </div>
         </div>
@@ -68,8 +68,10 @@
             <thead>
                 <tr>
                     <th>Kode</th>
-                    <th>Tanggal</th>
+                    <th>Tanggal Pengajuan</th>
                     <th>Dapur</th>
+                    <th>Menu</th>
+                    <th>Porsi</th>
                     <th>Total</th>
                     <th>Status</th>
                     <th width="100" class="text-center">Aksi</th>
@@ -85,7 +87,9 @@
                     <td>{{ $item->kode }}</td>
                     <td>{{ \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y') }}</td>
                     <td>{{ $item->kitchen->nama ?? '-' }}</td>
-                    <td>Rp {{ number_format($item->total_harga,0,',','.') }}</td>
+                    <td>{{ $item->menu ? $item->menu->nama : '-' }}</td>
+                    <td>{{ $item->porsi ? $item->porsi : '-' }}</td>
+                    <td>Rp {{ number_format($item->total_harga,2,',','.') }}</td>
                     <td>
                         <span class="badge badge-{{
                             $item->status === 'selesai' ? 'success' :
@@ -132,31 +136,40 @@
             
             {{-- HEADER --}}
             <div class="modal-header bg-light">
-                <h5 class="modal-title">Detail Pengajuan: <strong id="modalTitleKode"></strong></h5>
+                <h5 class="modal-title">Detail Pengajuan Bahan Baku </h5>
                 <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
             </div>
 
             <div class="modal-body modal-body-scroll">
                 
                 {{-- INFO & HEADER ACTIONS --}}
-                <div class=" mb-3 border-bottom pb-3">
-                    <table class="table-borderless" style="width: 50%">
-                        <tr><th width="120" class="py-1">Dapur</th><td class="py-1">: <span id="infoDapur"></span></td></tr>
-                        <tr><th class="py-1">Tanggal</th><td class="py-1">: <span id="infoTanggal"></span></td></tr>
-                        <tr><th class="py-1">Status</th><td class="py-1">: <span id="infoStatusBadge"></span></td></tr>
-                    </table>
+                <div class=" row mb-3 pb-3">
+                    <div class="col-md-6">
+                        <table class="table-borderless" style="width: 50%">
+                            <tr><th width="120" class="py-1">Kode</th><td class="py-1">: <span id="modalTitleKode"></span></td></tr>
+                            <tr><th class="py-1">Tanggal Pengajuan</th><td class="py-1">: <span id="infoTanggal"></span></td></tr>
+                            <tr><th class="py-1 ">Status</th><td class="py-1">: <span id="infoStatusBadge"></span></td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table>
+                            <tr><th class="py-1">Menu</th><td class="py-1">: <span id="infoMenu"></span></td></tr>
+                            <tr><th width="120" class="py-1">Dapur</th><td class="py-1">: <span id="infoDapur"></span></td></tr>
+                            <tr><th class="py-1">Porsi</th><td class="py-1">: <span id="infoPorsi"></span></td></tr>
+                        </table>
+                        <div id="wrapperActions" class="text-right mt-3">
+                             {{-- Tombol Tolak (Muncul saat Diajukan) --}}
+                            {{-- <button type="button" class="btn btn-danger d-none" id="btnTolakParent">
+                                <i class="fas fa-times mr-2"></i> Tolak
+                            </button> --}}
+                            {{-- Tombol Selesai (Muncul saat Diproses) --}}
+                            <button type="button" class="btn btn-success btn-md d-none" id="btnSelesaiParent">
+                                <i class="fas fa-check-circle mr-2"></i> Selesaikan Pengajuan
+                            </button>
+                        </div>
+                    </div>
 
                     {{-- Actions --}}
-                    <div id="wrapperActions" class="text-right">
-                         {{-- Tombol Tolak (Muncul saat Diajukan) --}}
-                        {{-- <button type="button" class="btn btn-danger d-none" id="btnTolakParent">
-                            <i class="fas fa-times mr-2"></i> Tolak
-                        </button> --}}
-                        {{-- Tombol Selesai (Muncul saat Diproses) --}}
-                        <button type="button" class="btn btn-success btn-md d-none" id="btnSelesaiParent">
-                            <i class="fas fa-check-circle mr-2"></i> Selesaikan Pengajuan
-                        </button>
-                    </div>
                 </div>
 
                 {{-- PANEL SUPPLIER (SPLIT ORDER) --}}
@@ -362,6 +375,8 @@
             $.get("{{ url('dashboard/transaksi/approval-menu') }}/" + currentSubmissionId + "/data", function(data) {
                 $('#modalTitleKode').text(data.kode);
                 $('#infoTanggal').text(data.tanggal);
+                $('#infoMenu').text(data.menu)
+                $('#infoPorsi').text(data.porsi)
                 $('#infoDapur').text(data.kitchen);
                 
                 let badgeClass = data.status === 'diproses' ? 'info' : (data.status === 'selesai' ? 'success' : 'warning');

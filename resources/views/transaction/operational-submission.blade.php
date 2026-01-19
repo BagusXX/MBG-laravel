@@ -82,7 +82,7 @@
                     <td>{{ $item->created_at->format('d-m-Y') }}</td>
                     <td>{{ $item->kitchen->nama ?? '-' }}</td>
                     <td>{{ $item->details->count() }} Item</td>
-                    <td>Rp {{ number_format($item->total_harga, 0, ',', '.') }}</td>
+                    <td>Rp {{ number_format($item->total_harga, 2, ',', '.') }}</td>
                     <td>
                         <span class="badge badge-{{
                             $item->status === 'diterima' ? 'success' :
@@ -118,7 +118,7 @@
                             target="_blank"
                             class="btn btn-warning btn-sm"
                             title="Cetak Invoice Rekapitulasi">
-                                <i class="fas fa-print"></i> Cetak Invoice
+                                <i class="fas fa-print"></i> Cetak
                             </a>
                         @endif
                     </td>
@@ -214,7 +214,7 @@
                     </div>
 
                     <div class="col-md-2">
-                        <input type="number" name="items[0][harga_satuan]"class="form-control harga-input"required/>
+                        <input type="number" step="0.01" name="items[0][harga_satuan]"class="form-control harga-input"required/>
                     </div>
                     
                     <div class="col-md-5">
@@ -305,7 +305,7 @@
                 <tr>
                     <th width="140" class="py-1">Total Biaya</th>
                     <td class="py-1">
-                        : Rp {{ number_format($item->total_harga, 0, ',', '.') }}
+                        : Rp {{ number_format($item->total_harga, 2, ',', '.') }}
                     </td>
                 </tr>
 
@@ -328,9 +328,9 @@
                 <tr>
                     <td>{{ $det->operational->nama ?? '-' }}</td>
                     <td class="text-center">{{ $det->qty }}</td>
-                    <td class="text-right">Rp {{ number_format($det->harga_satuan,0,',','.') }}</td>
+                    <td class="text-right">Rp {{ number_format($det->harga_satuan,2,',','.') }}</td>
                     <td>{{ $det->keterangan ?? '-' }}</td>
-                    <td class="text-right">Rp {{ number_format($det->subtotal,0,',','.') }}</td>
+                    <td class="text-right">Rp {{ number_format($det->subtotal,2,',','.') }}</td>
                 </tr>
             @endforeach
         </tbody>
@@ -353,7 +353,7 @@
                             {{ strtoupper($child->status) }}
                         </span>
                         <span class="ml-2 font-weight-bold">
-                            Rp {{ number_format($child->total_harga, 0, ',', '.') }}
+                            Rp {{ number_format($child->total_harga, 2, ',', '.') }}
                         </span>
                     </div>
                 </div>

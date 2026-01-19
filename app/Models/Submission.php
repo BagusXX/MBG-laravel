@@ -43,7 +43,7 @@ class Submission extends Model
 
     public function children()
     {
-        return $this->hasMany(self::class, 'parent_id');
+        return $this->hasMany(self::class, 'parent_id', 'id');
     }
 
     public function details()
@@ -129,6 +129,4 @@ class Submission extends Model
             }
         });
     }
-
-
 }

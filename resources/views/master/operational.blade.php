@@ -7,7 +7,7 @@
 @endsection
 
 @section('content_header')
-    <h1>Operasional</h1>
+    <h1>Data Operasional Dapur</h1>
 @endsection
 
 @section('content')

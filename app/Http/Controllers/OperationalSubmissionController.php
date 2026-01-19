@@ -253,8 +253,15 @@ class OperationalSubmissionController extends Controller
             abort(403, 'Invoice rekapitulasi hanya tersedia untuk pengajuan yang sudah selesai.');
         }
 
-        // Kita gunakan view yang SAMA dengan yang dibuat untuk Approval
-        // agar desainnya konsisten 100%
-        return view('transaction.invoiceOperational-parent', compact('parent'));
+        // 3. Generate PDF (Ubah dari return view ke Pdf::loadView)
+        $pdf = Pdf::loadView(
+            'transaction.invoiceOperational-parent', // Pastikan nama file view sesuai
+            compact('parent')
+        )->setPaper('A4', 'portrait');
+
+        // 4. Download PDF
+        return $pdf->download(
+            'Invoice-Rekap-' . $parent->kode . '.pdf'
+        );
     }
 }

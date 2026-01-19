@@ -471,6 +471,28 @@
             color: #00C9FF;
             text-decoration: underline;
         }
+        /* Pastikan wrapper relative agar icon bisa absolute terhadapnya */
+        .input-wrapper {
+            position: relative;
+            display: flex; /* Opsional, untuk merapikan layout */
+            align-items: center;
+        }
+
+        /* Style untuk ikon mata */
+        .password-toggle-icon {
+            position: absolute;
+            right: 10px; /* Jarak dari kanan */
+            top: 50%;
+            transform: translateY(-50%); /* Agar tepat di tengah secara vertikal */
+            cursor: pointer;
+            color: #666; /* Warna ikon */
+            user-select: none;
+            z-index: 2;
+        }
+
+        .password-toggle-icon:hover {
+            color: #333; /* Warna saat di-hover */
+        }
 
         /* Responsive */
         @media (max-width: 640px) {
@@ -668,14 +690,21 @@
                     <label for="password" class="form-label">
                         Password <span class="required">*</span>
                     </label>
-                    <div class="input-wrapper">
+                    <div class="input-wrapper style="position: relative;">
                         <input 
                             id="password" 
                             type="password" 
                             name="password" 
                             class="form-input"
                             placeholder="••••••••"
+                            style="padding-right: 40px;"
                         />
+                        <span id="togglePassword" class="password-toggle-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </span>
                     </div>
                     @error('password')
                         <span class="error-message">{{ $message }}</span>
@@ -720,3 +749,20 @@
         </div>
     </div>
 </x-guest-layout>
+<script>
+    const togglePassword = document.querySelector('#togglePassword');
+    const passwordInput = document.querySelector('#password');
+
+    togglePassword.addEventListener('click', function () {
+        // 1. Toggle tipe input antara 'password' dan 'text'
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+
+        // 2. (Opsional) Ubah tampilan ikon jika ingin efek coret
+        // Anda bisa menambahkan logika di sini untuk mengganti ikon
+        // jika menggunakan library seperti FontAwesome.
+        
+        // Contoh sederhana mengubah warna saat aktif:
+        this.style.color = type === 'text' ? '#007bff' : '#666';
+    });
+</script>

@@ -7,7 +7,7 @@
 @endsection
 
 @section('content_header')
-    <h1>Nama Menu</h1>
+    <h1>Data Nama Menu Dapur </h1>
 @endsection
 
 @section('content')

@@ -7,7 +7,7 @@
 @endsection
 
 @section('content_header')
-    <h1>Region</h1>
+    <h1>Data Region</h1>
 @endsection
 
 @section('content')

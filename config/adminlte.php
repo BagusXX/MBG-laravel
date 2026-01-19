@@ -341,7 +341,6 @@ return [
         [
             'text' => 'Master',
             'icon' => 'fas fa-fw fa-utensils',
-            'can'  => 'master.bahan-baku.view',
             'submenu' => [
                 [
                     'text' => 'Dapur',
@@ -396,7 +395,6 @@ return [
         [
             'text' => 'Setup Data',
             'icon' => 'fas fa-fw fa-tools',
-            'can' => 'recipe.view',
             'submenu' => [
 
                 [
@@ -427,7 +425,6 @@ return [
         [
             'text' => 'Transaksi',
             'icon' => 'fas fa-fw fa-exchange-alt',
-            'can'  => 'transaction.submission.view',
             'submenu' => [
 
                 [
@@ -476,7 +473,6 @@ return [
         [
             'text' => 'Laporan',
             'icon' => 'fas fa-fw fa-file-alt',
-            'can'  => 'report.sales-kitchen.view',
             'submenu' => [
                 
                 [

@@ -60,7 +60,7 @@
             <thead>
                 <tr>
                     <th>Kode</th>
-                    <th>Tanggal</th>
+                    <th>Tanggal Pengajuan</th>
                     <th>Dapur</th>
                     <th>Menu</th>
                     <th>Porsi</th>
@@ -149,7 +149,7 @@
         </div>
         <div class="col-md-6">
             <div class="form-group">
-                <label>Tanggal</label>
+                <label>Tanggal Pengajuan</label>
                 <input type="date" name="tanggal" class="form-control" value="{{ date('Y-m-d') }}" required>
             </div>
         </div>
@@ -202,7 +202,7 @@
         <div class="col-md-6">
             <table class="table table-borderless table-sm">
                 <tr><th width="30%">Kode</th><td>: <span id="det-kode" >-</span></td></tr>
-                <tr><th>Tanggal</th><td>: <span id="det-tanggal">-</span></td></tr>
+                <tr><th width="60%">Tanggal Pengajuan</th><td>: <span id="det-tanggal">-</span></td></tr>
                 <tr><th>Status</th><td>: <span id="det-status">-</span></td></tr>
             </table>
         </div>
@@ -241,9 +241,17 @@
         <div class="spinner-border text-primary" role="status"></div>
         <p>Memuat data...</p>
     </div>
+
+    {{-- RIWAYAT SPLIT ORDER --}}
+    <div id="sectionRiwayat" class="mt-4 pt-3 border-top">
+        <h6 class="font-weight-bold text-secondary mb-3">Riwayat Approval (Split Order)</h6>
+        <div id="wrapperRiwayat">
+            {{-- Inject JS --}}
+        </div>
+    </div>
 </x-modal-detail>
 
-{{-- ... modal delete dll sama ... --}}
+
 
 {{-- =========================
     MODAL DELETE
@@ -400,6 +408,69 @@
                     }
 
                     $('#det-tbody').html(rows);
+                    // ==========================================
+                    // LOGIC RENDER RIWAYAT SPLIT ORDER (BARU)
+                    // ==========================================
+                    let historyHtml = '';
+
+                    if (data.history && data.history.length > 0) {
+                        $.each(data.history, function(i, h) {
+                            // 1. Generate List Item per Split Order
+                            let itemsHtml = '';
+                            if (h.items && h.items.length > 0) {
+                                h.items.forEach(item => {
+                                    itemsHtml += `
+                                        <li>
+                                            ${item.nama}
+                                            <span class="text-muted">(${parseFloat(item.qty)} x ${formatRupiah(item.harga)})</span>
+                                        </li>
+                                    `;
+                                });
+                            } else {
+                                itemsHtml = '<li class="text-muted font-italic">Tidak ada item</li>';
+                            }
+
+                            // 2. Buat URL Invoice (Sesuaikan route Anda)
+                            // Pastikan route ini bisa diakses oleh role yang membuka halaman ini
+                            let invoiceUrl = "{{ url('dashboard/transaksi/approval-menu') }}/" + h.id + "/invoice";
+
+                            // 3. Gabungkan HTML (Diadaptasi dari kode Approval Anda)
+                            historyHtml += `
+                                <div class="card mb-2 border" style="background-color: #f8f9fa;">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <div>
+                                                <strong class="text-dark">${h.kode}</strong> 
+                                                <span class="text-muted mx-2">|</span> 
+                                                <i class="fas fa-truck mr-1 text-secondary"></i> ${h.supplier_nama}
+                                            </div>
+                                            <div>
+                                                <span class="badge badge-success mr-2">DISETUJUI</span>
+                                                <strong class="text-dark">${formatRupiah(h.total)}</strong>
+                                            </div>
+                                        </div>
+
+                                        {{-- List Item Ringkas --}}
+                                        <ul class="mb-2 pl-3 small text-secondary" style="list-style-type: circle;">
+                                            ${itemsHtml}
+                                        </ul>
+
+                                        {{-- Tombol Cetak Invoice --}}
+                                        <div class="text-right border-top pt-2">
+                                            <a href="${invoiceUrl}" target="_blank" class="btn btn-xs btn-outline-secondary">
+                                                <i class="fas fa-print mr-1"></i> Cetak Invoice
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        historyHtml = '<div class="text-muted font-italic text-center py-2 border rounded bg-light">Belum ada riwayat split order / approval.</div>';
+                    }
+
+                    // Inject ke dalam div wrapperRiwayat
+                    $('#wrapperRiwayat').html(historyHtml);
 
                     // Selesai Loading
                     $('#loading-spinner').hide();
@@ -424,6 +495,9 @@
                 setTimeout(() => notif.remove(), 300);
             }, 3000);
         }
+        
+        
     });
+    
 </script>
 @endsection
