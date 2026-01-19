@@ -3,13 +3,13 @@
 @section('title', 'Profile')
 
 @section('content_header')
-    <div class="d-flex justify-content-between align-items-center">
+    {{-- <div class="d-flex justify-content-between align-items-center">
         <h1><i class="fas fa-user-cog mr-2 text-secondary"></i> Pengaturan Profil</h1>
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="#">Home</a></li>
             <li class="breadcrumb-item active">Profil</li>
         </ol>
-    </div>
+    </div> --}}
 @endsection
 
 @section('content')
