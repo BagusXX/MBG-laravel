@@ -51,7 +51,7 @@
                                     class="btn btn-warning btn-sm btn-download-invoice"
                                     data-kode="{{ $submission->kode }}"
                                 >
-                                    <i class="fas fa-print mr-1"></i>Cetak Invoice
+                                    <i class="fas fa-print mr-1"></i>Cetak
                                 </button>
                             </td>
                         </tr>

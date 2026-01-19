@@ -154,29 +154,36 @@
     {{-- MODAL DETAIL PURCHASE MATERIALS --}}
     <x-modal-detail id="modalDetailPurchase" size="modal-lg" title="Pemesanan Bahan Baku">
 
-        <table class="table table-borderless table-sm">
-            <tr>
-                <th width="150"><strong>Kode </strong></th>
-                <td width="5">:</td>
-                <td id="detail-kode">: </td>
-
-            </tr>
-            <tr>
-                <th><strong>Tanggal Beli </strong></th>
-                <td width="5">:</td>
-                <td id="detail-tanggal"></td>
-            </tr>
-            <tr>
-                <th><strong>Supplier </strong></th>
-                <td width="5">:</td>
-                <td id="detail-supplier"></td>
-            </tr>
-            <tr>
-                <th><strong>Total Harga </strong></th>
-                <td width="5">:</td>
-                <td id="detail-total"></td>
-            </tr>
-        </table>
+        <div class="row">
+            <div class="col-md-6">
+                <table class="table table-borderless table-sm">
+                    <tr>
+                        <th width="150"><strong>Kode </strong></th>
+                        <td width="5">:</td>
+                        <td id="detail-kode">: </td>
+                    </tr>
+                    <tr>
+                        <th><strong>Tanggal Beli </strong></th>
+                        <td width="5">:</td>
+                        <td id="detail-tanggal"></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <table class="table table-borderless table-sm">
+                    <tr>
+                        <th><strong>Supplier </strong></th>
+                        <td width="5">:</td>
+                        <td id="detail-supplier"></td>
+                    </tr>
+                    <tr>
+                        <th><strong>Total Harga </strong></th>
+                        <td width="5">:</td>
+                        <td id="detail-total"></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
         <div>
             <table class="table table-bordered table-striped">
                 <thead>

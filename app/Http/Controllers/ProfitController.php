@@ -57,6 +57,10 @@ class ProfitController extends Controller
             );
         }
 
+        $query->orderByDesc(\App\Models\Submission::select('tanggal')
+            ->whereColumn('submissions.id', 'submission_details.submission_id')
+            ->limit(1));
+            
         $reports = $query->paginate(10)->withQueryString();
 
         $totalPageSubtotal = $reports->getCollection()->sum(function ($item) {
@@ -76,7 +80,10 @@ class ProfitController extends Controller
         $query = SubmissionDetails::with(['submission.kitchen', 'bahanBaku', 'submission.supplier']);
 
         $query->whereHas('submission', function ($q) {
-            $q->whereNotNull('parent_id');
+            $q->whereNotNull('parent_id')
+                ->orderByDesc(\App\Models\Submission::select('tanggal')
+                    ->whereColumn('submissions.id', 'submission_details.submission_id')
+                    ->limit(1));
         });
 
         if ($request->from_date && $request->to_date) {

@@ -8,6 +8,7 @@ use App\Models\Kitchen;
 use App\Models\SubmissionDetails;
 use App\Models\Supplier;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\BahanBaku;
 
 class ReportSalesPartnerController extends Controller
 {
@@ -15,11 +16,15 @@ class ReportSalesPartnerController extends Controller
     {
         $kitchens = Kitchen::all();
         $suppliers = Supplier::all();
+        $bahanBakus = BahanBaku::selectRaw('MIN(id) as id, nama')
+        ->groupBy('nama') 
+        ->get();
 
         $query = SubmissionDetails::with([
             'submission.kitchen',
             'bahanBaku',
-            'submission.supplier'
+            'submission.supplier',
+            'recipeBahanBaku.bahan_baku'
         ]);
 
         $query->whereHas('submission', function ($q) {
@@ -48,14 +53,37 @@ class ReportSalesPartnerController extends Controller
                 $q->where('supplier_id', $request->supplier_id)
             );
         }
+        if ($request->filled('bahan_baku_id')) {
+            $selectedBahan = \App\Models\BahanBaku::find($request->bahan_baku_id);
+            
+            if ($selectedBahan) {
+                $namaBahan = $selectedBahan->nama; 
 
+                $query->where(function ($q) use ($namaBahan) {
+                    // Filter 1: Lewat relasi langsung bahanBaku
+                    $q->whereHas('bahanBaku', function ($qb) use ($namaBahan) {
+                        $qb->where('nama', $namaBahan);
+                    })
+                    // Filter 2: Lewat relasi resep (Gunakan bahan_baku sesuai modelmu)
+                    // Nested relationship: recipeBahanBaku -> bahan_baku
+                    ->orWhereHas('recipeBahanBaku.bahan_baku', function ($qr) use ($namaBahan) {
+                        $qr->where('nama', $namaBahan);
+                    });
+                });
+            }
+        }
+
+        $query->orderByDesc(\App\Models\Submission::select('tanggal')
+            ->whereColumn('submissions.id', 'submission_details.submission_id')
+            ->limit(1));
+            
         $reports = $query->paginate(10)->withQueryString();
 
         $totalPageSubtotal = $reports->sum(function ($item) {
             return ($item->submission->porsi ?? 0) * ($item->harga_mitra ?? 0);
         });
 
-        return view('report.sales-partner', compact('kitchens', 'reports', 'suppliers', 'totalPageSubtotal'));
+        return view('report.sales-partner', compact('kitchens', 'reports', 'suppliers', 'totalPageSubtotal', 'bahanBakus'));
     }
 
     public function invoice(Request $request)
