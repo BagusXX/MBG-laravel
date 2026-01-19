@@ -19,22 +19,22 @@
                                 <label>Dari</label>
                                 <input type="date" name="from_date" class="form-control ">
                             </div>
-                            
+
                             {{-- FILTER MENU "SAMPAI"--}}
                             <div class="col-md-3">
                                 <label>Sampai</label>
                                 <input type="date" name="to_date" class="form-control ">
                             </div>
-                            
+
                             {{-- FILTER DAPUR --}}
                             <div class="col-md-3">
                                 <label>Dapur</label>
                                 <select name="kitchen_id" class="form-control">
                                     <option value="">Semua Dapur</option>
                                     @foreach ($kitchens as $kitchen)
-                                    <option value="{{ $kitchen->id }}" {{ request('kitchen_id') == $kitchen->id ? 'selected' : '' }}>
-                                        {{ $kitchen->nama }}
-                                    </option>
+                                        <option value="{{ $kitchen->id }}" {{ request('kitchen_id') == $kitchen->id ? 'selected' : '' }}>
+                                            {{ $kitchen->nama }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </div>
@@ -43,9 +43,9 @@
                                 <select name="supplier_id" class="form-control">
                                     <option value="">Semua Supplier</option>
                                     @foreach ($suppliers as $supplier)
-                                    <option value="{{ $supplier->id }}" {{ request('supplier_id') == $supplier->id ? 'selected' : '' }}>
-                                        {{ $supplier->nama }}
-                                    </option>
+                                        <option value="{{ $supplier->id }}" {{ request('supplier_id') == $supplier->id ? 'selected' : '' }}>
+                                            {{ $supplier->nama }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </div>
@@ -56,7 +56,8 @@
                                 <a href="{{ route('report.profit') }}" class="btn btn-danger">
                                     <i class="fa fa-undo"></i> Reset
                                 </a>
-                                <a href="{{ route('report.profit.invoice', request()->all()) }}" class="btn btn-warning ml-2">
+                                <a href="{{ route('report.profit.invoice', request()->all()) }}"
+                                    class="btn btn-warning ml-2">
                                     <i class="fa fa-print"></i> Print
                                 </a>
                             </div>
@@ -78,46 +79,51 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($reports as $report )
-                        
+                    @forelse ($reports as $report)
+
+                        @php
+                            $porsi = $report->submission->porsi ?? 1;
+
+                            $hargaDapurTotal = ($report->harga_dapur ?? 0) * $porsi;
+                            $hargaMitraTotal = ($report->harga_mitra ?? 0) * $porsi;
+                            $selisihTotal = $hargaDapurTotal - $hargaMitraTotal;
+
+                        @endphp
+
+                        <tr>
+                            <td>{{ $reports->firstItem() + $loop->index }}</td>
+                            <td>{{ \Carbon\Carbon::parse($report->submission->tanggal)->format('d-m-Y') }}</td>
+                            <td>{{ $report->submission->kitchen->nama}}</td>
+                            <td>
+                                @if ($report->submission->supplier_id)
+                                    {{ optional($report->submission->supplier)->nama }}
+                                @else
+                                    -
+                                @endif
+                            </td>
+                            <td>Rp {{ number_format($hargaDapurTotal, 0, ',', '.') }}</td>
+                            <td>Rp {{ number_format($hargaMitraTotal, 0, ',', '.') }}</td>
+                            <td>Rp {{ number_format($selisihTotal, 0, ',', '.') }}</td>
+
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="8" class="text-center">Data tidak ditemukan untuk periode ini.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+                <tfoot>
                     <tr>
-                        <td>{{ $reports->firstItem() + $loop->index }}</td>
-                        <td>{{ \Carbon\Carbon::parse($report->submission->tanggal)->format('d-m-Y') }}</td>
-                        <td>{{ $report->submission->kitchen->nama}}</td>
-                        <td>
-                            @if ($report->submission->supplier_id)
-                                {{ optional($report->submission->supplier)->nama }}
-                            @else
-                            -
-                            @endif
-                        </td>
-                        <td>Rp {{ number_format($report->harga_dapur, 0, ',', '.') }}</td>
-                        <td>Rp {{ number_format($report->harga_mitra, 0, ',', '.') }}</td>
-                        <td>Rp {{ number_format(($report->harga_dapur ?? 0) - ($report->harga_mitra ?? 0), 0, ',', '.') }}</td>
-                    
-                </tr>
-                @empty
-                    <tr>
-                        <td colspan="8" class="text-center">Data tidak ditemukan untuk periode ini.</td>
+                        <td colspan="6" class="text-right"><strong>Total Selisih :</strong></td>
+                        <td class="text-left"><strong>Rp{{ number_format($totalPageSubtotal, 0, '.', '.') }}</strong></td>
                     </tr>
-                @endforelse
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td colspan="6" class="text-right"><strong>Total Selisih :</strong></td>
-                    <td class="text-left"><strong>Rp{{ number_format($totalPageSubtotal, 0, '.', '.') }}</strong></td>
-                </tr>
-            </tfoot>
+                </tfoot>
             </table>
         </div>
     </div>
 
     {{-- MODAL DETAIL --}}
-    <x-modal-detail
-        id="modalDetailSubmission"
-        size="modal-lg"
-        title="Detail Pengajuan Menu"
-    >
+    <x-modal-detail id="modalDetailSubmission" size="modal-lg" title="Detail Pengajuan Menu">
         <div>
             <div>
                 <p class="font-weight-bold mb-0">Tanggal:</p>

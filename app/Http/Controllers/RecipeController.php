@@ -19,7 +19,10 @@ class RecipeController extends Controller
         $kitchenKodes = $user->kitchens()->pluck('kode');
         $kitchens = Kitchen::whereIn('kode', $kitchenKodes)->get();
 
-        $menus = Menu::with([
+        $menus = Menu::whereHas('recipes.kitchen', function ($q) use ($kitchenKodes) {
+            $q->whereIn('kode', $kitchenKodes);
+        })
+            ->with([
             'recipes' => function ($q) use ($kitchenKodes) {
                 $q->with(['bahan_baku.unit', 'kitchen'])
                     ->whereHas('kitchen', function ($k) use ($kitchenKodes) {
