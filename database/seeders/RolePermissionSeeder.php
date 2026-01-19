@@ -163,17 +163,23 @@ class RolePermissionSeeder extends Seeder
                     'master.operational.view',
                     'master.supplier.view',
 
+                    'transaction.submission.view',
                     'transaction.submission-approval.view',
+                    'transaction.operational-submission.view',
                     'transaction.operational-approval.view',
                     'transaction.sale-kitchen.view',
                     'transaction.sale-partner.view',
+                    'transaction.purchase.view',
 
                     'transaction.sales.view',
                     'transaction.purchase.view',
 
+                    'report.sales-kitchen.view',
+
                     'report.sales-partner.view',
                     'report.sales-partner.invoice',
 
+                    'report.purchase-operational.view',
                     'report.profit.view',
 
                 ]);

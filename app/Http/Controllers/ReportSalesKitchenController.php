@@ -74,7 +74,9 @@ class ReportSalesKitchenController extends Controller
                 });
             }
         }
-
+        $query->orderByDesc(\App\Models\Submission::select('tanggal')
+                ->whereColumn('submissions.id', 'submission_details.submission_id')
+                ->limit(1));
 
         $reports = $query->paginate(10)->withQueryString();
 
