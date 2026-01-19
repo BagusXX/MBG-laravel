@@ -12,7 +12,12 @@
             size: landscape;
             /* margin: 1cm; */
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
             font-family: Arial, sans-serif;
@@ -25,7 +30,7 @@
             /* margin: 0; */
             background: white;
             padding: 30px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
         .header {
@@ -93,7 +98,8 @@
             border-bottom: 1px solid #ddd;
         }
 
-        table th, table td {
+        table th,
+        table td {
             padding: 8px 4px;
             border-bottom: 1px solid #ddd;
         }
@@ -125,8 +131,14 @@
         }
 
         @media print {
-            body { background: white; padding: 0; }
-            .invoice-container { box-shadow: none; }
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .invoice-container {
+                box-shadow: none;
+            }
         }
     </style>
 </head>
@@ -170,20 +182,32 @@
             </tr>
         </thead>
         <tbody>
+            @php
+                $grandTotal = 0;
+            @endphp
+
+
             @foreach ($reports as $index => $item)
+                @php
+                    $porsi = $item->submission->porsi ?? 1;
+
+                    $hargaDapurTotal = ($item->harga_dapur ?? 0) * $porsi;
+                    $hargaMitraTotal = ($item->harga_mitra ?? 0) * $porsi;
+                    $selisihTotal = $hargaDapurTotal - $hargaMitraTotal;
+                @endphp
                 <tr>
                     <td>{{ \Carbon\Carbon::parse($item->submission->tanggal)->locale('id')->isoFormat('DD MMM YYYY') }}</td>
                     <td>{{ $item->submission->kitchen->nama}}</td>
                     <td>
                         @if ($item->submission->supplier_id)
-                                {{ optional($item->submission->supplier)->nama }}
-                            @else-
+                            {{ optional($item->submission->supplier)->nama }}
+                        @else-
 
-                            @endif
+                        @endif
                     </td>
-                    <td>Rp{{ number_format($item->harga_dapur, 0, ',', '.') }}</td>
-                    <td>Rp{{ number_format($item->harga_mitra, 0, ',', '.') }}</td>
-                    <td>Rp{{ number_format(($item->harga_dapur ?? 0) - ($item->harga_mitra ?? 0), 0, ',', '.') }}</td>
+                    <td>Rp {{ number_format($hargaDapurTotal, 0, ',', '.') }}</td>
+                    <td>Rp {{ number_format($hargaMitraTotal, 0, ',', '.') }}</td>
+                    <td>Rp {{ number_format($selisihTotal, 0, ',', '.') }}</td>
                 </tr>
             @endforeach
         </tbody>
@@ -207,4 +231,5 @@
 
 </div>
 </body>
+
 </html>
