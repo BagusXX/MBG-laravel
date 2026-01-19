@@ -224,6 +224,9 @@ Route::middleware(['auth'])->group(function () {
                 ->middleware('permission:transaction.submission.delete')
                 ->name('destroy');
 
+            Route::get('/{submission}/data', 'getSubmissionData')
+                ->middleware('permission:transaction.submission.view')
+                ->name('data');
 
             // Helpers
             Route::get('/helper/menu-by-kitchen/{kitchenId}', 'getMenuByKitchen')
@@ -472,12 +475,12 @@ Route::middleware(['auth'])->group(function () {
                 ->name('purchase-operational.invoice');
 
             Route::get('/penjualan-mitra', [ReportSalesPartnerController::class, 'index'])
-            ->middleware('permission:report.sales-partner.view')
-            ->name('sales-partner');
+                ->middleware('permission:report.sales-partner.view')
+                ->name('sales-partner');
 
             Route::get('/penjualan-mitra/invoice', [ReportSalesPartnerController::class, 'invoice'])
-            ->middleware('permission:report.sales-partner.invoice')
-            ->name('sales-partner.invoice');
+                ->middleware('permission:report.sales-partner.invoice')
+                ->name('sales-partner.invoice');
 
             Route::get('/selisih', [ProfitController::class, 'index'])
                 ->middleware('permission:report.profit.view')

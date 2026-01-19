@@ -243,10 +243,150 @@ class SubmissionController extends Controller
             'kitchen',
             'menu',
             // 'details.recipeBahanBaku.bahan_baku.unit',
-            'details.bahanBaku.unit'
+            'details.bahanBaku.unit',
+            'children.supplier',
+            'children.details.bahanBaku.unit',
+        ]);
+        $history = $submission->children->map(function ($child) {
+            return [
+                'id' => $child->id,
+                'kode' => $child->kode,
+                'supplier_nama' => $child->supplier->nama ?? 'Umum',
+                'status' => $child->status,
+                'total' => $child->total_harga,
+                'items' => $child->details->map(function ($detail) {
+                    return [
+                        'nama' => $detail->bahanBaku->nama ?? '-',
+                        'qty' => $detail->qty_digunakan,
+                        'harga' => $detail->harga_mitra ?? $detail->harga_dapur,
+                    ];
+                })->values()
+            ];
+        });
+
+        return response()->json([
+            'id' => $submission->id,
+            'kode' => $submission->kode,
+            'tanggal' => $submission->tanggal,
+            'status' => $submission->status,
+            'porsi' => $submission->porsi,
+            'kitchen' => $submission->kitchen,
+            'menu' => $submission->menu,
+            'details' => $submission->details,
+            'history' => $history, // ✅ INI KUNCINYA
+        ]);
+    }
+    /* ================= AJAX ================= */
+
+    // Tambahkan/Update method ini di SubmissionApprovalController
+
+    public function getSubmissionData(Submission $submission)
+    {
+        $submission->load(['kitchen', 'menu', 'children.supplier', 'children.details.bahanBaku']); // Load children & suppliernya
+
+        // Format data children untuk riwayat
+        $history = $submission->children->map(function ($child) {
+            return [
+                'id' => $child->id,
+                'kode' => $child->kode,
+                'supplier_nama' => $child->supplier->nama ?? 'Umum',
+                'status' => $child->status,
+                'total' => $child->total_harga,
+                'item_count' => $child->details()->count(), // Opsional: jumlah item
+                'items' => $child->details->map(function ($detail) {
+                    return [
+                        'nama' => $detail->bahanBaku->nama ?? '-',
+                        'qty' => $detail->qty_digunakan,
+                        'harga' => $detail->harga_mitra ?? $detail->harga_satuan,
+                    ];
+                })->values()
+            ];
+        });
+
+        $availableSuppliers = $submission->kitchen->suppliers->values();
+
+        return response()->json([
+            'id' => $submission->id,
+            'kode' => $submission->kode,
+            'tanggal' => date('d-m-Y', strtotime($submission->tanggal)),
+            'kitchen' => $submission->kitchen->nama,
+            'menu' => $submission->menu->nama,
+            'porsi' => $submission->porsi,
+            'status' => $submission->status,
+            'history' => $history,
+            'suppliers' => $availableSuppliers // <--- Kirim data riwayat ke JS
+        ]);
+    }
+
+
+    public function splitToSupplier(Request $request, Submission $submission)
+    {
+        // Cek apakah data benar-benar ada (Debugging - Hapus nanti jika sudah fix)
+        // dd($submission->toArray()); 
+
+        // Logic auto-update status jika masih diajukan
+        if ($submission->status === 'diajukan') {
+            $submission->update(['status' => 'diproses']);
+        }
+
+        // Validasi Status
+        abort_if(in_array($submission->status, ['selesai', 'ditolak']), 403, 'Pengajuan sudah ditutup');
+
+        $request->validate([
+            'supplier_id' => 'required|exists:suppliers,id',
+            'selected_details' => 'required|array',
+            'selected_details.*' => 'exists:submission_details,id',
         ]);
 
-        // return view('transaction.submission-detail', compact('submission'));
-        return response()->json($submission);
+        DB::transaction(function () use ($submission, $request) {
+
+            // 1. GENERATE KODE CHILD
+            // Format: KODE_PARENT-1, KODE_PARENT-2, dst.
+            $childSequence = Submission::where('parent_id', $submission->id)->count() + 1;
+            $childKode = $submission->kode . '-' . $childSequence;
+
+            // 2. BUAT CHILD SUBMISSION
+            $child = Submission::create([
+                'kode' => $childKode,
+                'tanggal' => now(),
+                'kitchen_id' => $submission->kitchen_id, // Data diambil dari $submission
+                'menu_id' => $submission->menu_id,       // Data diambil dari $submission
+                'porsi' => $submission->porsi,           // Data diambil dari $submission
+                'total_harga' => 0,
+                'tipe' => 'disetujui',
+                'status' => 'diproses',
+                'parent_id' => $submission->id,
+                'supplier_id' => $request->supplier_id,
+            ]);
+
+            $total = 0;
+
+            // 3. PINDAHKAN DETAIL YANG DICENTANG
+            $detailsToCopy = SubmissionDetails::whereIn('id', $request->selected_details)->get();
+
+            foreach ($detailsToCopy as $detail) {
+                // Gunakan harga mitra jika ada, jika tidak pakai harga dapur
+                $hargaMitra = $detail->harga_mitra ?? $detail->harga_dapur;
+                $subtotal = $hargaMitra * $detail->qty_digunakan;
+
+                SubmissionDetails::create([
+                    'submission_id' => $child->id,
+                    'recipe_bahan_baku_id' => $detail->recipe_bahan_baku_id,
+                    'bahan_baku_id' => $detail->bahan_baku_id,
+                    'qty_digunakan' => $detail->qty_digunakan,
+                    'harga_satuan' => $detail->harga_satuan,
+                    'harga_dapur' => $detail->harga_dapur, // Child ke supplier tidak butuh harga dapur
+                    'harga_mitra' => $hargaMitra,
+                    'subtotal_harga' => $subtotal,
+                ]);
+
+                $total += $subtotal;
+            }
+
+            // Update total harga child
+            $child->update(['total_harga' => $total]);
+        });
+
+        return response()->json(['success' => true, 'message' => 'Order berhasil dipisah ke supplier']);
     }
 }

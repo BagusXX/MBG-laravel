@@ -7,7 +7,7 @@
 @endsection
 
 @section('content_header')
-    <h1>Supplier</h1>
+    <h1>Data Supplier Dapur MBG</h1>
 @endsection
 
 @section('content')
@@ -33,7 +33,7 @@
                     <tr>
                         <th>No</th>
                         <th>Kode</th>
-                        <th>Nama</th>
+                        <th>Supplier</th>
                         <th>Alamat</th>
                         <th>Dapur</th>
                         <th>Kontak Person</th>

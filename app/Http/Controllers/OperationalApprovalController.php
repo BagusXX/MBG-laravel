@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\submissionOperational;
 use App\Models\Supplier;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -298,9 +299,15 @@ class OperationalApprovalController extends Controller
             abort(403, 'Invoice hanya tersedia untuk pengajuan selesai');
         }
 
-        return view(
-            'transaction.invoiceOperational-parent',
+        // 3. Generate PDF (Ubah dari return view ke Pdf::loadView)
+        $pdf = Pdf::loadView(
+            'transaction.invoiceOperational-parent', // Pastikan nama file view sesuai
             compact('parent')
+        )->setPaper('A4', 'portrait');
+
+        // 4. Download PDF
+        return $pdf->download(
+            'Invoice-Rekap-' . $parent->kode . '.pdf'
         );
     }
 }

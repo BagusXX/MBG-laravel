@@ -79,7 +79,7 @@
                     <td>{{ $item->kode }}</td>
                     <td>{{ \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y') }}</td>
                     <td>{{ $item->kitchen->nama ?? '-' }}</td>
-                    <td>Rp {{ number_format($item->total_harga, 0, ',','.') }}</td>
+                    <td>Rp {{ number_format($item->total_harga, 2, ',','.') }}</td>
                     <td>
                         <span class="badge badge-{{
                            $item->status === 'diterima' ? 'success' :
@@ -108,7 +108,7 @@
                                     target="_blank"
                                     class="btn btn-warning btn-sm"
                                 >
-                                    <i class="fas fa-print mr-1"></i> Cetak Invoice
+                                    <i class="fas fa-print mr-1"></i> Cetak
                                 </a>
                             </div>
                         @endif
@@ -345,8 +345,8 @@
                                 <small class="text-muted">{{ $detail->keterangan }}</small>
                             </td>
                             <td class="text-center">{{ $detail->qty }}</td>
-                            <td class="text-right">Rp {{ number_format($detail->harga_satuan, 0, ',', '.') }}</td>
-                            <td class="text-right">Rp {{ number_format($detail->subtotal, 0, ',', '.') }}</td>
+                            <td class="text-right">Rp {{ number_format($detail->harga_satuan, 2, ',', '.') }}</td>
+                            <td class="text-right">Rp {{ number_format($detail->subtotal, 2, ',', '.') }}</td>
                         </tr>
                     @empty
                         <tr>
@@ -358,7 +358,7 @@
                 <tfoot>
                     <tr>
                         <th colspan="{{ in_array($item->status, ['diajukan', 'diproses']) ? '4' : '3' }}" class="text-right">Total Keseluruhan</th>
-                        <th class="text-right">Rp {{ number_format($item->total_harga, 0, ',', '.') }}</th>
+                        <th class="text-right">Rp {{ number_format($item->total_harga, 2, ',', '.') }}</th>
                     </tr>
                 </tfoot>
             </table>
@@ -387,7 +387,7 @@
                             {{ strtoupper($child->status) }}
                         </span>
                         <span class="ml-2 font-weight-bold">
-                            Rp {{ number_format($child->total_harga, 0, ',', '.') }}
+                            Rp {{ number_format($child->total_harga, 2, ',', '.') }}
                         </span>
                         {{-- =========================
                             BUTTON DELETE CHILD

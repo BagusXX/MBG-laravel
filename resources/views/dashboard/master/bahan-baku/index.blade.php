@@ -7,7 +7,7 @@
 @endsection
 
 @section('content_header')
-    <h1>Bahan Baku</h1>
+    <h1>Data Bahan Baku Masakan</h1>
 @endsection
 
 @section('content')
@@ -40,7 +40,7 @@
                             <td>{{ $item->kode }}</td>
                             <td>{{ $item->nama }}</td>
                             <td>{{ $item->unit->satuan ?? '-' }}</td>
-                            <td>Rp {{ number_format($item->harga, 0, ',', '.') }}</td>
+                            <td>Rp {{ number_format($item->harga, 2, ',', '.') }}</td>
                             <td>{{ $item->kitchen->nama ?? '-' }}</td>
                             <td>
                                 {{-- BUTTON EDIT --}}
@@ -101,7 +101,7 @@
 
         <div class="form-group">
             <label>Harga</label>
-            <input type="number" placeholder="10000" class="form-control" name="harga" required>
+            <input type="number" step="0.01" placeholder="10000" class="form-control" name="harga" required>
         </div>
 
         <div class="form-group mt-2">
@@ -141,7 +141,7 @@
 
         <div class="form-group">
             <label>Harga</label>
-            <input id="editHarga" type="number" class="form-control" name="harga" required>
+            <input id="editHarga" type="number" step="0.01" class="form-control" name="harga" required>
         </div>
 
         <div class="form-group mt-2">

@@ -7,7 +7,7 @@
 @endsection
 
 @section('content_header')
-    <h1>Satuan</h1>
+    <h1>Data Satuan Bahan Baku</h1>
 @endsection
 
 @section('content')
