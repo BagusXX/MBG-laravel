@@ -15,19 +15,19 @@
                     <form action="{{ route('report.sales-kitchen') }}" method="GET">
                         <div class="row align-items-end">
                             {{-- FILTER TANGGAL "DARI" --}}
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label>Dari</label>
                                 <input type="date" name="from_date" class="form-control ">
                             </div>
                             
                             {{-- FILTER MENU "SAMPAI"--}}
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label>Sampai</label>
                                 <input type="date" name="to_date" class="form-control ">
                             </div>
                             
                             {{-- FILTER DAPUR --}}
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label>Dapur</label>
                                 <select name="kitchen_id" class="form-control">
                                     <option value="">Semua Dapur</option>
@@ -38,7 +38,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label>Supplier</label>
                                 <select name="supplier_id" class="form-control">
                                     <option value="">Semua Supplier</option>
@@ -46,6 +46,17 @@
                                     <option value="{{ $supplier->id }}" {{ request('supplier_id') == $supplier->id ? 'selected' : '' }}>
                                         {{ $supplier->nama }}
                                     </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label>Bahan Baku</label>
+                                <select name="bahan_baku_id" class="form-control select2">
+                                    <option value="">Semua Bahan Baku</option>
+                                    @foreach ($bahanBakus as $bahan)
+                                        <option value="{{ $bahan->id }}" {{ request('bahan_baku_id') == $bahan->id ? 'selected' : '' }}>
+                                            {{ $bahan->nama }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </div>
@@ -70,10 +81,10 @@
                     <tr>
                         <th width="50">No</th>
                         <th>Tanggal</th>
-                        <th>Bahan Baku</th>
-                        <th>Porsi</th>
                         <th>Dapur</th>
                         <th>Supplier</th>
+                        <th>Bahan Baku</th>
+                        <th>Porsi</th>
                         <th width="50">Satuan</th>
                         <th>Harga</th>
                         <th>Subtotal</th>
@@ -84,15 +95,6 @@
                     <tr>
                         <td>{{ $reports->firstItem() + $loop->index }}</td>
                         <td>{{ \Carbon\Carbon::parse($report->submission->tanggal)->format('d-m-Y') }}</td>
-                        <td>
-                            @if ($report->recipe_bahan_baku_id)
-                                {{ optional(\App\Models\BahanBaku::find($report->bahan_baku_id))->nama }}
-                            @else
-                                -
-                            @endif
-                        </td>
-
-                        <td>{{ $report->submission->porsi }}</td>
                         <td>{{ $report->submission->kitchen->nama}}</td>
                         <td>
                             @if ($report->submission->supplier_id)
@@ -101,6 +103,17 @@
 
                             @endif
                         </td>
+                        <td>
+                            @if ($report->bahan_baku_id)
+                                {{ $report->bahanBaku->nama ?? '-' }}
+                            @elseif ($report->recipeBahanBaku)
+                                {{ $report->recipeBahanBaku->bahanBaku->nama ?? '-' }}
+                            @else
+                                -
+                            @endif
+                        </td>
+
+                        <td>{{ $report->submission->porsi }}</td>
                         <td>
                             @if ($report->recipe_bahan_baku_id)
                                 {{ optional(
