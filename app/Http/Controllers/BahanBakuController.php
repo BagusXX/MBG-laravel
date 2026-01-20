@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 class BahanBakuController extends Controller
 {
     // Tampilkan halaman bahan baku
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
         $kitchens = $user->kitchens;
@@ -19,7 +19,17 @@ class BahanBakuController extends Controller
         $kitchenIds = $kitchens->pluck('id');
 
 
-        $items = BahanBaku::with('kitchen')->whereIn('kitchen_id', $kitchenIds)->paginate(10);
+        $query = BahanBaku::with(['kitchen', 'unit'])->whereIn('kitchen_id', $kitchenIds);
+
+        if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function($q) use ($search) {
+            $q->where('nama', 'LIKE', "%{$search}%")
+              ->orWhere('kode', 'LIKE', "%{$search}%");
+        });
+    }
+
+        $items = $query->paginate(10)->withQueryString();
         $units = Unit::all();
 
         // Pre-generate kode untuk semua dapur

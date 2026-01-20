@@ -12,8 +12,29 @@
 
 @section('content')
 
-    <x-button-add idTarget="#modalAddMaterials" text="Tambah Bahan Baku" />
 
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <x-button-add idTarget="#modalAddMaterials" text="Tambah Bahan Baku" />  
+        </div>
+        <div class="col-md-6">
+            <form action="{{ route('dashboard.master.bahan-baku.index') }}" method="GET">
+            <div class="input-group">
+                <input type="text" name="search" class="form-control" placeholder="Cari nama bahan atau kode..." value="{{ request('search') }}">
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fa fa-search"></i>
+                    </button>
+                    @if(request('search'))
+                        <a href="{{ route('dashboard.master.bahan-baku.index') }}" class="btn btn-danger">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    @endif
+                </div>
+            </div>
+        </form>
+        </div>
+    </div>
     {{-- @if (session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif --}}
