@@ -12,10 +12,16 @@
 
 @section('content')
     {{-- BUTTON ADD --}}
-    <x-button-add 
+    {{-- <x-button-add 
         idTarget="#modalAddSupplier"
         text="Tambah Supplier"
-    />
+    /> --}}
+    @if($canManage)
+        <x-button-add 
+            idTarget="#modalAddSupplier"
+            text="Tambah Supplier"
+        />
+    @endif
 
     {{-- ALERT SUCCESS --}}
     {{-- @if(session('success'))
@@ -38,7 +44,9 @@
                         <th>Dapur</th>
                         <th>Kontak Person</th>
                         <th>Nomor</th>
+                        @if($canManage)
                         <th>Aksi</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
@@ -55,6 +63,7 @@
                             </td>
                             <td>{{ $supplier->kontak }}</td>
                             <td>{{ $supplier->nomor }}</td>
+                            @if($canManage)
                             <td>
                                 <button 
                                     type="button" 
@@ -80,10 +89,11 @@
                                 />
 
                             </td>
+                            @endif
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center">Belum ada supplier</td>
+                            <td colspan="{{ $canManage ? '8' : '7' }}" class="text-center">Belum ada supplier</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -95,6 +105,7 @@
     </div>
 
     {{-- MODAL ADD SUPPLIER --}}
+    @if($canManage)
     <x-modal-form
     id="modalAddSupplier"
     title="Tambah Supplier"
@@ -214,10 +225,13 @@
         title="Konfirmasi Hapus" 
         message="Apakah Anda yakin ingin menghapus data ini?" 
         confirmText="Hapus" 
-    />  
+    />
+    @endif
+
 @endsection
 
 @push('js')
+@if($canManage)
 <script>
      document.querySelectorAll('.btnEditSupplier').forEach(button => {
         button.addEventListener('click', function () {
@@ -252,4 +266,5 @@
         });
     });
 </script>
+@endif
 @endpush
