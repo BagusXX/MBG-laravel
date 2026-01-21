@@ -21,11 +21,26 @@ class SubmissionApprovalController extends Controller
         abort_if($submission->status === 'selesai', 403, 'Submission terkunci');
     }
 
+    // KODE BARU (SOLUSI 1)
     protected function recalculateTotal(Submission $submission)
     {
-        $total = $submission->details()
-            ->sum(DB::raw('harga_dapur * qty_digunakan'));
+        // 1. Ambil data detailnya (Load dari database ke PHP)
+        // Kita gunakan get() agar menjadi Collection
+        $details = $submission->details()->get();
 
+        // 2. Hitung total menggunakan Collection method 'sum' milik Laravel
+        // Logic ini berjalan di RAM server (PHP), bukan di Database
+        $total = $details->sum(function ($detail) {
+
+            // Pastikan nilai dikonversi jadi angka (float).
+            // Tanda '?? 0' artinya: jika null, anggap 0.
+            $harga = (float) ($detail->harga_dapur ?? 0);
+            $qty = (float) ($detail->qty_digunakan ?? 0);
+
+            return $harga * $qty;
+        });
+
+        // 3. Update hasil perhitungan ke tabel parent
         $submission->update(['total_harga' => $total]);
     }
 
@@ -37,6 +52,7 @@ class SubmissionApprovalController extends Controller
             'kitchen',
             'menu',
             'supplier',
+            'details',
             'details.recipeBahanBaku.bahan_baku.unit',
             'details.bahanBaku.unit'
         ])
@@ -96,48 +112,52 @@ class SubmissionApprovalController extends Controller
 
     public function updateHarga(Request $request, Submission $submission)
     {
-        // 1. Cek Status
+        // 1. Cek Status agar aman
         if (in_array($submission->status, ['selesai', 'ditolak'])) {
-            return response()->json(['message' => 'Pengajuan sudah terkunci dan tidak bisa diedit.'], 403);
+            return response()->json(['message' => 'Pengajuan sudah terkunci.'], 403);
         }
 
-        // 2. Validasi (Gunakan 'nullable' agar input kosong tidak error)
+        // 2. Validasi Input
         $request->validate([
             'details' => 'required|array',
             'details.*.id' => 'required|exists:submission_details,id',
-            'details.*.qty_digunakan' => 'required|numeric|min:0', // Qty wajib angka
-            'details.*.harga_dapur' => 'nullable|numeric|min:0', // Boleh kosong/0
-            'details.*.harga_mitra' => 'nullable|numeric|min:0', // Boleh kosong/0
+            'details.*.qty_digunakan' => 'required|numeric|min:0',
+            'details.*.harga_dapur' => 'nullable|numeric|min:0',
+            'details.*.harga_mitra' => 'nullable|numeric|min:0',
         ]);
 
         DB::transaction(function () use ($request, $submission) {
             foreach ($request->details as $row) {
-                $detail = SubmissionDetails::find($row['id']);
 
-                // Pastikan detail milik submission ini (Security check)
-                if ($detail && $detail->submission_id === $submission->id) {
+                // --- PERBAIKAN UTAMA ADA DISINI ---
 
-                    // Jika input kosong/null, anggap 0
+                // 1. Cari detail MENGGUNAKAN $submission->details()
+                // Supaya kita yakin detail ini milik pengajuan yang sedang dibuka
+                $detail = $submission->details()->find($row['id']);
+
+                if ($detail) {
+                    // 2. SAMBUNGKAN RELASI SECARA MANUAL
+                    // Ini yang memperbaiki error! Kita kasih tahu si detail: 
+                    // "Hei, ini lho Parent Submission kamu ($submission)"
+                    // Jadi saat disimpan, dia tidak bingung/error.
+                    $detail->setRelation('submission', $submission);
+
                     $hargaDapur = $row['harga_dapur'] ?? 0;
                     $hargaMitra = $row['harga_mitra'] ?? 0;
 
-                    // Update Data
                     $detail->update([
                         'qty_digunakan' => $row['qty_digunakan'],
                         'harga_dapur' => $hargaDapur,
                         'harga_mitra' => $hargaMitra,
-                        // Subtotal akan dihitung otomatis oleh Model (booted/saving)
-                        // Tapi jika ingin memaksa update timestamp agar trigger observer:
-                        'updated_at' => now(),
                     ]);
                 }
             }
 
-            // Hitung ulang total parent
+            // Hitung ulang total
             $this->recalculateTotal($submission);
         });
 
-        return response()->json(['success' => true, 'message' => 'Perubahan berhasil disimpan']);
+        return response()->json(['success' => true, 'message' => 'Data berhasil disimpan!']);
     }
 
     public function addManualBahan(Request $request, Submission $submission)
@@ -253,7 +273,7 @@ class SubmissionApprovalController extends Controller
             // 1. GENERATE KODE CHILD
             // Format: KODE_PARENT-1, KODE_PARENT-2, dst.
             $childSequence = Submission::withTrashed()
-            ->where('parent_id', $submission->id)->count() + 1;
+                ->where('parent_id', $submission->id)->count() + 1;
             $childKode = $submission->kode . '-' . $childSequence;
 
             // 2. BUAT CHILD SUBMISSION

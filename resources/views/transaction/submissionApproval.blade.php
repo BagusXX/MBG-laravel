@@ -89,7 +89,16 @@
                     <td>{{ $item->kitchen->nama ?? '-' }}</td>
                     <td>{{ $item->menu ? $item->menu->nama : '-' }}</td>
                     <td>{{ $item->porsi ? $item->porsi : '-' }}</td>
-                    <td>Rp {{ number_format($item->total_harga,2,',','.') }}</td>
+                    {{-- Hitung Total Real-time dari Detail --}}
+                        @php
+                            $realTotal = $item->details->sum(function($detail) {
+                                // Logika prioritas harga: Mitra -> Dapur -> Satuan
+                                // Sesuaikan urutan ini dengan logika yang ada di Modal Anda
+                                $harga = $detail->harga_mitra ?? $detail->harga_dapur ?? $detail->harga_satuan ?? 0;
+                                return $detail->qty_digunakan * $harga;
+                            });
+                        @endphp
+                    <td>Rp {{ number_format($realTotal,2,',','.') }}</td>
                     <td>
                         <span class="badge badge-{{
                             $item->status === 'selesai' ? 'success' :
