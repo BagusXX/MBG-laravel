@@ -65,7 +65,7 @@ class OperationalController extends Controller
             'kode' => $request->kode,
             'nama' => $request->nama,
             'kitchen_kode' => $request->kitchen_kode,
-            'harga_default' => $request->input('harga_default', 0),
+            'harga_default' => $request->input('harga_defult',0),
         ]);
 
         return redirect()

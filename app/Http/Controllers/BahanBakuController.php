@@ -92,7 +92,7 @@ class BahanBakuController extends Controller
         BahanBaku::create([
             'kode' => $this->generateKode($kitchen->kode),
             'nama' => $request->nama,
-            'harga' => $request->input('harga', 0),
+            'harga' => $request->input('harga',0),
             'satuan_id' => $request->satuan_id,
             'kitchen_id' => $request->kitchen_id,
         ]);
