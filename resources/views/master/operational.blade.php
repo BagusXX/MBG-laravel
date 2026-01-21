@@ -35,7 +35,7 @@
                         <th>Kode</th>
                         <th>Dapur</th>
                         <th>Nama Biaya</th>
-                        <th>Harga Satuan</th>
+                        {{-- <th>Harga Satuan</th> --}}
                         <th>Tanggal</th>
                         <th>Aksi</th>
                     </tr>
@@ -47,7 +47,7 @@
                             <td>{{ $operational->kode }}</td>
                             <td>{{ $operational->kitchen->nama ?? '-' }}</td>
                             <td>{{ $operational->nama }}</td>
-                            <td>Rp {{ number_format($operational->harga_default, 2, ',', '.') }}</td>
+                            {{-- <td>Rp {{ number_format($operational->harga_default, 2, ',', '.') }}</td> --}}
                             <td>{{ $operational->updated_at }}</td>
                             <td>
                                 <button 
@@ -122,7 +122,7 @@
             <input id="nama_operasional" type="text" name="nama" class="form-control" required />
         </div>
 
-        <div class="form-group mt-2">
+        {{-- <div class="form-group mt-2">
             <label>Harga Satuan</label>
             <input 
                 type="number" 
@@ -132,7 +132,7 @@
                 step="0.01"
                 required
             />
-        </div>
+        </div> --}}
 
         <div class="form-group mt-2">
             <label>Tanggal</label>
@@ -182,7 +182,7 @@
             />
         </div>
 
-        <div class="form-group mt-2">
+        {{-- <div class="form-group mt-2">
             <label>Harga Satuan</label>
             <input 
                 type="number" 
@@ -193,7 +193,7 @@
                 step="0.01"
                 required
             />
-        </div>
+        </div> --}}
 
 
         <div class="form-group mt-2">

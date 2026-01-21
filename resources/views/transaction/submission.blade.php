@@ -283,6 +283,14 @@
         return new Date(dateString).toLocaleDateString('id-ID', options);
     };
 
+    // Helper Format Qty (2 desimal, koma)
+    const formatQty = (number) => {
+        return new Intl.NumberFormat('id-ID', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(number);
+    };
+
     $(document).ready(function() {
         // --- FILTER TABLE ---
         $('#filterKitchen, #filterStatus, #filterDate').on('change', function() {
@@ -422,7 +430,7 @@
                                     itemsHtml += `
                                         <li>
                                             ${item.nama}
-                                            <span class="text-muted">(${parseFloat(item.qty)} x ${formatRupiah(item.harga)})</span>
+                                            <span class="text-muted">(${formatQty(item.qty)} x ${formatRupiah(item.harga)})</span>
                                         </li>
                                     `;
                                 });

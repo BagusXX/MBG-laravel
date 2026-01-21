@@ -72,7 +72,7 @@
                     <th>Dapur</th>
                     <th>Menu</th>
                     <th>Porsi</th>
-                    <th>Total</th>
+                    {{-- <th>Total</th> --}}
                     <th>Status</th>
                     <th width="100" class="text-center">Aksi</th>
                 </tr>
@@ -90,7 +90,7 @@
                     <td>{{ $item->menu ? $item->menu->nama : '-' }}</td>
                     <td>{{ $item->porsi ? $item->porsi : '-' }}</td>
                     {{-- Hitung Total Real-time dari Detail --}}
-                        @php
+                        {{-- @php
                             $realTotal = $item->details->sum(function($detail) {
                                 // Logika prioritas harga: Mitra -> Dapur -> Satuan
                                 // Sesuaikan urutan ini dengan logika yang ada di Modal Anda
@@ -98,7 +98,7 @@
                                 return $detail->qty_digunakan * $harga;
                             });
                         @endphp
-                    <td>Rp {{ number_format($realTotal,2,',','.') }}</td>
+                    <td>Rp {{ number_format($realTotal,2,',','.') }}</td> --}}
                     <td>
                         <span class="badge badge-{{
                             $item->status === 'selesai' ? 'success' :
@@ -248,20 +248,20 @@
                                     {{-- DUA KOLOM HARGA DITAMPILKAN --}}
                                     <th width="140" class="text-right">Hrg Dapur</th>
                                     <th width="140" class="text-right">Hrg Mitra</th>
-                                    <th width="150" class="text-right">Subtotal</th>
+                                    {{-- <th width="150" class="text-right">Subtotal</th> --}}
                                     <th width="50" class="action-only"></th>
                                 </tr>
                             </thead>
                             <tbody id="wrapperDetails">
                                 {{-- Inject JS --}}
                             </tbody>
-                            <tfoot class="bg-light">
+                            {{-- <tfoot class="bg-light">
                                 <tr>
                                     <td colspan="5" class="text-right font-weight-bold">Total Keseluruhan</td>
                                     <td class="text-right font-weight-bold" id="infoTotal"></td>
-                                    {{-- <td class="action-only"></td> --}}
+                                    <td class="action-only"></td>
                                 </tr>
-                            </tfoot>
+                            </tfoot> --}}
                         </table>
                     </div>
                     
@@ -320,6 +320,14 @@
 
     const formatRupiah = (num) => 'Rp ' + parseFloat(num).toLocaleString('id-ID', {minimumFractionDigits: 0});
     toastr.options = { "closeButton": true, "progressBar": true, "positionClass": "toast-top-right" };
+
+    // Helper Format Qty (2 desimal, koma)
+    const formatQty = (number) => {
+        return new Intl.NumberFormat('id-ID', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(number);
+    };
 
     $(document).ready(function() {
         
@@ -436,7 +444,7 @@
                                 itemsHtml += `
                                     <li>
                                         ${item.nama}
-                                        (${item.qty} x ${formatRupiah(item.harga)})
+                                        <span class="text-muted">(${formatQty(item.qty)} x ${formatRupiah(item.harga)})</span>
                                     </li>
                                 `;
                             });
@@ -537,9 +545,9 @@
                                     value="${parseFloat(item.harga_mitra || 0)}" placeholder="0">
                             </td>
 
-                            <td class="text-right align-middle">
+                            {{-- <td class="text-right align-middle">
                                 ${formatRupiah(subtotal)}
-                            </td>
+                            </td> --}}
                             <td class="text-center align-middle action-only">
                                 <button type="button" class="btn btn-link text-danger btn-delete-detail" data-id="${item.id}">
                                     <i class="fas fa-trash-alt"></i>

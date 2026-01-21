@@ -58,6 +58,8 @@ class OperationalApprovalController extends Controller
             'supplier_id' => 'required|exists:suppliers,id',
             'items' => 'required|array|min:1',
             'items.*' => 'exists:submission_operational_details,id',
+            'harga' => 'nullable|array',
+            'harga.*' => 'nullable|numeric|min:0',
         ]);
 
         $parent = submissionOperational::onlyParent()->findOrFail($request->parent_id);
@@ -65,7 +67,6 @@ class OperationalApprovalController extends Controller
         DB::transaction(function () use ($parent, $request) {
             // hitung child ke-n
             $childCount = $parent->children()->count() + 1;
-
             $childCode = $parent->kode . '-' . $childCount;
 
             $child = submissionOperational::create([
@@ -82,13 +83,14 @@ class OperationalApprovalController extends Controller
 
             foreach ($request->items as $detailId) {
                 $detail = $parent->details()->findOrFail($detailId);
-
+                $inputHarga = $request->input("harga.$detailId");
+                $finalHarga = is_numeric($inputHarga) ? $inputHarga : $detail->harga_satuan;
                 $subtotal = $detail->qty * $detail->harga_satuan;
 
                 $child->details()->create([
                     'operational_id' => $detail->operational_id,
                     'qty' => $detail->qty,
-                    'harga_satuan' => $detail->harga_satuan,
+                    'harga_satuan' => $finalHarga,
                     'subtotal' => $subtotal,
                     'keterangan' => $detail->keterangan,
                 ]);
@@ -132,11 +134,10 @@ class OperationalApprovalController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $submission = submissionOperational::findOrFail($id);
+        $submission = submissionOperational::with('details')->findOrFail($id);
 
-        // ❗ Proteksi status
-        if ($submission->status !== 'diajukan') {
-            return back()->with('error', 'Data tidak dapat diubah karena status bukan diajukan');
+        if (in_array($submission->status, ['selesai', 'ditolak'])) {
+            return back()->with('error', 'Data tidak dapat diubah karena status sudah final (Selesai/Ditolak).');
         }
 
         // =====================
@@ -146,16 +147,52 @@ class OperationalApprovalController extends Controller
             'supplier_id' => 'nullable|exists:suppliers,id',
             'keterangan' => 'nullable|string',
             'tanggal' => 'nullable|date',
+            // Validasi Array Items untuk Update Harga/Qty
+            'items' => 'nullable|array',
+            // Pastikan ID detail valid dan ada
+            'items.*.id' => 'required|exists:submission_operational_details,id',
+            'items.*.harga_satuan' => 'required|numeric|min:0',
+            'items.*.qty' => 'required|numeric|min:1',
+
         ]);
 
-        // =====================
-        // UPDATE DATA
-        // =====================
-        $submission->update([
-            'supplier_id' => $request->supplier_id ?? $submission->supplier_id,
-            'keterangan' => $request->keterangan ?? $submission->keterangan,
-            'tanggal' => $request->tanggal ?? $submission->tanggal,
-        ]);
+        DB::transaction(function () use ($submission, $request) {
+            // A. Update Header (Data Umum)
+            $submission->update([
+                'supplier_id' => $request->supplier_id ?? $submission->supplier_id,
+                'keterangan'  => $request->keterangan ?? $submission->keterangan,
+                'tanggal'     => $request->tanggal ?? $submission->tanggal,
+            ]);
+
+            // B. Update Detail Items (Harga & Hitung Ulang Total)
+            if ($request->has('items')) {
+                $totalBaru = 0;
+
+                foreach ($request->items as $itemData) {
+                    // Cari detail berdasarkan ID yang dikirim form
+                    // Gunakan $submission->details() untuk memastikan detail memang milik parent ini (security)
+                    $detail = $submission->details()->find($itemData['id']);
+
+                    if ($detail) {
+                        $hargaBaru = $itemData['harga_satuan'];
+                        $qtyBaru   = $itemData['qty'];
+                        $subtotal  = $hargaBaru * $qtyBaru;
+
+                        // Update baris detail
+                        $detail->update([
+                            'harga_satuan' => $hargaBaru,
+                            'qty'          => $qtyBaru,
+                            'subtotal'     => $subtotal
+                        ]);
+
+                        $totalBaru += $subtotal;
+                    }
+                }
+
+                // C. Update Total Harga di Header Submission
+                $submission->update(['total_harga' => $totalBaru]);
+            }
+        });
 
         return back()->with('success', 'Data pengajuan berhasil diperbarui');
     }
@@ -238,7 +275,7 @@ class OperationalApprovalController extends Controller
 
 
         // ❌ Pastikan ini child
-        if (! $child->isChild()) {
+        if (!$child->isChild()) {
             return back()->with('error', 'Data tidak valid');
         }
 
@@ -260,7 +297,7 @@ class OperationalApprovalController extends Controller
 
         $child->delete();
 
-        if (! $parent->children()->exists()) {
+        if (!$parent->children()->exists()) {
             $parent->update(['status' => 'diajukan']);
         }
 
