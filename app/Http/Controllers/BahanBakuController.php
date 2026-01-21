@@ -78,7 +78,6 @@ class BahanBakuController extends Controller
         $request->validate([
             'nama' => 'required|string|max:255',
             'harga' => 'nullable|numeric|min:0',
-            'harga' => 'nullable|numeric|min:0',
             'satuan_id' => 'required|exists:units,id',
             'kitchen_id' => 'required|exists:kitchens,id',
         ]);

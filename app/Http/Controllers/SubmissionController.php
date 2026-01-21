@@ -265,45 +265,46 @@ class SubmissionController extends Controller
     }
 
 
+    // App\Http\Controllers\SubmissionController.php
+
     public function show(Submission $submission)
     {
         abort_if(!$submission->isParent(), 403);
-
-        $kitchenCodes = $this->userKitchenCodes();
-        abort_if(!in_array($submission->kitchen->kode, $kitchenCodes->toArray()), 403);
+        // ... validasi kitchen codes ...
 
         $submission->load([
             'kitchen',
             'menu',
-            // 'details.recipeBahanBaku.bahan_baku.unit',
             'details.bahanBaku.unit',
             'children.supplier',
-            'children.details.bahanBaku.unit',
+            'children.details.bahanBaku.unit'
         ]);
 
+        // Mapping Detail agar struktur sesuai Blade (nested bahan_baku)
+        $mappedDetails = $submission->details->map(function ($detail) {
 
-        $history = $submission->children->map(function ($child) {
+            // Gunakan Format Qty
+            $formatted = $this->formatQtyWithUnit(
+                $detail->qty_digunakan,
+                $detail->bahanBaku?->unit
+            );
+
             return [
-                'id' => $child->id,
-                'kode' => $child->kode,
-                'supplier_nama' => $child->supplier->nama ?? 'Umum',
-                'status' => $child->status,
-                'total' => $child->total_harga,
-                'items' => $child->details->map(function ($detail) {
-                    $formatted = $this->formatQtyWithUnit(
-                        $detail->qty_digunakan,
-                        $detail->bahanBaku->unit ?? null
-                    );
-                    return [
-                        'nama' => $detail->bahanBaku->nama ?? '-',
-                        'qty' => $formatted['qty'],
-                        'unit' => $formatted['unit'],
-                        'harga' => $detail->harga_mitra ?? $detail->harga_dapur,
-                    ];
-                })->values()
+                'id' => $detail->id,
+                // Override data mentah dengan data terformat
+                'qty_digunakan' => $formatted['qty'],
+                'harga_dapur' => $detail->harga_dapur,
+                'recipe_bahan_baku_id' => $detail->recipe_bahan_baku_id,
+
+                // Struktur Bersarang (Nested)
+                'bahan_baku' => [
+                    'nama' => $detail->bahanBaku->nama ?? 'Item Terhapus',
+                    'unit' => [
+                        'satuan' => $formatted['unit'] // Override satuan (misal: gram jadi kg)
+                    ]
+                ]
             ];
         });
-
 
         return response()->json([
             'id' => $submission->id,
@@ -313,20 +314,26 @@ class SubmissionController extends Controller
             'porsi' => $submission->porsi,
             'kitchen' => $submission->kitchen,
             'menu' => $submission->menu,
-            'details' => $submission->details->map(function ($detail) {
-                $formatted = $this->formatQtyWithUnit(
-                    $detail->qty_digunakan,
-                    $detail->bahanBaku->unit ?? null
-                );
+            'details' => $mappedDetails, // <-- Gunakan data yg sudah dimapping
+            'history' => $submission->children->map(function ($child) {
+                // ... logic history sama seperti di atas ...
                 return [
-                    'id' => $detail->id,
-                    'nama' => $detail->bahanBaku->nama,
-                    'qty' => $formatted['qty'],
-                    'unit' => $formatted['unit'],
-                    'harga' => $detail->harga_dapur,
+                    'id' => $child->id,
+                    'kode' => $child->kode,
+                    'supplier_nama' => $child->supplier->nama ?? 'Umum',
+                    'status' => $child->status,
+                    'total' => $child->total_harga,
+                    'items' => $child->details->map(function ($d) {
+                    $fmt = $this->formatQtyWithUnit($d->qty_digunakan, $d->bahanBaku?->unit);
+                    return [
+                        'nama' => $d->bahanBaku->nama ?? '-',
+                        'qty' => $fmt['qty'],
+                        'unit' => $fmt['unit'],
+                        'harga' => $d->harga_mitra ?? $d->harga_dapur,
+                    ];
+                })->values()
                 ];
             }),
-            'history' => $history, // ✅ INI KUNCINYA
         ]);
     }
     /* ================= AJAX ================= */

@@ -100,28 +100,89 @@ class SubmissionApprovalController extends Controller
 
     public function getDetails(Submission $submission)
     {
-        return response()->json(
-            $submission->details()->with([
-                'recipeBahanBaku.bahan_baku.unit',
-                'bahanBaku.unit'
-            ])->get()->map(function ($detail) {
+        $details = $submission->details()->with(['bahanBaku.unit'])->get();
 
-                $formatted = $this->formatQtyWithUnit(
-                    $detail->qty_digunakan,
-                    $detail->bahanBaku->unit ?? null
-                );
+        $data = $details->map(function ($detail) {
 
-                return [
-                    'id' => $detail->id,
-                    'nama' => $detail->bahanBaku->nama,
-                    'qty' => $formatted['qty'],
-                    'unit' => $formatted['unit'],
-                    'harga_dapur' => $detail->harga_dapur,
-                    'harga_mitra' => $detail->harga_mitra,
-                ];
-            })
-        );
+            // 1. AKTIFKAN KONVERSI (Gram -> Kg)
+            $formatted = $this->formatQtyWithUnit(
+                $detail->qty_digunakan,
+                $detail->bahanBaku?->unit
+            );
 
+            return [
+                'id' => $detail->id,
+                // Kirim angka cantik (1.6)
+                'qty_digunakan' => $formatted['qty'],
+                'harga_dapur' => $detail->harga_dapur,
+                'harga_mitra' => $detail->harga_mitra,
+                'recipe_bahan_baku_id' => $detail->recipe_bahan_baku_id,
+
+                'bahan_baku' => [
+                    'nama' => $detail->bahanBaku->nama ?? 'Item Terhapus',
+                    'unit' => [
+                        'satuan' => $formatted['unit'] // Kirim satuan cantik (kg)
+                    ]
+                ]
+            ];
+        });
+
+        return response()->json($data);
+    }
+
+    public function getSubmissionData(Submission $submission)
+    {
+        // Load relasi yang diperlukan, termasuk unit untuk konversi
+        $submission->load(['kitchen', 'menu', 'children.supplier', 'children.details.bahanBaku.unit']);
+
+        // --- BAGIAN RIWAYAT (HISTORY) ---
+        // Karena ini hanya untuk dilihat (bukan diedit), kita KONVERSI satuannya (Kg/Liter)
+        $history = $submission->children->map(function ($child) {
+            return [
+                'id' => $child->id,
+                'kode' => $child->kode,
+                'supplier_nama' => $child->supplier->nama ?? 'Umum',
+                'status' => $child->status,
+                'total' => $child->total_harga,
+                'item_count' => $child->details->count(),
+
+                'items' => $child->details->map(function ($detail) {
+
+                    // GUNAKAN HELPER KONVERSI DISINI
+                    // Agar di riwayat tertulis "1.6 kg", bukan "1600 gram"
+                    $formatted = $this->formatQtyWithUnit(
+                        $detail->qty_digunakan,
+                        $detail->bahanBaku?->unit
+                    );
+
+                    return [
+                        'nama' => $detail->bahanBaku->nama ?? '-',
+
+                        // Kita kirim nilai yang sudah dikonversi (1.6)
+                        'qty' => $formatted['qty'],
+
+                        // Kita kirim satuan yang sudah dikonversi (kg)
+                        'unit' => $formatted['unit'],
+
+                        'harga' => $detail->harga_mitra ?? $detail->harga_satuan,
+                    ];
+                })->values()
+            ];
+        });
+
+        $availableSuppliers = $submission->kitchen->suppliers->values();
+
+        return response()->json([
+            'id' => $submission->id,
+            'kode' => $submission->kode,
+            'tanggal' => date('d-m-Y', strtotime($submission->tanggal)),
+            'kitchen' => $submission->kitchen->nama,
+            'menu' => $submission->menu->nama,
+            'porsi' => $submission->porsi,
+            'status' => $submission->status,
+            'history' => $history, // <--- Data history sudah cantik (Kg/Liter)
+            'suppliers' => $availableSuppliers
+        ]);
     }
 
     // app/Http/Controllers/SubmissionApprovalController.php
@@ -137,32 +198,24 @@ class SubmissionApprovalController extends Controller
         $request->validate([
             'details' => 'required|array',
             'details.*.id' => 'required|exists:submission_details,id',
-            'details.*.qty_digunakan' => 'required|numeric|min:0',
+            // 'details.*.qty_digunakan' => 'required|numeric|min:0',
             'details.*.harga_dapur' => 'nullable|numeric|min:0',
             'details.*.harga_mitra' => 'nullable|numeric|min:0',
         ]);
 
         DB::transaction(function () use ($request, $submission) {
             foreach ($request->details as $row) {
-
-                // --- PERBAIKAN UTAMA ADA DISINI ---
-
-                // 1. Cari detail MENGGUNAKAN $submission->details()
-                // Supaya kita yakin detail ini milik pengajuan yang sedang dibuka
                 $detail = $submission->details()->find($row['id']);
 
                 if ($detail) {
-                    // 2. SAMBUNGKAN RELASI SECARA MANUAL
-                    // Ini yang memperbaiki error! Kita kasih tahu si detail: 
-                    // "Hei, ini lho Parent Submission kamu ($submission)"
-                    // Jadi saat disimpan, dia tidak bingung/error.
+                   
                     $detail->setRelation('submission', $submission);
 
                     $hargaDapur = $row['harga_dapur'] ?? 0;
                     $hargaMitra = $row['harga_mitra'] ?? 0;
 
                     $detail->update([
-                        'qty_digunakan' => $row['qty_digunakan'],
+                        // 'qty_digunakan' => $row['qty_digunakan'],
                         'harga_dapur' => $hargaDapur,
                         'harga_mitra' => $hargaMitra,
                     ]);
@@ -224,58 +277,9 @@ class SubmissionApprovalController extends Controller
 
     /* ================= AJAX ================= */
 
+
     // Tambahkan/Update method ini di SubmissionApprovalController
 
-    public function getSubmissionData(Submission $submission)
-    {
-        $submission->load(['kitchen', 'menu', 'children.supplier', 'children.details.bahanBaku']); // Load children & suppliernya
-
-        // Format data children untuk riwayat
-        $history = $submission->children->map(function ($child) {
-            return [
-                'id' => $child->id,
-                'kode' => $child->kode,
-                'supplier_nama' => $child->supplier->nama ?? 'Umum',
-                'status' => $child->status,
-                'total' => $child->total_harga,
-                'item_count' => $child->details()->count(), // Opsional: jumlah item
-                'items' => $child->details->map(function ($detail) {
-
-                    $formatted = $this->formatQtyWithUnit(
-                        $detail->qty_digunakan,
-                        $detail->bahanBaku->unit ?? null
-                    );
-
-
-                    $formatted = $this->formatQtyWithUnit(
-                        $detail->qty_digunakan,
-                        $detail->bahanBaku->unit ?? null
-                    );
-
-                    return [
-                        'nama' => $detail->bahanBaku->nama ?? '-',
-                        'qty' => $formatted['qty'],
-                        'unit' => $formatted['unit'],
-                        'harga' => $detail->harga_mitra ?? $detail->harga_satuan,
-                    ];
-                })->values()
-            ];
-        });
-
-        $availableSuppliers = $submission->kitchen->suppliers->values();
-
-        return response()->json([
-            'id' => $submission->id,
-            'kode' => $submission->kode,
-            'tanggal' => date('d-m-Y', strtotime($submission->tanggal)),
-            'kitchen' => $submission->kitchen->nama,
-            'menu' => $submission->menu->nama,
-            'porsi' => $submission->porsi,
-            'status' => $submission->status,
-            'history' => $history,
-            'suppliers' => $availableSuppliers // <--- Kirim data riwayat ke JS
-        ]);
-    }
 
 
     public function splitToSupplier(Request $request, Submission $submission)
@@ -459,5 +463,6 @@ class SubmissionApprovalController extends Controller
             'unit' => $unit->nama,
         ];
     }
+
 
 }
