@@ -65,7 +65,7 @@ class OperationalController extends Controller
             'kode' => $request->kode,
             'nama' => $request->nama,
             'kitchen_kode' => $request->kitchen_kode,
-            'harga_default' => $request->input('harga_defult',0),
+            'harga_default' => $request->input('harga_defult', 0),
         ]);
 
         return redirect()
@@ -88,13 +88,13 @@ class OperationalController extends Controller
         $request->validate([
             'nama' => 'required',
             'kitchen_kode' => 'required|exists:kitchens,kode',
-            'harga_default' => 'required|numeric|min:0',
+            'harga_default' => 'nullable|numeric|min:0',
         ]);
 
         $operational->update([
             'nama' => $request->nama,
             'kitchen_kode' => $request->kitchen_kode,
-            'harga_default' => $request->harga_default,
+            'harga_default' => $request->input('harga_default', 0),
         ]);
 
         return redirect()

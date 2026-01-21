@@ -186,53 +186,70 @@
         document.addEventListener('DOMContentLoaded', function() {
             const kodeInput = document.getElementById('kode_bahan');
             const kitchenSelect = document.querySelector('select[name="kitchen_id"]');
-
             const generatedCodes = @json($generatedCodes);
 
-            kitchenSelect.addEventListener('change', function() {
-                const kitchenId = this.value;
-                kodeInput.value = generatedCodes[kitchenId] || "";
-            });
+            // Logic Generate Kode saat Tambah
+            if(kitchenSelect){
+                kitchenSelect.addEventListener('change', function() {
+                    const kitchenId = this.value;
+                    kodeInput.value = generatedCodes[kitchenId] || "";
+                });
+            }
 
             let oldKitchenId = null;
             let oldKode = null;
 
+            // --- PERBAIKAN DI SINI ---
             document.querySelectorAll('.btnEditMaterials').forEach(btn => {
                 btn.addEventListener('click', function() {
-
                     const id = this.dataset.id;
+                    
+                    // 1. UPDATE ACTION FORM (Lakukan ini paling awal agar aman)
+                    // Pastikan URL sesuai dengan route update Anda
+                    let urlUpdate = "{{ route('dashboard.master.bahan-baku.index') }}/" + id;
+                    document.querySelector('#modalEditMaterials form').action = urlUpdate;
 
-                    // Simpan dapur lama & kode lama
+                    // 2. Ambil data dari tombol
                     oldKitchenId = this.dataset.oldDapurId;
                     oldKode = this.dataset.oldKode;
 
-                    // Isi field pertama kali
-                    document.getElementById('editKodeBahan').value = oldKode;
-                    document.getElementById('editBahan').value = this.dataset.nama;
-                    document.getElementById('editSatuan').value = this.dataset.satuanId;
-                    document.getElementById('editHarga').value = this.dataset.harga;
-                    document.getElementById('editDapur').value = oldKitchenId;
+                    // 3. Isi Field Input (Gunakan pengecekan if agar tidak error jika elemen hilang)
+                    if(document.getElementById('editKodeBahan')) {
+                        document.getElementById('editKodeBahan').value = oldKode;
+                    }
+                    
+                    if(document.getElementById('editBahan')) {
+                        document.getElementById('editBahan').value = this.dataset.nama;
+                    }
 
-                    // Update action
-                    document.querySelector('#modalEditMaterials form').action =
-                        "{{ url('/dashboard/master/bahan-baku') }}/" + id;
+                    if(document.getElementById('editSatuan')) {
+                        document.getElementById('editSatuan').value = this.dataset.satuanId;
+                    }
+
+                    // PENTING: Cek dulu apakah editHarga ada di HTML sebelum di-set value-nya
+                    if(document.getElementById('editHarga')) {
+                        document.getElementById('editHarga').value = this.dataset.harga;
+                    }
+
+                    if(document.getElementById('editDapur')) {
+                        document.getElementById('editDapur').value = oldKitchenId;
+                    }
                 });
             });
 
-            // Ubah kode ketika dapur berubah
-            document.getElementById('editDapur').addEventListener('change', function() {
-                const selectedKitchenId = this.value;
-
-                // Jika user memilih kembali dapur awal → kembalikan kode lama
-                if (selectedKitchenId == oldKitchenId) {
-                    document.getElementById('editKodeBahan').value = oldKode;
-                    return;
-                }
-
-                // Jika dapur berbeda → generate kode baru
-                const kodeBaru = generatedCodes[selectedKitchenId] || "";
-                document.getElementById('editKodeBahan').value = kodeBaru;
-            });
+            // Logic Ubah Kode saat Edit Dapur diganti
+            const editDapur = document.getElementById('editDapur');
+            if(editDapur) {
+                editDapur.addEventListener('change', function() {
+                    const selectedKitchenId = this.value;
+                    if (selectedKitchenId == oldKitchenId) {
+                        document.getElementById('editKodeBahan').value = oldKode;
+                        return;
+                    }
+                    const kodeBaru = generatedCodes[selectedKitchenId] || "";
+                    document.getElementById('editKodeBahan').value = kodeBaru;
+                });
+            }
         });
     </script>
 @endpush

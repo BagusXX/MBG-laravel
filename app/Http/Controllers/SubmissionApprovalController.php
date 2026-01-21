@@ -280,52 +280,6 @@ class SubmissionApprovalController extends Controller
 
     // Tambahkan/Update method ini di SubmissionApprovalController
 
-    public function getSubmissionData(Submission $submission)
-    {
-        $submission->load([
-            'kitchen',
-            'menu',
-            'children' => function ($q) {
-                $q->withTrashed()->with([
-                    'supplier',
-                    'details.bahanBaku'
-                ]);
-            }
-        ]);
-
-        // Format data children untuk riwayat
-        $history = $submission->children->map(function ($child) {
-            return [
-                'id' => $child->id,
-                'kode' => $child->kode,
-                'supplier_nama' => $child->supplier->nama ?? 'Umum',
-                'status' => $child->status,
-                'total' => $child->total_harga,
-                'item_count' => $child->details()->count(), // Opsional: jumlah item
-                'items' => $child->details->map(function ($detail) {
-                    return [
-                        'nama' => $detail->bahanBaku->nama ?? '-',
-                        'qty' => $detail->qty_digunakan,
-                        'harga' => $detail->harga_mitra ?? $detail->harga_satuan,
-                    ];
-                })->values()
-            ];
-        });
-
-        $availableSuppliers = $submission->kitchen->suppliers->values();
-
-        return response()->json([
-            'id' => $submission->id,
-            'kode' => $submission->kode,
-            'tanggal' => date('d-m-Y', strtotime($submission->tanggal)),
-            'kitchen' => $submission->kitchen->nama,
-            'menu' => $submission->menu->nama,
-            'porsi' => $submission->porsi,
-            'status' => $submission->status,
-            'history' => $history,
-            'suppliers' => $availableSuppliers // <--- Kirim data riwayat ke JS
-        ]);
-    }
 
 
     public function splitToSupplier(Request $request, Submission $submission)
@@ -506,7 +460,7 @@ class SubmissionApprovalController extends Controller
         // default (tidak dikonversi)
         return [
             'qty' => $qty,
-            'unit' => $unit->nama,
+            'unit' => $unit->satuan,
         ];
     }
 }

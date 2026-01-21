@@ -52,8 +52,7 @@
                             <td>
                                 <button 
                                     type="button" 
-                                    class="btn btn-sm btn-warning"
-                                    onclick="editOperational(this)"
+                                    class="btn btn-sm btn-warning btnEditOperational"
                                     data-id="{{ $operational->id }}"
                                     data-kode="{{ $operational->kode }}"
                                     data-kitchen="{{ $operational->kitchen_kode }}"
@@ -221,38 +220,68 @@
 
 @section('js')
 <script>
-function editOperational(button) {
-    const id = button.dataset.id;
+    // Fungsi Capitalize
+    function capitalizeWords(text) {
+        return text
+            .toLowerCase()
+            .replace(/\b\w/g, char => char.toUpperCase());
+    }
 
-    const form = document.querySelector('#modalEditOperasional form');
-    form.action = `/dashboard/master/operational/${id}`;
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // 1. LOGIC CAPITALIZE INPUT (Tetap)
+        const inputs = document.querySelectorAll('input[name="nama"]');
+        inputs.forEach(input => {
+            input.addEventListener('input', function() {
+                this.value = capitalizeWords(this.value);
+            });
+        });
 
-    // isi input
-    document.getElementById('edit_id').value = id;
-    document.getElementById('edit_kode').value = button.dataset.kode;
-    document.getElementById('edit_kitchen_kode').value = button.dataset.kitchen;
-    document.getElementById('edit_nama').value = button.dataset.nama;
-    document.getElementById('edit_harga_default').value = button.dataset.harga;
-    document.getElementById('edit_tanggal').value = button.dataset.tanggal;
+        // 2. LOGIC TOMBOL EDIT (PERBAIKAN)
+        const editButtons = document.querySelectorAll('.btnEditOperational');
 
-    // tampilkan modal
-    $('#modalEditOperasional').modal('show');
-}
+        editButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Ambil data dari tombol
+                const id = this.dataset.id;
+                const kode = this.dataset.kode;
+                const kitchen = this.dataset.kitchen;
+                const nama = this.dataset.nama;
+                const harga = this.dataset.harga;
+                const tanggal = this.dataset.tanggal;
 
-function capitalizeWords(text) {
-    return text
-        .toLowerCase()
-        .replace(/\b\w/g, char => char.toUpperCase());
-}
+                // Set Action Form
+                // Pastikan selector ID Modal sesuai dengan HTML (#modalEditOperasional)
+                const form = document.querySelector('#modalEditOperasional form');
+                if (form) {
+                    form.action = `/dashboard/master/operational/${id}`;
+                }
 
-document.addEventListener('DOMContentLoaded', function () {
-    const inputs = document.querySelectorAll('input[name="nama"]');
+                // Isi Input Value (Dengan Pengecekan agar tidak Error)
+                if(document.getElementById('edit_id')) 
+                    document.getElementById('edit_id').value = id;
+                
+                if(document.getElementById('edit_kode')) 
+                    document.getElementById('edit_kode').value = kode;
+                
+                if(document.getElementById('edit_kitchen_kode')) 
+                    document.getElementById('edit_kitchen_kode').value = kitchen;
+                
+                if(document.getElementById('edit_nama')) 
+                    document.getElementById('edit_nama').value = nama;
+                
+                if(document.getElementById('edit_tanggal')) 
+                    document.getElementById('edit_tanggal').value = tanggal;
 
-    inputs.forEach(input => {
-        input.addEventListener('input', function () {
-            this.value = capitalizeWords(this.value);
+                // KHUSUS HARGA: Cek dulu elemennya ada atau tidak (karena di HTML dikomentari)
+                if(document.getElementById('edit_harga_default')) {
+                    document.getElementById('edit_harga_default').value = harga;
+                }
+
+                // Tampilkan Modal
+                $('#modalEditOperasional').modal('show');
+            });
         });
     });
-});
 </script>
 @endsection

@@ -123,7 +123,7 @@ class MenuController extends Controller
     public function destroy($id)
     {
         $menu = Menu::findOrFail($id);
-        if (!auth()->user()->kitchens()->where('id', $menu->kitchen_id)->exists()) {
+        if (!auth()->user()->kitchens()->where('kitchens.id', $menu->kitchen_id)->exists()) {
             abort(403);
         }
 
