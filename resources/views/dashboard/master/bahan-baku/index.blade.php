@@ -49,7 +49,7 @@
                         <th>Kode</th>
                         <th>Nama Bahan</th>
                         <th>Satuan</th>
-                        <th>Harga Satuan</th>
+                        {{-- <th>Harga Satuan</th> --}}
                         <th>Dapur</th>
                         <th>Aksi</th>
                     </tr>
@@ -61,7 +61,7 @@
                             <td>{{ $item->kode }}</td>
                             <td>{{ $item->nama }}</td>
                             <td>{{ $item->unit->satuan ?? '-' }}</td>
-                            <td>Rp {{ number_format($item->harga, 2, ',', '.') }}</td>
+                            {{-- <td>Rp {{ number_format($item->harga, 2, ',', '.') }}</td> --}}
                             <td>{{ $item->kitchen->nama ?? '-' }}</td>
                             <td>
                                 {{-- BUTTON EDIT --}}
@@ -120,10 +120,10 @@
 
         </div>
 
-        <div class="form-group">
+        {{-- <div class="form-group">
             <label>Harga</label>
             <input type="number" step="0.01" placeholder="10000" class="form-control" name="harga" required>
-        </div>
+        </div> --}}
 
         <div class="form-group mt-2">
             <label>Dapur</label>
@@ -160,10 +160,10 @@
             </select>
         </div>
 
-        <div class="form-group">
+        {{-- <div class="form-group">
             <label>Harga</label>
             <input id="editHarga" type="number" step="0.01" class="form-control" name="harga" required>
-        </div>
+        </div> --}}
 
         <div class="form-group mt-2">
             <label>Dapur</label>

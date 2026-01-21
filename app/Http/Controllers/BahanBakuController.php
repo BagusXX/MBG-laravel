@@ -22,12 +22,12 @@ class BahanBakuController extends Controller
         $query = BahanBaku::with(['kitchen', 'unit'])->whereIn('kitchen_id', $kitchenIds);
 
         if ($request->filled('search')) {
-        $search = $request->search;
-        $query->where(function($q) use ($search) {
-            $q->where('nama', 'LIKE', "%{$search}%")
-              ->orWhere('kode', 'LIKE', "%{$search}%");
-        });
-    }
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('nama', 'LIKE', "%{$search}%")
+                    ->orWhere('kode', 'LIKE', "%{$search}%");
+            });
+        }
 
         $items = $query->paginate(10)->withQueryString();
         $units = Unit::all();
@@ -77,6 +77,7 @@ class BahanBakuController extends Controller
 
         $request->validate([
             'nama' => 'required|string|max:255',
+            'harga' => 'nullable|numeric|min:0',
             'harga' => 'nullable|numeric|min:0',
             'satuan_id' => 'required|exists:units,id',
             'kitchen_id' => 'required|exists:kitchens,id',
