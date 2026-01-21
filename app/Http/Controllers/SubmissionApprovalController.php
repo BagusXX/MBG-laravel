@@ -246,6 +246,12 @@ class SubmissionApprovalController extends Controller
                         $detail->bahanBaku->unit ?? null
                     );
 
+
+                    $formatted = $this->formatQtyWithUnit(
+                        $detail->qty_digunakan,
+                        $detail->bahanBaku->unit ?? null
+                    );
+
                     return [
                         'nama' => $detail->bahanBaku->nama ?? '-',
                         'qty' => $formatted['qty'],
@@ -453,8 +459,5 @@ class SubmissionApprovalController extends Controller
             'unit' => $unit->nama,
         ];
     }
-<<<<<<< HEAD
 
-=======
->>>>>>> daf09fd762ee37a7508b1b14f34c47710e33057f
 }
