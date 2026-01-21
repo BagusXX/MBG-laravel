@@ -68,7 +68,7 @@ class OperationalSubmissionController extends Controller
             'items' => 'required|array',
             'items.*.barang_id' => 'required|exists:operationals,id',
             'items.*.qty' => 'required|numeric|min:1',
-            'items.*.harga_satuan' => 'required|numeric',
+            'items.*.harga_satuan' => 'nullable|numeric|min:0',
             'items.*.keterangan'   => 'nullable|string'
         ]);
 
@@ -112,32 +112,20 @@ class OperationalSubmissionController extends Controller
 
             $total = 0;
             foreach ($request->items as $item) {
+                $hargaSatuan = $item['harga_satuan'] ?? 0;
                 $subtotal = $item['qty'] * $item['harga_satuan'];
 
                 submissionOperationalDetails::create([
                     'operational_submission_id' => $submission->id,
                     'operational_id' => $item['barang_id'], // Di migrasi ada dua field ini
                     'qty' => $item['qty'],
-                    'harga_satuan' => $item['harga_satuan'],
+                    'harga_satuan' => $hargaSatuan,
                     'subtotal' => $subtotal,
                     'keterangan'   => $item['keterangan'] ?? null
                 ]);
 
-                // ==========================================================
-                // FITUR UPDATE MASTER: 
-                // Jika harga input berbeda dengan harga master, update master
-                // ==========================================================
-                $masterOperational = operationals::find($item['barang_id']);
-
-                if ($masterOperational) {
-                    // Cek apakah harga di input beda dengan harga default saat ini
-                    if ($masterOperational->harga_default != $item['harga_satuan']) {
-                        $masterOperational->update([
-                            'harga_default' => $item['harga_satuan']
-                        ]);
-                    }
-                }
-                // ==========================================================
+                
+    
 
                 $total += $subtotal;
             }

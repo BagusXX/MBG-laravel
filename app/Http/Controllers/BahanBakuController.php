@@ -77,7 +77,7 @@ class BahanBakuController extends Controller
 
         $request->validate([
             'nama' => 'required|string|max:255',
-            'harga' => 'required|numeric|min:0',
+            'harga' => 'nullable|numeric|min:0',
             'satuan_id' => 'required|exists:units,id',
             'kitchen_id' => 'required|exists:kitchens,id',
         ]);
@@ -92,7 +92,7 @@ class BahanBakuController extends Controller
         BahanBaku::create([
             'kode' => $this->generateKode($kitchen->kode),
             'nama' => $request->nama,
-            'harga' => $request->harga,
+            'harga' => $request->input('harga',0),
             'satuan_id' => $request->satuan_id,
             'kitchen_id' => $request->kitchen_id,
         ]);
