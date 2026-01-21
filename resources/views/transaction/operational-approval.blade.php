@@ -63,7 +63,7 @@
                     <th>Kode</th>
                     <th>Tanggal</th>
                     <th>Dapur</th>
-                    <th>Total</th>
+                    {{-- <th>Total</th> --}}
                     <th>Status</th>
                     <th width="230" class="text-center">Aksi</th>
                 </tr>
@@ -79,7 +79,7 @@
                     <td>{{ $item->kode }}</td>
                     <td>{{ \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y') }}</td>
                     <td>{{ $item->kitchen->nama ?? '-' }}</td>
-                    <td>Rp {{ number_format($item->total_harga, 2, ',','.') }}</td>
+                    {{-- <td>Rp {{ number_format($item->total_harga, 2, ',','.') }}</td> --}}
                     <td>
                         <span class="badge badge-{{
                            $item->status === 'diterima' ? 'success' :
@@ -310,7 +310,7 @@
                         <th>Barang Operasional</th>
                         <th width="80" class="text-center">Qty</th>
                         <th class="text-right">Harga</th>
-                        <th class="text-right">Subtotal</th>
+                        {{-- <th class="text-right">Subtotal</th> --}}
                     </tr>
                 </thead>
                 <tbody>
@@ -346,7 +346,7 @@
                             </td>
                             <td class="text-center">{{ $detail->qty }}</td>
                             <td class="text-right">Rp {{ number_format($detail->harga_satuan, 2, ',', '.') }}</td>
-                            <td class="text-right">Rp {{ number_format($detail->subtotal, 2, ',', '.') }}</td>
+                            {{-- <td class="text-right">Rp {{ number_format($detail->subtotal, 2, ',', '.') }}</td> --}}
                         </tr>
                     @empty
                         <tr>
@@ -355,12 +355,12 @@
                     @endforelse
                 </tbody>
                 {{-- Footer Total --}}
-                <tfoot>
+                {{-- <tfoot>
                     <tr>
                         <th colspan="{{ in_array($item->status, ['diajukan', 'diproses']) ? '4' : '3' }}" class="text-right">Total Keseluruhan</th>
                         <th class="text-right">Rp {{ number_format($item->total_harga, 2, ',', '.') }}</th>
                     </tr>
-                </tfoot>
+                </tfoot> --}}
             </table>
         </div>
         

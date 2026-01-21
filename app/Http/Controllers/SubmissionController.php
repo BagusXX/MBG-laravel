@@ -21,39 +21,6 @@ class SubmissionController extends Controller
     {
         return auth()->user()->kitchens()->pluck('kode');
     }
-    protected function formatQtyWithUnit($qty, $unit)
-    {
-        if (!$unit) {
-            return [
-                'qty' => $qty,
-                'unit' => '-',
-            ];
-        }
-
-        $satuan = strtolower($unit->satuan);
-
-        // gram → kg
-        if ($satuan === 'gram' && $qty >= 1000) {
-            return [
-                'qty' => $qty / 1000,
-                'unit' => 'kg',
-            ];
-        }
-
-        // ml → liter
-        if ($satuan === 'ml' && $qty >= 1000) {
-            return [
-                'qty' => $qty / 1000,
-                'unit' => 'liter',
-            ];
-        }
-
-        // default (tidak dikonversi)
-        return [
-            'qty' => $qty,
-            'unit' => $unit->nama,
-        ];
-    }
 
     protected function generateKode(): string
     {
@@ -157,7 +124,7 @@ class SubmissionController extends Controller
             // Validasi manual: Jika tidak ada resep ditemukan
             if ($recipes->isEmpty()) {
                 // Opsional: Ambil nama menu untuk pesan error yg lebih bagus
-                $namaMenu = Menu::find($request->menu_id)->nama ?? 'Terpilih';
+                $namaMenu = \App\Models\Menu::find($request->menu_id)->nama ?? 'Terpilih';
                 throw new \Exception("Menu '$namaMenu' tidak memiliki resep/bahan baku di dapur ini.");
             }
 
@@ -280,8 +247,6 @@ class SubmissionController extends Controller
             'children.supplier',
             'children.details.bahanBaku.unit',
         ]);
-
-
         $history = $submission->children->map(function ($child) {
             return [
                 'id' => $child->id,
@@ -290,20 +255,14 @@ class SubmissionController extends Controller
                 'status' => $child->status,
                 'total' => $child->total_harga,
                 'items' => $child->details->map(function ($detail) {
-                    $formatted = $this->formatQtyWithUnit(
-                        $detail->qty_digunakan,
-                        $detail->bahanBaku->unit ?? null
-                    );
                     return [
                         'nama' => $detail->bahanBaku->nama ?? '-',
-                        'qty' => $formatted['qty'],
-                        'unit' => $formatted['unit'],
+                        'qty' => $detail->qty_digunakan,
                         'harga' => $detail->harga_mitra ?? $detail->harga_dapur,
                     ];
                 })->values()
             ];
         });
-
 
         return response()->json([
             'id' => $submission->id,
@@ -313,19 +272,7 @@ class SubmissionController extends Controller
             'porsi' => $submission->porsi,
             'kitchen' => $submission->kitchen,
             'menu' => $submission->menu,
-            'details' => $submission->details->map(function ($detail) {
-                $formatted = $this->formatQtyWithUnit(
-                    $detail->qty_digunakan,
-                    $detail->bahanBaku->unit ?? null
-                );
-                return [
-                    'id' => $detail->id,
-                    'nama' => $detail->bahanBaku->nama,
-                    'qty' => $formatted['qty'],
-                    'unit' => $formatted['unit'],
-                    'harga' => $detail->harga_dapur,
-                ];
-            }),
+            'details' => $submission->details,
             'history' => $history, // ✅ INI KUNCINYA
         ]);
     }

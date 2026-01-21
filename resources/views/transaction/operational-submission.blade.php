@@ -66,7 +66,7 @@
                     <th>Tanggal</th>
                     <th>Dapur</th>
                     <th>Jml Item</th>
-                    <th>Total Biaya</th>
+                    {{-- <th>Total Biaya</th> --}}
                     <th>Status</th>
                     <th width="230" class="text-center">Aksi</th>
                 </tr>
@@ -82,7 +82,7 @@
                     <td>{{ $item->created_at->format('d-m-Y') }}</td>
                     <td>{{ $item->kitchen->nama ?? '-' }}</td>
                     <td>{{ $item->details->count() }} Item</td>
-                    <td>Rp {{ number_format($item->total_harga, 2, ',', '.') }}</td>
+                    {{-- <td>Rp {{ number_format($item->total_harga, 2, ',', '.') }}</td> --}}
                     <td>
                         <span class="badge badge-{{
                             $item->status === 'diterima' ? 'success' :
@@ -320,7 +320,7 @@
                 <th class="text-center">Jumlah</th>
                 <th class="text-right">Harga</th>
                 <th>Keterangan</th>
-                <th class="text-right">Subtotal</th>
+                {{-- <th class="text-right">Subtotal</th> --}}
             </tr>
         </thead>
         <tbody>
@@ -330,7 +330,7 @@
                     <td class="text-center">{{ $det->qty }}</td>
                     <td class="text-right">Rp {{ number_format($det->harga_satuan,2,',','.') }}</td>
                     <td>{{ $det->keterangan ?? '-' }}</td>
-                    <td class="text-right">Rp {{ number_format($det->subtotal,2,',','.') }}</td>
+                    {{-- <td class="text-right">Rp {{ number_format($det->subtotal,2,',','.') }}</td> --}}
                 </tr>
             @endforeach
         </tbody>

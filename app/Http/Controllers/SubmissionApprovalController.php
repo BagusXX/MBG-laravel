@@ -104,22 +104,7 @@ class SubmissionApprovalController extends Controller
             $submission->details()->with([
                 'recipeBahanBaku.bahan_baku.unit',
                 'bahanBaku.unit'
-            ])->get()->map(function ($detail) {
-
-                $formatted = $this->formatQtyWithUnit(
-                    $detail->qty_digunakan,
-                    $detail->bahanBaku->unit ?? null
-                );
-
-                return [
-                    'id' => $detail->id,
-                    'nama' => $detail->bahanBaku->nama,
-                    'qty' => $formatted['qty'],
-                    'unit' => $formatted['unit'],
-                    'harga_dapur' => $detail->harga_dapur,
-                    'harga_mitra' => $detail->harga_mitra,
-                ];
-            })
+            ])->get()
         );
     }
 
@@ -227,7 +212,16 @@ class SubmissionApprovalController extends Controller
 
     public function getSubmissionData(Submission $submission)
     {
-        $submission->load(['kitchen', 'menu', 'children.supplier', 'children.details.bahanBaku']); // Load children & suppliernya
+        $submission->load([
+            'kitchen',
+            'menu',
+            'children' => function ($q) {
+                $q->withTrashed()->with([
+                    'supplier',
+                    'details.bahanBaku'
+                ]);
+            }
+        ]);
 
         // Format data children untuk riwayat
         $history = $submission->children->map(function ($child) {
@@ -239,16 +233,9 @@ class SubmissionApprovalController extends Controller
                 'total' => $child->total_harga,
                 'item_count' => $child->details()->count(), // Opsional: jumlah item
                 'items' => $child->details->map(function ($detail) {
-
-                    $formatted = $this->formatQtyWithUnit(
-                        $detail->qty_digunakan,
-                        $detail->bahanBaku->unit ?? null
-                    );
-
                     return [
                         'nama' => $detail->bahanBaku->nama ?? '-',
-                        'qty' => $formatted['qty'],
-                        'unit' => $formatted['unit'],
+                        'qty' => $detail->qty_digunakan,
                         'harga' => $detail->harga_mitra ?? $detail->harga_satuan,
                     ];
                 })->values()
@@ -417,39 +404,5 @@ class SubmissionApprovalController extends Controller
 
         // 3. Kirim ke view invoice parent
         return view('transaction.invoice-submissionParent', compact('submission'));
-    }
-
-    protected function formatQtyWithUnit($qty, $unit)
-    {
-        if (!$unit) {
-            return [
-                'qty' => $qty,
-                'unit' => '-',
-            ];
-        }
-
-        $satuan = strtolower($unit->satuan);
-
-        // gram → kg
-        if ($satuan === 'gram' && $qty >= 1000) {
-            return [
-                'qty' => $qty / 1000,
-                'unit' => 'kg',
-            ];
-        }
-
-        // ml → liter
-        if ($satuan === 'ml' && $qty >= 1000) {
-            return [
-                'qty' => $qty / 1000,
-                'unit' => 'liter',
-            ];
-        }
-
-        // default (tidak dikonversi)
-        return [
-            'qty' => $qty,
-            'unit' => $unit->nama,
-        ];
     }
 }
