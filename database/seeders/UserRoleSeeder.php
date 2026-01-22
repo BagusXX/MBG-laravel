@@ -21,6 +21,7 @@ class UserRoleSeeder extends Seeder
                 'name' => 'Super Admin',
                 'email' => 'superadmin@example.com',
                 'role' => 'superadmin',
+                'status' => 'disetujui',
                 'kitchens' => Kitchen::pluck('kode')->toArray(), // semua dapur
             ],
 

@@ -51,7 +51,7 @@ class SubmissionController extends Controller
         // default (tidak dikonversi)
         return [
             'qty' => $qty,
-            'unit' => $unit->nama,
+            'unit' => $unit->satuan,
         ];
     }
 
