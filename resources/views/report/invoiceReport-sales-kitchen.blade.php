@@ -157,11 +157,11 @@
         <thead>
             <tr>
                 <th>Tanggal</th>
-                <th>Bahan Baku</th>
-                <th >Porsi</th>
                 <th >Dapur</th>
                 <th >Supplier</th>
+                <th>Bahan Baku</th>
                 <th >Satuan</th>
+                <th >Porsi</th>
                 <th >Harga Dapur</th>
                 <th >Subtotal</th>
             </tr>
