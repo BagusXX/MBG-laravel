@@ -418,6 +418,9 @@ Route::middleware(['auth', 'disetujui'])->group(function () {
             Route::post('/{id}/update-prices', 'updatePrices')
                 ->middleware('permission:transaction.operational-approval.update-prices')
                 ->name('update-prices');
+            Route::put('/operational-submission/{id}',  'update')
+                ->name('operational-submission.update');
+
         });
 
     Route::prefix('dashboard/transaksi')

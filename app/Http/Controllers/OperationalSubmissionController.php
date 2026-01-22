@@ -69,7 +69,7 @@ class OperationalSubmissionController extends Controller
             'items.*.barang_id' => 'required|exists:operationals,id',
             'items.*.qty' => 'required|numeric|min:1',
             'items.*.harga_satuan' => 'nullable|numeric|min:0',
-            'items.*.keterangan'   => 'nullable|string'
+            'items.*.keterangan' => 'nullable|string'
         ]);
 
         return DB::transaction(function () use ($request) {
@@ -121,7 +121,7 @@ class OperationalSubmissionController extends Controller
                     'qty' => $item['qty'],
                     'harga_satuan' => $hargaSatuan,
                     'subtotal' => $subtotal,
-                    'keterangan'   => $item['keterangan'] ?? null
+                    'keterangan' => $item['keterangan'] ?? null
                 ]);
 
 
@@ -169,8 +169,68 @@ class OperationalSubmissionController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $request->validate([
+            'tanggal' => 'required|date',
+            'keterangan' => 'nullable|string',
+            'items' => 'required|array',
+            'items.*.barang_id' => 'required|exists:operationals,id',
+            'items.*.qty' => 'required|numeric|min:1',
+            'items.*.harga_satuan' => 'nullable|numeric|min:0',
+            'items.*.keterangan' => 'nullable|string'
+        ]);
+
+        return DB::transaction(function () use ($request, $id) {
+
+            $submission = submissionOperational::with('details')->findOrFail($id);
+
+            // ❌ HANYA BISA UPDATE SAAT DIAJUKAN
+            if ($submission->status !== 'diajukan') {
+                return back()->with(
+                    'error',
+                    'Pengajuan tidak dapat diubah karena status sudah diproses'
+                );
+            }
+
+            // Update header
+            $submission->update([
+                'tanggal' => $request->tanggal,
+                'keterangan' => $request->keterangan
+            ]);
+
+            // Hapus detail lama
+            submissionOperationalDetails::where(
+                'operational_submission_id',
+                $submission->id
+            )->delete();
+
+            // Insert detail baru
+            $total = 0;
+
+            foreach ($request->items as $item) {
+                $hargaSatuan = $item['harga_satuan'] ?? 0;
+                $subtotal = $item['qty'] * $hargaSatuan;
+
+                submissionOperationalDetails::create([
+                    'operational_submission_id' => $submission->id,
+                    'operational_id' => $item['barang_id'],
+                    'qty' => $item['qty'],
+                    'harga_satuan' => $hargaSatuan,
+                    'subtotal' => $subtotal,
+                    'keterangan' => $item['keterangan'] ?? null
+                ]);
+
+                $total += $subtotal;
+            }
+
+            // Update total harga
+            $submission->update([
+                'total_harga' => $total
+            ]);
+
+            return back()->with('success', 'Pengajuan berhasil diperbarui');
+        });
     }
+
 
 
     /**
@@ -211,7 +271,7 @@ class OperationalSubmissionController extends Controller
         ])->findOrFail($id);
 
         // Proteksi: hanya yang disetujui
-        if (! $submission->isChild() || $submission->status !== 'disetujui') {
+        if (!$submission->isChild() || $submission->status !== 'disetujui') {
             abort(403, 'Invoice hanya untuk approval supplier yang disetujui');
         }
 
