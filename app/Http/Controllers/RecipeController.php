@@ -8,6 +8,7 @@ use App\Models\BahanBaku;
 use App\Models\RecipeBahanBaku;
 use App\Models\Unit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class RecipeController extends Controller
 {
@@ -23,13 +24,13 @@ class RecipeController extends Controller
             $q->whereIn('kode', $kitchenKodes);
         })
             ->with([
-            'recipes' => function ($q) use ($kitchenKodes) {
-                $q->with(['bahan_baku.unit', 'kitchen'])
-                    ->whereHas('kitchen', function ($k) use ($kitchenKodes) {
-                        $k->whereIn('kode', $kitchenKodes);
-                    });
-            }
-        ])->paginate(10);
+                'recipes' => function ($q) use ($kitchenKodes) {
+                    $q->with(['bahan_baku.unit', 'kitchen'])
+                        ->whereHas('kitchen', function ($k) use ($kitchenKodes) {
+                            $k->whereIn('kode', $kitchenKodes);
+                        });
+                }
+            ])->paginate(10);
 
         // HANYA dapur user
 
@@ -147,9 +148,6 @@ class RecipeController extends Controller
             ->with('success', 'Resep berhasil diperbarui');
     }
 
-
-
-
     public function destroy($menuId, $kitchenId)
     {
         $user = auth()->user();
@@ -264,4 +262,80 @@ class RecipeController extends Controller
 
         return response()->json($bahanBaku);
     }
+
+    public function duplicate(Request $request)
+    {
+        $user = auth()->user();
+        $kitchenKodes = $user->kitchens()->pluck('kode');
+
+        $request->validate([
+            'original_menu_id' => 'required|exists:menus,id',
+            'kitchen_id' => 'required|exists:kitchens,id',
+            'new_menu_name' => 'required|string|max:255',
+        ]);
+
+        $kitchen = Kitchen::where('id', $request->kitchen_id)
+            ->whereIn('kode', $kitchenKodes)
+            ->firstOrFail();
+
+        // Validasi menu punya resep di dapur tsb
+        $sourceMenu = Menu::where('id', $request->original_menu_id)
+            ->whereHas('recipes', fn($q) => $q->where('kitchen_id', $kitchen->id))
+            ->firstOrFail();
+
+        // Cegah nama dobel
+        $exists = Menu::where('nama', $request->new_menu_name)
+            ->whereHas('recipes', fn($q) => $q->where('kitchen_id', $kitchen->id))
+            ->exists();
+
+        if ($exists) {
+            return back()->withErrors('Nama menu sudah digunakan di dapur ini.');
+        }
+
+        $sourceRecipes = RecipeBahanBaku::where('menu_id', $sourceMenu->id)
+            ->where('kitchen_id', $kitchen->id)
+            ->get();
+
+        if ($sourceRecipes->isEmpty()) {
+            return back()->withErrors('Menu sumber tidak memiliki resep.');
+        }
+
+        DB::transaction(function () use ($sourceMenu, $sourceRecipes, $request, $kitchen) {
+
+            $newMenu = $sourceMenu->replicate();
+            $newMenu->kode = $this->generateMenuKode();
+            $newMenu->nama = $request->new_menu_name;
+            $newMenu->save();
+
+            foreach ($sourceRecipes as $recipe) {
+                RecipeBahanBaku::create([
+                    'menu_id' => $newMenu->id,
+                    'kitchen_id' => $kitchen->id,
+                    'bahan_baku_id' => $recipe->bahan_baku_id,
+                    'jumlah' => $recipe->jumlah,
+                ]);
+            }
+        });
+
+        return redirect()
+            ->route('recipe.index')
+            ->with('success', 'Menu berhasil diduplikasi. Harga di-reset ke 0.');
+    }
+
+    private function generateMenuKode(): string
+    {
+        $lastKode = Menu::withTrashed()
+            ->orderBy('id', 'desc')
+            ->value('kode');
+
+        if (!$lastKode) {
+            return 'MNDPR0100001';
+        }
+
+        $number = (int) substr($lastKode, -7) + 1;
+
+        return 'MNDPR01' . str_pad($number, 7, '0', STR_PAD_LEFT);
+    }
+
+
 }

@@ -32,7 +32,7 @@ require __DIR__ . '/auth.php';
 //Route::get('/', fn() => redirect()->route('dashboard.master.bahan-baku.index'));
 Route::get('/', [HomePageController::class, 'index'])->name('portal.index');
 
-Route::middleware(['auth','disetujui'])->group(function () {
+Route::middleware(['auth', 'disetujui'])->group(function () {
 
     /*
     |------------------------------------------------------------------
@@ -192,6 +192,10 @@ Route::middleware(['auth','disetujui'])->group(function () {
             Route::delete('/{menu}/{kitchen}', 'destroy')
                 ->middleware('permission:recipe.delete')
                 ->name('destroy');
+
+            Route::post('/duplicate', 'duplicate')
+                ->name('duplicate');
+
         });
 
 
