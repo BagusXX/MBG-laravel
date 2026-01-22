@@ -12,11 +12,32 @@
 
 @section('content')
     {{-- BUTTON ADD --}}
-    <x-button-add
-        idTarget="#modalAddMenu"
-        text="Tambah Nama Menu"
-    />
-
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <x-button-add
+                    idTarget="#modalAddMenu"
+                    text="Tambah Nama Menu"
+                />
+        </div>
+        <div class="col-md-6">
+            <form action="{{ route('master.menu.index') }}" method="GET">
+            <div class="input-group">
+                <input type="text" name="search" class="form-control" placeholder="Cari nama menu atau kode..." value="{{ request('search') }}">
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fa fa-search"></i>
+                    </button>
+                    @if(request('search'))
+                        <a href="{{ route('master.menu.index') }}" class="btn btn-danger">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    @endif
+                </div>
+            </div>
+            </form>
+        </div>
+    </div>
+    
     {{-- ALERT SUCCESS --}}
     {{-- @if(session('success'))
         <div class="alert alert-success mt-2">
@@ -39,22 +60,22 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($menus as $index => $menu)
+                    @forelse($items as $index => $item)
                         <tr>
-                            <td>{{ $menus->firstItem() + $index }}</td>
-                            <td>{{ $menu->kode }}</td> {{-- Kode menu --}}
-                            <td>{{ $menu->kitchen->nama ?? '-' }}</td> 
-                            <td>{{ $menu->nama }}</td>
+                            <td>{{ $items->firstItem() + $index }}</td>
+                            <td>{{ $item->kode }}</td> {{-- Kode menu --}}
+                            <td>{{ $item->kitchen->nama ?? '-' }}</td> 
+                            <td>{{ $item->nama }}</td>
                             <td>
                                 <button
                                     type="button"
                                     class="btn btn-warning btn-sm btnEditMenu"
-                                    data-id="{{ $menu->id }}"
-                                    data-kode="{{ $menu->kode }}"
-                                    data-nama="{{ $menu->nama }}"
-                                    data-dapur-id="{{ $menu->kitchen_id }}"
-                                    data-old-kode="{{ $menu->kode }}"
-                                    data-old-dapur-id="{{ $menu->kitchen_id }}"
+                                    data-id="{{ $item->id }}"
+                                    data-kode="{{ $item->kode }}"
+                                    data-nama="{{ $item->nama }}"
+                                    data-dapur-id="{{ $item->kitchen_id }}"
+                                    data-old-kode="{{ $item->kode }}"
+                                    data-old-dapur-id="{{ $item->kitchen_id }}"
                                     data-toggle="modal"
                                     data-target="#modalEditMenu"
 
@@ -64,7 +85,7 @@
                                 <x-button-delete 
                                     idTarget="#modalDeleteMenu"
                                     formId="formDeleteMenu"
-                                    action="{{ route('master.menu.destroy', $menu->id) }}"
+                                    action="{{ route('master.menu.destroy', $item->id) }}"
                                     text="Hapus"
                                 />
                             </td>
@@ -77,7 +98,7 @@
                 </tbody>
             </table>
             <div class="mt-3 d-flex justify-content-end">
-                {{ $menus->links('pagination::bootstrap-4') }}
+                {{ $items->links('pagination::bootstrap-4') }}
             </div>
         </div>
     </div>

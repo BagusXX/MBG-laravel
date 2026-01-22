@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 
 class OperationalController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
 
         $user = auth()->user();
@@ -21,8 +21,7 @@ class OperationalController extends Controller
         $kitchenKode = $kitchens->keys();
 
         $operationals = operationals::with('kitchen')
-            ->whereIn('kitchen_kode', $kitchenKode)
-            ->paginate(10);
+            ->whereIn('kitchen_kode', $kitchenKode);
 
         $lastOperational = operationals::orderBy('kode', 'desc')->first();
 
@@ -33,7 +32,17 @@ class OperationalController extends Controller
             $nextKode = 'BOP' . str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
         }
 
-        return view('master.operational', compact('operationals', 'nextKode', 'kitchens'));
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $operationals->where(function ($q) use ($search) {
+                $q->where('nama', 'LIKE', "%{$search}%")
+                    ->orWhere('kode', 'LIKE', "%{$search}%");
+            });
+        }
+
+        $items = $operationals->paginate(10)->withQueryString();
+
+        return view('master.operational', compact('items', 'nextKode', 'kitchens'));
     }
 
     public function store(Request $request)
