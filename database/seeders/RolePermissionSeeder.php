@@ -84,15 +84,15 @@ class RolePermissionSeeder extends Seeder
                     'transaction.sale-partner.delete',
                     'transaction.sale-partner.update',
 
-                // REPORT
-                'report.sales-kitchen.view',
-                'report.sales-kitchen.invoice',
-                'report.sales-partner.view',
-                'report.sales-partner.invoice',
-                'report.purchase-operational.view',
-                'report.purchase-operational.invoice',
-                'report.profit.view',
-                'report.profit.invoice',
+                    // REPORT
+                    'report.sales-kitchen.view',
+                    'report.sales-kitchen.invoice',
+                    'report.sales-partner.view',
+                    'report.sales-partner.invoice',
+                    'report.purchase-operational.view',
+                    'report.purchase-operational.invoice',
+                    'report.profit.view',
+                    'report.profit.invoice',
 
                     'transaction.sales.view',
                     'transaction.purchase.view',
