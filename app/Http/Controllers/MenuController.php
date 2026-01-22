@@ -9,22 +9,30 @@ use App\Models\Kitchen;
 class MenuController extends Controller
 {
     // Tampilkan daftar menu
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
         $kitchens = $user->kitchens()->get();
 
-        $menus = Menu::with('kitchen')
-            ->whereIn('kitchen_id', $kitchens->pluck('id'))
-            ->paginate(10);
+        $query = Menu::with('kitchen')
+            ->whereIn('kitchen_id', $kitchens->pluck('id'));
 
-
-        $generatedCodes = [];
-        foreach ($kitchens as $k) {
-            $generatedCodes[$k->id] = $this->generateKode($k->kode);
+            if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('nama', 'LIKE', "%{$search}%")
+                    ->orWhere('kode', 'LIKE', "%{$search}%");
+            });
         }
 
-        return view('master.menu', compact('menus', 'kitchens', 'generatedCodes'));
+        $items = $query->paginate(10)->withQueryString();
+
+                $generatedCodes = [];
+                foreach ($kitchens as $k) {
+                    $generatedCodes[$k->id] = $this->generateKode($k->kode);
+                }
+
+        return view('master.menu', compact( 'kitchens', 'generatedCodes', 'items'));
     }
 
 

@@ -12,10 +12,31 @@
 
 @section('content')
     {{-- BUTTON ADD --}}
-    <x-button-add 
-        idTarget="#modalAddOperasional"
-        text="Tambah Biaya Operasional"
-    />
+    <div class="row mb-3">
+        <div class="col-md-6">
+        <x-button-add 
+            idTarget="#modalAddOperasional"
+            text="Tambah Biaya Operasional"
+        />
+        </div>
+        <div class="col-md-6">
+            <form action="{{ route('master.operational.index') }}" method="GET">
+            <div class="input-group">
+                <input type="text" name="search" class="form-control" placeholder="Cari barang operasional atau kode..." value="{{ request('search') }}">
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fa fa-search"></i>
+                    </button>
+                    @if(request('search'))
+                        <a href="{{ route('master.operational.index') }}" class="btn btn-danger">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    @endif
+                </div>
+            </div>
+            </form>
+        </div>
+    </div>
 
     {{-- ALERT SUCCESS --}}
     {{-- @if(session('success'))
@@ -41,24 +62,24 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($operationals as $index => $operational)
+                    @forelse($items as $index => $item)
                         <tr>
-                            <td>{{ $operationals->firstItem() +  $index}}</td>
-                            <td>{{ $operational->kode }}</td>
-                            <td>{{ $operational->kitchen->nama ?? '-' }}</td>
-                            <td>{{ $operational->nama }}</td>
-                            {{-- <td>Rp {{ number_format($operational->harga_default, 2, ',', '.') }}</td> --}}
-                            <td>{{ $operational->updated_at }}</td>
+                            <td>{{ $items->firstItem() +  $index}}</td>
+                            <td>{{ $item->kode }}</td>
+                            <td>{{ $item->kitchen->nama ?? '-' }}</td>
+                            <td>{{ $item->nama }}</td>
+                            {{-- <td>Rp {{ number_format($item->harga_default, 2, ',', '.') }}</td> --}}
+                            <td>{{ $item->updated_at }}</td>
                             <td>
                                 <button 
                                     type="button" 
                                     class="btn btn-sm btn-warning btnEditOperational"
-                                    data-id="{{ $operational->id }}"
-                                    data-kode="{{ $operational->kode }}"
-                                    data-kitchen="{{ $operational->kitchen_kode }}"
-                                    data-nama="{{ $operational->nama }}"
-                                    data-harga="{{ $operational->harga_default }}" 
-                                    data-tanggal="{{ $operational->created_at->format('Y-m-d') }}"
+                                    data-id="{{ $item->id }}"
+                                    data-kode="{{ $item->kode }}"
+                                    data-kitchen="{{ $item->kitchen_kode }}"
+                                    data-nama="{{ $item->nama }}"
+                                    data-harga="{{ $item->harga_default }}" 
+                                    data-tanggal="{{ $item->created_at->format('Y-m-d') }}"
                                 >
                                     Edit    
                                 </button>
@@ -66,7 +87,7 @@
                                 <x-button-delete 
                                     idTarget="#modalDeleteOperational" 
                                     formId="formDeleteOperational"
-                                    action="{{ route('master.operational.destroy', $operational->id) }}"
+                                    action="{{ route('master.operational.destroy', $item->id) }}"
                                     text="Hapus" 
                                 />
 
@@ -80,7 +101,7 @@
                 </tbody>
             </table>
             <div class="mt-3 d-flex justify-content-end">
-                {{ $operationals->links('pagination::bootstrap-4') }}
+                {{ $items->links('pagination::bootstrap-4') }}
             </div>
         </div>
     </div>
