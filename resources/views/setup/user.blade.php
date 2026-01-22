@@ -22,7 +22,7 @@
 @endsection
 
 @section('content')
-    {{-- Notifikasi Error Validasi --}}
+    {{-- Notifikasi Error Validasi
     @if ($errors->any())
         <div class="alert alert-danger">
             <ul class="mb-0">
@@ -31,7 +31,7 @@
                 @endforeach
             </ul>
         </div>
-    @endif
+    @endif --}}
 
     <x-button-add idTarget="#modalAddUser" text="Tambah User" />
 
@@ -106,7 +106,7 @@
                             </td>
 
                             <td>
-                                <div class="d-flex align-items-center">
+                                <div class="d-flex flex-wrap align-items-center">
                                     
                                     {{-- HANYA MUNCUL JIKA STATUS MENUNGGU --}}
                                     @if($user->status === 'menunggu')
@@ -115,10 +115,10 @@
                                         <form action="{{ route('setup.user.approve', $user->id) }}" method="POST" class="mr-1">
                                             @csrf
                                             @method('PATCH')
-                                            <button type="submit" class="btn btn-success btn-sm" 
+                                            <button type="submit" class="btn btn-success btn-sm mb-2" 
                                                 title="Setujui User"
                                                 onclick="return confirm('Apakah Anda yakin ingin menyetujui user ini?')">
-                                                <i class="fas fa-check"></i>
+                                                Setujui
                                             </button>
                                         </form>
 
@@ -126,10 +126,10 @@
                                         <form action="{{ route('setup.user.reject', $user->id) }}" method="POST" class="mr-1">
                                             @csrf
                                             @method('PATCH')
-                                            <button type="submit" class="btn btn-danger btn-sm" 
+                                            <button type="submit" class="btn btn-danger btn-sm mb-2" 
                                                 title="Tolak User"
                                                 onclick="return confirm('Apakah Anda yakin ingin MENOLAK user ini?')">
-                                                <i class="fas fa-times"></i>
+                                                Tolak
                                             </button>
                                         </form>
 
@@ -291,6 +291,7 @@
                 message="Apakah Anda yakin ingin menghapus user {{ $user->name }}?"
                 confirmText="Hapus"
             />
+            
         @endif
 
     @endforeach
