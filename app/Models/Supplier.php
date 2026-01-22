@@ -17,6 +17,7 @@ class Supplier extends Model
         'alamat',
         'kontak',
         'nomor',
+        'gambar'
     ];
 
     public function kitchens(){
