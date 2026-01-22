@@ -68,7 +68,7 @@
                     <th>Jml Item</th>
                     {{-- <th>Total Biaya</th> --}}
                     <th>Status</th>
-                    <th width="230" class="text-center">Aksi</th>
+                    <th width="180" class="text-center">Aksi</th>
                 </tr>
             </thead>
             <tbody>

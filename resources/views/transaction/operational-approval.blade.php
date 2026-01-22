@@ -65,7 +65,7 @@
                     <th>Dapur</th>
                     {{-- <th>Total</th> --}}
                     <th>Status</th>
-                    <th width="230" class="text-center">Aksi</th>
+                    <th width="180" class="text-center">Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -385,7 +385,7 @@
                 </tfoot> --}}
             </table>
             
-            <div class="col-md-4 text-right">
+            <div class="col-md 12 text-right">
                 <div class="btn-group">
                     {{-- TOMBOL BARU: SIMPAN HARGA --}}
                     {{-- Atribut formnovalidate agar tidak dipaksa pilih supplier saat cuma mau simpan harga --}}
@@ -542,15 +542,6 @@
 @push('js')
     <script>
         // Validasi minimal 1 checkbox dipilih sebelum submit form split
-        $('form').on('submit', function(e){
-            // Cek apakah form ini adalah form approval operational
-            if($(this).find('input[name="items[]"]').length > 0) {
-                if($(this).find('input[name="items[]"]:checked').length === 0) {
-                    e.preventDefault();
-                    alert('Harap pilih minimal satu barang untuk diproses!');
-                }
-            }
-        });
 
         $(document).on('change', '.checkAll', function() {
             let target = $(this).data('target');
@@ -559,14 +550,33 @@
 
         // 2. VALIDASI FORM SPLIT ORDER
         $(document).on('submit', '.form-split-order', function(e) {
-            // Cari checkbox item di dalam form ini yang dicentang
-            let checkedItems = $(this).find('input[name="items[]"]:checked');
-            
-            if (checkedItems.length === 0) {
-                e.preventDefault(); // Batalkan submit
-                alert('Harap pilih minimal satu barang untuk diproses!');
-            }
-        });
+        // Deteksi tombol mana yang memicu submit
+        let submitter = $(e.originalEvent.submitter);
+
+        // Jika tombol yang diklik memiliki atribut 'formaction' (artinya tombol Simpan Harga)
+        // MAKA: Skip validasi checkbox, biarkan form terkirim
+        if (submitter.attr('formaction')) {
+            return true; 
+        }
+
+        // JIKA BUKAN (Artinya tombol "Proses Approval" biasa)
+        // MAKA: Lakukan validasi checkbox & supplier
+        let checkedItems = $(this).find('input[name="items[]"]:checked');
+        let supplier = $(this).find('select[name="supplier_id"]').val();
+
+        if (checkedItems.length === 0) {
+            e.preventDefault();
+            alert('Harap pilih minimal satu barang untuk diproses!');
+            return false;
+        }
+
+        // Opsional: Validasi supplier juga di sini jika required HTML5 tidak jalan
+        if (!supplier) {
+            e.preventDefault();
+            alert('Harap pilih supplier terlebih dahulu!');
+            return false;
+        }
+    });
         
         @if(session('reopen_modal'))
             // Ambil ID dari session flash controller
@@ -794,7 +804,5 @@
         $('#subtotal-display-' + id).text(formatted);
     });
 </script>
-
-
 
 @endpush
