@@ -186,7 +186,12 @@ class RecipeController extends Controller
         $recipes = RecipeBahanBaku::with(['bahan_baku.unit'])
             ->where('menu_id', $menuId)
             ->where('kitchen_id', $kitchenId)
+            ->whereHas('bahan_baku')
+            ->join('bahan_baku', 'bahan_baku.id', '=', 'recipe_bahan_baku.bahan_baku_id')
+            ->orderBy('bahan_baku.nama', 'asc')
+            ->select('recipe_bahan_baku.*')
             ->get();
+
 
         abort_if($recipes->isEmpty(), 404);
 
@@ -197,10 +202,14 @@ class RecipeController extends Controller
 
     public function getRecipeDetail($menuId, $kitchenId)
     {
-        return RecipeBahanBaku::with('bahan_baku.unit', 'kitchen', 'menu')
-            ->where('menu_id', $menuId)
-            ->where('kitchen_id', $kitchenId)
+        return RecipeBahanBaku::with(['bahan_baku.unit', 'kitchen', 'menu'])
+            ->join('bahan_baku', 'bahan_baku.id', '=', 'recipe_bahan_baku.bahan_baku_id')
+            ->where('recipe_bahan_baku.menu_id', $menuId)
+            ->where('recipe_bahan_baku.kitchen_id', $kitchenId)
+            ->orderBy('bahan_baku.nama', 'asc')
+            ->select('recipe_bahan_baku.*')
             ->get();
+
     }
 
 
