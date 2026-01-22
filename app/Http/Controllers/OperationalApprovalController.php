@@ -52,58 +52,69 @@ class OperationalApprovalController extends Controller
      */
     public function store(Request $request)
     {
-        //
         $request->validate([
             'parent_id' => 'required|exists:submission_operationals,id',
             'supplier_id' => 'required|exists:suppliers,id',
             'items' => 'required|array|min:1',
-            'items.*' => 'exists:submission_operational_details,id',
-            'harga' => 'nullable|array',
-            'harga.*' => 'nullable|numeric|min:0',
         ]);
 
         $parent = submissionOperational::onlyParent()->findOrFail($request->parent_id);
 
-        DB::transaction(function () use ($parent, $request) {
-            // hitung child ke-n
-            $childCount = $parent->children()->count() + 1;
-            $childCode = $parent->kode . '-' . $childCount;
+        if (in_array($parent->status, ['ditolak', 'selesai'])) {
+            return back()->with('error', 'Gagal: Pengajuan yang sudah Ditolak atau Selesai tidak dapat diedit.');
+        }
 
+        DB::transaction(function () use ($parent, $request) {
+            // A. Buat Header PO (Child)
+            $childCount = $parent->children()->count() + 1;
             $child = submissionOperational::create([
-                'kode' => $childCode,
+                'kode' => $parent->kode . '-' . $childCount,
                 'parent_id' => $parent->id,
                 'tipe' => 'disetujui',
                 'kitchen_kode' => $parent->kitchen_kode,
                 'supplier_id' => $request->supplier_id,
                 'status' => 'disetujui',
                 'tanggal' => now(),
+                'total_harga' => 0
             ]);
 
-            $total = 0;
+            $totalDapur = 0;
 
+            // B. Pindahkan Item ke Child (Copy Data dari Parent)
             foreach ($request->items as $detailId) {
-                $detail = $parent->details()->findOrFail($detailId);
-                $inputHarga = $request->input("harga.$detailId");
-                $finalHarga = is_numeric($inputHarga) ? $inputHarga : $detail->harga_satuan;
-                $subtotal = $detail->qty * $detail->harga_satuan;
+                // Ambil data TERBARU dari parent (yang mungkin barusan diedit user)
+                $parentDetail = $parent->details()->findOrFail($detailId);
 
+                $inputHarga = $request->input("harga.$detailId");
+                $finalHargaDapur = is_numeric($inputHarga) ? $inputHarga : $parentDetail->harga_dapur;
+
+                $subtotalDapur = $parentDetail->qty * $finalHargaDapur;
+
+                $hargaMitra = $parentDetail->harga_mitra;
+                $subtotalMitra = $parentDetail->qty * $hargaMitra;
+
+                // Create Detail Child (Snapshot)
                 $child->details()->create([
-                    'operational_id' => $detail->operational_id,
-                    'qty' => $detail->qty,
-                    'harga_satuan' => $finalHarga,
-                    'subtotal' => $subtotal,
-                    'keterangan' => $detail->keterangan,
+                    'operational_id' => $parentDetail->operational_id,
+                    'qty' => $parentDetail->qty,
+                    'harga_satuan' => $finalHargaDapur,
+                    'harga_dapur' => $finalHargaDapur,
+                    'harga_mitra' => $hargaMitra,
+                    'subtotal_dapur' => $subtotalDapur,
+                    'subtotal_mitra' => $subtotalMitra,
+                    'keterangan' => $parentDetail->keterangan,
                 ]);
 
-                $total += $subtotal;
+                $totalDapur += $subtotalDapur;
             }
 
-            $child->update(['total_harga' => $total]);
+            // C. Update Total & Status
+            $child->update(['total_harga' => $totalDapur]);
             $parent->update(['status' => 'diproses']);
         });
 
         return back()
-            ->with('success', 'Approval supplier berhasil dibuat')
+            ->with('success', 'Item berhasil di-split ke supplier.')
             ->with('reopen_modal', $parent->id);
     }
 
@@ -160,8 +171,8 @@ class OperationalApprovalController extends Controller
             // A. Update Header (Data Umum)
             $submission->update([
                 'supplier_id' => $request->supplier_id ?? $submission->supplier_id,
-                'keterangan'  => $request->keterangan ?? $submission->keterangan,
-                'tanggal'     => $request->tanggal ?? $submission->tanggal,
+                'keterangan' => $request->keterangan ?? $submission->keterangan,
+                'tanggal' => $request->tanggal ?? $submission->tanggal,
             ]);
 
             // B. Update Detail Items (Harga & Hitung Ulang Total)
@@ -175,14 +186,14 @@ class OperationalApprovalController extends Controller
 
                     if ($detail) {
                         $hargaBaru = $itemData['harga_satuan'];
-                        $qtyBaru   = $itemData['qty'];
-                        $subtotal  = $hargaBaru * $qtyBaru;
+                        $qtyBaru = $itemData['qty'];
+                        $subtotal = $hargaBaru * $qtyBaru;
 
                         // Update baris detail
                         $detail->update([
                             'harga_satuan' => $hargaBaru,
-                            'qty'          => $qtyBaru,
-                            'subtotal'     => $subtotal
+                            'qty' => $qtyBaru,
+                            'subtotal' => $subtotal
                         ]);
 
                         $totalBaru += $subtotal;
@@ -352,55 +363,75 @@ class OperationalApprovalController extends Controller
 
     public function updatePrices(Request $request, $id)
     {
-        $parent = submissionOperational::with('children.details')->findOrFail($id);
+        $parent = submissionOperational::findOrFail($id);
 
-        // Validasi input harga
+        if (in_array($parent->status, ['ditolak', 'selesai'])) {
+            return back()->with('error', 'Gagal: Tidak bisa melakukan Split Order pada pengajuan Ditolak/Selesai.');
+        }
+
+        // Validasi input array
         $request->validate([
-            'harga' => 'required|array',
-            'harga.*' => 'numeric|min:0',
+            'details' => 'required|array',
+            'details.*.id' => 'required|exists:submission_operational_details,id',
+            'details.*.qty' => 'required|numeric|min:0',
+            'details.*.harga_dapur' => 'required|numeric|min:0',
+            'details.*.harga_mitra' => 'nullable|numeric|min:0', // Opsional jika mau edit harga mitra juga
         ]);
 
         DB::transaction(function () use ($parent, $request) {
-            // 1. Loop semua input harga dari form
-            foreach ($request->harga as $detailId => $hargaBaru) {
+            $totalParent = 0;
 
-                // A. UPDATE PARENT DETAIL (Tabel Input)
-                $parentDetail = $parent->details()->find($detailId);
+            foreach ($request->details as $item) {
+                $detail = $parent->details()->find($item['id']);
 
-                if ($parentDetail) {
-                    $parentDetail->update([
-                        'harga_satuan' => $hargaBaru,
-                        'subtotal'     => $parentDetail->qty * $hargaBaru
+                if ($detail) {
+                    $qty = $item['qty'];
+                    $hDapur = $item['harga_dapur'];
+                    $hMitra = $item['harga_mitra'] ?? $detail->harga_mitra; // Pakai lama jika tidak dikirim
+
+                    // Update Parent Detail
+                    $detail->update([
+                        'qty' => $qty,
+                        'harga_satuan' => $hDapur,
+                        'harga_dapur' => $hDapur,
+                        'harga_mitra' => $hMitra,
+                        'subtotal_dapur' => $qty * $hDapur,
+                        'subtotal_mitra' => $qty * $hMitra
                     ]);
 
-                    // B. UPDATE CHILD/RIWAYAT (Sinkronisasi)
-                    // Kita cari Child dari parent ini yang memuat barang yang sama (operational_id sama)
+                    $totalParent += ($qty * $hDapur);
+
+                    // --- SINKRONISASI (OPSIONAL) ---
+                    // Jika item ini SUDAH pernah di-split ke PO anak, update juga anaknya
+                    // agar data tidak "belang".
                     foreach ($parent->children as $child) {
-                        // Cari detail di child yang barangnya sama dengan parent detail ini
                         $childDetail = $child->details()
-                            ->where('operational_id', $parentDetail->operational_id)
+                            ->where('operational_id', $detail->operational_id)
                             ->first();
 
-                        if ($childDetail) {
+                        // Update anak hanya jika statusnya masih 'diproses' (belum selesai/dikirim)
+                        if ($childDetail && $child->status == 'diproses') {
                             $childDetail->update([
-                                'harga_satuan' => $hargaBaru,
-                                'subtotal'     => $childDetail->qty * $hargaBaru
+                                'qty' => $qty,
+                                'harga_satuan' => $hDapur,
+                                'harga_dapur' => $hDapur,
+                                'harga_mitra' => $hMitra,
+                                'subtotal_dapur' => $qty * $hDapur,
+                                'subtotal_mitra' => $qty * $hMitra
                             ]);
+                            // Update total header anak
+                            $child->update(['total_harga' => $child->details->sum('subtotal_dapur')]);
                         }
                     }
                 }
             }
 
-            // 2. HITUNG ULANG TOTAL HEADER
-            // Hitung ulang total Parent
-            $parent->update(['total_harga' => $parent->details->sum('subtotal')]);
-
-            // Hitung ulang total setiap Child
-            foreach ($parent->children as $child) {
-                $child->update(['total_harga' => $child->details()->sum('subtotal')]);
-            }
+            // Update Total Parent
+            $parent->update(['total_harga' => $totalParent]);
         });
 
-        return back()->with('success', 'Harga berhasil diperbarui dan disinkronkan ke riwayat approval.');
+        return back()
+            ->with('success', 'Perubahan Harga & Qty berhasil disimpan.')
+            ->with('reopen_modal', $parent->id);
     }
 }
