@@ -55,7 +55,8 @@ class RegisteredUserController extends Controller
         $user = User::create([
             'name' => $request->name,        // sesuai DB
             'email' => $request->email,      // sesuai DB
-            'password' => Hash::make($request->password),       
+            'password' => Hash::make($request->password),
+            'status' => 'menunggu',       
         ]);
          // ✅ DEFAULT ROLE (Spatie)
         $user->assignRole('operatorDapur');

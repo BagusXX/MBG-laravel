@@ -4,7 +4,7 @@
 
 @section('css')
     <link rel="stylesheet" href="{{ asset('css/notification-pop-up.css') }}">
-    {{-- Sedikit style tambahan agar area checkbox lebih rapi --}}
+    {{-- Style tambahan agar area checkbox lebih rapi --}}
     <style>
         .checkbox-group-container {
             max-height: 200px;
@@ -18,7 +18,7 @@
 @endsection
 
 @section('content_header')
-    <h1>User</h1>
+    <h1>User Management</h1>
 @endsection
 
 @section('content')
@@ -42,13 +42,14 @@
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>No</th>
+                        <th width="5%">No</th>
                         <th>Nama</th>
                         <th>Email</th>
                         <th>Dapur</th>
                         <th>Region</th>
                         <th>Role</th>
-                        <th>Aksi</th>
+                        <th>Status</th> {{-- KOLOM BARU --}}
+                        <th width="15%">Aksi</th>
                     </tr>
                 </thead>
 
@@ -84,7 +85,6 @@
                                 @endif
                             </td>
 
-
                             {{-- MENAMPILKAN ROLE --}}
                             <td>
                                 @if(!empty($user->getRoleNames()))
@@ -94,23 +94,62 @@
                                 @endif
                             </td>
 
+                            {{-- MENAMPILKAN STATUS --}}
                             <td>
-                                {{-- Tombol Edit --}}
-                                <button class="btn btn-warning btn-sm" data-toggle="modal"
-                                    data-target="#modalEditUser{{ $user->id }}">
-                                    Edit
-                                </button>
-
-                                {{-- Tombol Hapus --}}
-                                @if(!$user->hasRole('superadmin'))
-                                    <x-button-delete idTarget="#modalDeleteUser{{ $user->id }}"
-                                        formId="formDeleteUser{{ $user->id }}"
-                                        action="{{ route('setup.user.destroy', $user->id) }}"
-                                        text="Hapus" />
+                                @if($user->status === 'disetujui')
+                                    <span class="badge badge-success">Disetujui</span>
+                                @elseif($user->status === 'ditolak')
+                                    <span class="badge badge-danger">Ditolak</span>
                                 @else
-                                    <span class="badge badge-danger">Superadmin</span>
+                                    <span class="badge badge-warning">Menunggu</span>
                                 @endif
+                            </td>
 
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    
+                                    {{-- HANYA MUNCUL JIKA STATUS MENUNGGU --}}
+                                    @if($user->status === 'menunggu')
+                                        
+                                        {{-- 1. TOMBOL APPROVE --}}
+                                        <form action="{{ route('setup.user.approve', $user->id) }}" method="POST" class="mr-1">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="btn btn-success btn-sm" 
+                                                title="Setujui User"
+                                                onclick="return confirm('Apakah Anda yakin ingin menyetujui user ini?')">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+
+                                        {{-- 2. TOMBOL REJECT --}}
+                                        <form action="{{ route('setup.user.reject', $user->id) }}" method="POST" class="mr-1">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="btn btn-danger btn-sm" 
+                                                title="Tolak User"
+                                                onclick="return confirm('Apakah Anda yakin ingin MENOLAK user ini?')">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </form>
+
+                                    @endif
+                                    {{-- END IF MENUNGGU --}}
+
+                                    {{-- 3. TOMBOL EDIT (Selalu muncul) --}}
+                                    <button class="btn btn-warning btn-sm mr-1" data-toggle="modal"
+                                        data-target="#modalEditUser{{ $user->id }}" title="Edit">
+                                        Edit
+                                    </button>
+
+                                    {{-- 4. TOMBOL HAPUS (Selalu muncul kecuali superadmin) --}}
+                                    @if(!$user->hasRole('superadmin'))
+                                        <x-button-delete idTarget="#modalDeleteUser{{ $user->id }}"
+                                            formId="formDeleteUser{{ $user->id }}"
+                                            action="{{ route('setup.user.destroy', $user->id) }}"
+                                            text="Hapus" />
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @endforeach
@@ -118,12 +157,12 @@
             </table>
             <div class="mt-3 d-flex justify-content-end">
              {{ $users->links('pagination::bootstrap-4') }}
-        </div>
+            </div>
         </div>
     </div>
 
     {{-- ===========================
-    MODAL TAMBAH USER
+       MODAL TAMBAH USER
     =========================== --}}
     <x-modal-form id="modalAddUser" title="Tambah User" action="{{ route('setup.user.store') }}" submiText="Simpan">
         @csrf
@@ -149,7 +188,7 @@
             <div class="checkbox-group-container">
                 <div class="row">
                     @foreach($kitchens as $kitchen)
-                        <div class="col-md-6"> {{-- Dibagi 2 kolom agar rapi --}}
+                        <div class="col-md-6"> 
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" 
                                     name="kitchen_kode[]" 
@@ -180,7 +219,7 @@
 
 
     {{-- ===========================
-    LOOPING MODAL EDIT & DELETE
+       LOOPING MODAL EDIT & DELETE
     =========================== --}}
     @foreach ($users as $user)
 
@@ -213,7 +252,7 @@
                         @foreach($kitchens as $kitchen)
                             <div class="col-md-6">
                                 <div class="form-check">
-                                    {{-- Cek apakah user memiliki dapur ini, jika ya maka checked --}}
+                                    {{-- Cek apakah user memiliki dapur ini (pivot), jika ya maka checked --}}
                                     <input class="form-check-input" type="checkbox" 
                                         name="kitchen_kode[]" 
                                         value="{{ $kitchen->kode }}" 
@@ -262,7 +301,6 @@
     <script>
         // ==========================================
         // LOGIKA AUTO EMAIL GENERATOR
-        // (Logika dynamic row dihapus karena sudah pakai checkbox)
         // ==========================================
         function generateEmail(name) {
             let email = name.toLowerCase()

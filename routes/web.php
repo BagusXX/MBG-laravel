@@ -32,7 +32,7 @@ require __DIR__ . '/auth.php';
 //Route::get('/', fn() => redirect()->route('dashboard.master.bahan-baku.index'));
 Route::get('/', [HomePageController::class, 'index'])->name('portal.index');
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'disetujui'])->group(function () {
 
     /*
     |------------------------------------------------------------------
@@ -128,6 +128,8 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/', 'store')->middleware('permission:setup.user.create')->name('store');
             Route::put('/{id}', 'update')->middleware('permission:setup.user.update')->name('update');
             Route::delete('/{id}', 'destroy')->middleware('permission:setup.user.delete')->name('destroy');
+            Route::patch('/{id}/approve', 'approve')->middleware('permission:setup.user.approve')->name('approve');
+            Route::patch('/{id}/reject', 'reject')->middleware('permission:setup.user.approve')->name('reject');
         });
 
     Route::prefix('dashboard/setup/role')
@@ -190,6 +192,10 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{menu}/{kitchen}', 'destroy')
                 ->middleware('permission:recipe.delete')
                 ->name('destroy');
+
+            Route::post('/duplicate', 'duplicate')
+                ->name('duplicate');
+
         });
 
 
@@ -412,6 +418,9 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/{id}/update-prices', 'updatePrices')
                 ->middleware('permission:transaction.operational-approval.update-prices')
                 ->name('update-prices');
+            Route::put('/operational-submission/{id}',  'update')
+                ->name('operational-submission.update');
+
         });
 
     Route::prefix('dashboard/transaksi')

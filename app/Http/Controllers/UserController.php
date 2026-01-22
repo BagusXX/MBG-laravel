@@ -15,11 +15,11 @@ class UserController extends Controller
     // 1. TAMPILKAN HALAMAN USER
     public function index()
     {
-        $users = User::with(['kitchens.region','roles'])->paginate(10);
+        $users = User::with(['kitchens.region', 'roles'])->paginate(10);
         $kitchens = Kitchen::with('region')->get();
         $roles = Role::all();
 
-        return view('setup.user', compact('users','kitchens','roles'));
+        return view('setup.user', compact('users', 'kitchens', 'roles'));
     }
 
     // 2. SIMPAN USER BARU
@@ -31,9 +31,9 @@ class UserController extends Controller
             'password' => 'required|string|min:6',
             // Validasi apakah KODE dapur ada di tabel kitchens kolom kode
             'kitchen_kode' => 'required|array',
-            'kitchen_kode.*' => 'required|exists:kitchens,kode', 
+            'kitchen_kode.*' => 'required|exists:kitchens,kode',
             // Validasi apakah role ada di tabel roles
-            'role' => 'required|exists:roles,name', 
+            'role' => 'required|exists:roles,name',
         ]);
 
         $user = User::create([
@@ -63,7 +63,7 @@ class UserController extends Controller
             'password' => 'nullable|string|min:6',
             // PERBAIKAN: Validasi ke kolom 'kode', bukan 'id'
             'kitchen_kode' => 'required|array',
-            'kitchen_kode.*' => 'required|exists:kitchens,kode', 
+            'kitchen_kode.*' => 'required|exists:kitchens,kode',
             'role' => 'required|exists:roles,name',
         ]);
 
@@ -87,7 +87,7 @@ class UserController extends Controller
 
         $user->kitchens()->detach();
         $user->kitchens()->attach(array_unique($request->kitchen_kode));
-        
+
         return back()->with('success', 'User berhasil diperbarui!');
     }
 
@@ -96,18 +96,48 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
 
-    // Superadmin tidak boleh dihapus
-    if ($user->hasRole('superadmin')) {
-        return back()->with('error', 'Superadmin tidak dapat dihapus.');
+        // Superadmin tidak boleh dihapus
+        if ($user->hasRole('superadmin')) {
+            return back()->with('error', 'Superadmin tidak dapat dihapus.');
+        }
+
+        // User tidak boleh menghapus dirinya sendiri
+        if (Auth::id() === $user->id) {
+            return back()->with('error', 'Anda tidak dapat menghapus akun sendiri.');
+        }
+
+        $user->delete();
+
+        return back()->with('success', 'User berhasil dihapus!');
     }
 
-    // User tidak boleh menghapus dirinya sendiri
-    if (Auth::id() === $user->id) {
-        return back()->with('error', 'Anda tidak dapat menghapus akun sendiri.');
+    // Function Approve
+    public function approve($id)
+    {
+        $user = User::findOrFail($id);
+
+        // PENCEGAHAN: Jika status bukan 'menunggu', tolak aksi ini
+        if ($user->status !== 'menunggu') {
+            return back()->with('error', 'User sudah diproses (Disetujui/Ditolak) dan tidak dapat diubah.');
+        }
+
+        $user->update(['status' => 'disetujui']);
+
+        return back()->with('success', 'User berhasil disetujui');
     }
 
-    $user->delete();
+    // Function Reject
+    public function reject($id)
+    {
+        $user = User::findOrFail($id);
 
-    return back()->with('success', 'User berhasil dihapus!');
+        // PENCEGAHAN: Jika status bukan 'menunggu', tolak aksi ini
+        if ($user->status !== 'menunggu') {
+            return back()->with('error', 'User sudah diproses (Disetujui/Ditolak) dan tidak dapat diubah.');
+        }
+
+        $user->update(['status' => 'ditolak']);
+
+        return back()->with('success', 'User telah ditolak.');
     }
 }

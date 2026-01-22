@@ -79,6 +79,15 @@
                                     <x-button-delete idTarget="#modalDeleteRecipe" formId="formDeleteRecipe"
                                         action="{{ route('recipe.destroy', ['menu' => $menu->id, 'kitchen' => $kitchenId]) }}"
                                         text="Hapus" />
+                                    
+                                    <button type="button" class="btn btn-info btn-sm btnDuplicateRecipe"
+                                        data-menu="{{ $menu->id }}" 
+                                        data-kitchen="{{ $kitchenId }}"
+                                        data-menuname="{{ $menu->nama }}" 
+                                        data-toggle="modal" 
+                                        data-target="#modalDuplicateRecipe">
+                                        <i class="fas fa-copy"></i> Copy
+                                    </button>
                                 </td>
                             </tr>
                         @endforeach
@@ -202,6 +211,27 @@
             </button>
         </div>
     </x-modal-form>
+    
+    {{-- MODAL DUPLICATE--}}
+    <x-modal-form id="modalDuplicateRecipe" title="Duplikasi Menu" action="{{ route('recipe.duplicate') }}"
+        submitText="Duplikasi Menu">
+        
+        {{-- Input Hidden untuk ID --}}
+        <input type="hidden" name="original_menu_id" id="dup_original_menu_id">
+        <input type="hidden" name="kitchen_id" id="dup_kitchen_id">
+
+        <div class="form-group">
+            <label>Menu Asumber</label>
+            <input type="text" class="form-control" id="dup_display_menu_name" readonly disabled>
+            <small class="text-muted">Resep dari menu ini akan disalin.</small>
+        </div>
+
+        <div class="form-group">
+            <label>Nama Menu Baru <span class="text-danger">*</span></label>
+            <input type="text" name="new_menu_name" class="form-control" placeholder="Contoh: Nasi Goreng Spesial (Copy)" required>
+            <small class="text-muted">Harga menu baru akan diset ke 0.</small>
+        </div>
+    </x-modal-form>
 
     {{-- MODAL DETAIL (SINGLE DYNAMIC MODAL) --}}
     <x-modal-detail id="modalDetailRecipe" size="modal-lg" title="Detail Racikan Menu">
@@ -225,6 +255,22 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+
+            $(document).on('click', '.btnDuplicateRecipe', function() {
+                // Ambil data dari tombol
+                let menuId = $(this).data('menu');
+                let kitchenId = $(this).data('kitchen');
+                let menuName = $(this).data('menuname');
+
+                // Isi ke dalam input modal
+                $('#dup_original_menu_id').val(menuId);
+                $('#dup_kitchen_id').val(kitchenId);
+                $('#dup_display_menu_name').val(menuName);
+                
+                // Reset input nama baru agar kosong saat dibuka
+                $('#modalDuplicateRecipe').find('input[name="new_menu_name"]').val(menuName + ' (Copy)');
+            });
+
 
             // --- FUNGSI HELPER: Dynamic Form Rows ---
             function initDynamicForm(wrapperId, addBtnId) {
@@ -284,13 +330,15 @@
 
             // Init Dynamic Form untuk Add dan Edit
             initDynamicForm('bahan-wrapper-add', 'add-bahan-add');
-
+            
             // --- GLOBAL EVENT: Hapus Baris Bahan ---
             document.addEventListener('click', function(e) {
                 if (e.target.closest('.remove-bahan')) {
                     e.target.closest('.bahan-group').remove();
                 }
             });
+
+            
 
             // --- GLOBAL EVENT: Auto Fill Satuan saat Pilih Bahan (Harga Dihapus) ---
             document.addEventListener('change', function(e) {

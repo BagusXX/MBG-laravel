@@ -10,9 +10,7 @@ class UnitController extends Controller
     private function canManage()
     {
         $user = auth()->user();
-        // Sesuaikan 'role' dengan nama kolom di database user Anda
-        // atau gunakan $user->hasRole(...) jika pakai Spatie
-        return $user->hasAnyRole(['superadmin', 'operatorKoperasi']);
+        return $user->hasAnyRole(['superadmin', 'operatorKoperasi','operatorDapur']);
     }
 
     public function index()
