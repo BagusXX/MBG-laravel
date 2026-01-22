@@ -68,7 +68,6 @@ class OperationalSubmissionController extends Controller
             'items' => 'required|array',
             'items.*.barang_id' => 'required|exists:operationals,id',
             'items.*.qty' => 'required|numeric|min:1',
-            'items.*.harga_satuan' => 'nullable|numeric|min:0',
             'items.*.keterangan' => 'nullable|string'
         ]);
 
@@ -98,41 +97,61 @@ class OperationalSubmissionController extends Controller
                 }
             } while ($exists);
 
-            $submission = SubmissionOperational::create([
+            $submission = submissionOperational::create([
                 'kode' => $newKode,
                 'parent_id' => null,
                 'tipe' => 'pengajuan',
                 'kitchen_kode' => $request->kitchen_kode,
                 'supplier_id' => null,
                 'status' => 'diajukan',
-                'total_harga' => 0,
+                'total_harga' => 0, // Nanti diupdate
                 'tanggal' => $request->tanggal,
                 'keterangan' => $request->keterangan
             ]);
 
-            $total = 0;
+            // 1. Tarik Data Master Barang Sekaligus (Optimasi Query)
+            $itemIds = collect($request->items)->pluck('barang_id');
+            // Pastikan nama kolom harga di tabel operationals benar (misal: harga_satuan / harga_default)
+            $masterItems = operationals::whereIn('id', $itemIds)->get()->keyBy('id');
+
+            $totalDapur = 0;
+
             foreach ($request->items as $item) {
-                $hargaSatuan = $item['harga_satuan'] ?? 0;
-                $subtotal = $item['qty'] * $hargaSatuan;
+                $barangId = $item['barang_id'];
+                $qty = $item['qty'];
+
+
+                $hargaDapur =  0;
+                $hargaMitra = 0;
+
+                // 3. HITUNG SUBTOTAL
+                $subtotalDapur = $qty * $hargaDapur;
+                $subtotalMitra = $qty * $hargaMitra;
 
                 submissionOperationalDetails::create([
                     'operational_submission_id' => $submission->id,
-                    'operational_id' => $item['barang_id'], // Di migrasi ada dua field ini
-                    'qty' => $item['qty'],
-                    'harga_satuan' => $hargaSatuan,
-                    'subtotal' => $subtotal,
+                    'operational_id' => $barangId,
+                    'qty' => $qty,
+                    'harga_satuan' => $hargaDapur,
+
+                    // Simpan Harga Snapshot
+                    'harga_dapur' => $hargaDapur,
+                    'harga_mitra' => $hargaMitra,
+
+                    // Simpan Subtotal Spesifik (Hapus kolom 'subtotal' generic)
+                    'subtotal_dapur' => $subtotalDapur,
+                    'subtotal_mitra' => $subtotalMitra,
+
                     'keterangan' => $item['keterangan'] ?? null
                 ]);
 
-
-
-
-                $total += $subtotal;
+                $totalDapur += $subtotalDapur;
             }
 
-            $submission->update(['total_harga' => $total]);
+            // Update Total Header (Pakai total dapur)
+            $submission->update(['total_harga' => $totalDapur]);
 
-            return redirect()->back()->with('success', "Pengajuan $newKode berhasil dibuat & Harga Master diperbarui (jika ada perubahan).");
+            return redirect()->back()->with('success', "Pengajuan $newKode berhasil dibuat.");
         });
     }
 
@@ -141,13 +160,12 @@ class OperationalSubmissionController extends Controller
      */
     public function show(string $id)
     {
-        //
-
         $user = auth()->user();
         $kitchens = $user->kitchens()->pluck('kode');
 
         $submission = submissionOperational::with([
-            'details.barang',
+            // Load relasi 'operational' untuk ambil Nama Barang & Satuan
+            'details.operational',
             'kitchen'
         ])
             ->whereIn('kitchen_kode', $kitchens)
@@ -169,63 +187,67 @@ class OperationalSubmissionController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        // 1. Validasi: Hapus harga_satuan
         $request->validate([
             'tanggal' => 'required|date',
             'keterangan' => 'nullable|string',
             'items' => 'required|array',
             'items.*.barang_id' => 'required|exists:operationals,id',
             'items.*.qty' => 'required|numeric|min:1',
-            'items.*.harga_satuan' => 'nullable|numeric|min:0',
             'items.*.keterangan' => 'nullable|string'
         ]);
 
         return DB::transaction(function () use ($request, $id) {
+            $submission = submissionOperational::findOrFail($id);
 
-            $submission = submissionOperational::with('details')->findOrFail($id);
-
-            // ❌ HANYA BISA UPDATE SAAT DIAJUKAN
             if ($submission->status !== 'diajukan') {
-                return back()->with(
-                    'error',
-                    'Pengajuan tidak dapat diubah karena status sudah diproses'
-                );
+                return back()->with('error', 'Pengajuan tidak dapat diubah karena status sudah diproses');
             }
 
-            // Update header
+            // Update Header
             $submission->update([
                 'tanggal' => $request->tanggal,
                 'keterangan' => $request->keterangan
             ]);
 
             // Hapus detail lama
-            submissionOperationalDetails::where(
-                'operational_submission_id',
-                $submission->id
-            )->delete();
+            submissionOperationalDetails::where('operational_submission_id', $submission->id)->delete();
 
-            // Insert detail baru
-            $total = 0;
+            // --- LOGIKA BARU INSERT DETAIL ---
+            $itemIds = collect($request->items)->pluck('barang_id');
+            $masterItems = operationals::whereIn('id', $itemIds)->get()->keyBy('id');
+
+            $totalDapur = 0;
 
             foreach ($request->items as $item) {
-                $hargaSatuan = $item['harga_satuan'] ?? 0;
-                $subtotal = $item['qty'] * $hargaSatuan;
+                $barangId = $item['barang_id'];
+                $qty = $item['qty'];
+
+               
+
+                $hargaDapur = 0; // Ambil dari master
+                $hargaMitra = 0;  // Ambil dari master
+
+                $subtotalDapur = $qty * $hargaDapur;
+                $subtotalMitra = $qty * $hargaMitra;
 
                 submissionOperationalDetails::create([
                     'operational_submission_id' => $submission->id,
-                    'operational_id' => $item['barang_id'],
-                    'qty' => $item['qty'],
-                    'harga_satuan' => $hargaSatuan,
-                    'subtotal' => $subtotal,
+                    'operational_id' => $barangId,
+                    'qty' => $qty,
+                    'harga_satuan' => $hargaDapur,
+                    'harga_dapur' => $hargaDapur,
+                    'harga_mitra' => $hargaMitra,
+                    'subtotal_dapur' => $subtotalDapur,
+                    'subtotal_mitra' => $subtotalMitra,
                     'keterangan' => $item['keterangan'] ?? null
                 ]);
 
-                $total += $subtotal;
+                $totalDapur += $subtotalDapur;
             }
 
-            // Update total harga
-            $submission->update([
-                'total_harga' => $total
-            ]);
+            // Update total harga header
+            $submission->update(['total_harga' => $totalDapur]);
 
             return back()->with('success', 'Pengajuan berhasil diperbarui');
         });

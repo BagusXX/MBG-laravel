@@ -7,6 +7,7 @@ use App\Models\region;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 
 class SupplierController extends Controller
 {
@@ -58,9 +59,15 @@ class SupplierController extends Controller
             'alamat' => 'required|string|max:255',
             'kontak' => 'required|string|max:255',
             'nomor' => 'required|string|max:20',
+            'gambar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'kitchens' => ['required', 'array'],
             'kitchens.*' => [Rule::in($userKitchenKode)],
         ]);
+
+        $pathGambar = null;
+        if ($request->hasFile('gambar')) {
+            $pathGambar = $request->file('gambar')->store('uploads/suppliers', 'public');
+        }
 
         $supplier = Supplier::create([
             'kode' => self::generateKode(),
@@ -68,6 +75,7 @@ class SupplierController extends Controller
             'alamat' => $request->alamat,
             'kontak' => $request->kontak,
             'nomor' => $request->nomor,
+            'gambar' => $pathGambar,
         ]);
 
         // attach dapur
@@ -125,6 +133,7 @@ class SupplierController extends Controller
             'alamat' => 'required|string|max:255',
             'kontak' => 'required|string|max:255',
             'nomor' => 'required|string|max:20',
+            'gambar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'kitchens' => ['required', 'array'],
             'kitchens.*' => [Rule::in($userKitchenKode)],
         ]);
@@ -135,6 +144,17 @@ class SupplierController extends Controller
             'kontak' => $request->kontak,
             'nomor' => $request->nomor,
         ]);
+
+        if ($request->hasFile('gambar')) {
+            // Hapus gambar lama jika ada
+            if ($supplier->gambar && Storage::disk('public')->exists($supplier->gambar)) {
+                Storage::disk('public')->delete($supplier->gambar);
+            }
+
+            // Upload gambar baru
+            $pathGambar = $request->file('gambar')->store('uploads/suppliers', 'public');
+            $supplier['gambar'] = $pathGambar;
+        }
 
         // sync hanya kitchen milik user
         $supplier->kitchens()->sync($request->kitchens);
@@ -157,6 +177,10 @@ class SupplierController extends Controller
         $unauthorized = array_diff($supplierKitchen, $userKitchenKode);
 
         abort_if(!empty($unauthorized), 403, 'Supplier ini terhubung dengan dapur lain');
+
+        if ($supplier->gambar && Storage::disk('public')->exists($supplier->gambar)) {
+            Storage::disk('public')->delete($supplier->gambar);
+        }
 
         $supplier->kitchens()->detach();
         $supplier->delete();
