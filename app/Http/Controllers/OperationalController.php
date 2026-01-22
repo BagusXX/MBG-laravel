@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 
 class OperationalController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
 
         $user = auth()->user();
@@ -21,8 +21,7 @@ class OperationalController extends Controller
         $kitchenKode = $kitchens->keys();
 
         $operationals = operationals::with('kitchen')
-            ->whereIn('kitchen_kode', $kitchenKode)
-            ->paginate(10);
+            ->whereIn('kitchen_kode', $kitchenKode);
 
         $lastOperational = operationals::orderBy('kode', 'desc')->first();
 
@@ -33,7 +32,17 @@ class OperationalController extends Controller
             $nextKode = 'BOP' . str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
         }
 
-        return view('master.operational', compact('operationals', 'nextKode', 'kitchens'));
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $operationals->where(function ($q) use ($search) {
+                $q->where('nama', 'LIKE', "%{$search}%")
+                    ->orWhere('kode', 'LIKE', "%{$search}%");
+            });
+        }
+
+        $items = $operationals->paginate(10)->withQueryString();
+
+        return view('master.operational', compact('items', 'nextKode', 'kitchens'));
     }
 
     public function store(Request $request)
@@ -65,7 +74,7 @@ class OperationalController extends Controller
             'kode' => $request->kode,
             'nama' => $request->nama,
             'kitchen_kode' => $request->kitchen_kode,
-            'harga_default' => $request->input('harga_defult',0),
+            'harga_default' => $request->input('harga_defult', 0),
         ]);
 
         return redirect()
@@ -88,13 +97,13 @@ class OperationalController extends Controller
         $request->validate([
             'nama' => 'required',
             'kitchen_kode' => 'required|exists:kitchens,kode',
-            'harga_default' => 'required|numeric|min:0',
+            'harga_default' => 'nullable|numeric|min:0',
         ]);
 
         $operational->update([
             'nama' => $request->nama,
             'kitchen_kode' => $request->kitchen_kode,
-            'harga_default' => $request->harga_default,
+            'harga_default' => $request->input('harga_default', 0),
         ]);
 
         return redirect()
@@ -106,7 +115,7 @@ class OperationalController extends Controller
     {
         $operational = operationals::findOrFail($id);
 
-        if (!auth()->user()->kitchens()->where('kode', $operational->kode_kitchen)->exists()) {
+        if (!auth()->user()->kitchens()->where('kode', $operational->kitchen_kode)->exists()) {
             abort(403);
         }
 

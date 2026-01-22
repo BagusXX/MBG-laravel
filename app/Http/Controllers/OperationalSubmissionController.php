@@ -113,7 +113,7 @@ class OperationalSubmissionController extends Controller
             $total = 0;
             foreach ($request->items as $item) {
                 $hargaSatuan = $item['harga_satuan'] ?? 0;
-                $subtotal = $item['qty'] * $item['harga_satuan'];
+                $subtotal = $item['qty'] * $hargaSatuan;
 
                 submissionOperationalDetails::create([
                     'operational_submission_id' => $submission->id,
@@ -124,8 +124,8 @@ class OperationalSubmissionController extends Controller
                     'keterangan'   => $item['keterangan'] ?? null
                 ]);
 
-                
-    
+
+
 
                 $total += $subtotal;
             }

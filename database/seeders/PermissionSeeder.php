@@ -105,6 +105,7 @@ class PermissionSeeder extends Seeder
             'transaction.operational-approval.update-status',
             'transaction.operational-approval.invoice',
             'transaction.operational-approval.invoice-parent',
+            'transaction.operational-approval.update-prices',
 
             'transaction.request-materials.view',
             'transaction.sale-kitchen.view',

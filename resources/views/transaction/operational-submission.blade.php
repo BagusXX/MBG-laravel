@@ -66,7 +66,7 @@
                     <th>Tanggal</th>
                     <th>Dapur</th>
                     <th>Jml Item</th>
-                    <th>Total Biaya</th>
+                    {{-- <th>Total Biaya</th> --}}
                     <th>Status</th>
                     <th width="230" class="text-center">Aksi</th>
                 </tr>
@@ -82,7 +82,7 @@
                     <td>{{ $item->created_at->format('d-m-Y') }}</td>
                     <td>{{ $item->kitchen->nama ?? '-' }}</td>
                     <td>{{ $item->details->count() }} Item</td>
-                    <td>Rp {{ number_format($item->total_harga, 2, ',', '.') }}</td>
+                    {{-- <td>Rp {{ number_format($item->total_harga, 2, ',', '.') }}</td> --}}
                     <td>
                         <span class="badge badge-{{
                             $item->status === 'diterima' ? 'success' :
@@ -187,7 +187,7 @@
         <div class="form-row mb-2">
             <div class="col-md-3 font-weight-bold">Barang Operasional</div>
             <div class="col-md-1 font-weight-bold">Qty</div>
-            <div class="col-md-2 font-weight-bold">Harga</div>
+            {{-- <div class="col-md-2 font-weight-bold">Harga</div> --}}
             <div class="col-md-5 font-weight-bold">Keterangan</div>
             <div class="col-md-1"></div>
         </div>
@@ -213,9 +213,9 @@
                         <input type="number" name="items[0][qty]" class="form-control qty-input" min="1" required />
                     </div>
 
-                    <div class="col-md-2">
+                    {{-- <div class="col-md-2">
                         <input type="number" step="0.01" name="items[0][harga_satuan]"class="form-control harga-input"required/>
-                    </div>
+                    </div> --}}
                     
                     <div class="col-md-5">
                         <textarea name="items[0][keterangan]"
@@ -320,7 +320,7 @@
                 <th class="text-center">Jumlah</th>
                 <th class="text-right">Harga</th>
                 <th>Keterangan</th>
-                <th class="text-right">Subtotal</th>
+                {{-- <th class="text-right">Subtotal</th> --}}
             </tr>
         </thead>
         <tbody>
@@ -330,7 +330,7 @@
                     <td class="text-center">{{ $det->qty }}</td>
                     <td class="text-right">Rp {{ number_format($det->harga_satuan,2,',','.') }}</td>
                     <td>{{ $det->keterangan ?? '-' }}</td>
-                    <td class="text-right">Rp {{ number_format($det->subtotal,2,',','.') }}</td>
+                    {{-- <td class="text-right">Rp {{ number_format($det->subtotal,2,',','.') }}</td> --}}
                 </tr>
             @endforeach
         </tbody>

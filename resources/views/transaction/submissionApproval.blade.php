@@ -368,12 +368,12 @@
                         success: function(res) {
                             btn.html(originalContent).prop('disabled', false);
     
-                            showNotificationPopUp('success', 'Split order berhasil dihapus.');
+                            showNotificationPopUp('success', 'Split order berhasil dihapus.', 'Berhasil');
                             loadAllData(); // Reload data modal agar list riwayat terupdate
                         },
                         error: function(xhr) {
                             let msg = xhr.responseJSON?.message ?? 'Gagal menghapus data.';
-                            showNotificationPopUp('error', msg);
+                            showNotificationPopUp('error', msg, 'Terjadi Kesalahan');
                         },
     
                         complete: function () {
@@ -608,7 +608,7 @@
                             selected_details: selectedIds // Pastikan nama key ini sama dengan di $request->validate
                         },
                         success: function(res) {
-                            showNotificationPopUp('success', 'Order berhasil dipisah.')
+                            showNotificationPopUp('success', 'Order berhasil dipisah.', 'Berhasil')
                             
                             $('#selectSupplierSplit').val('').trigger('change');
                             $('#checkAll').prop('checked', false);
@@ -617,7 +617,7 @@
                         },
                         error: function(xhr) {
                             let msg = xhr.responseJSON?.message ?? 'Gagal memproses.';
-                            showNotificationPopUp('error', msg);
+                            showNotificationPopUp('error', msg, 'Terjadi Kesalahan');
                         }
                     });
                 }
@@ -638,8 +638,8 @@
                 type: 'PATCH',
                 data: $(this).serialize() + '&_token={{ csrf_token() }}',
                 success: function(response) {
-                    toastr.success(response.message || 'Data berhasil diperbarui'); // Gunakan toastr jika ada, atau alert
-                    // alert('Data berhasil diperbarui'); 
+                    showNotificationPopUp('success', response.message || 'Data berhasil diperbarui', 'Berhasil')
+
                     loadDetails();
                     loadAllData(); // Reload header total
                 },
@@ -661,8 +661,7 @@
                         }
                     }
                     
-                    alert(msg);
-                    console.error(xhr);
+                    showNotificationPopUp('error', msg, 'Terjadi Kesalahan');
                 },
                 complete: function() {
                     // Kembalikan tombol seperti semula
@@ -711,7 +710,7 @@
                         type: 'DELETE',
                         data: {_token: '{{ csrf_token() }}'},
                         success: function() {
-                            showNotificationPopUp('success', 'Item berhasil dihapus.');
+                            showNotificationPopUp('success', 'Item berhasil dihapus.', 'Berhasil');
                             loadDetails();
                         },
 

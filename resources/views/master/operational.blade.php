@@ -12,10 +12,31 @@
 
 @section('content')
     {{-- BUTTON ADD --}}
-    <x-button-add 
-        idTarget="#modalAddOperasional"
-        text="Tambah Biaya Operasional"
-    />
+    <div class="row mb-3">
+        <div class="col-md-6">
+        <x-button-add 
+            idTarget="#modalAddOperasional"
+            text="Tambah Biaya Operasional"
+        />
+        </div>
+        <div class="col-md-6">
+            <form action="{{ route('master.operational.index') }}" method="GET">
+            <div class="input-group">
+                <input type="text" name="search" class="form-control" placeholder="Cari barang operasional atau kode..." value="{{ request('search') }}">
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fa fa-search"></i>
+                    </button>
+                    @if(request('search'))
+                        <a href="{{ route('master.operational.index') }}" class="btn btn-danger">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    @endif
+                </div>
+            </div>
+            </form>
+        </div>
+    </div>
 
     {{-- ALERT SUCCESS --}}
     {{-- @if(session('success'))
@@ -41,25 +62,24 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($operationals as $index => $operational)
+                    @forelse($items as $index => $item)
                         <tr>
-                            <td>{{ $operationals->firstItem() +  $index}}</td>
-                            <td>{{ $operational->kode }}</td>
-                            <td>{{ $operational->kitchen->nama ?? '-' }}</td>
-                            <td>{{ $operational->nama }}</td>
-                            {{-- <td>Rp {{ number_format($operational->harga_default, 2, ',', '.') }}</td> --}}
-                            <td>{{ $operational->updated_at }}</td>
+                            <td>{{ $items->firstItem() +  $index}}</td>
+                            <td>{{ $item->kode }}</td>
+                            <td>{{ $item->kitchen->nama ?? '-' }}</td>
+                            <td>{{ $item->nama }}</td>
+                            {{-- <td>Rp {{ number_format($item->harga_default, 2, ',', '.') }}</td> --}}
+                            <td>{{ $item->updated_at }}</td>
                             <td>
                                 <button 
                                     type="button" 
-                                    class="btn btn-sm btn-warning"
-                                    onclick="editOperational(this)"
-                                    data-id="{{ $operational->id }}"
-                                    data-kode="{{ $operational->kode }}"
-                                    data-kitchen="{{ $operational->kitchen_kode }}"
-                                    data-nama="{{ $operational->nama }}"
-                                    data-harga="{{ $operational->harga_default }}" 
-                                    data-tanggal="{{ $operational->created_at->format('Y-m-d') }}"
+                                    class="btn btn-sm btn-warning btnEditOperational"
+                                    data-id="{{ $item->id }}"
+                                    data-kode="{{ $item->kode }}"
+                                    data-kitchen="{{ $item->kitchen_kode }}"
+                                    data-nama="{{ $item->nama }}"
+                                    data-harga="{{ $item->harga_default }}" 
+                                    data-tanggal="{{ $item->created_at->format('Y-m-d') }}"
                                 >
                                     Edit    
                                 </button>
@@ -67,7 +87,7 @@
                                 <x-button-delete 
                                     idTarget="#modalDeleteOperational" 
                                     formId="formDeleteOperational"
-                                    action="{{ route('master.operational.destroy', $operational->id) }}"
+                                    action="{{ route('master.operational.destroy', $item->id) }}"
                                     text="Hapus" 
                                 />
 
@@ -81,7 +101,7 @@
                 </tbody>
             </table>
             <div class="mt-3 d-flex justify-content-end">
-                {{ $operationals->links('pagination::bootstrap-4') }}
+                {{ $items->links('pagination::bootstrap-4') }}
             </div>
         </div>
     </div>
@@ -221,38 +241,68 @@
 
 @section('js')
 <script>
-function editOperational(button) {
-    const id = button.dataset.id;
+    // Fungsi Capitalize
+    function capitalizeWords(text) {
+        return text
+            .toLowerCase()
+            .replace(/\b\w/g, char => char.toUpperCase());
+    }
 
-    const form = document.querySelector('#modalEditOperasional form');
-    form.action = `/dashboard/master/operational/${id}`;
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // 1. LOGIC CAPITALIZE INPUT (Tetap)
+        const inputs = document.querySelectorAll('input[name="nama"]');
+        inputs.forEach(input => {
+            input.addEventListener('input', function() {
+                this.value = capitalizeWords(this.value);
+            });
+        });
 
-    // isi input
-    document.getElementById('edit_id').value = id;
-    document.getElementById('edit_kode').value = button.dataset.kode;
-    document.getElementById('edit_kitchen_kode').value = button.dataset.kitchen;
-    document.getElementById('edit_nama').value = button.dataset.nama;
-    document.getElementById('edit_harga_default').value = button.dataset.harga;
-    document.getElementById('edit_tanggal').value = button.dataset.tanggal;
+        // 2. LOGIC TOMBOL EDIT (PERBAIKAN)
+        const editButtons = document.querySelectorAll('.btnEditOperational');
 
-    // tampilkan modal
-    $('#modalEditOperasional').modal('show');
-}
+        editButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Ambil data dari tombol
+                const id = this.dataset.id;
+                const kode = this.dataset.kode;
+                const kitchen = this.dataset.kitchen;
+                const nama = this.dataset.nama;
+                const harga = this.dataset.harga;
+                const tanggal = this.dataset.tanggal;
 
-function capitalizeWords(text) {
-    return text
-        .toLowerCase()
-        .replace(/\b\w/g, char => char.toUpperCase());
-}
+                // Set Action Form
+                // Pastikan selector ID Modal sesuai dengan HTML (#modalEditOperasional)
+                const form = document.querySelector('#modalEditOperasional form');
+                if (form) {
+                    form.action = `/dashboard/master/operational/${id}`;
+                }
 
-document.addEventListener('DOMContentLoaded', function () {
-    const inputs = document.querySelectorAll('input[name="nama"]');
+                // Isi Input Value (Dengan Pengecekan agar tidak Error)
+                if(document.getElementById('edit_id')) 
+                    document.getElementById('edit_id').value = id;
+                
+                if(document.getElementById('edit_kode')) 
+                    document.getElementById('edit_kode').value = kode;
+                
+                if(document.getElementById('edit_kitchen_kode')) 
+                    document.getElementById('edit_kitchen_kode').value = kitchen;
+                
+                if(document.getElementById('edit_nama')) 
+                    document.getElementById('edit_nama').value = nama;
+                
+                if(document.getElementById('edit_tanggal')) 
+                    document.getElementById('edit_tanggal').value = tanggal;
 
-    inputs.forEach(input => {
-        input.addEventListener('input', function () {
-            this.value = capitalizeWords(this.value);
+                // KHUSUS HARGA: Cek dulu elemennya ada atau tidak (karena di HTML dikomentari)
+                if(document.getElementById('edit_harga_default')) {
+                    document.getElementById('edit_harga_default').value = harga;
+                }
+
+                // Tampilkan Modal
+                $('#modalEditOperasional').modal('show');
+            });
         });
     });
-});
 </script>
 @endsection

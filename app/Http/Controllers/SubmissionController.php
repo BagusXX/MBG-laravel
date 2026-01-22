@@ -324,14 +324,14 @@ class SubmissionController extends Controller
                     'status' => $child->status,
                     'total' => $child->total_harga,
                     'items' => $child->details->map(function ($d) {
-                    $fmt = $this->formatQtyWithUnit($d->qty_digunakan, $d->bahanBaku?->unit);
-                    return [
-                        'nama' => $d->bahanBaku->nama ?? '-',
-                        'qty' => $fmt['qty'],
-                        'unit' => $fmt['unit'],
-                        'harga' => $d->harga_mitra ?? $d->harga_dapur,
-                    ];
-                })->values()
+                        $fmt = $this->formatQtyWithUnit($d->qty_digunakan, $d->bahanBaku?->unit);
+                        return [
+                            'nama' => $d->bahanBaku->nama ?? '-',
+                            'qty' => $fmt['qty'],
+                            'unit' => $fmt['unit'],
+                            'harga' => $d->harga_mitra ?? $d->harga_dapur,
+                        ];
+                    })->values()
                 ];
             }),
         ]);

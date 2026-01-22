@@ -208,7 +208,7 @@ class SubmissionApprovalController extends Controller
                 $detail = $submission->details()->find($row['id']);
 
                 if ($detail) {
-                   
+
                     $detail->setRelation('submission', $submission);
 
                     $hargaDapur = $row['harga_dapur'] ?? 0;
@@ -460,9 +460,7 @@ class SubmissionApprovalController extends Controller
         // default (tidak dikonversi)
         return [
             'qty' => $qty,
-            'unit' => $unit->nama,
+            'unit' => $unit->satuan,
         ];
     }
-
-
 }
