@@ -293,6 +293,7 @@
                     <i class="fas fa-check-circle"></i> Proses Approval
                 </button>
             </div>
+            
         </div>
     @endif
 
@@ -345,8 +346,29 @@
                                 <small class="text-muted">{{ $detail->keterangan }}</small>
                             </td>
                             <td class="text-center">{{ $detail->qty }}</td>
-                            <td class="text-right">Rp {{ number_format($detail->harga_satuan, 2, ',', '.') }}</td>
-                            {{-- <td class="text-right">Rp {{ number_format($detail->subtotal, 2, ',', '.') }}</td> --}}
+                            <td width="180">
+                                <div class="input-group input-group-sm">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">Rp</span>
+                                    </div>
+                                    <input 
+                                        type="number" 
+                                        name="harga[{{ $detail->id }}]" 
+                                        class="form-control text-right input-harga" 
+                                        value="{{ (float) $detail->harga_satuan }}" 
+                                        min="0"
+                                        step="0.01"
+                                        data-qty="{{ $detail->qty }}"
+                                        data-id="{{ $detail->id }}"
+                                    >
+                                </div>
+                                {{-- Menampilkan Subtotal Realtime (Opsional) --}}
+                                <small class="text-muted d-block text-right mt-1">
+                                    Total: <span id="subtotal-display-{{ $detail->id }}">
+                                        {{ number_format($detail->qty * $detail->harga_satuan, 0, ',', '.') }}
+                                    </span>
+                                </small>
+                            </td>                            {{-- <td class="text-right">Rp {{ number_format($detail->subtotal, 2, ',', '.') }}</td> --}}
                         </tr>
                     @empty
                         <tr>
@@ -362,6 +384,21 @@
                     </tr>
                 </tfoot> --}}
             </table>
+            
+            <div class="col-md-4 text-right">
+                <div class="btn-group">
+                    {{-- TOMBOL BARU: SIMPAN HARGA --}}
+                    {{-- Atribut formnovalidate agar tidak dipaksa pilih supplier saat cuma mau simpan harga --}}
+                    <button 
+                        type="submit" 
+                        formaction="{{ route('transaction.operational-approval.update-prices', $item->id) }}"
+                        class="btn btn-warning"
+                        formnovalidate
+                        title="Simpan perubahan harga ke database & update riwayat"
+                    >
+                        <i class="fas fa-save"></i> Simpan Harga
+                    </button>
+            </div>
         </div>
         
     @if(in_array($item->status, ['diajukan', 'diproses']))
@@ -743,9 +780,20 @@
         });
     });
 
+    $(document).on('input', '.input-harga', function() {
+        let harga = parseFloat($(this).val()) || 0;
+        let qty = parseFloat($(this).data('qty')) || 0;
+        let id = $(this).data('id');
+        
+        let subtotal = harga * qty;
 
-
-    </script>
+        // Format Rupiah sederhana
+        let formatted = new Intl.NumberFormat('id-ID').format(subtotal);
+        
+        // Update tampilan subtotal kecil di bawah input
+        $('#subtotal-display-' + id).text(formatted);
+    });
+</script>
 
 
 

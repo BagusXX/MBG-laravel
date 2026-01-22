@@ -347,4 +347,60 @@ class OperationalApprovalController extends Controller
             'Invoice-Rekap-' . $parent->kode . '.pdf'
         );
     }
+
+    // App\Http\Controllers\OperationalApprovalController.php
+
+    public function updatePrices(Request $request, $id)
+    {
+        $parent = submissionOperational::with('children.details')->findOrFail($id);
+
+        // Validasi input harga
+        $request->validate([
+            'harga' => 'required|array',
+            'harga.*' => 'numeric|min:0',
+        ]);
+
+        DB::transaction(function () use ($parent, $request) {
+            // 1. Loop semua input harga dari form
+            foreach ($request->harga as $detailId => $hargaBaru) {
+
+                // A. UPDATE PARENT DETAIL (Tabel Input)
+                $parentDetail = $parent->details()->find($detailId);
+
+                if ($parentDetail) {
+                    $parentDetail->update([
+                        'harga_satuan' => $hargaBaru,
+                        'subtotal'     => $parentDetail->qty * $hargaBaru
+                    ]);
+
+                    // B. UPDATE CHILD/RIWAYAT (Sinkronisasi)
+                    // Kita cari Child dari parent ini yang memuat barang yang sama (operational_id sama)
+                    foreach ($parent->children as $child) {
+                        // Cari detail di child yang barangnya sama dengan parent detail ini
+                        $childDetail = $child->details()
+                            ->where('operational_id', $parentDetail->operational_id)
+                            ->first();
+
+                        if ($childDetail) {
+                            $childDetail->update([
+                                'harga_satuan' => $hargaBaru,
+                                'subtotal'     => $childDetail->qty * $hargaBaru
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            // 2. HITUNG ULANG TOTAL HEADER
+            // Hitung ulang total Parent
+            $parent->update(['total_harga' => $parent->details->sum('subtotal')]);
+
+            // Hitung ulang total setiap Child
+            foreach ($parent->children as $child) {
+                $child->update(['total_harga' => $child->details()->sum('subtotal')]);
+            }
+        });
+
+        return back()->with('success', 'Harga berhasil diperbarui dan disinkronkan ke riwayat approval.');
+    }
 }

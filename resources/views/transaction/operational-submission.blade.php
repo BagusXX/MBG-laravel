@@ -187,7 +187,7 @@
         <div class="form-row mb-2">
             <div class="col-md-3 font-weight-bold">Barang Operasional</div>
             <div class="col-md-1 font-weight-bold">Qty</div>
-            <div class="col-md-2 font-weight-bold">Harga</div>
+            {{-- <div class="col-md-2 font-weight-bold">Harga</div> --}}
             <div class="col-md-5 font-weight-bold">Keterangan</div>
             <div class="col-md-1"></div>
         </div>
@@ -213,9 +213,9 @@
                         <input type="number" name="items[0][qty]" class="form-control qty-input" min="1" required />
                     </div>
 
-                    <div class="col-md-2">
+                    {{-- <div class="col-md-2">
                         <input type="number" step="0.01" name="items[0][harga_satuan]"class="form-control harga-input"required/>
-                    </div>
+                    </div> --}}
                     
                     <div class="col-md-5">
                         <textarea name="items[0][keterangan]"

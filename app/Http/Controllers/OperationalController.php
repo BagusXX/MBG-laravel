@@ -106,7 +106,7 @@ class OperationalController extends Controller
     {
         $operational = operationals::findOrFail($id);
 
-        if (!auth()->user()->kitchens()->where('kode', $operational->kode_kitchen)->exists()) {
+        if (!auth()->user()->kitchens()->where('kode', $operational->kitchen_kode)->exists()) {
             abort(403);
         }
 

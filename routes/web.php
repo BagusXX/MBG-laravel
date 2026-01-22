@@ -409,6 +409,9 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{id}/invoice-parent', 'invoiceParent')
                 ->middleware('permission:transaction.operational-approval.invoice-parent')
                 ->name('invoice-parent');
+            Route::post('/{id}/update-prices', 'updatePrices')
+                ->middleware('permission:transaction.operational-approval.update-prices')
+                ->name('update-prices');
         });
 
     Route::prefix('dashboard/transaksi')
