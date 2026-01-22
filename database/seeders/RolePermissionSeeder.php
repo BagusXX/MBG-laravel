@@ -73,7 +73,6 @@ class RolePermissionSeeder extends Seeder
                 'transaction.operational-approval.update-status',
                 'transaction.operational-approval.invoice',
                 'transaction.operational-approval.invoice-parent',
-                'transaction.operational-approval.update-prices',
 
                 'transaction.sale-kitchen.view',
                 'transaction.sale-kitchen.create',

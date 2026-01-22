@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -24,7 +23,10 @@ return new class extends Migration
 
             $table->decimal('qty', 10, 2);
             $table->decimal('harga_satuan', 15, 2);
-            $table->decimal('subtotal', 15, 2);
+            $table->decimal('harga_dapur', 15, 2)->default(0);
+            $table->decimal('harga_mitra', 15, 2)->nullable();
+            $table->decimal('subtotal_dapur', 15, 2)->default(0);
+            $table->decimal('subtotal_mitra', 15, 2)->nullable();
             $table->text('keterangan')->nullable();
             $table->timestamps();
 

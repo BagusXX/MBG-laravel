@@ -15,9 +15,15 @@ class submissionOperationalDetails extends Model
         'supplier_id',
         'qty',
         'harga_satuan',
-        'subtotal',
+        'harga_dapur',
+        'harga_mitra',
+
+        'subtotal_dapur',
+        'subtotal_mitra',
+
         'keterangan'
     ];
+
 
     public function submission()
     {
