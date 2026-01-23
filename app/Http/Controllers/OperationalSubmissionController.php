@@ -223,7 +223,7 @@ class OperationalSubmissionController extends Controller
                 $barangId = $item['barang_id'];
                 $qty = $item['qty'];
 
-               
+
 
                 $hargaDapur = 0; // Ambil dari master
                 $hargaMitra = 0;  // Ambil dari master
@@ -252,8 +252,6 @@ class OperationalSubmissionController extends Controller
             return back()->with('success', 'Pengajuan berhasil diperbarui');
         });
     }
-
-
 
     /**
      * Remove the specified resource from storage.

@@ -161,8 +161,9 @@ class OperationalApprovalController extends Controller
             // Validasi Array Items untuk Update Harga/Qty
             'items' => 'nullable|array',
             // Pastikan ID detail valid dan ada
-            'items.*.id' => 'required|exists:submission_operational_details,id',
-            'items.*.harga_satuan' => 'required|numeric|min:0',
+            'items.*.id' => 'sometimes | required|exists:submission_operational_details,id',
+            'items.*.harga_dapur' => 'required|numeric|min:0',
+            'items.*.harga_mitra' => 'required|numeric|min:0',
             'items.*.qty' => 'required|numeric|min:1',
 
         ]);
@@ -185,23 +186,28 @@ class OperationalApprovalController extends Controller
                     $detail = $submission->details()->find($itemData['id']);
 
                     if ($detail) {
-                        $hargaBaru = $itemData['harga_satuan'];
+                        $hargaDapurBaru = $itemData['harga_dapur'];
+                        $hargaMitraBaru = $itemData['harga_mitra'];
                         $qtyBaru = $itemData['qty'];
-                        $subtotal = $hargaBaru * $qtyBaru;
+                        $subtotalDapur = $hargaDapurBaru * $qtyBaru;
+                        $subtotalMitra = $hargaMitraBaru * $qtyBaru;
 
                         // Update baris detail
                         $detail->update([
-                            'harga_satuan' => $hargaBaru,
+                            'harga_dapur' => $hargaDapurBaru,
+                            'harga_mitra' => $hargaMitraBaru,
                             'qty' => $qtyBaru,
-                            'subtotal' => $subtotal
+                            'subtotal_dapur' => $subtotalDapur,
+                            'subtotal_mitra' => $subtotalMitra
                         ]);
 
-                        $totalBaru += $subtotal;
+                        $totalDapurBaru += $subtotalDapur;
+                        $totalMitraBaru += $subtotalMitra;
                     }
                 }
 
                 // C. Update Total Harga di Header Submission
-                $submission->update(['total_harga' => $totalBaru]);
+                $submission->update(['total_harga' => $totalDapurBaru]);
             }
         });
 
@@ -410,7 +416,7 @@ class OperationalApprovalController extends Controller
                             ->first();
 
                         // Update anak hanya jika statusnya masih 'diproses' (belum selesai/dikirim)
-                        if ($childDetail && $child->status == 'diproses') {
+                        if ($childDetail && in_array($child->status, ['diproses', 'disetujui'])) {
                             $childDetail->update([
                                 'qty' => $qty,
                                 'harga_satuan' => $hDapur,
