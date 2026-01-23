@@ -19,9 +19,9 @@
         <i class="fas fa-user-shield"></i> Tambah Role
     </button>
 
-    {{-- <button class="btn btn-success" data-toggle="modal" data-target="#modalAddPermission">
+    <button class="btn btn-success" data-toggle="modal" data-target="#modalAddPermission">
         <i class="fas fa-key"></i> Tambah Permission
-    </button> --}}
+    </button>
 </div>
 
 <div class="card">
@@ -173,10 +173,10 @@
 <form method="POST" action="{{ route('setup.permission.store') }}">
 @csrf
 <div class="modal-content">
-    {{-- <div class="modal-header">
+    <div class="modal-header">
         <h5>Tambah Permission</h5>
         <button type="button" class="close" data-dismiss="modal">&times;</button>
-    </div> --}}
+    </div>
 
     <div class="modal-body">
         <div class="form-group">
