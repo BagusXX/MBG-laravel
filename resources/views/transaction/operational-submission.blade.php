@@ -68,7 +68,7 @@
                     <th>Jml Item</th>
                     {{-- <th>Total Biaya</th> --}}
                     <th>Status</th>
-                    <th width="230" class="text-center">Aksi</th>
+                    <th width="180" class="text-center">Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -121,6 +121,17 @@
                                 <i class="fas fa-print"></i> Cetak
                             </a>
                         @endif
+                        @if ($item->status === 'diajukan')
+                            <button 
+                                class="btn btn-warning btn-sm btn-edit-operational mt-2"
+                                data-id="{{ $item->id }}"
+                                data-url="{{ route('transaction.operational-submission.update', $item->id) }}"
+                                data-json='@json($item)'
+                            >
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                        @endif
+
                     </td>
                 </tr>
                 @empty
@@ -148,6 +159,7 @@
     action="{{ route('transaction.operational-submission.store') }}"
     submitText="Simpan Pengajuan"
 >
+    <form id="formOperational">
     @csrf
 
     <div class="form-group">
@@ -417,6 +429,9 @@
 }
 
     $(document).ready(function() {
+
+    let emptyRowTemplate = $('#operasional-wrapper .operasional-group:first').clone();
+
     
     // Hitung jumlah baris yang ada saat ini untuk menentukan index selanjutnya
     // Kita mulai dari 1 karena index 0 sudah ada di HTML (form bawaan)
@@ -424,6 +439,11 @@
 
     // --- LOGIC TAMBAH BARANG ---
     $('#add-operasional').on('click', function () {
+        // GUARD: jika tombol disabled, hentikan
+        if ($(this).prop('disabled')) {
+            return;
+        }
+        
         let $wrapper = $('#operasional-wrapper');
         let $firstRow = $wrapper.find('.operasional-group:first');
         
@@ -508,6 +528,7 @@
 
     // Reset Form saat modal ditutup
     $('#modalAddOperational').on('hidden.bs.modal', function () {
+        $('#add-operasional').prop('disabled', false);
         $(this).find('form')[0].reset();
         // Hapus baris tambahan, sisakan baris pertama saja
         $('#operasional-wrapper .operasional-group:not(:first)').remove();
@@ -552,7 +573,86 @@
             // $('#inputContainer').find('tr:not(:first)').remove(); // Hapus baris tambahan
             // calculateGrandTotal();
         });
-        
+
+        $(document).on('click', '.btn-edit-operational', function () {
+
+        let data = $(this).data('json');
+        let url  = $(this).data('url');
+
+        let modal = $('#modalAddOperational');
+        let form  = modal.find('form');
+
+        // === MODE EDIT ===
+        modal.find('.modal-title').text('Edit Pengajuan Operasional');
+        form.attr('action', url);
+
+        // Hindari dobel _method
+        form.find('input[name="_method"]').remove();
+        form.append('<input type="hidden" name="_method" value="PUT">');
+
+        // Disable tambah barang saat edit
+        // $('#add-operasional').prop('disabled', true);
+
+        // === SET HEADER ===
+        form.find('input[name="tanggal"]').val(data.tanggal);
+        form.find('select[name="kitchen_kode"]')
+            .val(data.kitchen_kode)
+            .trigger('change');
+
+        // === RESET TOTAL ITEM ===
+        $('#operasional-wrapper').empty();
+        itemIndex = 0;
+
+        // === LOAD DETAIL EXISTING ===
+        data.details.forEach((item) => {
+            let row = emptyRowTemplate.clone();
+
+            row.find('select[name*="[barang_id]"]').val(item.operational_id);
+            row.find('input[name*="[qty]"]').val(item.qty);
+            row.find('textarea[name*="[keterangan]"]').val(item.keterangan);
+
+            row.find('select, input, textarea').each(function () {
+                let old = $(this).attr('name');
+                if (old) {
+                    $(this).attr('name', old.replace(/\[\d+\]/, '[' + itemIndex + ']'));
+                }
+            });
+
+            row.find('.remove-operasional').removeClass('d-none');
+            $('#operasional-wrapper').append(row);
+
+            itemIndex++;
+        });
+
+        modal.modal('show');
+    });
+
+
+        $$('#modalAddOperational').on('hidden.bs.modal', function () {
+
+        let form = $(this).find('form');
+
+        // Reset form
+        form[0].reset();
+
+        // Reset action & method
+        form.attr('action', "{{ route('transaction.operational-submission.store') }}");
+        form.find('input[name="_method"]').remove();
+
+        // Reset title
+        $(this).find('.modal-title').text('Tambah Pengajuan Operasional');
+
+        // Enable add kembali
+        $('#add-operasional').prop('disabled', false);
+
+        // Reset item
+        $('#operasional-wrapper').empty();
+        $('#operasional-wrapper').append(emptyRowTemplate.clone());
+
+        itemIndex = 1;
+    });
+
+
     });
 </script>
 

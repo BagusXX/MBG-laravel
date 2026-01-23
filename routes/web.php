@@ -195,7 +195,6 @@ Route::middleware(['auth', 'disetujui'])->group(function () {
 
             Route::post('/duplicate', 'duplicate')
                 ->name('duplicate');
-
         });
 
 
@@ -420,7 +419,6 @@ Route::middleware(['auth', 'disetujui'])->group(function () {
                 ->name('update-prices');
             Route::put('/operational-submission/{id}',  'update')
                 ->name('operational-submission.update');
-
         });
 
     Route::prefix('dashboard/transaksi')

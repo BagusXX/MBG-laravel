@@ -65,9 +65,6 @@ class SupplierController extends Controller
         ]);
 
         $pathGambar = null;
-        if ($request->hasFile('gambar')) {
-            $pathGambar = $request->file('gambar')->store('uploads/suppliers', 'public');
-        }
 
         $supplier = Supplier::create([
             'kode' => self::generateKode(),
@@ -78,6 +75,20 @@ class SupplierController extends Controller
             'gambar' => $pathGambar,
         ]);
 
+        if ($request->hasFile('gambar')) {
+
+            // hapus gambar lama
+            if ($supplier->gambar && Storage::disk('public')->exists($supplier->gambar)) {
+                Storage::disk('public')->delete($supplier->gambar);
+            }
+
+            $path = $request->file('gambar')
+                ->store('uploads/suppliers', 'public');
+
+            $supplier->gambar = $path;
+        }
+
+        $supplier->save();
         // attach dapur
         $supplier->kitchens()->sync($request->kitchens);
 

@@ -65,7 +65,7 @@
                     <th>Dapur</th>
                     {{-- <th>Total</th> --}}
                     <th>Status</th>
-                    <th width="230" class="text-center">Aksi</th>
+                    <th width="180" class="text-center">Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -249,7 +249,12 @@
         </div>
     @endif
 
-    @if ($item->status === 'diproses')
+    @php
+    $allChildDone = $item->children->count() > 0 &&
+        $item->children->every(fn($child) => $child->status === 'disetujui');
+    @endphp
+
+    @if ($item->status === 'diproses' && $allChildDone)
         <div class="text-right mb-3">
             <button
                 class="btn btn-success btn-md btnApproval"
@@ -310,7 +315,9 @@
                         @endif
                         <th>Barang Operasional</th>
                         <th width="80" class="text-center">Qty</th>
-                        <th class="text-right">Harga</th>
+                        <th class="text-right">Harga Dapur</th>
+                        <th class="text-right">Harga Mitra</th>
+                        <th>Keterangan</th>
                         {{-- <th class="text-right">Subtotal</th> --}}
                     </tr>
                 </thead>
@@ -348,27 +355,49 @@
                             <td class="text-center">{{ $detail->qty }}</td>
                             <td width="180">
                                 <div class="input-group input-group-sm">
-                                    <div class="input-group-prepend">
+                                    {{-- <div class="input-group-prepend">
                                         <span class="input-group-text">Rp</span>
-                                    </div>
+                                    </div> --}}
+                                    {{-- ID DETAIL (WAJIB) --}}
+                                    <input type="hidden"
+                                        name="details[{{ $detail->id }}][id]"
+                                        value="{{ $detail->id }}">
+
+                                    {{-- QTY (WAJIB, meskipun readonly) --}}
+                                    <input type="hidden"
+                                        name="details[{{ $detail->id }}][qty]"
+                                        value="{{ $detail->qty }}">
                                     <input 
                                         type="number" 
-                                        name="harga[{{ $detail->id }}]" 
-                                        class="form-control text-right input-harga" 
-                                        value="{{ (float) $detail->harga_satuan }}" 
+                                        name="details[{{ $detail->id }}][harga_dapur]"
+                                        class="form-control form-control-sm text-right harga-dapur"
+                                        value="{{ $detail->harga_dapur }}" 
+                                        {{ $item->status === 'selesai' ? 'readonly' : '' }}
                                         min="0"
                                         step="0.01"
                                         data-qty="{{ $detail->qty }}"
                                         data-id="{{ $detail->id }}"
                                     >
                                 </div>
-                                {{-- Menampilkan Subtotal Realtime (Opsional) --}}
+                                <td width="160">
+                                    <input
+                                        type="number"
+                                        name="details[{{ $detail->id }}][harga_mitra]"
+                                        class="form-control form-control-sm text-right"
+                                        value="{{ $detail->harga_mitra }}"
+                                        {{ $item->status === 'selesai' ? 'readonly' : '' }}
+                                        min="0"
+                                        step="0.01"
+                                    >
+                                </td>
+                                {{-- Menampilkan Subtotal Realtime (Opsional)
                                 <small class="text-muted d-block text-right mt-1">
                                     Total: <span id="subtotal-display-{{ $detail->id }}">
                                         {{ number_format($detail->qty * $detail->harga_satuan, 0, ',', '.') }}
                                     </span>
-                                </small>
-                            </td>                            {{-- <td class="text-right">Rp {{ number_format($detail->subtotal, 2, ',', '.') }}</td> --}}
+                                </small> --}}
+                            </td>            
+                            <td>{{ $detail->keterangan ?? '-' }}</td>                {{-- <td class="text-right">Rp {{ number_format($detail->subtotal, 2, ',', '.') }}</td> --}}
                         </tr>
                     @empty
                         <tr>
@@ -385,10 +414,8 @@
                 </tfoot> --}}
             </table>
             
-            <div class="col-md-4 text-right">
+            <div class="col-md 12 text-right">
                 <div class="btn-group">
-                    {{-- TOMBOL BARU: SIMPAN HARGA --}}
-                    {{-- Atribut formnovalidate agar tidak dipaksa pilih supplier saat cuma mau simpan harga --}}
                     <button 
                         type="submit" 
                         formaction="{{ route('transaction.operational-approval.update-prices', $item->id) }}"
@@ -401,7 +428,7 @@
             </div>
         </div>
         
-    @if(in_array($item->status, ['diajukan', 'diproses']))
+        @if(in_array($item->status, ['diajukan', 'diproses']) && $item->status !== 'selesai')
     </form> {{-- Tutup Form --}}
     @endif
 
@@ -542,14 +569,17 @@
 @push('js')
     <script>
         // Validasi minimal 1 checkbox dipilih sebelum submit form split
-        $('form').on('submit', function(e){
-            // Cek apakah form ini adalah form approval operational
-            if($(this).find('input[name="items[]"]').length > 0) {
-                if($(this).find('input[name="items[]"]:checked').length === 0) {
-                    e.preventDefault();
-                    alert('Harap pilih minimal satu barang untuk diproses!');
-                }
-            }
+
+        $(document).on('input', '.harga-dapur', function () {
+            let harga = parseFloat($(this).val()) || 0;
+            let qty   = parseFloat($(this).data('qty')) || 0;
+            let id    = $(this).data('id');
+
+            let subtotal = harga * qty;
+
+            $('#subtotal-' + id).text(
+                subtotal.toLocaleString('id-ID')
+            );
         });
 
         $(document).on('change', '.checkAll', function() {
@@ -559,14 +589,33 @@
 
         // 2. VALIDASI FORM SPLIT ORDER
         $(document).on('submit', '.form-split-order', function(e) {
-            // Cari checkbox item di dalam form ini yang dicentang
-            let checkedItems = $(this).find('input[name="items[]"]:checked');
-            
-            if (checkedItems.length === 0) {
-                e.preventDefault(); // Batalkan submit
-                alert('Harap pilih minimal satu barang untuk diproses!');
-            }
-        });
+        // Deteksi tombol mana yang memicu submit
+        let submitter = $(e.originalEvent.submitter);
+
+        // Jika tombol yang diklik memiliki atribut 'formaction' (artinya tombol Simpan Harga)
+        // MAKA: Skip validasi checkbox, biarkan form terkirim
+        if (submitter.attr('formaction')) {
+            return true; 
+        }
+
+        // JIKA BUKAN (Artinya tombol "Proses Approval" biasa)
+        // MAKA: Lakukan validasi checkbox & supplier
+        let checkedItems = $(this).find('input[name="items[]"]:checked');
+        let supplier = $(this).find('select[name="supplier_id"]').val();
+
+        if (checkedItems.length === 0) {
+            e.preventDefault();
+            alert('Harap pilih minimal satu barang untuk diproses!');
+            return false;
+        }
+
+        // Opsional: Validasi supplier juga di sini jika required HTML5 tidak jalan
+        if (!supplier) {
+            e.preventDefault();
+            alert('Harap pilih supplier terlebih dahulu!');
+            return false;
+        }
+    });
         
         @if(session('reopen_modal'))
             // Ambil ID dari session flash controller
@@ -749,9 +798,6 @@
 
         let approvalModal = $('#modalApprovalOperational');
 
-        // cari modal detail terdekat (yang sedang terbuka)
-        let detailModal = $(this).closest('.modal');
-
         // set action form
         approvalModal.find('form').attr(
             'action',
@@ -769,16 +815,13 @@
         $('#approval_status').val(status);
         $('#approval_status_text').text(status.toUpperCase());
 
-        // ============================
-        // TUTUP MODAL DETAIL DULU
-        // ============================
-        detailModal.modal('hide');
-
-        // setelah modal detail tertutup → buka approval
-        detailModal.one('hidden.bs.modal', function () {
-            approvalModal.modal('show');
+        // 🔥 LANGSUNG buka modal konfirmasi
+        approvalModal.modal({
+            backdrop: 'static',
+            keyboard: false
         });
     });
+
 
     $(document).on('input', '.input-harga', function() {
         let harga = parseFloat($(this).val()) || 0;
@@ -793,8 +836,14 @@
         // Update tampilan subtotal kecil di bawah input
         $('#subtotal-display-' + id).text(formatted);
     });
+
+    $(document).on('hidden.bs.modal', '.modal', function () {
+        if ($('.modal.show').length === 0) {
+            $('body').removeClass('modal-open');
+            $('.modal-backdrop').remove();
+        }
+    });
+
 </script>
-
-
 
 @endpush

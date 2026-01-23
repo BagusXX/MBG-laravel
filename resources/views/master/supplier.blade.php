@@ -44,6 +44,7 @@
                         <th>Dapur</th>
                         <th>Kontak Person</th>
                         <th>Nomor</th>
+                        <th>Foto</th>
                         @if($canManage)
                         <th>Aksi</th>
                         @endif
@@ -63,6 +64,22 @@
                             </td>
                             <td>{{ $supplier->kontak }}</td>
                             <td>{{ $supplier->nomor }}</td>
+                            <td class="text-center">
+                                @if($supplier->gambar)
+                                    <img 
+                                        src="{{ asset('storage/' . $supplier->gambar) }}" 
+                                        width="60"
+                                        class="img-thumbnail supplier-image"
+                                        style="cursor:pointer"
+                                        data-toggle="modal"
+                                        data-target="#modalPreviewImage"
+                                        data-src="{{ asset('storage/' . $supplier->gambar) }}"
+                                    >
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </td>
+
                             @if($canManage)
                             <td>
                                 <button 
@@ -77,6 +94,7 @@
                                     data-kitchens="{{ json_encode($supplier->kitchens->pluck('kode')) }}"
                                     data-kontak="{{ $supplier->kontak }}"
                                     data-nomor="{{ $supplier->nomor }}"
+                                    data-gambar="{{ $supplier->gambar }}"
                                 >
                                     Edit    
                                 </button>
@@ -160,6 +178,20 @@
             <label for="nomor_supplier">Nomor</label>
             <input id="nomor_supplier" type="text" name="nomor" class="form-control" required />
         </div>
+
+        <div class="form-group mt-2">
+            <label>Foto Supplier</label>
+            <input 
+                type="file" 
+                name="gambar" 
+                class="form-control"
+                accept="image/*"
+            />
+            <small class="text-muted">
+                Format JPG / PNG, maksimal 2MB
+            </small>
+        </div>
+
     </x-modal-form>
 
     {{-- MODAL EDIT SUPPLIER --}}
@@ -216,6 +248,32 @@
             <label>Nomor</label>
             <input type="text" id="edit_nomor" name="nomor" class="form-control" required />
         </div>
+        <div class="form-group">
+            <label>Foto Supplier</label>
+
+            {{-- preview foto lama --}}
+            <div class="mb-2">
+                <img 
+                    id="edit_preview_gambar"
+                    src=""
+                    alt="Preview"
+                    class="img-thumbnail"
+                    style="max-height: 120px; display: none;"
+                >
+            </div>
+
+            <input 
+                type="file" 
+                name="gambar" 
+                class="form-control"
+                accept="image/*"
+            />
+
+            <small class="text-muted">
+                Kosongkan jika tidak ingin mengganti foto
+            </small>
+        </div>
+
     </x-modal-form>
 
     {{-- MODAL DELETE --}}
@@ -226,6 +284,27 @@
         message="Apakah Anda yakin ingin menghapus data ini?" 
         confirmText="Hapus" 
     />
+
+    <div class="modal fade" id="modalPreviewImage" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Foto Supplier</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body text-center">
+                    <img 
+                        id="previewImageModal"
+                        src=""
+                        class="img-fluid rounded"
+                    >
+                </div>
+            </div>
+        </div>
+    </div>
+
     @endif
 
 @endsection
@@ -243,6 +322,16 @@
             document.getElementById('edit_alamat').value = this.dataset.alamat;
             document.getElementById('edit_kontak').value = this.dataset.kontak;
             document.getElementById('edit_nomor').value = this.dataset.nomor;
+
+            const gambar = this.dataset.gambar;
+            const preview = document.getElementById('edit_preview_gambar');
+
+            if (gambar) {
+                preview.src = `/storage/${gambar}`;
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
 
             // 1. Reset semua checkbox di modal edit menjadi tidak tercentang
             document.querySelectorAll('.edit-kitchen-checkbox').forEach(box => box.checked = false);
@@ -265,6 +354,12 @@
             form.action = `/dashboard/master/supplier/${id}`;
         });
     });
+    document.querySelectorAll('.supplier-image').forEach(img => {
+    img.addEventListener('click', function () {
+        document.getElementById('previewImageModal').src = this.dataset.src;
+    });
+});
+
 </script>
 @endif
 @endpush

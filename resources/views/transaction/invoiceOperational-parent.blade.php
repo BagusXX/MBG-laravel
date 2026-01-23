@@ -190,7 +190,7 @@
                     <th>Supplier</th>
                     <th class="text-center" width="10%"style="text-align: center;">Jumlah</th>
                     <th class="text-center" width="20%" style="text-align: center;">Harga</th>
-                    <th class="text-center" width="20%" style="text-align: center;">Subtotal</th>
+                    {{-- <th class="text-center" width="20%" style="text-align: center;">Subtotal</th> --}}
                 </tr>
             </thead>
             <tbody>
@@ -213,10 +213,10 @@
                             
                             <td class="text-center">{{ number_format($item->qty, 0, ',', '.') }}</td>
                             <td class="text-center">Rp {{ number_format($item->harga_satuan, 0, ',', '.') }}</td>
-                            <td class="text-center">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</td>
+                            {{-- <td class="text-center">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</td> --}}
                         </tr>
 
-                        @php $grandTotal += $item->subtotal; @endphp
+                        @php $grandTotal += $item->harga_satuan; @endphp
                     @endforeach
                 @empty
                     <tr>
