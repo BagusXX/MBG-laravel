@@ -399,15 +399,13 @@
                     let rows = '';
                     if (data.details && data.details.length > 0) {
                         $.each(data.details, function(index, item) {
-                            let namaBahan = item.bahan_baku ? item.bahan_baku.nama : 'Bahan Terhapus';
-                            let satuan    = item.bahan_baku?.unit?.satuan || '-';
-                            let isManual = item.recipe_bahan_baku_id === null ? '<small class="text-info d-block">(Manual)</small>' : '';
+                            let isManual = item.is_manual ? '<small class="text-info d-block">(Manual)</small>' : '';
 
                             rows += `
                                 <tr>
-                                    <td>${namaBahan} ${isManual}</td>
-                                    <td class="text-center">${parseFloat(item.qty_digunakan)}</td>
-                                    <td class="text-center">${satuan}</td>
+                                    <td>${item.nama} ${isManual}</td>
+                                    <td class="text-center">${item.qty_label}</td>
+                                    <td class="text-center">${item.unit}</td>
                                 </tr>
                             `;
                         });
@@ -430,7 +428,7 @@
                                     itemsHtml += `
                                         <li>
                                             ${item.nama}
-                                            <span class="text-muted">(${formatQty(item.qty)} x ${formatRupiah(item.harga)})</span>
+                                            <span class="text-muted">(${item.qty} ${item.unit} x ${formatRupiah(item.harga)})</span>
                                         </li>
                                     `;
                                 });

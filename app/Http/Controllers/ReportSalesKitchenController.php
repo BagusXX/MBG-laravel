@@ -149,7 +149,7 @@ class ReportSalesKitchenController extends Controller
         $qty = $item->qty_digunakan;
 
         // 2. Logika Konversi ke Kg / L
-        if ($unitLower == 'g') {
+        if ($unitLower == 'gram') {
             $item->display_unit = 'Kg';
             $item->display_qty = $qty / 1000;
         } elseif ($unitLower == 'ml') {

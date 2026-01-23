@@ -20,7 +20,7 @@ class UnitsSeeder extends Seeder
                 'keterangan' => 'kilogram'
             ],
             [
-                'satuan' => 'g',
+                'satuan' => 'gram',
                 'keterangan' => 'gram'
             ],
             [
