@@ -35,7 +35,7 @@
                         <th>Dapur</th>
                         <th>Nama Menu</th>
                         {{-- Kolom Harga Dihapus --}}
-                        <th style="width: 20%">Aksi</th>
+                        <th style="width: 21%">Aksi</th>
                     </tr>
                 </thead>
 

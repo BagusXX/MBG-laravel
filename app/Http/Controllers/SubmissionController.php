@@ -21,39 +21,39 @@ class SubmissionController extends Controller
     {
         return auth()->user()->kitchens()->pluck('kode');
     }
-    protected function formatQtyWithUnit($qty, $unit)
-    {
-        if (!$unit) {
-            return [
-                'qty' => $qty,
-                'unit' => '-',
-            ];
-        }
+    // protected function formatQtyWithUnit($qty, $unit)
+    // {
+    //     if (!$unit) {
+    //         return [
+    //             'qty' => $qty,
+    //             'unit' => '-',
+    //         ];
+    //     }
 
-        $satuan = strtolower($unit->satuan);
+    //     $satuan = strtolower($unit->satuan);
 
-        // gram → kg
-        if ($satuan === 'gram' && $qty >= 1000) {
-            return [
-                'qty' => $qty / 1000,
-                'unit' => 'kg',
-            ];
-        }
+    //     // gram → kg
+    //     if ($satuan === 'gram' && $qty >= 1000) {
+    //         return [
+    //             'qty' => $qty / 1000,
+    //             'unit' => 'kg',
+    //         ];
+    //     }
 
-        // ml → liter
-        if ($satuan === 'ml' && $qty >= 1000) {
-            return [
-                'qty' => $qty / 1000,
-                'unit' => 'liter',
-            ];
-        }
+    //     // ml → liter
+    //     if ($satuan === 'ml' && $qty >= 1000) {
+    //         return [
+    //             'qty' => $qty / 1000,
+    //             'unit' => 'liter',
+    //         ];
+    //     }
 
-        // default (tidak dikonversi)
-        return [
-            'qty' => $qty,
-            'unit' => $unit->satuan,
-        ];
-    }
+    //     // default (tidak dikonversi)
+    //     return [
+    //         'qty' => $qty,
+    //         'unit' => $unit->satuan,
+    //     ];
+    // }
 
     protected function generateKode(): string
     {
@@ -67,36 +67,64 @@ class SubmissionController extends Controller
     }
 
     // Hapus "Menu" dari type hint parameter kedua
-    protected function syncDetails(Submission $submission, $recipes)
+    private function applyConversion($item)
     {
-        $submission->details()->delete();
-
-        $total = 0;
-
-        // $recipes di sini sudah berupa kumpulan baris dari tabel recipe_bahan_baku
-        // Jadi kita langsung loop saja
-        foreach ($recipes as $recipe) {
-
-            $qty = $recipe->jumlah * $submission->porsi;
-
-            // Pastikan relasi bahan_baku ter-load atau gunakan optional chaining
-            $harga = $recipe->bahan_baku->harga ?? 0;
-            $subtotal = $qty * $harga;
-
-            $submission->details()->create([
-                'recipe_bahan_baku_id' => $recipe->id,
-                'bahan_baku_id' => $recipe->bahan_baku_id,
-                'qty_digunakan' => $qty,
-                'harga_satuan' => $harga,
-                'harga_dapur' => $harga,
-                'harga_mitra' => $harga,
-                'subtotal_harga' => $subtotal,
-            ]);
-
-            $total += $subtotal;
+        // 1. Ambil Nama Satuan
+        $unitNama = '-';
+        if ($item->recipeBahanBaku && $item->recipeBahanBaku->bahan_baku) {
+            $unitNama = optional($item->recipeBahanBaku->bahan_baku->unit)->satuan;
+        } elseif ($item->bahanBaku) {
+            $unitNama = optional($item->bahanBaku->unit)->satuan;
         }
 
-        $submission->update(['total_harga' => $total]);
+        $unitLower = strtolower($unitNama);
+        $qty = (float)$item->qty_digunakan;
+
+        $item->display_qty = $qty;
+        $item->display_unit = $unitNama;
+
+        // 2. Logika Konversi ke Kg / L
+        if ($unitLower == 'gram') {
+            $item->display_unit = 'Kg';
+            $item->display_qty = $qty / 1000;
+        } elseif ($unitLower == 'ml') {
+            $item->display_unit = 'L';
+            $item->display_qty = $qty / 1000;
+        } else {
+            $item->display_unit = $unitNama;
+            $item->display_qty = $qty;
+        }
+
+        // 3. Format Angka (Gunakan koma untuk desimal, hilangkan desimal jika bulat)
+        $item->formatted_qty = number_format(
+            $item->display_qty,
+            ($item->display_qty == floor($item->display_qty) ? 0 : 2),
+            ',',
+            '.'
+        );
+
+        return $item;
+    }
+
+    protected function convertQtyForCalculation(SubmissionDetails $detail): float
+    {
+        $qty = (float) $detail->qty_digunakan;
+
+    // Ambil bahan baku dari mana pun sumbernya
+        $bahanBaku = $detail->bahanBaku
+            ?? $detail->recipeBahanBaku?->bahan_baku;
+
+        if (!$bahanBaku || !$bahanBaku->unit) {
+            throw new \Exception("Satuan bahan baku tidak ditemukan (Detail ID: {$detail->id})");
+        }
+
+        $unit = strtolower($bahanBaku->unit->satuan);
+
+        return match ($unit) {
+            'gram' => $qty / 1000,
+            'ml'   => $qty / 1000,
+            default => $qty,
+        };  
     }
 
     /* ================= INDEX ================= */
@@ -108,7 +136,7 @@ class SubmissionController extends Controller
         $submissions = Submission::with([
             'kitchen',
             'menu',
-            'details.recipeBahanBaku.bahan_baku.unit',
+            'details.recipeBahanBaku.bahanBaku.unit',
             'details.bahanBaku.unit'
         ])
             ->onlyParent()
@@ -275,6 +303,7 @@ class SubmissionController extends Controller
         $submission->load([
             'kitchen',
             'menu',
+            'details.recipeBahanBaku.bahanBaku.unit',
             'details.bahanBaku.unit',
             'children.supplier',
             'children.details.bahanBaku.unit'
@@ -282,59 +311,49 @@ class SubmissionController extends Controller
 
         // Mapping Detail agar struktur sesuai Blade (nested bahan_baku)
         $mappedDetails = $submission->details->map(function ($detail) {
-
-            // Gunakan Format Qty
-            $formatted = $this->formatQtyWithUnit(
-                $detail->qty_digunakan,
-                $detail->bahanBaku?->unit
-            );
+            $converted = $this->applyConversion($detail);
 
             return [
-                'id' => $detail->id,
+                'id' => $converted->id,
                 // Override data mentah dengan data terformat
-                'qty_digunakan' => $formatted['qty'],
-                'harga_dapur' => $detail->harga_dapur,
-                'recipe_bahan_baku_id' => $detail->recipe_bahan_baku_id,
-
-                // Struktur Bersarang (Nested)
-                'bahan_baku' => [
-                    'nama' => $detail->bahanBaku->nama ?? 'Item Terhapus',
-                    'unit' => [
-                        'satuan' => $formatted['unit'] // Override satuan (misal: gram jadi kg)
-                    ]
-                ]
+                'nama' => $converted->bahanBaku->nama ?? ($converted->recipeBahanBaku->bahan_baku->nama ?? 'Item Terhapus'),
+                'qty' => $converted->display_qty,
+                'qty_label' => $converted->formatted_qty,
+                'unit' => $converted->display_unit,
+                'is_manual' => $converted->recipe_bahan_baku_id === null
             ];
         });
 
-        return response()->json([
-            'id' => $submission->id,
-            'kode' => $submission->kode,
-            'tanggal' => $submission->tanggal,
-            'status' => $submission->status,
-            'porsi' => $submission->porsi,
-            'kitchen' => $submission->kitchen,
-            'menu' => $submission->menu,
-            'details' => $mappedDetails, // <-- Gunakan data yg sudah dimapping
-            'history' => $submission->children->map(function ($child) {
-                // ... logic history sama seperti di atas ...
+        $history = $submission->children->map(function ($child) {
+        return [
+            'id' => $child->id,
+            'kode' => $child->kode,
+            'supplier_nama' => $child->supplier->nama ?? 'Umum',
+            'status' => $child->status,
+            'total' => $child->total_harga,
+            'items' => $child->details->map(function ($d) {
+                $conv = $this->applyConversion($d);
                 return [
-                    'id' => $child->id,
-                    'kode' => $child->kode,
-                    'supplier_nama' => $child->supplier->nama ?? 'Umum',
-                    'status' => $child->status,
-                    'total' => $child->total_harga,
-                    'items' => $child->details->map(function ($d) {
-                        $fmt = $this->formatQtyWithUnit($d->qty_digunakan, $d->bahanBaku?->unit);
-                        return [
-                            'nama' => $d->bahanBaku->nama ?? '-',
-                            'qty' => $fmt['qty'],
-                            'unit' => $fmt['unit'],
-                            'harga' => $d->harga_mitra ?? $d->harga_dapur,
-                        ];
-                    })->values()
+                    'nama' => $conv->bahanBaku->nama ?? '-',
+                    'qty' => $conv->formatted_qty,
+                    'unit' => $conv->display_unit,
+                    'harga' => $conv->harga_mitra ?? $conv->harga_dapur,
                 ];
-            }),
-        ]);
+            })->values()
+        ];
+    });
+
+        return response()->json([
+        'id' => $submission->id,
+        'kode' => $submission->kode,
+        'tanggal' => $submission->tanggal,
+        'status' => $submission->status,
+        'porsi' => $submission->porsi,
+        'kitchen' => $submission->kitchen,
+        'menu' => $submission->menu,
+        'details' => $mappedDetails,
+        'history' => $history,
+    ]);
     }
     /* ================= AJAX ================= */
 
@@ -422,12 +441,16 @@ class SubmissionController extends Controller
             $total = 0;
 
             // 3. PINDAHKAN DETAIL YANG DICENTANG
-            $detailsToCopy = SubmissionDetails::whereIn('id', $request->selected_details)->get();
-
+            $detailsToCopy = SubmissionDetails::with([
+                'bahanBaku.unit',
+                'recipeBahanBaku.bahanBaku.unit'
+            ])->whereIn('id', $request->selected_details)->get();
+    
             foreach ($detailsToCopy as $detail) {
+                $qtyForCalc = $this->convertQtyForCalculation($detail);
                 // Gunakan harga mitra jika ada, jika tidak pakai harga dapur
-                $hargaMitra = $detail->harga_mitra ?? $detail->harga_dapur;
-                $subtotal = $hargaMitra * $detail->qty_digunakan;
+                $harga = $detail->harga_mitra ?? $detail->harga_dapur;
+                $subtotal = $harga * $qtyForCalc;
 
                 SubmissionDetails::create([
                     'submission_id' => $child->id,
@@ -436,7 +459,7 @@ class SubmissionController extends Controller
                     'qty_digunakan' => $detail->qty_digunakan,
                     'harga_satuan' => $detail->harga_satuan,
                     'harga_dapur' => $detail->harga_dapur, // Child ke supplier tidak butuh harga dapur
-                    'harga_mitra' => $hargaMitra,
+                    'harga_mitra' => $harga,
                     'subtotal_harga' => $subtotal,
                 ]);
 

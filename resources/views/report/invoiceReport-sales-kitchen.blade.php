@@ -157,11 +157,12 @@
         <thead>
             <tr>
                 <th>Tanggal</th>
-                <th>Bahan Baku</th>
-                <th >Porsi</th>
                 <th >Dapur</th>
                 <th >Supplier</th>
+                <th>Bahan Baku</th>
+                <th>Qty</th>
                 <th >Satuan</th>
+                <th >Porsi</th>
                 <th >Harga Dapur</th>
                 <th >Subtotal</th>
             </tr>
@@ -170,8 +171,6 @@
             @foreach ($reports as $index => $item)
                 <tr>
                     <td>{{ \Carbon\Carbon::parse($item->submission->tanggal)->locale('id')->isoFormat('DD MMM YYYY') }}</td>
-                    <td>{{ $item->bahanBaku->nama ?? '-' }}</td>
-                    <td >{{ number_format($item->submission->porsi, 0, ',', '.') }}</td>
                     <td>{{ $item->submission->kitchen->nama}}</td>
                     <td>
                         @if ($item->submission->supplier_id)
@@ -180,9 +179,12 @@
 
                             @endif
                     </td>
-                    <td >{{ $item->bahanBaku->unit->satuan ?? '-' }}</td>
-                    <td >Rp{{ number_format($item->harga_dapur, 0, ',', '.') }}</td>
-                    <td >Rp{{ number_format(($item->submission->porsi ?? 0) * ($item->harga_dapur ?? 0), 0, ',', '.') }}</td>
+                    <td>{{ $item->bahanBaku->nama ?? '-' }}</td>
+                    <td>{{ $report->formatted_qty }}</td>
+                    <td>{{ $report->display_unit }}</td>
+                    <td>{{ $report->submission->porsi }}</td>
+                    <td>Rp{{ number_format($item->harga_dapur, 0, ',', '.') }}</td>
+                    <td>Rp{{ number_format(($item->display_qty ?? 0) * ($item->harga_dapur ?? 0), 0, ',', '.') }}</td>
                 </tr>
             @endforeach
         </tbody>

@@ -84,6 +84,7 @@
                         <th>Dapur</th>
                         <th>Supplier</th>
                         <th>Bahan Baku</th>
+                        <th>Qty</th>
                         <th width="50">Satuan</th>
                         <th>Porsi</th>
                         <th>Harga</th>
@@ -113,21 +114,12 @@
                             @endif
                         </td>
 
-                        <td>
-                            @if ($report->recipe_bahan_baku_id)
-                            {{ optional(
-                                optional(\App\Models\BahanBaku::find($report->recipe_bahan_baku_id))->unit)->satuan ?? '-' }}
-                            @elseif ($report->bahan_baku_id)
-                            {{ optional(
-                                optional($report->bahanBaku)->unit)->satuan ?? '-' }}
-                            @else
-                            -
-                            @endif
-                        </td>
+                        <td>{{ $report->formatted_qty }}</td>
+                        <td>{{ $report->display_unit }}</td>
                         <td>{{ $report->submission->porsi }}</td>
 
                         <td>Rp{{ number_format($report->harga_dapur, 0, ',', '.') }}</td>
-                        <td>Rp{{ number_format(($report->submission->porsi ?? 0) * ($report->harga_dapur ?? 0), 0, ',', '.') }}</td>
+                        <td>Rp{{ number_format(($report->display_qty ?? 0) * ($report->harga_dapur ?? 0), 0, ',', '.') }}</td>
                     </tr>
                     @empty
                     <tr>
