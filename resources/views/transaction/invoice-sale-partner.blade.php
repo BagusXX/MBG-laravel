@@ -42,6 +42,16 @@
             justify-content: space-between;
             margin-bottom: 30px;
         }
+        .info-table {
+            width: 100%;
+            margin-bottom: 30px;
+            border: none;
+        }
+        .info-table td {
+            vertical-align: top;
+            padding: 0;
+            border: none; /* Hilangkan border default */
+        }
         .info-box {
             flex: 1;
         }
@@ -154,33 +164,39 @@
             <p>Kode Transaksi: <strong>{{ $submission->kode }}</strong></p>
         </div>
 
-        <div class="invoice-info">
-            <div class="info-box">
-                <h3>Informasi Penjualan</h3>
-                <p><strong>Tanggal:</strong> {{ \Carbon\Carbon::parse($submission->tanggal)->format('d F Y') }}</p>
-                <p><strong>Dapur:</strong> {{ $submission->kitchen->nama ?? '-' }}</p>
-                <p><strong>Alamat:</strong> {{ $submission->kitchen->alamat ?? '-' }}</p>
-                @if($submission->supplier)
-                    <p><strong>Supplier:</strong> {{ $submission->supplier->nama ?? '-' }} ({{ $submission->supplier->kode ?? '-' }})</p>
-                    <p><strong>Kontak Supplier:</strong> {{ $submission->supplier->kontak ?? '-' }} - {{ $submission->supplier->nomor ?? '-' }}</p>
-                @endif
-            </div>
-            <div class="info-box">
-                <h3>Informasi Menu</h3>
-                <p><strong>Menu:</strong> {{ $submission->menu->nama ?? '-' }}</p>
-                <p><strong>Porsi:</strong> {{ $submission->porsi ?? '-' }}</p>
-            </div>
-        </div>
+        <table class="info-table">
+            <tr>
+                <td width="55%" style="padding-right: 20px;">
+                    <div class="info-box">
+                        <h3>Informasi Penjualan</h3>
+                        <p><strong>Tanggal:</strong> {{ \Carbon\Carbon::parse($submission->tanggal)->format('d F Y') }}</p>
+                        <p><strong>Dapur:</strong> {{ $submission->kitchen->nama ?? '-' }}</p>
+                        <p><strong>Alamat:</strong> {{ $submission->kitchen->alamat ?? '-' }}</p>
+                        @if($submission->supplier)
+                            <p><strong>Supplier:</strong> {{ $submission->supplier->nama ?? '-' }} ({{ $submission->supplier->kode ?? '-' }})</p>
+                            <p><strong>Kontak Supplier:</strong> {{ $submission->supplier->kontak ?? '-' }} - {{ $submission->supplier->nomor ?? '-' }}</p>
+                        @endif
+                    </div>
+                </td>
+                <td width="45%">
+                    <div class="info-box">
+                        <h3>Informasi Menu</h3>
+                        <p><strong>Menu:</strong> {{ $submission->menu->nama ?? '-' }}</p>
+                        <p><strong>Porsi:</strong> {{ $submission->porsi ?? '-' }}</p>
+                    </div>
+                </td>
+            </tr>
+        </table>
 
-        <table>
+        <table class="data-table">
             <thead>
                 <tr>
-                    <th>No</th>
+                    <th width="5%">No</th>
                     <th>Bahan Baku</th>
-                    <th class="text-right">Jumlah</th>
+                    <th class="text-center" width="10%"style="text-align: center;">Jumlah</th>
                     <th>Satuan</th>
-                    <th class="text-right">Harga Satuan</th>
-                    <th class="text-right">Subtotal</th>
+                    <th class="text-center" width="10%"style="text-align: center;">Harga Satuan</th>
+                    <th class="text-center" width="10%"style="text-align: center;">Subtotal</th>
                 </tr>
             </thead>
             <tbody>
@@ -194,10 +210,10 @@
                     <tr>
                         <td>{{ $index + 1 }}</td>
                         <td>{{ $bahanBakuNama }}</td>
-                        <td class="text-right">{{ number_format($detail->qty_digunakan, 0, ',', '.') }}</td>
+                        <td class="text-center">{{ number_format($detail->qty_digunakan, 0, ',', '.') }}</td>
                         <td>{{ $satuan }}</td>
-                        <td class="text-right">Rp {{ number_format($hargaMitra, 0, ',', '.') }}</td>
-                        <td class="text-right">Rp {{ number_format($subtotalMitra, 0, ',', '.') }}</td>
+                        <td class="text-center">Rp {{ number_format($hargaMitra, 0, ',', '.') }}</td>
+                        <td class="text-center">Rp {{ number_format($subtotalMitra, 0, ',', '.') }}</td>
                     </tr>
                 @empty
                     <tr>

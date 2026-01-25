@@ -19,22 +19,24 @@ class SaleMaterialsPartnerController extends Controller
     {
         // Ambil submission yang statusnya selesai sebagai data penjualan
         $submissions = Submission::with([
+            'parentSubmission',
             'kitchen', 
             'menu',
             'supplier',
             'details.recipeBahanBaku.bahan_baku.unit',
             'details.bahanBaku.unit'
         ])
-            ->where('status', 'selesai')
+            ->onlyChild()
+            ->where('status', 'diproses')
             ->latest()
             ->paginate(10);
 
         // Group by kode untuk menghindari duplikasi di tabel
-        $sales = $submissions->groupBy('kode')->map(function ($group) {
-            return $group->first();
-        })->values();
+        // $sales = $submissions->groupBy('kode')->map(function ($group) {
+        //     return $group->first();
+        // })->values();
 
-        return view('transaction.sale-materials-partner', compact('sales', 'submissions'));
+        return view('transaction.sale-materials-partner', compact('submissions'));
     }
 
     public function getBahanByKitchen(Kitchen $kitchen)
@@ -108,14 +110,16 @@ class SaleMaterialsPartnerController extends Controller
     {
         // Ambil submission berdasarkan kode
         $submission = Submission::with([
+            'parentSubmission',
             'kitchen',
             'menu',
             'supplier',
             'details.recipeBahanBaku.bahan_baku.unit',
             'details.bahanBaku.unit'
         ])
+            ->onlyChild()
             ->where('kode', $kode)
-            ->where('status', 'selesai')
+            ->where('status', 'diproses')
             ->first();
 
         if (!$submission) {
@@ -128,7 +132,13 @@ class SaleMaterialsPartnerController extends Controller
             return $hargaMitra * $detail->qty_digunakan;
         });
 
-        return view('transaction.invoice-sale-partner', compact('submission', 'totalHarga'));
+        $pdf = Pdf::loadView(
+            'transaction.invoice-sale-partner',
+            compact('submission', 'totalHarga')
+        );
+
+        // return view('transaction.invoice-sale-partner', compact('submission', 'totalHarga'));
+        return $pdf->download('Invoice-' . $submission->kode . '.pdf');
     }
 
     public function downloadInvoice($kode)

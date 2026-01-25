@@ -17,24 +17,20 @@ class SaleMaterialsKitchenController extends Controller
 {
     public function index()
     {
-        // Ambil submission yang statusnya selesai sebagai data penjualan
         $submissions = Submission::with([
-            'kitchen', 
-            'menu',
-            'supplier',
-            'details.recipeBahanBaku.bahan_baku.unit',
-            'details.bahanBaku.unit'
-        ])
-            ->where('status', 'selesai')
+                'parentSubmission',
+                'kitchen',
+                'menu',
+                'supplier',
+                'details.recipeBahanBaku.bahan_baku.unit',
+                'details.bahanBaku.unit'
+            ])
+            ->onlyChild()
+            ->where('status', 'diproses')
             ->latest()
             ->paginate(10);
 
-        // Group by kode untuk menghindari duplikasi di tabel
-        $sales = $submissions->groupBy('kode')->map(function ($group) {
-            return $group->first();
-        })->values();
-
-        return view('transaction.sale-materials-kitchen', compact('sales', 'submissions'));
+        return view('transaction.sale-materials-kitchen', compact('submissions'));
     }
 
     public function getBahanByKitchen(Kitchen $kitchen)
@@ -146,14 +142,16 @@ class SaleMaterialsKitchenController extends Controller
     {
         // Ambil submission berdasarkan kode
         $submission = Submission::with([
+            'parentSubmission',
             'kitchen',
             'menu',
             'supplier',
             'details.recipeBahanBaku.bahan_baku.unit',
             'details.bahanBaku.unit'
         ])
+            ->onlyChild()
             ->where('kode', $kode)
-            ->where('status', 'selesai')
+            ->where('status', 'diproses')
             ->first();
 
         if (!$submission) {
@@ -166,7 +164,13 @@ class SaleMaterialsKitchenController extends Controller
             return $hargaDapur * $detail->qty_digunakan;
         });
 
-        return view('transaction.invoice-sale-kitchen', compact('submission', 'totalHarga'));
+        $pdf = Pdf::loadView(
+            'transaction.invoice-sale-kitchen',
+            compact('submission', 'totalHarga')
+        );
+
+        // return view('transaction.invoice-sale-kitchen', compact('submission', 'totalHarga'));
+        return $pdf->download('Invoice-' . $submission->kode . '.pdf');
     }
 
     public function downloadInvoice($kode)
