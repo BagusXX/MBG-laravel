@@ -32,7 +32,7 @@ class SubmissionApprovalController extends Controller
         }
 
         $unitLower = strtolower($unitNama);
-        $qty = (float)$item->qty_digunakan;
+        $qty = (float) $item->qty_digunakan;
 
         $item->display_qty = $qty;
         $item->display_unit = $unitNama;
@@ -64,21 +64,21 @@ class SubmissionApprovalController extends Controller
     {
         $qty = (float) $detail->qty_digunakan;
 
-    // Ambil bahan baku dari mana pun sumbernya
+        // Ambil bahan baku dari mana pun sumbernya
         $bahanBaku = $detail->bahan_baku
             ?? $detail->recipeBahanBaku?->bahan_baku;
 
         if (!$bahanBaku || !$bahanBaku->unit) {
-            throw new \Exception("Satuan bahan baku tidak ditemukan (Detail ID: {$detail->id})");
+            return $qty; // Default jika unit tidak ditemukan
         }
 
         $unit = strtolower($bahanBaku->unit->satuan);
 
         return match ($unit) {
             'gram' => $qty / 1000,
-            'ml'   => $qty / 1000,
+            'ml' => $qty / 1000,
             default => $qty,
-        };  
+        };
 
     }
 
@@ -92,7 +92,7 @@ class SubmissionApprovalController extends Controller
         foreach ($submission->details as $detail) {
 
             // Pilih harga: mitra > dapur
-            $harga = $detail->harga_mitra ?? $detail->harga_dapur;
+            $harga = $detail->harga_mitra ?? $detail->harga_dapur ?? 0;
 
             if ($harga === null) {
                 continue;
@@ -260,40 +260,58 @@ class SubmissionApprovalController extends Controller
 
     public function updateHarga(Request $request, Submission $submission)
     {
-        // 1. Cek Status agar aman
         if (in_array($submission->status, ['selesai', 'ditolak'])) {
             return response()->json(['message' => 'Pengajuan sudah terkunci.'], 403);
         }
 
-        // 2. Validasi Input
         $request->validate([
             'details' => 'required|array',
             'details.*.id' => 'required|exists:submission_details,id',
-            // 'details.*.qty_digunakan' => 'required|numeric|min:0',
+            'details.*.qty_digunakan' => 'required|numeric|min:0', // Input dari user (misal: 50)
             'details.*.harga_dapur' => 'nullable|numeric|min:0',
             'details.*.harga_mitra' => 'nullable|numeric|min:0',
         ]);
 
         DB::transaction(function () use ($request, $submission) {
+
+            $existingDetails = $submission->details()
+                ->with(['bahan_baku.unit', 'recipeBahanBaku.bahan_baku.unit'])
+                ->get()
+                ->keyBy('id'); // Indexing by ID biar cepat
+
             foreach ($request->details as $row) {
-                $detail = $submission->details()->find($row['id']);
+
+                // Ambil data asli dari database
+                $detail = $existingDetails->get($row['id']);
 
                 if ($detail) {
 
-                    $detail->setRelation('submission', $submission);
+                    // 1. CEK SATUAN ASLI DI DATABASE
+                    $unitAsli = null;
+                    if ($detail->bahan_baku && $detail->bahan_baku->unit) {
+                        $unitAsli = strtolower($detail->bahan_baku->unit->satuan);
+                    } elseif ($detail->recipeBahanBaku && $detail->recipeBahanBaku->bahan_baku->unit) {
+                        $unitAsli = strtolower($detail->recipeBahanBaku->bahan_baku->unit->satuan);
+                    }
 
-                    $hargaDapur = $row['harga_dapur'] ?? 0;
-                    $hargaMitra = $row['harga_mitra'] ?? 0;
+                    // 2. AMBIL INPUT USER (Misal: 50)
+                    $inputQty = $row['qty_digunakan'] ?? ($detail->qty_digunakan); // Fallback jika tidak diedit
+                    $qtyUntukDisimpan = $inputQty;
 
+                    if ($unitAsli === 'gram' || $unitAsli === 'ml') {
+                        $qtyUntukDisimpan = $inputQty * 1000;
+                    }
+
+                    // 4. UPDATE DATA
                     $detail->update([
-                        // 'qty_digunakan' => $row['qty_digunakan'],
-                        'harga_dapur' => $hargaDapur,
-                        'harga_mitra' => $hargaMitra,
+                        'qty_digunakan' => $qtyUntukDisimpan, // Masuk DB sudah dalam Gram/ML
+                        'harga_dapur' => $row['harga_dapur'] ?? 0,
+                        'harga_mitra' => $row['harga_mitra'] ?? 0,
                     ]);
                 }
             }
 
-            // Hitung ulang total
+            // Hitung ulang total rupiah
             $this->recalculateTotal($submission);
         });
 
@@ -403,7 +421,7 @@ class SubmissionApprovalController extends Controller
             ])->whereIn('id', $request->selected_details)->get();
 
             foreach ($detailsToCopy as $detail) {
-                $harga = $detail->harga_mitra ?? $detail->harga_dapur;
+                $harga = $detail->harga_mitra ?? $detail->harga_dapur ?? 0;
 
                 if ($harga === null) {
                     continue;
@@ -441,17 +459,31 @@ class SubmissionApprovalController extends Controller
         // 1. Pastikan yang dihapus adalah Child (PO Supplier)
         abort_if(!$submission->isChild(), 403, 'Hanya split order (child) yang bisa dihapus di sini.');
 
-        // 2. Cek Status (Opsional: Jangan izinkan hapus jika sudah selesai/diterima supplier)
+        // =========================================================
+        // LOGIKA BARU: CEK STATUS PARENT
+        // =========================================================
+        // Kita akses relasi parentSubmission
+        $parent = $submission->parentSubmission;
+
+        if ($parent && $parent->status === 'selesai') {
+            return response()->json([
+                'success' => false,
+                'message' => 'GAGAL: Pengajuan Utama sudah SELESAI. Data terkunci.'
+            ], 403);
+        }
+        // =========================================================
+
+        // 2. Cek Status Child itu sendiri (Opsional: Child yang sudah selesai juga gaboleh dihapus)
         if ($submission->status === 'selesai') {
-            return response()->json(['message' => 'PO ini sudah selesai, tidak bisa dihapus.'], 403);
+            return response()->json([
+                'success' => false,
+                'message' => 'PO ini sudah selesai diterima supplier, tidak bisa dihapus.'
+            ], 403);
         }
 
         DB::transaction(function () use ($submission) {
-            // Hapus detailnya dulu (karena cascade kadang perlu trigger manual tergantung db engine)
-            $submission->details()->delete();
-
-            // Hapus headernya
-            $submission->delete(); // SoftDelete jika aktif, atau Force Delete
+            $submission->details()->forceDelete(); // Gunakan forceDelete jika ingin hapus permanen
+            $submission->forceDelete();
         });
 
         return response()->json(['success' => true, 'message' => 'Split order berhasil dihapus.']);
@@ -523,7 +555,7 @@ class SubmissionApprovalController extends Controller
         $satuan = strtolower($unit->satuan);
 
         // gram → kg
-        if ($satuan === 'gram' && $qty >= 1000) {
+        if ($satuan === 'gram') {
             return [
                 'qty' => $qty / 1000,
                 'unit' => 'kg',
@@ -531,7 +563,7 @@ class SubmissionApprovalController extends Controller
         }
 
         // ml → liter
-        if ($satuan === 'ml' && $qty >= 1000) {
+        if ($satuan === 'ml') {
             return [
                 'qty' => $qty / 1000,
                 'unit' => 'liter',
@@ -544,4 +576,6 @@ class SubmissionApprovalController extends Controller
             'unit' => $unit->satuan,
         ];
     }
+
+
 }
