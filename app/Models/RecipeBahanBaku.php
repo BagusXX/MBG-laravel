@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class RecipeBahanBaku extends Model
+class recipeBahanBaku extends Model
 {
     //
     use HasFactory;

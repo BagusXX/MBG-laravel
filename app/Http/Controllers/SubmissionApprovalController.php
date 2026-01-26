@@ -21,24 +21,95 @@ class SubmissionApprovalController extends Controller
         abort_if($submission->status === 'selesai', 403, 'Submission terkunci');
     }
 
+    private function applyConversion($item)
+    {
+        // 1. Ambil Nama Satuan
+        $unitNama = '-';
+        if ($item->recipeBahanBaku && $item->recipeBahanBaku->bahan_baku) {
+            $unitNama = optional($item->recipeBahanBaku->bahan_baku->unit)->satuan;
+        } elseif ($item->bahan_baku) {
+            $unitNama = optional($item->bahan_baku->unit)->satuan;
+        }
+
+        $unitLower = strtolower($unitNama);
+        $qty = (float) $item->qty_digunakan;
+
+        $item->display_qty = $qty;
+        $item->display_unit = $unitNama;
+
+        // 2. Logika Konversi ke Kg / L
+        if ($unitLower == 'gram') {
+            $item->display_unit = 'Kg';
+            $item->display_qty = $qty / 1000;
+        } elseif ($unitLower == 'ml') {
+            $item->display_unit = 'L';
+            $item->display_qty = $qty / 1000;
+        } else {
+            $item->display_unit = $unitNama;
+            $item->display_qty = $qty;
+        }
+
+        // 3. Format Angka (Gunakan koma untuk desimal, hilangkan desimal jika bulat)
+        $item->formatted_qty = number_format(
+            $item->display_qty,
+            ($item->display_qty == floor($item->display_qty) ? 0 : 2),
+            ',',
+            '.'
+        );
+
+        return $item;
+    }
+
+    protected function convertQtyForCalculation(SubmissionDetails $detail): float
+    {
+        $qty = (float) $detail->qty_digunakan;
+
+        // Ambil bahan baku dari mana pun sumbernya
+        $bahanBaku = $detail->bahan_baku
+            ?? $detail->recipeBahanBaku?->bahan_baku;
+
+        if (!$bahanBaku || !$bahanBaku->unit) {
+            return $qty; // Default jika unit tidak ditemukan
+        }
+
+        $unit = strtolower($bahanBaku->unit->satuan);
+
+        return match ($unit) {
+            'gram' => $qty / 1000,
+            'ml' => $qty / 1000,
+            default => $qty,
+        };
+
+    }
+
     // KODE BARU (SOLUSI 1)
     protected function recalculateTotal(Submission $submission)
     {
-        // 1. Ambil data detailnya (Load dari database ke PHP)
-        // Kita gunakan get() agar menjadi Collection
-        $details = $submission->details()->get();
+        $submission->load(['details.bahan_baku.unit', 'details.recipeBahanBaku.bahan_baku.unit']);
 
-        // 2. Hitung total menggunakan Collection method 'sum' milik Laravel
-        // Logic ini berjalan di RAM server (PHP), bukan di Database
-        $total = $details->sum(function ($detail) {
+        $total = 0;
 
-            // Pastikan nilai dikonversi jadi angka (float).
-            // Tanda '?? 0' artinya: jika null, anggap 0.
-            $harga = (float) ($detail->harga_dapur ?? 0);
-            $qty = (float) ($detail->qty_digunakan ?? 0);
+        foreach ($submission->details as $detail) {
 
-            return $harga * $qty;
-        });
+            // Pilih harga: mitra > dapur
+            $harga = $detail->harga_mitra ?? $detail->harga_dapur ?? 0;
+
+            if ($harga === null) {
+                continue;
+            }
+
+            // KONVERSI QTY (gram -> kg, ml -> liter)
+            $qtyKonversi = $this->convertQtyForCalculation($detail);
+
+            $subtotal = $harga * $qtyKonversi;
+
+            // Optional: simpan subtotal agar konsisten
+            $detail->update([
+                'subtotal_harga' => $subtotal,
+            ]);
+
+            $total += $subtotal;
+        }
 
         // 3. Update hasil perhitungan ke tabel parent
         $submission->update(['total_harga' => $total]);
@@ -54,7 +125,7 @@ class SubmissionApprovalController extends Controller
             'supplier',
             'details',
             'details.recipeBahanBaku.bahan_baku.unit',
-            'details.bahanBaku.unit'
+            'details.bahan_baku.unit'
         ])
             ->onlyParent()
             ->pengajuan()
@@ -100,14 +171,14 @@ class SubmissionApprovalController extends Controller
 
     public function getDetails(Submission $submission)
     {
-        $details = $submission->details()->with(['bahanBaku.unit'])->get();
+        $details = $submission->details()->with(['bahan_baku.unit'])->get();
 
         $data = $details->map(function ($detail) {
 
             // 1. AKTIFKAN KONVERSI (Gram -> Kg)
             $formatted = $this->formatQtyWithUnit(
                 $detail->qty_digunakan,
-                $detail->bahanBaku?->unit
+                $detail->bahan_baku?->unit
             );
 
             return [
@@ -119,7 +190,7 @@ class SubmissionApprovalController extends Controller
                 'recipe_bahan_baku_id' => $detail->recipe_bahan_baku_id,
 
                 'bahan_baku' => [
-                    'nama' => $detail->bahanBaku->nama ?? 'Item Terhapus',
+                    'nama' => $detail->bahan_baku->nama ?? 'Item Terhapus',
                     'unit' => [
                         'satuan' => $formatted['unit'] // Kirim satuan cantik (kg)
                     ]
@@ -133,7 +204,7 @@ class SubmissionApprovalController extends Controller
     public function getSubmissionData(Submission $submission)
     {
         // Load relasi yang diperlukan, termasuk unit untuk konversi
-        $submission->load(['kitchen', 'menu', 'children.supplier', 'children.details.bahanBaku.unit']);
+        $submission->load(['kitchen', 'menu', 'children.supplier', 'children.details.bahan_baku.unit']);
 
         // --- BAGIAN RIWAYAT (HISTORY) ---
         // Karena ini hanya untuk dilihat (bukan diedit), kita KONVERSI satuannya (Kg/Liter)
@@ -152,11 +223,11 @@ class SubmissionApprovalController extends Controller
                     // Agar di riwayat tertulis "1.6 kg", bukan "1600 gram"
                     $formatted = $this->formatQtyWithUnit(
                         $detail->qty_digunakan,
-                        $detail->bahanBaku?->unit
+                        $detail->bahan_baku?->unit
                     );
 
                     return [
-                        'nama' => $detail->bahanBaku->nama ?? '-',
+                        'nama' => $detail->bahan_baku->nama ?? '-',
 
                         // Kita kirim nilai yang sudah dikonversi (1.6)
                         'qty' => $formatted['qty'],
@@ -189,40 +260,58 @@ class SubmissionApprovalController extends Controller
 
     public function updateHarga(Request $request, Submission $submission)
     {
-        // 1. Cek Status agar aman
         if (in_array($submission->status, ['selesai', 'ditolak'])) {
             return response()->json(['message' => 'Pengajuan sudah terkunci.'], 403);
         }
 
-        // 2. Validasi Input
         $request->validate([
             'details' => 'required|array',
             'details.*.id' => 'required|exists:submission_details,id',
-            // 'details.*.qty_digunakan' => 'required|numeric|min:0',
+            'details.*.qty_digunakan' => 'required|numeric|min:0', // Input dari user (misal: 50)
             'details.*.harga_dapur' => 'nullable|numeric|min:0',
             'details.*.harga_mitra' => 'nullable|numeric|min:0',
         ]);
 
         DB::transaction(function () use ($request, $submission) {
+
+            $existingDetails = $submission->details()
+                ->with(['bahan_baku.unit', 'recipeBahanBaku.bahan_baku.unit'])
+                ->get()
+                ->keyBy('id'); // Indexing by ID biar cepat
+
             foreach ($request->details as $row) {
-                $detail = $submission->details()->find($row['id']);
+
+                // Ambil data asli dari database
+                $detail = $existingDetails->get($row['id']);
 
                 if ($detail) {
 
-                    $detail->setRelation('submission', $submission);
+                    // 1. CEK SATUAN ASLI DI DATABASE
+                    $unitAsli = null;
+                    if ($detail->bahan_baku && $detail->bahan_baku->unit) {
+                        $unitAsli = strtolower($detail->bahan_baku->unit->satuan);
+                    } elseif ($detail->recipeBahanBaku && $detail->recipeBahanBaku->bahan_baku->unit) {
+                        $unitAsli = strtolower($detail->recipeBahanBaku->bahan_baku->unit->satuan);
+                    }
 
-                    $hargaDapur = $row['harga_dapur'] ?? 0;
-                    $hargaMitra = $row['harga_mitra'] ?? 0;
+                    // 2. AMBIL INPUT USER (Misal: 50)
+                    $inputQty = $row['qty_digunakan'] ?? ($detail->qty_digunakan); // Fallback jika tidak diedit
+                    $qtyUntukDisimpan = $inputQty;
 
+                    if ($unitAsli === 'gram' || $unitAsli === 'ml') {
+                        $qtyUntukDisimpan = $inputQty * 1000;
+                    }
+
+                    // 4. UPDATE DATA
                     $detail->update([
-                        // 'qty_digunakan' => $row['qty_digunakan'],
-                        'harga_dapur' => $hargaDapur,
-                        'harga_mitra' => $hargaMitra,
+                        'qty_digunakan' => $qtyUntukDisimpan, // Masuk DB sudah dalam Gram/ML
+                        'harga_dapur' => $row['harga_dapur'] ?? 0,
+                        'harga_mitra' => $row['harga_mitra'] ?? 0,
                     ]);
                 }
             }
 
-            // Hitung ulang total
+            // Hitung ulang total rupiah
             $this->recalculateTotal($submission);
         });
 
@@ -326,12 +415,22 @@ class SubmissionApprovalController extends Controller
             $total = 0;
 
             // 3. PINDAHKAN DETAIL YANG DICENTANG
-            $detailsToCopy = SubmissionDetails::whereIn('id', $request->selected_details)->get();
+            $detailsToCopy = SubmissionDetails::with([
+                'bahan_baku.unit',
+                'recipeBahanBaku.bahan_baku.unit'
+            ])->whereIn('id', $request->selected_details)->get();
 
             foreach ($detailsToCopy as $detail) {
-                // Gunakan harga mitra jika ada, jika tidak pakai harga dapur
-                $hargaMitra = $detail->harga_mitra ?? $detail->harga_dapur;
-                $subtotal = $hargaMitra * $detail->qty_digunakan;
+                $harga = $detail->harga_mitra ?? $detail->harga_dapur ?? 0;
+
+                if ($harga === null) {
+                    continue;
+                }
+
+                // KONVERSI QTY (PAKAI LOGIC YANG SAMA)
+                $qtyKonversi = $this->convertQtyForCalculation($detail);
+
+                $subtotal = $harga * $qtyKonversi;
 
                 SubmissionDetails::create([
                     'submission_id' => $child->id,
@@ -340,7 +439,7 @@ class SubmissionApprovalController extends Controller
                     'qty_digunakan' => $detail->qty_digunakan,
                     'harga_satuan' => $detail->harga_satuan,
                     'harga_dapur' => $detail->harga_dapur, // Child ke supplier tidak butuh harga dapur
-                    'harga_mitra' => $hargaMitra,
+                    'harga_mitra' => $detail->harga_mitra,
                     'subtotal_harga' => $subtotal,
                 ]);
 
@@ -360,17 +459,31 @@ class SubmissionApprovalController extends Controller
         // 1. Pastikan yang dihapus adalah Child (PO Supplier)
         abort_if(!$submission->isChild(), 403, 'Hanya split order (child) yang bisa dihapus di sini.');
 
-        // 2. Cek Status (Opsional: Jangan izinkan hapus jika sudah selesai/diterima supplier)
+        // =========================================================
+        // LOGIKA BARU: CEK STATUS PARENT
+        // =========================================================
+        // Kita akses relasi parentSubmission
+        $parent = $submission->parentSubmission;
+
+        if ($parent && $parent->status === 'selesai') {
+            return response()->json([
+                'success' => false,
+                'message' => 'GAGAL: Pengajuan Utama sudah SELESAI. Data terkunci.'
+            ], 403);
+        }
+        // =========================================================
+
+        // 2. Cek Status Child itu sendiri (Opsional: Child yang sudah selesai juga gaboleh dihapus)
         if ($submission->status === 'selesai') {
-            return response()->json(['message' => 'PO ini sudah selesai, tidak bisa dihapus.'], 403);
+            return response()->json([
+                'success' => false,
+                'message' => 'PO ini sudah selesai diterima supplier, tidak bisa dihapus.'
+            ], 403);
         }
 
         DB::transaction(function () use ($submission) {
-            // Hapus detailnya dulu (karena cascade kadang perlu trigger manual tergantung db engine)
-            $submission->details()->delete();
-
-            // Hapus headernya
-            $submission->delete(); // SoftDelete jika aktif, atau Force Delete
+            $submission->details()->forceDelete(); // Gunakan forceDelete jika ingin hapus permanen
+            $submission->forceDelete();
         });
 
         return response()->json(['success' => true, 'message' => 'Split order berhasil dihapus.']);
@@ -398,7 +511,7 @@ class SubmissionApprovalController extends Controller
     public function printInvoice(Submission $submission)
     {
         // Pastikan memuat relasi yang dibutuhkan untuk invoice
-        $submission->load(['kitchen', 'supplier', 'details.bahanBaku.unit', 'details.recipeBahanBaku']);
+        $submission->load(['kitchen', 'supplier', 'details.bahan_baku.unit', 'details.recipeBahanBaku']);
 
         // Generate PDF
         // 'setPaper' bisa disesuaikan ('a4', 'letter', 'f4', dll)
@@ -423,7 +536,7 @@ class SubmissionApprovalController extends Controller
         $submission->load([
             'kitchen',
             'children.supplier',
-            'children.details.bahanBaku.unit'
+            'children.details.bahan_baku.unit'
         ]);
 
         // 3. Kirim ke view invoice parent
@@ -442,7 +555,7 @@ class SubmissionApprovalController extends Controller
         $satuan = strtolower($unit->satuan);
 
         // gram → kg
-        if ($satuan === 'gram' && $qty >= 1000) {
+        if ($satuan === 'gram') {
             return [
                 'qty' => $qty / 1000,
                 'unit' => 'kg',
@@ -450,7 +563,7 @@ class SubmissionApprovalController extends Controller
         }
 
         // ml → liter
-        if ($satuan === 'ml' && $qty >= 1000) {
+        if ($satuan === 'ml') {
             return [
                 'qty' => $qty / 1000,
                 'unit' => 'liter',
@@ -463,4 +576,6 @@ class SubmissionApprovalController extends Controller
             'unit' => $unit->satuan,
         ];
     }
+
+
 }

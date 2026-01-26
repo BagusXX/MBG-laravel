@@ -258,7 +258,7 @@
             <tr>
                 <td class="text-center">{{ $index + 1 }}</td>
                 <td>
-                    {{ $item->bahanBaku->nama }}
+                    {{ $item->bahan_baku->nama }}
                     @if(!$item->recipe_bahan_baku_id) 
                         <br><small class="text-muted font-italic">(Item Tambahan)</small> 
                     @endif

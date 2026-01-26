@@ -23,10 +23,10 @@ return new class extends Migration {
 
             $table->decimal('qty', 10, 2);
             $table->decimal('harga_satuan', 15, 2);
-            $table->decimal('harga_dapur', 15, 2)->default(0);
-            $table->decimal('harga_mitra', 15, 2)->nullable();
-            $table->decimal('subtotal_dapur', 15, 2)->default(0);
-            $table->decimal('subtotal_mitra', 15, 2)->nullable();
+            // $table->decimal('harga_dapur', 15, 2)->default(0);
+            // $table->decimal('harga_mitra', 15, 2)->nullable();
+            // $table->decimal('subtotal_dapur', 15, 2)->default(0);
+            // $table->decimal('subtotal_mitra', 15, 2)->nullable();
             $table->text('keterangan')->nullable();
             $table->timestamps();
 

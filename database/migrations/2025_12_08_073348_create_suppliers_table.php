@@ -14,7 +14,7 @@ return new class extends Migration {
             $table->string('alamat');
             $table->string('kontak');
             $table->string('nomor', 20);
-            $table->string('gambar')->nullable();
+            // $table->string('gambar')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
