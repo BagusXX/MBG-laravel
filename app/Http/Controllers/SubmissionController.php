@@ -76,18 +76,14 @@ class SubmissionController extends Controller
             $qtyMentah = $recipe->qty * $submission->porsi;
 
             // 2. Ambil harga dasar (PER KG / LITER)
-            $hargaSatuan = $recipe->harga_dapur;
+            $hargaSatuan = $recipe->harga_dapur ?? 0;
 
-            if (is_null($hargaSatuan)) {
-                throw new \LogicException(
-                    "Harga dapur belum diisi untuk bahan {$recipe->bahan_baku->nama}"
-                );
-            }
-
+            
             // 3. Buat object detail sementara untuk konversi
             $tempDetail = new SubmissionDetails([
                 'qty_digunakan' => $qtyMentah,
             ]);
+
             $tempDetail->setRelation('recipeBahanBaku', $recipe);
 
             // 4. Konversi qty untuk kalkulasi

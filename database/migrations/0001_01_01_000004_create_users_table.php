@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->enum('status',['menunggu','disetujui','ditolak'])->default('menunggu');
+            // $table->enum('status',['menunggu','disetujui','ditolak'])->default('menunggu');
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();
