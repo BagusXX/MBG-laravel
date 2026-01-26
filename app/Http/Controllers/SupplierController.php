@@ -82,10 +82,10 @@ class SupplierController extends Controller
                 Storage::disk('public')->delete($supplier->gambar);
             }
 
-            $path = $request->file('gambar')
+            $pathGambar = $request->file('gambar')
                 ->store('uploads/suppliers', 'public');
 
-            $supplier->gambar = $path;
+            $supplier->update(['gambar' => $pathGambar]);
         }
 
         $supplier->save();
@@ -164,7 +164,7 @@ class SupplierController extends Controller
 
             // Upload gambar baru
             $pathGambar = $request->file('gambar')->store('uploads/suppliers', 'public');
-            $supplier['gambar'] = $pathGambar;
+            $supplier->update(['gambar' => $pathGambar]);
         }
 
         // sync hanya kitchen milik user

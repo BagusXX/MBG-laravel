@@ -109,6 +109,7 @@ Route::middleware(['auth', 'disetujui'])->group(function () {
         ->group(function () {
             Route::get('/', 'index')->middleware('permission:master.supplier.view')->name('index');
             Route::post('/', 'store')->middleware('permission:master.supplier.create')->name('store');
+            Route::post('/update/{supplier}', 'update')->middleware('permission:master.supplier.update')->name('update_post');
             Route::get('/{supplier}/edit')->middleware('permission:master.supplier.update')->name('edit');
             Route::put('/{supplier}', 'update')->middleware('permission:master.supplier.update')->name('update');
             Route::delete('/{supplier}', 'destroy')->middleware('permission:master.supplier.delete')->name('destroy');

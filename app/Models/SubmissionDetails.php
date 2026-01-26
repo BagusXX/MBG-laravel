@@ -10,7 +10,7 @@ class SubmissionDetails extends Model
     //
 
     use HasFactory;
-    protected $table ='submission_details';
+    protected $table = 'submission_details';
 
     protected $fillable = [
         'submission_id',
@@ -35,7 +35,7 @@ class SubmissionDetails extends Model
         return $this->belongsTo(RecipeBahanBaku::class, 'recipe_bahan_baku_id');
     }
 
-    public function bahanBaku()
+    public function bahan_baku()
     {
         return $this->belongsTo(BahanBaku::class, 'bahan_baku_id');
     }

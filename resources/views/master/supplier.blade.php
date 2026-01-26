@@ -44,7 +44,7 @@
                         <th>Dapur</th>
                         <th>Kontak Person</th>
                         <th>Nomor</th>
-                        <th>Foto</th>
+                        <th>Logo Supplier</th>
                         @if($canManage)
                         <th>Aksi</th>
                         @endif
@@ -68,8 +68,8 @@
                                 @if($supplier->gambar)
                                     <img 
                                         src="{{ asset('storage/' . $supplier->gambar) }}" 
-                                        width="60"
                                         class="img-thumbnail supplier-image"
+                                        style="width: 60px; height: 60px; object-fit: contain; object-position: center; cursor: pointer;"
                                         style="cursor:pointer"
                                         data-toggle="modal"
                                         data-target="#modalPreviewImage"
@@ -180,7 +180,7 @@
         </div>
 
         <div class="form-group mt-2">
-            <label>Foto Supplier</label>
+            <label>Logo Supplier</label>
             <input 
                 type="file" 
                 name="gambar" 
@@ -200,8 +200,8 @@
         title="Edit Supplier"
         action=""
         submitText="Update"
+        enctype="multipart/form-data"
     >
-        @method('PUT')
 
         <div class="form-group">
             <label>Kode</label>
@@ -249,7 +249,7 @@
             <input type="text" id="edit_nomor" name="nomor" class="form-control" required />
         </div>
         <div class="form-group">
-            <label>Foto Supplier</label>
+            <label>Logo Supplier</label>
 
             {{-- preview foto lama --}}
             <div class="mb-2">
@@ -258,8 +258,7 @@
                     src=""
                     alt="Preview"
                     class="img-thumbnail"
-                    style="max-height: 120px; display: none;"
-                >
+                    style="width: 150px; height: 150px; object-fit: contain; object-position: center; display: none;"                >
             </div>
 
             <input 
@@ -270,7 +269,7 @@
             />
 
             <small class="text-muted">
-                Kosongkan jika tidak ingin mengganti foto
+                Kosongkan jika tidak ingin mengganti Logo
             </small>
         </div>
 
@@ -289,7 +288,7 @@
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Foto Supplier</h5>
+                    <h5 class="modal-title">Logo Supplier</h5>
                     <button type="button" class="close" data-dismiss="modal">
                         <span>&times;</span>
                     </button>
@@ -299,7 +298,31 @@
                         id="previewImageModal"
                         src=""
                         class="img-fluid rounded"
+                        style="width: 400px; height: 400px; object-fit: contain; object-position: center;"
                     >
+                </div>
+            </div>
+        </div>
+    </div>
+    {{-- MODAL ERROR FILE SIZE (Tambahan Baru) --}}
+    <div class="modal fade" id="modalErrorFile" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger font-weight-bold">
+                        <i class="fas fa-exclamation-triangle mr-2 text-danger font-weight-bold"></i> Peringatan
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <h5 class="text-danger font-weight-bold mb-3">Ukuran File Terlalu Besar!</h5>
+                    <p class="mb-0">Maksimal ukuran foto adalah <strong>2MB</strong>.</p>
+                    <p class="text-muted"><small>Silakan pilih foto lain dengan ukuran lebih kecil.</small></p>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-secondary px-4" data-dismiss="modal">Kembali</button>
                 </div>
             </div>
         </div>
@@ -351,12 +374,55 @@
 
             // set action form
             const form = document.querySelector('#modalEditSupplier form');
-            form.action = `/dashboard/master/supplier/${id}`;
+            form.action = `/dashboard/master/supplier/update/${id}`;
         });
     });
+
     document.querySelectorAll('.supplier-image').forEach(img => {
     img.addEventListener('click', function () {
         document.getElementById('previewImageModal').src = this.dataset.src;
+    });
+
+    // Tambahkan listener untuk input file
+    document.querySelectorAll('input[name="gambar"]').forEach(input => {
+        input.addEventListener('change', function(e) {
+            
+            // Cek apakah ada file yang dipilih
+            if (this.files && this.files[0]) {
+                const file = this.files[0];
+                const maxSize = 2 * 1024 * 1024; // 2MB dalam bytes (2 juta bytes)
+
+                // --- VALIDASI UKURAN ---
+                if (file.size > maxSize) {
+                    
+                    // [PERUBAHAN DI SINI] - Panggil Modal Bootstrap
+                    $('#modalErrorFile').modal('show'); 
+                    
+                    // Reset Input & Preview
+                    this.value = ''; 
+                    const preview = document.getElementById('edit_preview_gambar');
+                    if (this.closest('#modalEditSupplier')) {
+                        preview.style.display = 'none';
+                        preview.src = '';
+                    }
+
+                    return; // Stop proses
+                }
+
+                // --- LIVE PREVIEW (Jika lolos validasi) ---
+                // Hanya jalankan preview jika ini adalah input di Modal Edit
+                // (Karna Modal Add biasanya tidak butuh preview kecuali Anda buat img tag nya)
+                if (this.closest('#modalEditSupplier')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const preview = document.getElementById('edit_preview_gambar');
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                    }
+                    reader.readAsDataURL(file);
+                }
+            }
+        });
     });
 });
 

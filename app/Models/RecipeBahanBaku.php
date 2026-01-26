@@ -28,7 +28,7 @@ class RecipeBahanBaku extends Model
         return $this->belongsTo(Kitchen::class);
     }
 
-    public function bahanBaku()
+    public function bahan_baku()
     {
         return $this->belongsTo(BahanBaku::class);
     }
