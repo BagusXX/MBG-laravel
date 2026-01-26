@@ -35,7 +35,7 @@ class SubmissionDetails extends Model
         return $this->belongsTo(RecipeBahanBaku::class, 'recipe_bahan_baku_id');
     }
 
-    public function bahanBaku()
+    public function bahan_baku()
     {
         return $this->belongsTo(BahanBaku::class, 'bahan_baku_id');
     }
@@ -58,30 +58,18 @@ class SubmissionDetails extends Model
     {
         static::saving(function ($detail) {
 
-            // Qty tidak boleh diubah (selalu dari recipe x porsi)
-            // if ($detail->isDirty('qty_digunakan') && $detail->exists) {
-            //     throw new \LogicException('Qty bahan baku tidak boleh diubah');
-            // }
-
-            // Harga satuan wajib ada
             if (is_null($detail->harga_satuan)) {
                 throw new \LogicException('Harga satuan wajib diisi');
             }
 
-            // Parent → harga dapur boleh, harga mitra harus null
-            // if ($detail->isParent()) {
-            //     $detail->harga_mitra = null;
-            // }
-
-            // Child → harga mitra wajib
             if ($detail->isChild() && is_null($detail->harga_mitra)) {
                 throw new \LogicException('Harga mitra wajib diisi pada submission supplier');
             }
 
             // Auto hitung subtotal
-            $detail->subtotal_harga =
-                ($detail->harga_mitra ?? $detail->harga_dapur ?? $detail->harga_satuan)
-                * $detail->qty_digunakan;
+        //     $detail->subtotal_harga =
+        //         ($detail->harga_mitra ?? $detail->harga_dapur ?? $detail->harga_satuan)
+        //         * $detail->qty_digunakan;
         });
     }
 }
