@@ -29,7 +29,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($sales as $index => $submission)
+                    @forelse($submissions as $index => $submission)
                         <tr>
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $submission->kode ?? '-' }}</td>
@@ -72,34 +72,48 @@
             size="modal-lg"
             title="Detail Penjualan Bahan Baku"
         >
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <table class="table table-borderless table-sm">
+                        <tr>
+                            <th width="40%" class="py-1">Kode Permintaan</th>
+                            <td>: {{ $submission->kode }}</td>
+                        </tr>
+                        <tr>
+                            <th class="py-1">Tanggal</th>
+                            <td>: {{ \Carbon\Carbon::parse($submission->tanggal)->format('d F Y') }}</td>
+                        </tr>
+                        <tr>
+                            <th class="py-1">Dapur</th>
+                            <td>: {{ $submission->kitchen->nama }}</td>
+                        </tr>
+                        <tr>
+                            <th class="py-1">Menu</th>
+                            <td>: {{ $submission->menu->nama }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-borderless table-sm">
+                        <tr>
+                            <th width="30%" class="py-1">Porsi</th>
+                            <td>: {{$submission->porsi}}</td>
+                        </tr>
+                        @if($submission->supplier)
+                            <tr>
+                                <th class="py-1">Supplier</th>
+                                <td>: {{ $submission->kitchen->nama }}</td>
+                            </tr>
+                            <tr>
+                                <th class="py-1">Kontak</th>
+                                <td>: {{ $submission->supplier->kontak }} - {{ $submission->supplier->nomor }}</td>
+                            </tr>
+                            {{-- <p class="text-muted small mb-0">Kontak: {{ $submission->supplier->kontak }} - {{ $submission->supplier->nomor }}</p> --}}
+                        @endif
+                    </table>
+                </div>
+            </div>
             <div>
-                <div class="mb-3">
-                    <p class="font-weight-bold mb-0">Kode Permintaan:</p>
-                    <p>{{ $submission->kode }}</p>
-                </div>
-                <div class="mb-3">
-                    <p class="font-weight-bold mb-0">Tanggal:</p>
-                    <p>{{ \Carbon\Carbon::parse($submission->tanggal)->format('d F Y') }}</p>
-                </div>
-                <div class="mb-3">
-                    <p class="font-weight-bold mb-0">Dapur:</p>
-                    <p>{{ $submission->kitchen->nama }}</p>
-                </div>
-                <div class="mb-3">
-                    <p class="font-weight-bold mb-0">Menu:</p>
-                    <p>{{ $submission->menu->nama }}</p>
-                </div>
-                <div class="mb-3">
-                    <p class="font-weight-bold mb-0">Porsi:</p>
-                    <p>{{ $submission->porsi }}</p>
-                </div>
-                @if($submission->supplier)
-                    <div class="mb-3">
-                        <p class="font-weight-bold mb-0">Supplier:</p>
-                        <p>{{ $submission->supplier->nama }} ({{ $submission->supplier->kode }})</p>
-                        <p class="text-muted small mb-0">Kontak: {{ $submission->supplier->kontak }} - {{ $submission->supplier->nomor }}</p>
-                    </div>
-                @endif
                 <div>
                     <table class="table table-bordered table-striped">
                         <thead>
