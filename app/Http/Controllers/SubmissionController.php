@@ -21,39 +21,6 @@ class SubmissionController extends Controller
     {
         return auth()->user()->kitchens()->pluck('kode');
     }
-    // protected function formatQtyWithUnit($qty, $unit)
-    // {
-    //     if (!$unit) {
-    //         return [
-    //             'qty' => $qty,
-    //             'unit' => '-',
-    //         ];
-    //     }
-
-    //     $satuan = strtolower($unit->satuan);
-
-    //     // gram → kg
-    //     if ($satuan === 'gram' && $qty >= 1000) {
-    //         return [
-    //             'qty' => $qty / 1000,
-    //             'unit' => 'kg',
-    //         ];
-    //     }
-
-    //     // ml → liter
-    //     if ($satuan === 'ml' && $qty >= 1000) {
-    //         return [
-    //             'qty' => $qty / 1000,
-    //             'unit' => 'liter',
-    //         ];
-    //     }
-
-    //     // default (tidak dikonversi)
-    //     return [
-    //         'qty' => $qty,
-    //         'unit' => $unit->satuan,
-    //     ];
-    // }
 
     protected function generateKode(): string
     {
