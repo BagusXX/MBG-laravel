@@ -43,6 +43,7 @@ class KitchenController extends Controller
             'kepala_dapur' => 'required',
             'nomor_kepala_dapur' => 'required',
             'region_id' => 'required|exists:regions,id',
+            'kota' => 'required',
         ]);
 
         // 1. Buat dapur
@@ -53,6 +54,7 @@ class KitchenController extends Controller
             'kepala_dapur' => $request->kepala_dapur,
             'nomor_kepala_dapur' => $request->nomor_kepala_dapur,
             'region_id' => $request->region_id,
+            'kota' => $request->kota,
         ]);
 
         // 2. Ambil semua superadmin
@@ -77,6 +79,7 @@ class KitchenController extends Controller
             'kepala_dapur' => 'required',
             'nomor_kepala_dapur' => 'required',
             'region_id' => 'required|exists:regions,id',
+            'kota' => 'required'
         ]);
 
         $kitchen = Kitchen::findOrFail($id);
@@ -87,6 +90,7 @@ class KitchenController extends Controller
             'kepala_dapur' => $request->kepala_dapur,
             'nomor_kepala_dapur' => $request->nomor_kepala_dapur,
             'region_id' => $request->region_id,
+            'kota' => $request->kota,
         ]);
 
         return redirect()->route('master.kitchen.index')

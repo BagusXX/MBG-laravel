@@ -17,6 +17,7 @@ class Kitchen extends Model
         'kode',
         'nama',
         'alamat',
+        'kota',
         'kepala_dapur',
         'nomor_kepala_dapur',
         'region_id'
