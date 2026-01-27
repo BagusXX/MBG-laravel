@@ -24,7 +24,7 @@ class SaleMaterialsPartnerController extends Controller
             'menu',
             'supplier',
             'details.recipeBahanBaku.bahan_baku.unit',
-            'details.bahanBaku.unit'
+            'details.bahan_baku.unit'
         ])
             ->onlyChild()
             ->where('status', 'diproses')
@@ -115,7 +115,7 @@ class SaleMaterialsPartnerController extends Controller
             'menu',
             'supplier',
             'details.recipeBahanBaku.bahan_baku.unit',
-            'details.bahanBaku.unit'
+            'details.bahan_baku.unit'
         ])
             ->onlyChild()
             ->where('kode', $kode)
@@ -138,7 +138,7 @@ class SaleMaterialsPartnerController extends Controller
         );
 
         // return view('transaction.invoice-sale-partner', compact('submission', 'totalHarga'));
-        return $pdf->download('Invoice-' . $submission->kode . '.pdf');
+        return $pdf->stream('Invoice-' . $submission->kode . '.pdf');
     }
 
     public function downloadInvoice($kode)
@@ -149,7 +149,7 @@ class SaleMaterialsPartnerController extends Controller
             'menu',
             'supplier',
             'details.recipeBahanBaku.bahan_baku.unit',
-            'details.bahanBaku.unit'
+            'details.bahan_baku.unit'
         ])
             ->where('kode', $kode)
             ->where('status', 'selesai')

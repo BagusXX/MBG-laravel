@@ -25,6 +25,7 @@
                         <th>Kode</th>
                         <th>Nama Dapur</th>
                         <th>Region</th>
+                        <th>Kota</th>
                         <th>Alamat</th>
                         <th>Kepala Dapur</th>
                         <th>Nomor Kepala Dapur</th>

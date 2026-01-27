@@ -132,9 +132,9 @@
                                     $subtotalMitra = $hargaMitra * $detail->qty_digunakan;
                                 @endphp
                                 <tr>
-                                    <td>{{ $detail->recipe?->bahan_baku?->nama ?? $detail->bahanBaku?->nama ?? '-' }}</td>
+                                    <td>{{ $detail->recipe?->bahan_baku?->nama ?? $detail->bahan_baku?->nama ?? '-' }}</td>
                                     <td>{{ number_format($detail->qty_digunakan, 2, ',', '.') }}</td>
-                                    <td>{{ $detail->recipe?->bahan_baku?->unit?->satuan ?? $detail->bahanBaku?->unit?->satuan ?? '-' }}</td>
+                                    <td>{{ $detail->recipe?->bahan_baku?->unit?->satuan ?? $detail->bahan_baku?->unit?->satuan ?? '-' }}</td>
                                     <td>Rp {{ number_format($hargaMitra, 0, ',', '.') }}</td>
                                     <td>Rp {{ number_format($subtotalMitra, 0, ',', '.') }}</td>
                                 </tr>

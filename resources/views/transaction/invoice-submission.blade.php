@@ -1,18 +1,22 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <title>Invoice Pengajuan Menu - {{ $submission->kode }}</title>
 
     <style>
         /* --- STYLE DARI REFERENSI (SERAGAM) --- */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
             font-family: Arial, sans-serif;
             padding: 20px;
-            background: #ffffff
-            font-size: 14px;
+            background: #ffffff font-size: 14px;
         }
 
         .invoice-container {
@@ -20,8 +24,9 @@
             margin: 0 auto;
             background: white;
             padding: 30px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            position: relative; /* Untuk positioning tombol print */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            /* Untuk positioning tombol print */
         }
 
         .header {
@@ -44,19 +49,25 @@
         }
 
         .layout-table {
-        width: 100%;
-        margin-bottom: 20px;
-        border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+            border-collapse: collapse;
         }
 
         .layout-table td {
-            vertical-align: top; /* Pastikan teks mulai dari atas */
+            vertical-align: top;
+            /* Pastikan teks mulai dari atas */
             padding: 0;
         }
 
         /* Helper untuk lebar kolom */
-        .w-50 { width: 50%; }
-        .w-33 { width: 33.33%; }
+        .w-50 {
+            width: 50%;
+        }
+
+        .w-33 {
+            width: 33.33%;
+        }
 
         .info-box {
             flex: 1;
@@ -70,7 +81,8 @@
             padding-bottom: 5px;
         }
 
-        .info-box p, .info-box div {
+        .info-box p,
+        .info-box div {
             color: #666;
             font-size: 13px;
             margin: 3px 0;
@@ -105,11 +117,25 @@
             background: #f9f9f9;
         }
 
-        .text-center { text-align: center; }
-        .text-right { text-align: right; }
-        .text-left {text-align: left;}
-        .text-muted { color: #888; }
-        .font-italic { font-style: italic; }
+        .text-center {
+            text-align: center;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-left {
+            text-align: left;
+        }
+
+        .text-muted {
+            color: #888;
+        }
+
+        .font-italic {
+            font-style: italic;
+        }
 
         /* Total Section */
         .total-section {
@@ -120,7 +146,8 @@
 
         .total-row.grand-total {
             display: flex;
-            justify-content: flex-end; /* Align right */
+            justify-content: flex-end;
+            /* Align right */
             gap: 50px;
             font-size: 18px;
             font-weight: bold;
@@ -168,14 +195,32 @@
             border-radius: 4px;
             font-size: 12px;
         }
-        .btn-print:hover { background: #555; }
+
+        .btn-print:hover {
+            background: #555;
+        }
 
         /* CSS Print */
         @media print {
-            body { background: white; padding: 0; }
-            .invoice-container { box-shadow: none; padding: 0; margin: 0; max-width: 100%; }
-            .no-print { display: none !important; }
-            .btn-print { display: none; }
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .invoice-container {
+                box-shadow: none;
+                padding: 0;
+                margin: 0;
+                max-width: 100%;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .btn-print {
+                display: none;
+            }
         }
     </style>
 </head>
@@ -271,19 +316,20 @@
         </thead>
         <tbody>
             @foreach($submission->details as $index => $item)
-            <tr>
-                <td class="text-center">{{ $index + 1 }}</td>
-                <td>
-                    {{ $item->bahan_baku->nama }}
-                    @if(!$item->recipe_bahan_baku_id) 
-                        <br><small class="text-muted font-italic">(Item Tambahan)</small> 
-                    @endif
-                </td>
-                <td class="text-center">{{ $item->qty_digunakan + 0 }}</td>
-                <td class="text-center">{{ $item->bahanBaku->unit->satuan ?? '-' }}</td>
-                <td class="text-right">Rp {{ number_format($item->harga_mitra ?? $item->harga_satuan, 0, ',', '.') }}</td>
-                <td class="text-right">Rp {{ number_format($item->subtotal_harga, 0, ',', '.') }}</td>
-            </tr>
+                <tr>
+                    <td class="text-center">{{ $index + 1 }}</td>
+                    <td>
+                        {{ $item->bahan_baku->nama }}
+                        @if(!$item->recipe_bahan_baku_id)
+                            <br><small class="text-muted font-italic">(Item Tambahan)</small>
+                        @endif
+                    </td>
+                    <td class="text-center">{{ number_format($item->cetak_qty, 2, ',', '.') }}</td>
+                    <td class="text-center">{{ ucfirst($item->cetak_unit) }}</td>
+                    <td class="text-right">Rp {{ number_format($item->harga_dapur ?? $item->harga_mitra, 0, ',', '.') }}
+                    </td>
+                    <td class="text-right">Rp {{ number_format($item->subtotal_harga, 0, ',', '.') }}</td>
+                </tr>
             @endforeach
         </tbody>
     </table>
@@ -330,7 +376,8 @@
         <p>Terima kasih atas kerja samanya.</p>
     </div>
 
-</div>
+    </div>
 
 </body>
+
 </html>

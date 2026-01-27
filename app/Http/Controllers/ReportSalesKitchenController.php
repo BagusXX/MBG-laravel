@@ -24,7 +24,7 @@ class ReportSalesKitchenController extends Controller
 
         $query = SubmissionDetails::with([
             'submission.kitchen',
-            'bahanBaku.unit',
+            'bahan_baku.unit',
             'submission.supplier',
             'recipeBahanBaku.bahan_baku.unit'
         ]);
@@ -63,7 +63,7 @@ class ReportSalesKitchenController extends Controller
 
                 $query->where(function ($q) use ($namaBahan) {
                     // Filter 1: Lewat relasi langsung bahanBaku
-                    $q->whereHas('bahanBaku', function ($qb) use ($namaBahan) {
+                    $q->whereHas('bahan_baku', function ($qb) use ($namaBahan) {
                         $qb->where('nama', $namaBahan);
                     })
                     // Filter 2: Lewat relasi resep (Gunakan bahan_baku sesuai modelmu)
@@ -93,7 +93,7 @@ class ReportSalesKitchenController extends Controller
 
     public function invoice(Request $request)
     {
-        $query = SubmissionDetails::with(['submission.kitchen', 'bahanBaku', 'submission.supplier']); 
+        $query = SubmissionDetails::with(['submission.kitchen', 'bahan_baku', 'submission.supplier']); 
 
         $query->whereHas('submission', function ($q) {
             $q->whereNotNull('parent_id');
@@ -141,8 +141,8 @@ class ReportSalesKitchenController extends Controller
         $unitNama = '-';
         if ($item->recipeBahanBaku && $item->recipeBahanBaku->bahan_baku) {
             $unitNama = optional($item->recipeBahanBaku->bahan_baku->unit)->satuan;
-        } elseif ($item->bahanBaku) {
-            $unitNama = optional($item->bahanBaku->unit)->satuan;
+        } elseif ($item->bahan_baku) {
+            $unitNama = optional($item->bahan_baku->unit)->satuan;
         }
 
         $unitLower = strtolower($unitNama);

@@ -50,6 +50,7 @@
                                     type="button"
                                     class="btn btn-warning btn-sm btn-download-invoice"
                                     data-kode="{{ $submission->kode }}"
+                                    window="_blank"
                                 >
                                     <i class="fas fa-print mr-1"></i>Cetak
                                 </button>
@@ -132,9 +133,9 @@
                                     $subtotalDapur = $hargaDapur * $detail->qty_digunakan;
                                 @endphp
                                 <tr>
-                                    <td>{{ $detail->recipe?->bahan_baku?->nama ?? $detail->bahanBaku?->nama ?? '-' }}</td>
+                                    <td>{{ $detail->recipe?->bahan_baku?->nama ?? $detail->bahan_baku?->nama ?? '-' }}</td>
                                     <td>{{ number_format($detail->qty_digunakan, 2, ',', '.') }}</td>
-                                    <td>{{ $detail->recipe?->bahan_baku?->unit?->satuan ?? $detail->bahanBaku?->unit?->satuan ?? '-' }}</td>
+                                    <td>{{ $detail->recipe?->bahan_baku?->unit?->satuan ?? $detail->bahan_baku?->unit?->satuan ?? '-' }}</td>
                                     <td>Rp {{ number_format($hargaDapur, 0, ',', '.') }}</td>
                                     <td>Rp {{ number_format($subtotalDapur, 0, ',', '.') }}</td>
                                 </tr>
