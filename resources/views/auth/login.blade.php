@@ -712,7 +712,7 @@
                 </div>
 
                 <!-- Remember & Forgot Password -->
-                <div class="form-options">
+                <!-- <div class="form-options">
                     <label class="checkbox-wrapper">
                         <input 
                             id="remember"
@@ -733,7 +733,7 @@
                             Lupa password?
                         </a>
                     @endif
-                </div>
+                </div> -->
 
                 <!-- Submit Button -->
                 <button type="submit" class="submit-button">

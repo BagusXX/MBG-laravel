@@ -31,6 +31,9 @@ require __DIR__ . '/auth.php';
 
 //Route::get('/', fn() => redirect()->route('dashboard.master.bahan-baku.index'));
 Route::get('/', [HomePageController::class, 'index'])->name('portal.index');
+Route::get('/menunggu-persetujuan', function () {
+    return view('auth.waiting-approval');
+})->middleware('auth')->name('waiting.approval');
 
 Route::middleware(['auth', 'disetujui'])->group(function () {
 

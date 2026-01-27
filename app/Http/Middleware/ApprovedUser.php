@@ -15,9 +15,16 @@ class ApprovedUser
      */
     public function handle(Request $request, Closure $next): Response
     {
-         if (auth()->check() && auth()->user()->status !== 'disetujui') {
-            abort(403, 'Akun Anda belum disetujui oleh Superadmin.');
+        if (auth()->check() && auth()->user()->status !== 'disetujui') {
+
+            // Hindari infinite redirect
+            if ($request->routeIs('waiting.approval')) {
+                return $next($request);
+            }
+
+            return redirect()->route('waiting.approval');
         }
+
 
         return $next($request);
     }
