@@ -79,7 +79,6 @@ class SubmissionApprovalController extends Controller
             'ml' => $qty / 1000,
             default => $qty,
         };
-
     }
 
     // KODE BARU (SOLUSI 1)
@@ -92,7 +91,7 @@ class SubmissionApprovalController extends Controller
         foreach ($submission->details as $detail) {
 
             // Pilih harga: mitra > dapur
-            $harga = $detail->harga_mitra ?? $detail->harga_dapur ?? 0;
+            $harga = $detail->harga_dapur ?? $detail->harga_mitra ?? 0;
 
             if ($harga === null) {
                 continue;
@@ -235,7 +234,7 @@ class SubmissionApprovalController extends Controller
                         // Kita kirim satuan yang sudah dikonversi (kg)
                         'unit' => $formatted['unit'],
 
-                        'harga' => $detail->harga_mitra ?? $detail->harga_satuan,
+                        'harga' => $detail->harga_dapur ?? $detail->harga_mitra,
                     ];
                 })->values()
             ];
@@ -421,7 +420,7 @@ class SubmissionApprovalController extends Controller
             ])->whereIn('id', $request->selected_details)->get();
 
             foreach ($detailsToCopy as $detail) {
-                $harga = $detail->harga_mitra ?? $detail->harga_dapur ?? 0;
+                $harga = $detail->harga_dapur ?? $detail->harga_mitra ?? 0;
 
                 if ($harga === null) {
                     continue;
@@ -590,6 +589,4 @@ class SubmissionApprovalController extends Controller
             'unit' => $unit->satuan,
         ];
     }
-
-
 }

@@ -505,7 +505,8 @@
                 data.forEach(item => {
                     // Logic: Jika harga mitra diisi (>0), pakai harga mitra. Jika tidak, pakai harga dapur.
                     // Ini hanya untuk tampilan subtotal sementara.
-                    let hargaAktif = (parseFloat(item.harga_mitra) > 0) ? parseFloat(item.harga_mitra) : parseFloat(item.harga_dapur);
+                    // let hargaAktif = (parseFloat(item.harga_mitra) > 0) ? parseFloat(item.harga_mitra) : parseFloat(item.harga_dapur);
+                    let hargaAktif = parseFloat(item.harga_dapur) || 0;
                     let subtotal = parseFloat(item.qty_digunakan) * hargaAktif;
                     grandTotal += subtotal;
 

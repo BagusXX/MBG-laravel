@@ -143,7 +143,6 @@ class SubmissionController extends Controller
             'ml' => $qty / 1000,
             default => $qty,
         };
-
     }
 
     /* ================= INDEX ================= */
@@ -356,7 +355,7 @@ class SubmissionController extends Controller
                         'nama' => $conv->bahan_baku->nama ?? '-',
                         'qty' => $conv->formatted_qty,
                         'unit' => $conv->display_unit,
-                        'harga' => $conv->harga_mitra ?? $conv->harga_dapur,
+                        'harga' => $conv->harga_dapur ?? $conv->harga_mitra,
                     ];
                 })->values()
             ];
@@ -395,7 +394,7 @@ class SubmissionController extends Controller
                     return [
                         'nama' => $detail->bahan_baku->nama ?? '-',
                         'qty' => $detail->qty_digunakan,
-                        'harga' => $detail->harga_mitra ?? $detail->harga_satuan,
+                        'harga' => $detail->harga_dapur ?? $detail->harga_mitra,
                     ];
                 })->values()
             ];

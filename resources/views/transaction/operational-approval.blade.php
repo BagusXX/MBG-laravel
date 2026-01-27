@@ -100,7 +100,7 @@
                         </button>
                         </div>
 
-                        <div class="btn-group-vertical btn-group-sm">
+                        {{-- <div class="btn-group-vertical btn-group-sm">
                         @if ($item->status === 'selesai')
                             <div class="text-right">
                                 <a
@@ -112,7 +112,7 @@
                                 </a>
                             </div>
                         @endif
-                        </div>
+                        </div> --}}
                     </td>
                 </tr>
                 @endforeach
@@ -315,8 +315,8 @@
                         @endif
                         <th>Barang Operasional</th>
                         <th width="80" class="text-center">Qty</th>
-                        <th class="text-right">Harga Dapur</th>
-                        <th class="text-right">Harga Mitra</th>
+                        <th class="text-right">Harga</th>
+                        {{-- <th class="text-right">Harga Mitra</th> --}}
                         <th>Keterangan</th>
                         {{-- <th class="text-right">Subtotal</th> --}}
                     </tr>
@@ -379,7 +379,7 @@
                                         data-id="{{ $detail->id }}"
                                     >
                                 </div>
-                                <td width="160">
+                                {{-- <td width="160">
                                     <input
                                         type="number"
                                         name="details[{{ $detail->id }}][harga_mitra]"
@@ -389,7 +389,7 @@
                                         min="0"
                                         step="0.01"
                                     >
-                                </td>
+                                </td> --}}
                                 {{-- Menampilkan Subtotal Realtime (Opsional)
                                 <small class="text-muted d-block text-right mt-1">
                                     Total: <span id="subtotal-display-{{ $detail->id }}">

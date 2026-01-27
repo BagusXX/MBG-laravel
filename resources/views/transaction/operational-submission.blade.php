@@ -113,14 +113,14 @@
                             text="Hapus"
                         />
                         @endif
-                        @if($item->status === 'selesai')
+                        {{-- @if($item->status === 'selesai')
                             <a href="{{ route('transaction.operational-submission.invoice-parent', $item->id) }}"
                             target="_blank"
                             class="btn btn-warning btn-sm"
                             title="Cetak Invoice Rekapitulasi">
                                 <i class="fas fa-print"></i> Cetak
                             </a>
-                        @endif
+                        @endif --}}
                         @if ($item->status === 'diajukan')
                             <button 
                                 class="btn btn-warning btn-sm btn-edit-operational mt-2"

@@ -27,16 +27,16 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
-        if (auth()->user()->status !== 'disetujui') {
-            Auth::logout();
+        // if (auth()->user()->status !== 'disetujui') {
+        //     Auth::logout();
 
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+        //     $request->session()->invalidate();
+        //     $request->session()->regenerateToken();
 
-            throw ValidationException::withMessages([
-                'email' => 'Akun Anda belum disetujui',
-            ]);
-        }
+        //     throw ValidationException::withMessages([
+        //         'email' => 'Akun Anda belum disetujui',
+        //     ]);
+        // }
 
         $request->session()->regenerate();
 
