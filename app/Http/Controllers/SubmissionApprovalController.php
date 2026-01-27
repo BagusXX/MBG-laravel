@@ -510,22 +510,23 @@ class SubmissionApprovalController extends Controller
 
     public function printInvoice(Submission $submission)
     {
-        // Pastikan memuat relasi yang dibutuhkan untuk invoice
         $submission->load(['kitchen', 'supplier', 'details.bahan_baku.unit', 'details.recipeBahanBaku']);
+        foreach ($submission->details as $detail) {
+            $formatted = $this->formatQtyWithUnit(
+                $detail->qty_digunakan,
+                $detail->bahan_baku->unit ?? null
+            );
 
-        // Generate PDF
-        // 'setPaper' bisa disesuaikan ('a4', 'letter', 'f4', dll)
+            $detail->cetak_qty = $formatted['qty'];
+            $detail->cetak_unit = $formatted['unit'];
+
+            $detail->cetak_harga_satuan = $detail->harga_mitra ?? $detail->harga_dapur ?? 0;
+        }
         $pdf = Pdf::loadView('transaction.invoice-submission', compact('submission'))
             ->setPaper('a4', 'portrait');
-
-        // OPSI A: Langsung Download (Browser tidak buka tab baru, file langsung terunduh)
         return $pdf->download($submission->kode . '.pdf');
-
-        // OPSI B: Stream (Buka PDF di tab browser yang sama - jika ingin print manual dari PDF reader)
-        // return $pdf->stream('PO-' . $submission->kode . '.pdf');
     }
 
-    // app/Http/Controllers/SubmissionApprovalController.php
 
     public function printParentInvoice(Submission $submission)
     {
@@ -538,6 +539,20 @@ class SubmissionApprovalController extends Controller
             'children.supplier',
             'children.details.bahan_baku.unit'
         ]);
+        
+        foreach ($submission->children as $child) {
+            foreach ($child->details as $detail) {
+
+                $formatted = $this->formatQtyWithUnit(
+                    $detail->qty_digunakan,
+                    $detail->bahan_baku->unit ?? null
+                );
+
+                $detail->cetak_qty = $formatted['qty'];
+                $detail->cetak_unit = $formatted['unit'];
+                $detail->cetak_harga_satuan = $detail->harga_mitra ?? $detail->harga_dapur ?? 0;
+            }
+        }
 
         // 3. Kirim ke view invoice parent
         return view('transaction.invoice-submissionParent', compact('submission'));
