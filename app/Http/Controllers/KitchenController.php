@@ -43,6 +43,7 @@ class KitchenController extends Controller
             'kepala_dapur' => 'required',
             'nomor_kepala_dapur' => 'required',
             'region_id' => 'required|exists:regions,id',
+            'kota' => 'required',
         ]);
 
         // 1. Buat dapur

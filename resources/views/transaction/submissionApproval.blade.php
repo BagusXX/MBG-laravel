@@ -515,33 +515,45 @@
 
                     html += `
                         <tr>
-                            <td class="text-center action-only">
-        <input type="checkbox" class="check-item" value="${item.id}">
-    </td>
+                            <td class="text-center align-middle action-only">
+                                <input type="checkbox" class="check-item" value="${item.id}">
+                            </td>
+                            <td class="align-middle">
+                                <span class= text-dark">${item.bahan_baku?.nama || '-'}</span>
+                                ${manualLabel}
+                                <small class="text-muted">${item.bahan_baku?.unit?.nama || ''}</small>
+                                <input type="hidden" name="details[${item.id}][id]" value="${item.id}">
+                            </td>
+                            <td class="align-middle px-1">
+                                <input type="number" step="0.0001" class="form-control form-control-sm text-center bg-light" 
+                                    name="details[${item.id}][qty_digunakan]" value="${parseFloat(item.qty_digunakan)}">
+                            </td>
+                            <td class="text-center align-middle">
+                                <span class="badge badge-light border">${namaSatuan}</span>
+                            </td>
+                            
+                            {{-- KOLOM HARGA DAPUR --}}
+                            <td class="align-middle px-1">
+                                <input type="number" class="form-control form-control-sm text-right" 
+                                    name="details[${item.id}][harga_dapur]" 
+                                    value="${parseFloat(item.harga_dapur || 0)}" placeholder="0">
+                            </td>
 
-    <td>
-        <strong>${item.nama}</strong>
-    </td>
+                            {{-- KOLOM HARGA MITRA --}}
+                            <td class="align-middle px-1">
+                                <input type="number" class="form-control form-control-sm text-right border-info" 
+                                    name="details[${item.id}][harga_mitra]" 
+                                    value="${parseFloat(item.harga_mitra || 0)}" placeholder="0">
+                            </td>
 
-    <td class="text-center">
-        ${item.display_qty}
-    </td>
-
-    <td class="text-center">
-        <span class="badge badge-light">${item.display_unit}</span>
-    </td>
-
-    <td class="text-right">
-        ${formatRupiah(item.harga_dapur)}
-    </td>
-
-    <td class="text-right">
-        ${formatRupiah(item.harga_mitra ?? item.harga_dapur)}
-    </td>
-
-    <td class="text-right font-weight-bold">
-        ${formatRupiah(item.subtotal)}
-    </td>
+                            {{-- <td class="text-right align-middle">
+                                ${formatRupiah(subtotal)}
+                            </td> --}}
+                            <td class="text-center align-middle action-only">
+                                <button type="button" class="btn btn-link text-danger btn-delete-detail" data-id="${item.id}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </td>
                         </tr>
                     `;
                 });

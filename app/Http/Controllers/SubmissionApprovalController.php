@@ -538,7 +538,6 @@ class SubmissionApprovalController extends Controller
             'children.supplier',
             'children.details.bahan_baku.unit'
         ]);
-
         foreach ($submission->children as $child) {
             foreach ($child->details as $detail) {
 
