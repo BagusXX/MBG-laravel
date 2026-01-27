@@ -106,9 +106,9 @@
                         </td>
                         <td>
                             @if ($report->bahan_baku_id)
-                                {{ $report->bahanBaku->nama ?? '-' }}
+                                {{ $report->bahan_baku->nama ?? '-' }}
                             @elseif ($report->recipeBahanBaku)
-                                {{ $report->recipeBahanBaku->bahanBaku->nama ?? '-' }}
+                                {{ $report->recipeBahanBaku->bahan_baku->nama ?? '-' }}
                             @else
                                 -
                             @endif

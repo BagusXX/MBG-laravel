@@ -67,7 +67,7 @@
                                 <a href="{{ route('report.sales-partner') }}" class="btn btn-danger">
                                     <i class="fa fa-undo"></i> Reset
                                 </a>
-                                <a href="{{ route('report.sales-partner.invoice', request()->all()) }}" class="btn btn-warning ml-2">
+                                <a href="{{ route('report.sales-partner.invoice', request()->all()) }}" class="btn btn-warning ml-2" target="_blank">
                                     <i class="fa fa-print"></i> Print
                                 </a>
                             </div>

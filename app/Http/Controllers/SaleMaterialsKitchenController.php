@@ -23,7 +23,7 @@ class SaleMaterialsKitchenController extends Controller
                 'menu',
                 'supplier',
                 'details.recipeBahanBaku.bahan_baku.unit',
-                'details.bahanBaku.unit'
+                'details.bahan_baku.unit'
             ])
             ->onlyChild()
             ->where('status', 'diproses')
@@ -147,7 +147,7 @@ class SaleMaterialsKitchenController extends Controller
             'menu',
             'supplier',
             'details.recipeBahanBaku.bahan_baku.unit',
-            'details.bahanBaku.unit'
+            'details.bahan_baku.unit'
         ])
             ->onlyChild()
             ->where('kode', $kode)
@@ -170,7 +170,7 @@ class SaleMaterialsKitchenController extends Controller
         );
 
         // return view('transaction.invoice-sale-kitchen', compact('submission', 'totalHarga'));
-        return $pdf->download('Invoice-' . $submission->kode . '.pdf');
+        return $pdf->stream('Invoice-' . $submission->kode . '.pdf');
     }
 
     public function downloadInvoice($kode)
