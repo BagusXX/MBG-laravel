@@ -12,7 +12,72 @@
 
 @section('content')
     <x-notification-pop-up />
-
+    <div class="card mb-3">
+        <div class="card-body">
+                <form action="{{ route('transaction.sale-materials-partner.index') }}" method="GET">
+                    <div class="row align-items-end">
+                        {{-- FILTER TANGGAL "DARI" --}}
+                        <div class="col-md-2">
+                            <label>Dari</label>
+                            <input type="date" name="from_date" class="form-control ">
+                        </div>
+                        
+                        {{-- FILTER MENU "SAMPAI"--}}
+                        <div class="col-md-2">
+                            <label>Sampai</label>
+                            <input type="date" name="to_date" class="form-control ">
+                        </div>
+                        
+                        {{-- FILTER DAPUR --}}
+                        <div class="col-md-3">
+                            <label>Dapur</label>
+                            <select name="kitchen_id" class="form-control">
+                                <option value="">Semua Dapur</option>
+                                @foreach ($kitchens as $kitchen)
+                                <option value="{{ $kitchen->id }}" {{ request('kitchen_id') == $kitchen->id ? 'selected' : '' }}>
+                                    {{ $kitchen->nama }}
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label>Supplier</label>
+                            <select name="supplier_id" class="form-control">
+                                <option value="">Semua Supplier</option>
+                                @foreach ($suppliers as $supplier)
+                                <option value="{{ $supplier->id }}" {{ request('supplier_id') == $supplier->id ? 'selected' : '' }}>
+                                    {{ $supplier->nama }}
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label>Menu</label>
+                            <select name="menu_id" class="form-control select2">
+                                <option value="">Semua Menu</option>
+                                @foreach ($menus as $menu)
+                                    <option value="{{ $menu->id }}" {{ request('menu_id') == $menu->id ? 'selected' : '' }}>
+                                        {{ $menu->nama }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md d-flex justify-content-end mt-3">
+                            <button type="submit" class="btn btn-primary mr-2">
+                                <i class="fa fa-search"></i> Filter
+                            </button>
+                            <a href="{{ route('transaction.sale-materials-partner.index') }}" class="btn btn-danger">
+                                <i class="fa fa-undo"></i> Reset
+                            </a>
+                            {{-- <a href="{{ route('transaction.sale-materials-partner.invoice', ['kode' => $item->kode])}}" class="btn btn-warning ml-2" target="_blank">
+                                <i class="fa fa-print"></i> Print
+                            </a> --}}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     {{-- TABLE --}}
     <div class="card">
         <div class="card-body">
@@ -25,6 +90,7 @@
                         <th>Dapur</th>
                         <th>Menu</th>
                         <th>Porsi</th>
+                        <th>Supplier</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -37,6 +103,7 @@
                             <td>{{ $submission->kitchen ? $submission->kitchen->nama : '-' }}</td>
                             <td>{{ $submission->menu ? $submission->menu->nama : '-' }}</td>
                             <td>{{ $submission->porsi ?? '-' }}</td>
+                            <td>{{ $submission->supplier ? $submission->supplier->nama : '-' }}</td>
                             <td>
                                 <button
                                     type="button"
@@ -48,7 +115,7 @@
                                 </button>
                                 <button 
                                     type="button"
-                                    class="btn btn-warning btn-sm btn-download-invoice"
+                                    class="btn btn-warning btn-sm btn-print-invoice"
                                     data-kode="{{ $submission->kode }}"
                                 >
                                     <i class="fas fa-print mr-1"></i>Cetak
@@ -127,16 +194,12 @@
                         </thead>
                         <tbody>
                             @forelse($submission->details as $detail)
-                                @php
-                                    $hargaMitra = $detail->harga_mitra ?? $detail->harga_satuan_saat_itu ?? 0;
-                                    $subtotalMitra = $hargaMitra * $detail->qty_digunakan;
-                                @endphp
                                 <tr>
-                                    <td>{{ $detail->recipe?->bahan_baku?->nama ?? $detail->bahan_baku?->nama ?? '-' }}</td>
-                                    <td>{{ number_format($detail->qty_digunakan, 2, ',', '.') }}</td>
-                                    <td>{{ $detail->recipe?->bahan_baku?->unit?->satuan ?? $detail->bahan_baku?->unit?->satuan ?? '-' }}</td>
-                                    <td>Rp {{ number_format($hargaMitra, 0, ',', '.') }}</td>
-                                    <td>Rp {{ number_format($subtotalMitra, 0, ',', '.') }}</td>
+                                    <td>{{ $detail->recipeBahanBaku?->bahan_baku?->nama ?? $detail->bahan_baku?->nama ?? '-' }}</td>
+                                    <td>{{ number_format($detail->display_qty, 2, ',', '.') }}</td>
+                                    <td>{{ $detail->display_unit}}</td>
+                                    <td>Rp {{ number_format($detail->harga_mitra ?? 0, 0, ',', '.') }}</td>
+                                    <td>Rp {{ number_format($detail->subtotal_mitra ?? 0, 0, ',', '.') }}</td>
                                 </tr>
                             @empty
                                 <tr>
@@ -144,6 +207,12 @@
                                 </tr>
                             @endforelse
                         </tbody>
+                        <tfoot>
+                            <tr></tr>
+                                <th colspan="4" class="text-right">Total :</th>
+                                <th>Rp{{ number_format($submission->details->sum('subtotal_mitra'), 0, ',', '.') }}</th>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -153,31 +222,32 @@
 
 @push('js')
     <script>
+        console.log('SCRIPT LOADED');
+
         $(document).ready(function() {
             // Handle tombol download invoice untuk sale-materials-partner
-            $(document).on('click', '.btn-download-invoice', function() {
+            $(document).on('click', '.btn-print-invoice', function(e) {
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                console.log('BUTTON CLICKED');
+
                 let kode = $(this).data('kode');
-                
-                // URL untuk download
-                let downloadUrl = "{{ route('transaction.sale-materials-partner.invoice.download', ':kode') }}";
-                downloadUrl = downloadUrl.replace(':kode', kode);
-                
-                // URL untuk preview (buka di tab baru)
-                let previewUrl = "{{ route('transaction.sale-materials-partner.invoice', ':kode') }}";
-                previewUrl = previewUrl.replace(':kode', kode);
-                
-                // Buat elemen link untuk download
-                let downloadLink = document.createElement('a');
-                downloadLink.href = downloadUrl;
-                downloadLink.download = 'Invoice_' + kode + '_' + new Date().toISOString().split('T')[0] + '.pdf';
-                document.body.appendChild(downloadLink);
-                downloadLink.click();
-                document.body.removeChild(downloadLink);
-                
-                // Buka preview di tab baru setelah sedikit delay
-                setTimeout(function() {
-                    window.open(previewUrl, '_blank');
-                }, 500);
+                console.log('KODE:', kode);
+
+                if (!kode) {
+                    console.error('Kode kosong');
+                    return;
+                }
+
+                let url = "{{ route('transaction.sale-materials-partner.invoice', ':kode') }}"
+                    .replace(':kode', kode);
+                url = url.replace(':kode', kode);
+
+                console.log('OPEN URL:', url);
+
+                window.open(url, '_blank');
             });
         });
     </script>

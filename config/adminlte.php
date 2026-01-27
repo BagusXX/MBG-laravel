@@ -453,12 +453,12 @@ return [
                     'can'  => 'transaction.operational-approval.view',
                 ],
 
-                [
-                    'text' => 'Beli Bahan Baku',
-                    'icon' => 'fas fa-cart-plus',
-                    'route' => 'transaction.purchase-materials.index',
-                    'can'   => 'transaction.purchase.view',
-                ],
+                // [
+                //     'text' => 'Beli Bahan Baku',
+                //     'icon' => 'fas fa-cart-plus',
+                //     'route' => 'transaction.purchase-materials.index',
+                //     'can'   => 'transaction.purchase.view',
+                // ],
                 [
                     'text' => 'Beli Operasional',
                     'icon' => 'fas fa-cart-plus',

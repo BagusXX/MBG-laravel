@@ -18,7 +18,7 @@ class ProfitController extends Controller
 
         $query = SubmissionDetails::with([
             'submission.kitchen',
-            'bahanBaku',
+            'bahan_baku',
             'submission.supplier'
         ]);
 
