@@ -12,12 +12,19 @@ use App\Models\Kitchen;
 use App\Models\BahanBaku;
 use App\Models\Unit;
 use App\Models\Submission;
+use App\Models\Supplier;
 
 class SaleMaterialsKitchenController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $submissions = Submission::with([
+        $kitchens = Kitchen::all();
+        $suppliers = Supplier::all();
+        $bahanBakus = BahanBaku::selectRaw('MIN(id) as id, nama')
+        ->groupBy('nama') 
+        ->get();
+
+        $query = Submission::with([
                 'parentSubmission',
                 'kitchen',
                 'menu',
@@ -25,12 +32,32 @@ class SaleMaterialsKitchenController extends Controller
                 'details.recipeBahanBaku.bahan_baku.unit',
                 'details.bahan_baku.unit'
             ])
-            ->onlyChild()
-            ->where('status', 'diproses')
-            ->latest()
-            ->paginate(10);
+        ->whereNotNull('parent_id')
+        ->orderByDesc('tanggal');
 
-        return view('transaction.sale-materials-kitchen', compact('submissions'));
+        if ($request->filled('from_date')) {
+                $query->whereDate('tanggal', '>=', $request->from_date)
+;
+        }
+
+        if ($request->filled('to_date')) {
+            $query->whereDate('tanggal', '<=', $request->to_date);
+        }
+
+        if ($request->filled('kitchen_id')) {
+            $query->where('kitchen_id', $request->kitchen_id);
+        }
+        if ($request->filled('supplier_id')) {
+            $query->where('supplier_id', $request->supplier_id);
+        }
+
+        $submissions = $query->paginate(10)->withQueryString();
+
+        $totalPageSubtotal = $submissions->getCollection()->sum(function ($item) {
+            return ($item->submission->porsi ?? 0) * ($item->harga_dapur ?? 0);
+        });
+
+        return view('transaction.sale-materials-kitchen', compact('submissions','kitchens', 'suppliers', 'totalPageSubtotal', 'bahanBakus'));
     }
 
     public function getBahanByKitchen(Kitchen $kitchen)

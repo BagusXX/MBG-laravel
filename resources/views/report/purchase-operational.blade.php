@@ -19,14 +19,14 @@
                             
                             {{-- FILTER TANGGAL "DARI" --}}
                             <div class="col-md-3">
-                                <label>Dari Tanggal</label>
+                                <label>Dari</label>
                                 <input type="date" name="from_date" class="form-control" 
                                        value="{{ request('from_date') }}">
                             </div>
 
                             {{-- FILTER TANGGAL "SAMPAI" --}}
                             <div class="col-md-3">
-                                <label>Sampai Tanggal</label>
+                                <label>Sampai</label>
                                 <input type="date" name="to_date" class="form-control" 
                                        value="{{ request('to_date') }}">
                             </div>

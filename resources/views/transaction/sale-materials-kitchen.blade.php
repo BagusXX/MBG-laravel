@@ -12,7 +12,71 @@
 
 @section('content')
     <x-notification-pop-up />
-
+    <div class="card mb-3">
+                <div class="card-body">
+                    <form action="{{ route('report.sales-kitchen') }}" method="GET">
+                        <div class="row align-items-end">
+                            {{-- FILTER TANGGAL "DARI" --}}
+                            <div class="col-md-2">
+                                <label>Dari</label>
+                                <input type="date" name="from_date" class="form-control ">
+                            </div>
+                            
+                            {{-- FILTER MENU "SAMPAI"--}}
+                            <div class="col-md-2">
+                                <label>Sampai</label>
+                                <input type="date" name="to_date" class="form-control ">
+                            </div>
+                            
+                            {{-- FILTER DAPUR --}}
+                            <div class="col-md-3">
+                                <label>Dapur</label>
+                                <select name="kitchen_id" class="form-control">
+                                    <option value="">Semua Dapur</option>
+                                    @foreach ($kitchens as $kitchen)
+                                    <option value="{{ $kitchen->id }}" {{ request('kitchen_id') == $kitchen->id ? 'selected' : '' }}>
+                                        {{ $kitchen->nama }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label>Supplier</label>
+                                <select name="supplier_id" class="form-control">
+                                    <option value="">Semua Supplier</option>
+                                    @foreach ($suppliers as $supplier)
+                                    <option value="{{ $supplier->id }}" {{ request('supplier_id') == $supplier->id ? 'selected' : '' }}>
+                                        {{ $supplier->nama }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label>Bahan Baku</label>
+                                <select name="bahan_baku_id" class="form-control select2">
+                                    <option value="">Semua Bahan Baku</option>
+                                    @foreach ($bahanBakus as $bahan)
+                                        <option value="{{ $bahan->id }}" {{ request('bahan_baku_id') == $bahan->id ? 'selected' : '' }}>
+                                            {{ $bahan->nama }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md d-flex justify-content-end mt-3">
+                                <button type="submit" class="btn btn-primary mr-2">
+                                    <i class="fa fa-search"></i> Filter
+                                </button>
+                                <a href="{{ route('report.sales-kitchen') }}" class="btn btn-danger">
+                                    <i class="fa fa-undo"></i> Reset
+                                </a>
+                                <a href="{{ route('report.sales-kitchen.invoice', request()->all()) }}" class="btn btn-warning ml-2" target="_blank">
+                                    <i class="fa fa-print"></i> Print
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
     {{-- TABLE --}}
     <div class="card">
         <div class="card-body">
