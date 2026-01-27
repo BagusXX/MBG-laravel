@@ -174,10 +174,10 @@
                     <td>{{ $item->operational->nama ?? '-' }}</td>
                     <td>{{ $item->keterangan ?? $item->submission->keterangan ?? '-' }}</td>
                     <td class="text-right">{{ number_format($item->qty, 0, ',', '.') }}</td>
-                    <td class="text-right">Rp{{ number_format($item->harga_satuan, 0, ',', '.') }}</td>
-                    <td class="text-right">Rp{{ number_format($item->subtotal, 0, ',', '.') }}</td>
+                    <td class="text-right">Rp{{ number_format($item->harga_dapur, 0, ',', '.') }}</td>
+                    <td class="text-right">Rp{{ number_format($item->subtotal_dapur, 0, ',', '.') }}</td>
                 </tr>
-                @php $grandTotal += $item->subtotal; @endphp
+                @php $grandTotal += $item->subtotal_dapur; @endphp
             @empty
                 <tr>
                     <td colspan="9" class="text-center">Data tidak ditemukan</td>
@@ -189,8 +189,8 @@
     {{-- TOTAL --}}
     @if ($reports->count() > 0)
         <div class="total-section">
-            <div class="total-row grand-total">
-                <span>TOTAL KESELURUHAN:</span>
+            <div class="total-row grand-total text-right">
+                <span>TOTAL: </span>
                 <span>Rp {{ number_format($grandTotal, 0, ',', '.') }}</span>
             </div>
         </div>

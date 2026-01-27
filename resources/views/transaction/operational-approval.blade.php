@@ -100,7 +100,7 @@
                         </button>
                         </div>
 
-                        <div class="btn-group-vertical btn-group-sm">
+                        {{-- <div class="btn-group-vertical btn-group-sm">
                         @if ($item->status === 'selesai')
                             <div class="text-right">
                                 <a
@@ -112,7 +112,7 @@
                                 </a>
                             </div>
                         @endif
-                        </div>
+                        </div> --}}
                     </td>
                 </tr>
                 @endforeach

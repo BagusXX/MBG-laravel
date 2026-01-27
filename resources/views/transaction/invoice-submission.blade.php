@@ -354,7 +354,7 @@
                 
                 <div style="display: inline-block; text-align: center; width: 200px;">
                     <p style="margin-bottom: 5px; font-size: 13px;">
-                        {{ strtoupper($submission->kitchen->lokasi ?? '_____') }}, 
+                        {{ strtoupper($submission->kitchen->kota ?? '_____') }}, 
                         {{ \Carbon\Carbon::parse($submission->tanggal)->locale('id')->isoFormat('D MMMM YYYY') }}
                     </p>
                     

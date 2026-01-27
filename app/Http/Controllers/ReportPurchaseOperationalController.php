@@ -21,7 +21,7 @@ class ReportPurchaseOperationalController extends Controller
             'submission.kitchen',
             'submission.supplier', // Karena ini Child, relasi ini sekarang AKAN ADA ISINYA
             'operational',
-            'submission.parent' // Opsional: jika butuh info dari parent aslinya
+            'submission.parentSubmission' // Opsional: jika butuh info dari parent aslinya
         ]);
 
         // 2. FILTER PENTING:
@@ -139,7 +139,7 @@ class ReportPurchaseOperationalController extends Controller
         $query = submissionOperationalDetails::with([
             'submission.kitchen',
             'submission.supplier',
-            'submission.parent.supplier', // Load supplier milik parent juga
+            'submission.parentSubmission.supplier', // Load supplier milik parent juga
             'operational',
         ]);
 
@@ -199,6 +199,6 @@ class ReportPurchaseOperationalController extends Controller
 
         $pdf->setPaper('a4', 'landscape'); // Landscape agar muat banyak kolom
 
-        return $pdf->download('Laporan_Pembelian_Operasional.pdf');
+        return $pdf->stream('Laporan_Pembelian_Operasional.pdf');
     }
 }

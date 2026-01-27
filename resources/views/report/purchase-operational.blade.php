@@ -72,7 +72,7 @@
                                         formaction="{{ route('report.purchase-operational.invoice') }}" 
                                         {{-- formtarget="_blank"  --}}
                                         class="btn btn-warning">
-                                    <i class="fa fa-print"></i> Print
+                                    <i class="fa fa-print"></i> Cetak
                                 </button>
                             </div>
 
@@ -116,16 +116,16 @@
                                 <td>{{ $item->submission->supplier->nama ?? '-' }}</td>
                                 <td>{{ $item->operational->nama ?? '-' }}</td>
                                 <td>
-                    {{ 
-                        $item->keterangan ??
-                        '-' 
-                    }}
-                </td>
+                                    {{ 
+                                        $item->keterangan ??
+                                        '-' 
+                                    }}
+                                </td>
                                 <td class="text-center">{{ $item->qty }}</td>
-                                <td class="text-right">Rp {{ number_format($item->harga_satuan, 0, ',', '.') }}</td>
-                                <td class="text-right">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</td>
+                                <td class="text-right">Rp {{ number_format($item->harga_dapur, 0, ',', '.') }}</td>
+                                <td class="text-right">Rp {{ number_format($item->subtotal_dapur, 0, ',', '.') }}</td>
                             </tr>
-                            @php $totalGrand += $item->subtotal; @endphp
+                            @php $totalGrand += $item->subtotal_dapur; @endphp
                         @empty
                             <tr>
                                 <td colspan="9" class="text-center py-4 text-muted">
