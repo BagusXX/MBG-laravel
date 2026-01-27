@@ -229,21 +229,21 @@
     <table>
         <thead>
             <tr>
-                <th>No</th>
-                <th>Nama Operasional</th>
-                <th class="text-right">Qty</th>
-                <th class="text-right">Harga</th>
-                <th class="text-right">Subtotal</th>
+                <th width="5%">No</th>
+                <th class="text-left">Nama Operasional</th>
+                <th class="text-center">Qty</th>
+                <th class="text-center">Harga Satuan</th>
+                <th class="text-center">Subtotal</th>
             </tr>
         </thead>
         <tbody>
             @foreach ($submission->details as $index => $item)
                 <tr>
-                    <td>{{ $index + 1 }}</td>
-                    <td>{{ $item->operational->nama ?? '-' }}</td>
-                    <td class="text-right">{{ number_format($item->qty, 0, ',', '.') }}</td>
-                    <td class="text-right">Rp {{ number_format($item->harga_satuan, 0, ',', '.') }}</td>
-                    <td class="text-right">Rp {{ number_format($item->subtotal_dapur, 0, ',', '.') }}</td>
+                    <td >{{ $index + 1 }}</td>
+                    <td class="text-left">{{ $item->operational->nama ?? '-' }}</td>
+                    <td class="text-center">{{ number_format($item->qty, 0, ',', '.') }}</td>
+                    <td class="text-center">Rp {{ number_format($item->harga_satuan, 0, ',', '.') }}</td>
+                    <td class="text-center">Rp {{ number_format($item->subtotal_dapur, 0, ',', '.') }}</td>
                 </tr>
             @endforeach
         </tbody>

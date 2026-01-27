@@ -93,7 +93,6 @@
             padding: 12px;
             text-align: left;
             font-weight: bold;
-            font-size: 13px;
         }
 
         table td {
@@ -125,6 +124,7 @@
             gap: 50px;
             font-size: 18px;
             font-weight: bold;
+            text-align: right
             color: #333;
         }
 
@@ -183,39 +183,55 @@
 <body>
 
 <div class="invoice-container">
-
-    {{-- Tombol Print
-    <button onclick="window.print()" class="btn-print no-print">
-        Cetak Dokumen
-    </button> --}}
-
-    {{-- HEADER --}}
-    <div class="header">
-        <h1>Invoice</h1>
-        <h1>Pengajuan Menu</h1>
-        <p>Kode: {{ $submission->kode }}</p>
-    </div>
+    <table class="layout-table" style="border-bottom: 3px double #000; margin-bottom: 20px;">
+        <tr>
+            <td style="width: 20%; text-align: center; vertical-align: top;">
+                <img src="{{('icon_mbg.png') }}" alt="Logo BGN" style="height: 100px; width: 100px; object-fit: contain; margin-bottom: 20px;">
+            </td>
+            <td style="width: 60%; text-align: center; vertical-align: middle;">
+                <h2 style="margin: 0; text-transform: uppercase;">Koperasi Produsen</h2>
+                <h2 style="margin: 0; text-transform: uppercase;">{{ $submission->supplier->nama ?? 'NAMA SUPPLIER' }}</h2>
+                <p style="margin: 5px 0; font-size: 12px; line-height: 1.4;">
+                    {{ $submission->supplier->alamat ?? '-' }}
+                </p>
+            </td>
+            <td style="width: 20%; text-align: center; vertical-align: top;">
+                @if($submission->supplier && $submission->supplier->gambar)
+                    <img src="{{ public_path('storage/' . $submission->supplier->gambar) }}" alt="Logo Supplier" style="height: 100px; width: 100px; object-fit: contain;">
+                @else
+                    {{-- Placeholder jika tidak ada gambar --}}
+                    <div style="height: 80px; width: 80px; display: inline-block;"></div>
+                @endif
+            </td>
+        </tr>
+    </table>
 
     {{-- INFO SECTION (Dibagi 3 Kolom agar rapi) --}}
-    <table class="layout-table">
+    <table class="layout-table" style="margin-top: 10px; border-bottom: 1px solid #ccc; padding-bottom: 10px;">
         <tr>
-            {{-- Kolom 1: Info Dapur --}}
-            <td class="w-50">
-                <div class="info-box">
-                    <h3>Dipesan Oleh (Kitchen)</h3>
-                    <p><strong>{{ $submission->kitchen->nama }}</strong></p>
-                    <p>{{ $submission->kitchen->alamat ?? 'Alamat belum diisi' }}</p>
-                    <p>Tgl PO: {{ \Carbon\Carbon::parse($submission->tanggal)->locale('id')->isoFormat('DD MMMM YYYY') }}</p>
-                </div>
+            <td style="width: 35%; vertical-align: top;">
+                <p style="font-weight: bold;  ">KEPADA :</p>
+                <p style="margin: 0; text-transform: uppercase; font-size: 14px;">{{ $submission->kitchen->nama ?? '-' }}</p>
+                <p style="margin: 0; font-size: 13px; color: #333;">{{ $submission->kitchen->alamat ?? '-' }}</p>
             </td>
 
-            {{-- Kolom 2: Info Supplier --}}
-            <td class="w-50 text-left"> {{-- Tambah text-right jika ingin rata kanan, atau hapus jika ingin rata kiri --}}
-                <div class="info-box">
-                    <h3>Kepada (Supplier)</h3>
-                    <p><strong>{{ $submission->supplier->nama }}</strong></p>
-                    <p>{{ $submission->supplier->alamat ?? '-' }}</p>
-                    <p>Telp: {{ $submission->supplier->kontak ?? '-' }}</p>
+            <td style="width: 30%; text-align: center; vertical-align: top;">
+                <h1 style="font-size: 32px; font-style: italic; font-weight: bold; margin: 0; letter-spacing: 2px;">INVOICE</h1>
+            </td>
+
+            <td style="width: 35%; text-align: right; vertical-align: top;">
+                <div style="margin-bottom: 10px;">
+                    <p style="margin: 0; font-weight: bold; text-transform: uppercase;">TANGGAL :</p> 
+                    <p style="margin: 0; font-size: 14px;">{{ \Carbon\Carbon::parse($submission->tanggal)->locale('id')->isoFormat('dddd, D MMMM YYYY') }}</p>
+                </div>
+                @php
+                    $romans = ['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+                    $monthIndex = (int)\Carbon\Carbon::parse($submission->tanggal)->format('m');
+                    $romanMonth = $romans[$monthIndex];
+                @endphp
+                <div style="margin-bottom: 10px;">
+                    <p style="margin: 0; font-weight: bold; text-transform: uppercase;">NO. INVOICE :</p> 
+                    <p style="margin: 0; font-size: 13px;">{{ $submission->kode }}/INV/{{$romanMonth}}/{{ \Carbon\Carbon::parse($submission->tanggal)->format('Y') }}</p>
                 </div>
             </td>
         </tr>
@@ -280,21 +296,33 @@
         </div>
     </div>
 
-    {{-- TANDA TANGAN (MENGGUNAKAN TABLE JUGA AGAR TIDAK MENUMPUK)
-    <table class="layout-table" style="margin-top: 50px;">
+    <table class="table-footer" style="width: 100%; border-top: 2px solid #333; margin-top: 20px;">
         <tr>
-            <td class="text-center w-50">
-                <p>Dibuat Oleh (Admin/Chef)</p>
-                <div style="margin-top: 80px; border-bottom: 1px solid #333; width: 70%; margin-left: auto; margin-right: auto;"></div>
-                <p style="margin-top: 5px;">( ...................................... )</p>
-            </td>
-            <td class="text-center w-50">
-                <p>Disetujui Oleh (Supplier)</p>
-                <div style="margin-top: 80px; border-bottom: 1px solid #333; width: 70%; margin-left: auto; margin-right: auto;"></div>
-                <p style="margin-top: 5px;">( ...................................... )</p>
+            <td style="width: 50%;"></td>
+
+            <td style="width: 50%; text-align: right; vertical-align: middle; padding-top: 10px">
+
+                <div style="font-size: 18px; font-weight: bold; margin-bottom: 30px;">
+                    TOTAL: Rp {{ number_format($submission->total_harga, 0, ',', '.') }}
+                </div>
+                
+                <div style="display: inline-block; text-align: center; width: 200px;">
+                    <p style="margin-bottom: 5px; font-size: 13px;">
+                        {{ strtoupper($submission->kitchen->lokasi ?? '_____') }}, 
+                        {{ \Carbon\Carbon::parse($submission->tanggal)->locale('id')->isoFormat('D MMMM YYYY') }}
+                    </p>
+                    
+                    {{-- Ruang Kosong untuk Tanda Tangan Manual --}}
+                    <div style="height: 70px;"></div>
+
+                    {{-- Nama Terang dengan Garis Bawah --}}
+                    <p style="font-weight: bold; text-decoration: underline; margin: 0;">__________________
+                    </p>
+                    <p style="font-size: 11px; margin-top: 5px;">Nama Jelas & Tanda Tangan</p>
+                </div>
             </td>
         </tr>
-    </table> --}}
+    </table>
 
     {{-- FOOTER --}}
     <div class="footer">
