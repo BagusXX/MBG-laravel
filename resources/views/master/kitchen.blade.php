@@ -40,6 +40,7 @@
                             <td>{{ $k->kode }}</td>
                             <td>{{ $k->nama }}</td>
                             <td>{{ $k->region->nama_region }}</td>
+                            <td>{{ $k->kota }}</td>
                             <td>{{ $k->alamat }}</td>
                             <td>{{ $k->kepala_dapur }}</td>
                             <td>{{ $k->nomor_kepala_dapur }}</td>
@@ -50,6 +51,7 @@
                                     data-id="{{ $k->id }}"
                                     data-nama="{{ $k->nama }}"
                                     data-alamat="{{ $k->alamat }}"
+                                    data-kota="{{ $k->kota }}"
                                     data-region="{{ $k->region_id }}"
                                     data-kepala="{{ $k->kepala_dapur }}"
                                     data-nomor="{{ $k->nomor_kepala_dapur }}"
@@ -110,11 +112,17 @@
                 @endforeach
             </select>
         </div>
-
+        
+        <div class="form-group mt-2">
+            <label>Kota</label>
+            <input type="text" name="kota" class="form-control" required>
+        </div>
+        
         <div class="form-group mt-2">
             <label>Alamat</label>
             <input type="text" name="alamat" class="form-control" required>
         </div>
+
 
         <div class="form-group mt-2">
             <label>Nama Kepala Dapur</label>
@@ -150,6 +158,11 @@
         @endforeach
     </select>
 </div>
+
+        <div class="form-group mt-2">
+            <label>Kota</label>
+            <input type="text" id="editKota" name="kota" class="form-control" required>
+        </div>
 
         <div class="form-group mt-2">
             <label>Alamat</label>
@@ -190,6 +203,7 @@
 
                     // Isi field modal edit
                     document.getElementById('editNama').value = this.dataset.nama;
+                    document.getElementById('editKota').value = this.dataset.kota;
                     document.getElementById('editAlamat').value = this.dataset.alamat;
                     document.getElementById('editKepala').value = this.dataset.kepala;
                     document.getElementById('editNomor').value = this.dataset.nomor;
