@@ -132,7 +132,7 @@ class ReportSalesKitchenController extends Controller
 
     $pdf->setPaper('a4', 'landscape');
 
-    return $pdf->download('laporan penjualan dapur_' .$today. '.pdf');
+    return $pdf->stream('laporan penjualan dapur_' .$today. '.pdf');
     }
 
     private function applyConversion($item)
