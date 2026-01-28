@@ -93,6 +93,10 @@ class SaleMaterialsPartnerController extends Controller
             'details.bahan_baku.unit'
         ])
         ->whereNotNull('parent_id')
+        ->where(function($q){
+            $q->where('status', 'diproses')
+                ->orWhere('tipe', 'disetujui');
+        })
         ->orderByDesc('tanggal');
 
         if ($request->filled('from_date')) {
@@ -150,9 +154,7 @@ class SaleMaterialsPartnerController extends Controller
             });
         });
 
-        $totalPageSubtotal = $submissions->getCollection()->sum(function ($item) {
-            return ($item->submission->porsi ?? 0) * ($item->harga_mitra ?? 0);
-        });
+        $totalPageSubtotal = $submissions->getCollection()->sum('subtotal_mitra');
 
         return view('transaction.sale-materials-partner', compact('submissions', 'kitchens', 'suppliers', 'totalPageSubtotal', 'bahanBakus', 'menus'));
     }
@@ -280,10 +282,7 @@ class SaleMaterialsPartnerController extends Controller
        
 
         // Hitung total harga dari detail
-        $totalHarga = $submission->details()->get()->sum(function ($detail) {
-            $hargaMitra = $detail->harga_mitra ?? $detail->harga_satuan_saat_itu ?? 0;
-            return $hargaMitra * $detail->display_qty;
-        });
+        $totalHarga = $submission->details->sum('subtotal_mitra');
 
         $pdf = Pdf::loadView(
             'transaction.invoice-sale-partner',

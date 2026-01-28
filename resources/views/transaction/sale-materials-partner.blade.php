@@ -208,7 +208,7 @@
                             @endforelse
                         </tbody>
                         <tfoot>
-                            <tr></tr>
+                            <tr>
                                 <th colspan="4" class="text-right">Total :</th>
                                 <th>Rp{{ number_format($submission->details->sum('subtotal_mitra'), 0, ',', '.') }}</th>
                             </tr>

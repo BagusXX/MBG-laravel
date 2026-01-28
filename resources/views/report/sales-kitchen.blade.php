@@ -119,7 +119,7 @@
                         <td>{{ $report->submission->porsi }}</td>
 
                         <td>Rp{{ number_format($report->harga_dapur, 0, ',', '.') }}</td>
-                        <td>Rp{{ number_format(($report->display_qty ?? 0) * ($report->harga_dapur ?? 0), 0, ',', '.') }}</td>
+                        <td>Rp{{ number_format(($report->subtotal), 0, ',', '.') }}</td>
                     </tr>
                     @empty
                     <tr>
@@ -129,7 +129,7 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="8" class="text-right"><strong>Total Harga :</strong></td>
+                        <td colspan="9" class="text-right"><strong>Total :</strong></td>
                         <td class="text-left"><strong>Rp{{ number_format($totalPageSubtotal, 0, '.', '.') }}</strong></td>
                     </tr>
                 </tfoot>

@@ -79,9 +79,11 @@ class ReportSalesPartnerController extends Controller
             
         $reports = $query->paginate(10)->withQueryString();
 
-        $totalPageSubtotal = $reports->sum(function ($item) {
-            return ($item->submission->porsi ?? 0) * ($item->harga_mitra ?? 0);
+        $reports->getCollection()->transform(function ($item) {
+            return $this->applyConversion($item);
         });
+
+        $totalPageSubtotal = $reports->sum('subtotal');
 
         return view('report.sales-partner', compact('kitchens', 'reports', 'suppliers', 'totalPageSubtotal', 'bahanBakus'));
     }
@@ -119,12 +121,50 @@ class ReportSalesPartnerController extends Controller
 
     $submission = $reports->first()->submission ?? null;
 
-    $totalPageSubtotal = $reports->sum(function ($item) {
-        return ($item->submission->porsi ?? 0) * ($item->harga_mitra ?? 0);
-    });
+    $totalPageSubtotal = $reports->sum('subtotal');
 
     $pdf = PDF::loadView('report.invoiceReport-sales-partner', compact('submission','reports', 'totalPageSubtotal'));
 
+    $pdf->setPaper('a4', 'landscape');
+    
     return $pdf->download('laporan penjualan mitra_' .$today. '.pdf');
+    }
+
+    private function applyConversion($item)
+    {
+        // 1. Ambil Nama Satuan
+        $unitNama = '-';
+        if ($item->recipeBahanBaku && $item->recipeBahanBaku->bahan_baku) {
+            $unitNama = optional($item->recipeBahanBaku->bahan_baku->unit)->satuan;
+        } elseif ($item->bahan_baku) {
+            $unitNama = optional($item->bahan_baku->unit)->satuan;
+        }
+
+        $unitLower = strtolower($unitNama);
+        $qty = $item->qty_digunakan;
+
+        // 2. Logika Konversi ke Kg / L
+        if ($unitLower == 'gram') {
+            $item->display_unit = 'Kg';
+            $item->display_qty = $qty / 1000;
+        } elseif ($unitLower == 'ml') {
+            $item->display_unit = 'L';
+            $item->display_qty = $qty / 1000;
+        } else {
+            $item->display_unit = $unitNama;
+            $item->display_qty = $qty;
+        }
+
+        // 3. Format Angka (Gunakan koma untuk desimal, hilangkan desimal jika bulat)
+        $item->formatted_qty = number_format(
+            $item->display_qty,
+            ($item->display_qty == floor($item->display_qty) ? 0 : 2),
+            ',',
+            '.'
+        );
+
+        $item->subtotal = ($item->display_qty ?? 0) * ($item->harga_dapur ?? 0);
+
+        return $item;
     }
 }

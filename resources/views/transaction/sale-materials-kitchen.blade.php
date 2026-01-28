@@ -207,6 +207,12 @@
                                 </tr>
                             @endforelse
                         </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="4" class="text-right">Total :</th>
+                                <th>Rp{{ number_format($submission->details->sum('subtotal_dapur'), 0, ',', '.') }}</th>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>

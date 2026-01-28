@@ -93,6 +93,10 @@ class SaleMaterialsKitchenController extends Controller
                 'details.bahan_baku.unit'
             ])
         ->whereNotNull('parent_id')
+        ->where(function($q){
+            $q->where('status', 'diproses')
+                ->orWhere('tipe', 'disetujui');
+        })
         ->orderByDesc('tanggal');
 
         if ($request->filled('from_date')) {
@@ -150,9 +154,7 @@ class SaleMaterialsKitchenController extends Controller
             });
         });
 
-        $totalPageSubtotal = $submissions->getCollection()->sum(function ($item) {
-            return ($item->submission->porsi ?? 0) * ($item->harga_dapur ?? 0);
-        });
+        $totalPageSubtotal = $submissions->getCollection()->sum('subtotal_dapur');
 
         return view('transaction.sale-materials-kitchen', compact('submissions','kitchens', 'suppliers', 'totalPageSubtotal', 'bahanBakus', 'menus'));
     }
