@@ -114,7 +114,7 @@
                                 </button>
                                 <button 
                                     type="button"
-                                    class="btn btn-warning btn-sm btn-download-invoice"
+                                    class="btn btn-warning btn-sm btn-print-invoice"
                                     data-kode="{{ $submission->kode }}"
                                     window="_blank"
                                 >
@@ -224,29 +224,27 @@
     <script>
         $(document).ready(function() {
             // Handle tombol download invoice untuk sale-materials-kitchen
-            $(document).on('click', '.btn-download-invoice', function() {
+            $(document).on('click', '.btn-print-invoice', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                console.log('BUTTON CLICKED');
+
                 let kode = $(this).data('kode');
-                
-                // URL untuk download
-                let downloadUrl = "{{ route('transaction.sale-materials-kitchen.invoice.download', ':kode') }}";
-                downloadUrl = downloadUrl.replace(':kode', kode);
-                
-                // URL untuk preview (buka di tab baru)
-                let previewUrl = "{{ route('transaction.sale-materials-kitchen.invoice', ':kode') }}";
-                previewUrl = previewUrl.replace(':kode', kode);
-                
-                // Buat elemen link untuk download
-                let downloadLink = document.createElement('a');
-                downloadLink.href = downloadUrl;
-                downloadLink.download = 'Invoice_' + kode + '_' + new Date().toISOString().split('T')[0] + '.pdf';
-                document.body.appendChild(downloadLink);
-                downloadLink.click();
-                document.body.removeChild(downloadLink);
-                
-                // Buka preview di tab baru setelah sedikit delay
-                setTimeout(function() {
-                    window.open(previewUrl, '_blank');
-                }, 500);
+                console.log('KODE:', kode);
+
+                if (!kode) {
+                    console.error('Kode kosong');
+                    return;
+                }
+
+                let url = "{{ route('transaction.sale-materials-partner.invoice', ':kode') }}"
+                    .replace(':kode', kode);
+                url = url.replace(':kode', kode);
+
+                console.log('OPEN URL:', url);
+
+                window.open(url, '_blank');
             });
         });
     </script>
