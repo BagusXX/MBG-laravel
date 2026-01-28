@@ -83,16 +83,6 @@
                 </thead>
                 <tbody>
                     @forelse ($reports as $report)
-
-                        @php
-                            $porsi = $report->submission->porsi ?? 1;
-
-                            $hargaDapurTotal = ($report->harga_dapur ?? 0) * $porsi;
-                            $hargaMitraTotal = ($report->harga_mitra ?? 0) * $porsi;
-                            $selisihTotal = $hargaDapurTotal - $hargaMitraTotal;
-
-                        @endphp
-
                         <tr>
                             <td>{{ $reports->firstItem() + $loop->index }}</td>
                             <td>{{ \Carbon\Carbon::parse($report->submission->tanggal)->format('d-m-Y') }}</td>
@@ -113,21 +103,11 @@
                                     -
                                 @endif
                             </td>
-                            <td>
-                                @if ($report->recipe_bahan_baku_id)
-                                {{ optional(
-                                    optional(\App\Models\BahanBaku::find($report->recipe_bahan_baku_id))->unit)->satuan ?? '-' }}
-                                @elseif ($report->bahan_baku_id)
-                                {{ optional(
-                                    optional($report->bahanBaku)->unit)->satuan ?? '-' }}
-                                @else
-                                -
-                                @endif
-                            </td>
+                            <td>{{ $report->display_unit ?? '-' }}</td>
                             <td>{{ $report->submission->porsi }}</td>
-                            <td>Rp {{ number_format($hargaDapurTotal, 0, ',', '.') }}</td>
-                            <td>Rp {{ number_format($hargaMitraTotal, 0, ',', '.') }}</td>
-                            <td>Rp {{ number_format($selisihTotal, 0, ',', '.') }}</td>
+                            <td>Rp {{ number_format($report->harga_dapur_total, 0, ',', '.') }}</td>
+                            <td>Rp {{ number_format($report->harga_mitra_total, 0, ',', '.') }}</td>
+                            <td>Rp {{ number_format($report->selisih_total, 0, ',', '.') }}</td>
 
                         </tr>
                     @empty

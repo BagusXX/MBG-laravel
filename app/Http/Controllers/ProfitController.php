@@ -64,17 +64,19 @@ class ProfitController extends Controller
         $reports = $query->paginate(10)->withQueryString();
 
         $reports->getCollection()->transform(function ($item) {
-            return $this->applyConversion($item);
+            
+            $item = $this->applyConversion($item);
+
+            $porsi = $item->submission->porsi ?? 0;
+
+            $item->harga_dapur_total = ($item->harga_dapur ?? 0) * $porsi;
+            $item->harga_mitra_total = ($item->harga_mitra ?? 0) * $porsi;
+            $item->selisih_total     = $item->harga_dapur_total - $item->harga_mitra_total;
+
+            return $item;
         });
 
-        $totalPageSubtotal = $reports->getCollection()->sum(function ($item) {
-            return (
-                ($item->harga_dapur ?? 0) * ($item->submission->porsi ?? 0)
-            ) - (
-                ($item->harga_mitra ?? 0) * ($item->submission->porsi ?? 0)
-            );
-
-        });
+        $totalPageSubtotal = $reports->getCollection()->sum('selisih_total');
 
         return view('report.profit', compact('kitchens', 'reports', 'suppliers', 'totalPageSubtotal'));
     }
