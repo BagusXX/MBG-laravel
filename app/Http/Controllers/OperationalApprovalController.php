@@ -360,7 +360,7 @@ class OperationalApprovalController extends Controller
         )->setPaper('A4', 'portrait');
 
         // 4. Download PDF
-        return $pdf->stream(
+        return $pdf->download(
             'Invoice-Rekap-' . $parent->kode . '.pdf'
         );
     }

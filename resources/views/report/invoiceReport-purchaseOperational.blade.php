@@ -138,7 +138,7 @@
         <div class="info-box">
             <h3>Informasi Laporan</h3>
             <p><strong>Total Transaksi:</strong> {{ $reports->count() }}</p>
-            <p><strong>Dicetak:</strong> {{ now()->locale('id')->isoFormat('DD MMMM YYYY') }}</p>
+            <p><strong>Tanggal: </strong> {{ now()->locale('id')->isoFormat('DD MMMM YYYY') }}</p>
         </div>
     </div>
 

@@ -301,7 +301,7 @@ class OperationalSubmissionController extends Controller
             compact('submission')
         )->setPaper('A4', 'portrait');
 
-        return $pdf->stream(
+        return $pdf->download(
             'Invoice-Operasional-' . $submission->kode . '.pdf'
         );
     }
