@@ -78,29 +78,29 @@ class SaleMaterialsPartnerController extends Controller
         $kitchens = Kitchen::all();
         $suppliers = Supplier::all();
         $bahanBakus = BahanBaku::selectRaw('MIN(id) as id, nama')
-        ->groupBy('nama') 
-        ->get();
+            ->groupBy('nama')
+            ->get();
         // Ambil submission yang statusnya selesai sebagai data penjualan
         $menus = Menu::selectRaw('MIN(id) as id, nama')
-        ->groupBy('nama') 
-        ->get();
+            ->groupBy('nama')
+            ->get();
         $query = Submission::with([
             'parentSubmission',
-            'kitchen', 
+            'kitchen',
             'menu',
             'supplier',
             'details.recipeBahanBaku.bahan_baku.unit',
             'details.bahan_baku.unit'
         ])
-        ->whereNotNull('parent_id')
-        ->where(function($q){
-            $q->where('status', 'diproses')
-                ->orWhere('tipe', 'disetujui');
-        })
-        ->orderByDesc('tanggal');
+            ->whereNotNull('parent_id')
+            ->where(function ($q) {
+                $q->where('status', 'diproses')
+                    ->orWhere('tipe', 'disetujui');
+            })
+            ->orderByDesc('tanggal');
 
         if ($request->filled('from_date')) {
-                $query->whereDate('tanggal', '>=', $request->from_date);
+            $query->whereDate('tanggal', '>=', $request->from_date);
         }
 
         if ($request->filled('to_date')) {
@@ -207,7 +207,7 @@ class SaleMaterialsPartnerController extends Controller
             // Simpan setiap bahan baku
             foreach ($request->bahan_id as $index => $bahanId) {
                 $bahanBaku = BahanBaku::findOrFail($bahanId);
-                
+
                 Sells::create([
                     'kode' => $kode,
                     'tanggal' => $request->tanggal,
@@ -248,7 +248,7 @@ class SaleMaterialsPartnerController extends Controller
             abort(404, 'Data penjualan tidak ditemukan');
         }
 
-        
+
         $submission->details->each(function ($detail) {
 
             $bahanBaku = $detail->bahan_baku
@@ -279,7 +279,7 @@ class SaleMaterialsPartnerController extends Controller
             $detail->display_unit    = $displayUnit;
             $detail->subtotal_mitra  = $subtotal;
         });
-       
+
 
         // Hitung total harga dari detail
         $totalHarga = $submission->details->sum('subtotal_mitra');
@@ -290,7 +290,7 @@ class SaleMaterialsPartnerController extends Controller
         );
 
         // return view('transaction.invoice-sale-partner', compact('submission', 'totalHarga'));
-        return $pdf->stream('Invoice-' . $submission->kode . '.pdf');
+        return $pdf->download('Invoice-' . $submission->kode . '.pdf');
     }
 
     // public function downloadInvoice($kode)
@@ -319,9 +319,9 @@ class SaleMaterialsPartnerController extends Controller
 
     //     $pdf = Pdf::loadView('transaction.invoice-sale-partner', compact('submission', 'totalHarga'));
     //     $pdf->setPaper('a4', 'portrait');
-        
+
     //     $filename = 'Invoice_' . $kode . '_' . date('Y-m-d') . '.pdf';
-        
+
     //     return $pdf->download($filename);
     // }
 }

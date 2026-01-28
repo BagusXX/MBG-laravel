@@ -78,29 +78,29 @@ class SaleMaterialsKitchenController extends Controller
         $kitchens = Kitchen::all();
         $suppliers = Supplier::all();
         $bahanBakus = BahanBaku::selectRaw('MIN(id) as id, nama')
-        ->groupBy('nama') 
-        ->get();
+            ->groupBy('nama')
+            ->get();
         $menus = Menu::selectRaw('MIN(id) as id, nama')
-        ->groupBy('nama') 
-        ->get();
+            ->groupBy('nama')
+            ->get();
 
         $query = Submission::with([
-                'parentSubmission',
-                'kitchen',
-                'menu',
-                'supplier',
-                'details.recipeBahanBaku.bahan_baku.unit',
-                'details.bahan_baku.unit'
-            ])
-        ->whereNotNull('parent_id')
-        ->where(function($q){
-            $q->where('status', 'diproses')
-                ->orWhere('tipe', 'disetujui');
-        })
-        ->orderByDesc('tanggal');
+            'parentSubmission',
+            'kitchen',
+            'menu',
+            'supplier',
+            'details.recipeBahanBaku.bahan_baku.unit',
+            'details.bahan_baku.unit'
+        ])
+            ->whereNotNull('parent_id')
+            ->where(function ($q) {
+                $q->where('status', 'diproses')
+                    ->orWhere('tipe', 'disetujui');
+            })
+            ->orderByDesc('tanggal');
 
         if ($request->filled('from_date')) {
-                $query->whereDate('tanggal', '>=', $request->from_date);
+            $query->whereDate('tanggal', '>=', $request->from_date);
         }
 
         if ($request->filled('to_date')) {
@@ -156,7 +156,7 @@ class SaleMaterialsKitchenController extends Controller
 
         $totalPageSubtotal = $submissions->getCollection()->sum('subtotal_dapur');
 
-        return view('transaction.sale-materials-kitchen', compact('submissions','kitchens', 'suppliers', 'totalPageSubtotal', 'bahanBakus', 'menus'));
+        return view('transaction.sale-materials-kitchen', compact('submissions', 'kitchens', 'suppliers', 'totalPageSubtotal', 'bahanBakus', 'menus'));
     }
 
     public function getBahanByKitchen(Kitchen $kitchen)
@@ -198,7 +198,7 @@ class SaleMaterialsKitchenController extends Controller
                 'kitchen_id' => $submission->kitchen_id,
                 'kitchen_nama' => $submission->kitchen->nama,
             ],
-            'details' => $details->map(function ($detail){
+            'details' => $details->map(function ($detail) {
                 $bahanBakuNama = $detail->recipeBahanBaku?->bahan_baku?->nama ?? $detail->bahan_baku?->nama ?? '-';
                 $satuan = $detail->recipeBahanBaku?->bahan_baku?->unit?->satuan ?? $detail->bahan_baku?->unit?->satuan ?? '-';
                 $bahanBakuId = $detail->recipeBahanBaku?->bahan_baku_id ?? $detail->bahan_baku_id ?? null;
@@ -249,7 +249,7 @@ class SaleMaterialsKitchenController extends Controller
             // Simpan setiap bahan baku
             foreach ($request->bahan_id as $index => $bahanId) {
                 $bahanBaku = BahanBaku::findOrFail($bahanId);
-                
+
                 Sells::create([
                     'kode' => $kode,
                     'tanggal' => $request->tanggal,
@@ -331,7 +331,7 @@ class SaleMaterialsKitchenController extends Controller
         );
 
         // return view('transaction.invoice-sale-kitchen', compact('submission', 'totalHarga'));
-        return $pdf->stream('Invoice-' . $submission->kode . '.pdf');
+        return $pdf->download('Invoice-' . $submission->kode . '.pdf');
     }
 
     // public function downloadInvoice($kode)
@@ -361,9 +361,9 @@ class SaleMaterialsKitchenController extends Controller
 
     //     $pdf = Pdf::loadView('transaction.invoice-sale-kitchen', compact('submission', 'totalHarga'));
     //     $pdf->setPaper('a4', 'portrait');
-        
+
     //     $filename = 'Invoice_' . $kode . '_' . date('Y-m-d') . '.pdf';
-        
+
     //     return $pdf->download($filename);
     // }
 }
