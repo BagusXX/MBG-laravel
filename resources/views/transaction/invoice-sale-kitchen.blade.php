@@ -272,27 +272,21 @@
                 <tr>
                     <th width="5%">No</th>
                     <th width="30%">Bahan Baku</th>
-                    <th class="text-center" style="text-align: center;">Jumlah</th>
+                    <th class="text-center" style="text-align: center;">Qty</th>
                     <th class="text-center" style="text-align: center;">Satuan</th>
                     <th class="text-center" style="text-align: center;">Harga</th>
                     <th class="text-center" style="text-align: center;">Subtotal</th>
                 </tr>
             </thead>
             <tbody>
-                @forelse($submission->details as $index => $detail)
-                    @php
-                        $hargaDapur = $detail->harga_dapur ?? $detail->harga_satuan_saat_itu ?? 0;
-                        $subtotalDapur = $hargaDapur * $detail->qty_digunakan;
-                        $bahanBakuNama = $detail->recipe?->bahan_baku?->nama ?? $detail->bahan_baku?->nama ?? '-';
-                        $satuan = $detail->recipe?->bahan_baku?->unit?->satuan ?? $detail->bahan_baku?->unit?->satuan ?? '-';
-                    @endphp
+                @forelse($submission->details as $detail)
                     <tr>
-                        <td>{{ $index + 1 }}</td>
-                        <td>{{ $bahanBakuNama }}</td>
-                        <td class="text-center">{{ number_format($detail->qty_digunakan, 0, ',', '.') }}</td>
-                        <td class="text-center">{{ $satuan }}</td>
-                        <td class="text-center">Rp{{ number_format($hargaDapur, 0, ',', '.') }}</td>
-                        <td class="text-center">Rp{{ number_format($subtotalDapur, 0, ',', '.') }}</td>
+                        <td>{{ $loop->iteration}}</td>
+                        <td>{{ $detail->recipeBahanBaku?->bahan_baku?->nama ?? $detail->bahan_baku?->nama ?? '-'  }}</td>
+                        <td class="text-center">{{ number_format($detail->display_qty, 2, ',', '.') }}</td>
+                        <td class="text-center">{{ $detail->display_unit }}</td>
+                        <td class="text-center">Rp{{ number_format($detail->harga_dapur, 0, ',', '.') }}</td>
+                        <td class="text-center">Rp{{ number_format($detail->subtotal_dapur, 0, ',', '.') }}</td>
                     </tr>
                 @empty
                     <tr>
@@ -308,12 +302,12 @@
                 <td style="width: 50%; text-align: right; vertical-align: middle; padding-top: 10px">
 
                     <div style="font-size: 18px; font-weight: bold; margin-bottom: 30px;">
-                        TOTAL: Rp{{ number_format($submission->total_harga, 0, ',', '.') }}
+                        TOTAL: Rp{{ number_format($submission->details->sum('subtotal_dapur'), 0, ',', '.') }}
                     </div>
                     
                     <div style="display: inline-block; text-align: center; width: 200px;">
                         <p style="margin-bottom: 5px; font-size: 13px;">
-                            {{ strtoupper($submission->kitchen->lokasi ?? '_____') }}, 
+                            {{ strtoupper($submission->kitchen->kota ?? '_____') }}, 
                             {{ \Carbon\Carbon::parse($submission->tanggal)->locale('id')->isoFormat('D MMMM YYYY') }}
                         </p>
                         

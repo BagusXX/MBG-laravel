@@ -84,9 +84,7 @@ class ReportSalesKitchenController extends Controller
             return $this->applyConversion($item);
         });
 
-        $totalPageSubtotal = $reports->getCollection()->sum(function ($item) {
-            return ($item->submission->porsi ?? 0) * ($item->harga_dapur ?? 0);
-        });
+        $totalPageSubtotal = $reports->getCollection()->sum('subtotal');
 
         return view('report.sales-kitchen', compact('kitchens', 'reports', 'suppliers', 'totalPageSubtotal', 'bahanBakus'));
     }
@@ -124,15 +122,13 @@ class ReportSalesKitchenController extends Controller
 
     $submission = $reports->first()->submission ?? null;
 
-    $totalPageSubtotal = $reports->sum(function ($item) {
-        return ($item->submission->porsi ?? 0) * ($item->harga_dapur ?? 0);
-    });
+    $totalPageSubtotal = $reports->sum('subtotal');
 
     $pdf = PDF::loadView('report.invoiceReport-sales-kitchen', compact('submission','reports', 'totalPageSubtotal'));
 
     $pdf->setPaper('a4', 'landscape');
 
-    return $pdf->download('laporan penjualan dapur_' .$today. '.pdf');
+    return $pdf->stream('laporan penjualan dapur_' .$today. '.pdf');
     }
 
     private function applyConversion($item)
@@ -167,6 +163,8 @@ class ReportSalesKitchenController extends Controller
             ',',
             '.'
         );
+
+        $item->subtotal = ($item->display_qty ?? 0) * ($item->harga_dapur ?? 0);
 
         return $item;
     }

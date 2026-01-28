@@ -18,7 +18,7 @@ class ProfitController extends Controller
 
         $query = SubmissionDetails::with([
             'submission.kitchen',
-            'bahanBaku',
+            'bahan_baku',
             'submission.supplier'
         ]);
 
@@ -62,6 +62,10 @@ class ProfitController extends Controller
             ->limit(1));
             
         $reports = $query->paginate(10)->withQueryString();
+
+        $reports->getCollection()->transform(function ($item) {
+            return $this->applyConversion($item);
+        });
 
         $totalPageSubtotal = $reports->getCollection()->sum(function ($item) {
             return (
@@ -123,5 +127,43 @@ class ProfitController extends Controller
         $pdf = PDF::loadView('report.invoiceReport-profit', compact('submission', 'reports', 'totalPageSubtotal'));
 
         return $pdf->download('laporan selisih penjualan_' . $today . '.pdf');
+    }
+
+    private function applyConversion($item)
+    {
+        // 1. Ambil Nama Satuan
+        $unitNama = '-';
+        if ($item->recipeBahanBaku && $item->recipeBahanBaku->bahan_baku) {
+            $unitNama = optional($item->recipeBahanBaku->bahan_baku->unit)->satuan;
+        } elseif ($item->bahan_baku) {
+            $unitNama = optional($item->bahan_baku->unit)->satuan;
+        }
+
+        $unitLower = strtolower($unitNama);
+        $qty = $item->qty_digunakan;
+
+        // 2. Logika Konversi ke Kg / L
+        if ($unitLower == 'gram') {
+            $item->display_unit = 'Kg';
+            $item->display_qty = $qty / 1000;
+        } elseif ($unitLower == 'ml') {
+            $item->display_unit = 'L';
+            $item->display_qty = $qty / 1000;
+        } else {
+            $item->display_unit = $unitNama;
+            $item->display_qty = $qty;
+        }
+
+        // 3. Format Angka (Gunakan koma untuk desimal, hilangkan desimal jika bulat)
+        $item->formatted_qty = number_format(
+            $item->display_qty,
+            ($item->display_qty == floor($item->display_qty) ? 0 : 2),
+            ',',
+            '.'
+        );
+
+        $item->subtotal = ($item->display_qty ?? 0) * ($item->harga_dapur ?? 0);
+
+        return $item;
     }
 }
