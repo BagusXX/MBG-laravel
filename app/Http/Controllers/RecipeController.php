@@ -311,11 +311,14 @@ class RecipeController extends Controller
 
         DB::transaction(function () use ($sourceMenu, $sourceRecipes, $request, $kitchen) {
 
-            $newMenu = $sourceMenu->replicate();
-            $newMenu->kode = $this->generateMenuKode();
-            $newMenu->nama = $request->new_menu_name;
-            $newMenu->save();
+            // 1️⃣ Buat MENU BARU di dapur tujuan (MASTER DAPUR)
+            $newMenu = Menu::create([
+                'kode' => $this->generateMenuKode(),
+                'nama' => $request->new_menu_name,
+                'kitchen_id' => $kitchen->id,
+            ]);
 
+            // 2️⃣ Copy semua resep
             foreach ($sourceRecipes as $recipe) {
                 RecipeBahanBaku::create([
                     'menu_id' => $newMenu->id,
@@ -325,6 +328,7 @@ class RecipeController extends Controller
                 ]);
             }
         });
+
 
         return redirect()
             ->route('recipe.index')
