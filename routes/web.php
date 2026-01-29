@@ -319,7 +319,7 @@ Route::middleware(['auth', 'disetujui'])->group(function () {
             Route::get('/', 'index')->middleware('permission:transaction.sale-kitchen.view')->name('index');
             Route::post('/', 'store')->middleware('permission:transaction.sale-kitchen.create')->name('store');
             Route::get('/invoice/{kode}', 'printInvoice')->middleware('permission:transaction.sale-kitchen.view')->name('invoice');
-            Route::get('/invoice/{kode}/download', 'downloadInvoice')->middleware('permission:transaction.sale-kitchen.view')->name('invoice.download');
+            // Route::get('/invoice/{kode}/download', 'downloadInvoice')->middleware('permission:transaction.sale-kitchen.view')->name('invoice.download');
             Route::get('/bahan-by-kitchen/{kitchen}', 'getBahanByKitchen')
                 ->middleware('permission:transaction.sale-kitchen.view')
                 ->name('bahan-by-kitchen');

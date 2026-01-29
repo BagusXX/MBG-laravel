@@ -110,8 +110,17 @@
                                     data-target="#modalDetailSales{{ $submission->id }}">
                                     Detail
                                 </button>
+<<<<<<< HEAD
                                 <button type="button" class="btn btn-warning btn-sm btn-print-invoice"
                                     data-kode="{{ $submission->kode }}" window="_blank">
+=======
+                                <button 
+                                    type="button"
+                                    class="btn btn-warning btn-sm btn-print-invoice"
+                                    data-kode="{{ $submission->kode }}"
+                                    window="_blank"
+                                >
+>>>>>>> 5625e6babe8d806104fea6fa4c0af22b1b28969a
                                     <i class="fas fa-print mr-1"></i>Cetak
                                 </button>
                             </td>
@@ -216,7 +225,11 @@
     <script>
         $(document).ready(function () {
             // Handle tombol download invoice untuk sale-materials-kitchen
+<<<<<<< HEAD
             $(document).on('click', '.btn-print-invoice', function (e) {
+=======
+            $(document).on('click', '.btn-print-invoice', function(e) {
+>>>>>>> 5625e6babe8d806104fea6fa4c0af22b1b28969a
                 e.preventDefault();
                 e.stopPropagation();
 

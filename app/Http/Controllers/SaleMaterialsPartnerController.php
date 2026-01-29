@@ -290,7 +290,7 @@ class SaleMaterialsPartnerController extends Controller
         );
 
         // return view('transaction.invoice-sale-partner', compact('submission', 'totalHarga'));
-        return $pdf->download('Invoice-' . $submission->kode . '.pdf');
+        return $pdf->download('Invoice-' . $submission->kode . '_' . date('d-m-Y') .'.pdf');
     }
 
     // public function downloadInvoice($kode)
