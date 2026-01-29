@@ -17,7 +17,7 @@ class MenuController extends Controller
         $query = Menu::with('kitchen')
             ->whereIn('kitchen_id', $kitchens->pluck('id'));
 
-            if ($request->filled('search')) {
+        if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('nama', 'LIKE', "%{$search}%")
@@ -27,40 +27,65 @@ class MenuController extends Controller
 
         $items = $query->paginate(10)->withQueryString();
 
-                $generatedCodes = [];
-                foreach ($kitchens as $k) {
-                    $generatedCodes[$k->id] = $this->generateKode($k->kode);
-                }
+        $generatedCodes = [];
+        foreach ($kitchens as $k) {
+            $generatedCodes[$k->id] = $this->generateKode($k->kode);
+        }
 
-        return view('master.menu', compact( 'kitchens', 'generatedCodes', 'items'));
+        return view('master.menu', compact('kitchens', 'generatedCodes', 'items'));
     }
 
 
     private function generateKode($kodeDapur)
     {
+        // 1. Cari angka awal dari item terakhir
+        // Kita gunakan ->withTrashed() (jika ada) atau query biasa untuk safety
+        $query = Menu::query();
 
-        // Cari kode terakhir khusus dapur tertentu
-        $lastItem = Menu::where('kode', 'LIKE', "MN{$kodeDapur}%")
+        // Cek jika model menggunakan SoftDeletes, sertakan data sampah
+        if (method_exists($query->getModel(), 'bootSoftDeletes')) {
+            $query->withTrashed();
+        }
+
+        $lastItem = $query->where('kode', 'LIKE', "MN{$kodeDapur}%")
             ->orderBy('kode', 'desc')
             ->first();
 
-        // Jika belum ada data, mulai dari 111
-        if (!$lastItem) {
-            return 'MN' . $kodeDapur . '111';
+        $number = 111; // Default mulai
+
+        if ($lastItem) {
+            // Ambil 3 digit terakhir
+            $lastNumber = (int) substr($lastItem->kode, -3);
+            $number = $lastNumber + 1;
         }
 
-        // Ambil 3 digit angka terakhir
-        // Contoh kode: BNDPR11555 → ambil '555'
-        $lastNumber = (int) substr($lastItem->kode, -3);
-        $nextNumber = $lastNumber + 1;
+        // 2. LAKUKAN LOOPING PENGECEKAN (SOLUSI ANTI DUPLICATE)
+        // Terus mencari sampai menemukan kode yang belum dipakai
+        while (true) {
+            // Batas 999
+            if ($number > 999)
+                $number = 999;
 
-        // Batas maksimum 999
-        if ($nextNumber > 999) $nextNumber = 999;
+            // Format kode
+            $tryCode = 'MN' . $kodeDapur . str_pad($number, 3, '0', STR_PAD_LEFT);
 
-        // Format angka menjadi tiga digit
-        $num = str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+            // Cek apakah kode ini ada di database (termasuk yang di-soft delete)
+            $checkQuery = Menu::where('kode', $tryCode);
 
-        return 'MN' . $kodeDapur . $num;
+            if (method_exists($checkQuery->getModel(), 'bootSoftDeletes')) {
+                $checkQuery->withTrashed();
+            }
+
+            $exists = $checkQuery->exists();
+
+            if (!$exists) {
+                // Jika TIDAK ADA, berarti kode aman digunakan
+                return $tryCode;
+            }
+
+            // Jika SUDAH ADA, naikkan angka dan coba lagi loop berikutnya
+            $number++;
+        }
     }
 
 

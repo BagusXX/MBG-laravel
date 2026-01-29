@@ -205,29 +205,37 @@ class SupplierController extends Controller
 
     public static function generateKode()
     {
-        // 1. Ambil supplier dengan angka urut paling besar
-        // Kita pakai SUBSTRING & CAST agar sortingnya benar secara angka (bukan string)
-        // Contoh: Agar SPR10 dianggap lebih besar dari SPR2
-        $lastSupplier = Supplier::select('kode')
+        // 1. Ambil supplier dengan angka urut paling besar (Termasuk yang sudah DIHAPUS/Soft Delete)
+        // Kita tambahkan ->withTrashed() agar tidak bentrok dengan data lama yang sudah dihapus
+        $lastSupplier = Supplier::query();
+
+        // Cek apakah model menggunakan SoftDeletes sebelum memanggil withTrashed
+        if (method_exists(new Supplier, 'bootSoftDeletes')) {
+            $lastSupplier->withTrashed();
+        }
+
+        $lastSupplier = $lastSupplier->select('kode')
+            ->where('kode', 'LIKE', 'SPR%') // Pastikan hanya mengambil format SPR
             ->orderByRaw('CAST(SUBSTRING(kode, 4) AS UNSIGNED) DESC')
             ->first();
 
         // 2. Ambil angka terakhir
-        if ($lastSupplier) {
-            // Hapus 'SPR' (3 karakter pertama) dan ambil sisanya sebagai integer
-            $lastNumber = (int) substr($lastSupplier->kode, 3);
-            $nextNumber = $lastNumber + 1;
-        } else {
-            // Jika belum ada data sama sekali
-            $nextNumber = 1;
-        }
+        $lastNumber = $lastSupplier ? (int) substr($lastSupplier->kode, 3) : 0;
 
-        // 3. Format kode dengan str_pad
-        // Parameter '3' artinya minimal 3 digit.
-        // Jika angka 1    -> SPR001
-        // Jika angka 99   -> SPR099
-        // Jika angka 100  -> SPR100 (Otomatis melebar)
-        // Jika angka 1000 -> SPR1000
-        return 'SPR' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+        // 3. Loop check untuk memastikan 100% unik (Mencegah Race Condition sederhana)
+        do {
+            $lastNumber++;
+            $nextKode = 'SPR' . str_pad($lastNumber, 3, '0', STR_PAD_LEFT);
+
+            // Cek database apakah kode ini benar-benar available
+            $exists = Supplier::query();
+            if (method_exists(new Supplier, 'bootSoftDeletes')) {
+                $exists->withTrashed();
+            }
+            $isDuplicate = $exists->where('kode', $nextKode)->exists();
+
+        } while ($isDuplicate);
+
+        return $nextKode;
     }
 }

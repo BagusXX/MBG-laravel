@@ -21,22 +21,22 @@
                         <label>Dari</label>
                         <input type="date" name="from_date" class="form-control ">
                     </div>
-                    
+
                     {{-- FILTER MENU "SAMPAI"--}}
                     <div class="col-md-2">
                         <label>Sampai</label>
                         <input type="date" name="to_date" class="form-control ">
                     </div>
-                    
+
                     {{-- FILTER DAPUR --}}
                     <div class="col-md-3">
                         <label>Dapur</label>
                         <select name="kitchen_id" class="form-control">
                             <option value="">Semua Dapur</option>
                             @foreach ($kitchens as $kitchen)
-                            <option value="{{ $kitchen->id }}" {{ request('kitchen_id') == $kitchen->id ? 'selected' : '' }}>
-                                {{ $kitchen->nama }}
-                            </option>
+                                <option value="{{ $kitchen->id }}" {{ request('kitchen_id') == $kitchen->id ? 'selected' : '' }}>
+                                    {{ $kitchen->nama }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -45,9 +45,9 @@
                         <select name="supplier_id" class="form-control">
                             <option value="">Semua Supplier</option>
                             @foreach ($suppliers as $supplier)
-                            <option value="{{ $supplier->id }}" {{ request('supplier_id') == $supplier->id ? 'selected' : '' }}>
-                                {{ $supplier->nama }}
-                            </option>
+                                <option value="{{ $supplier->id }}" {{ request('supplier_id') == $supplier->id ? 'selected' : '' }}>
+                                    {{ $supplier->nama }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -69,7 +69,8 @@
                         <a href="{{ route('transaction.sale-materials-kitchen.index') }}" class="btn btn-danger">
                             <i class="fa fa-undo"></i> Reset
                         </a>
-                        {{-- <a href="{{ route('report.sales-kitchen.invoice', request()->all()) }}" class="btn btn-warning ml-2" target="_blank">
+                        {{-- <a href="{{ route('report.sales-kitchen.invoice', request()->all()) }}"
+                            class="btn btn-warning ml-2" target="_blank">
                             <i class="fa fa-print"></i> Print
                         </a> --}}
                     </div>
@@ -98,33 +99,27 @@
                         <tr>
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $submission->kode ?? '-' }}</td>
-                            <td>{{ $submission->tanggal ? \Carbon\Carbon::parse($submission->tanggal)->format('d/m/Y') : '-' }}</td>
+                            <td>{{ $submission->tanggal ? \Carbon\Carbon::parse($submission->tanggal)->format('d/m/Y') : '-' }}
+                            </td>
                             <td>{{ $submission->kitchen ? $submission->kitchen->nama : '-' }}</td>
                             <td>{{ $submission->menu ? $submission->menu->nama : '-' }}</td>
                             <td>{{ $submission->porsi ?? '-' }}</td>
                             <td>{{ $submission->supplier ? $submission->supplier->nama : '-' }}</td>
                             <td>
-                                <button
-                                    type="button"
-                                    class="btn btn-primary btn-sm"
-                                    data-toggle="modal"
-                                    data-target="#modalDetailSales{{ $submission->id }}"
-                                >
+                                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal"
+                                    data-target="#modalDetailSales{{ $submission->id }}">
                                     Detail
                                 </button>
-                                <button 
-                                    type="button"
-                                    class="btn btn-warning btn-sm btn-download-invoice"
-                                    data-kode="{{ $submission->kode }}"
-                                    window="_blank"
-                                >
+                                <button type="button" class="btn btn-warning btn-sm btn-print-invoice"
+                                    data-kode="{{ $submission->kode }}" window="_blank">
                                     <i class="fas fa-print mr-1"></i>Cetak
                                 </button>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center">Belum ada data penjualan bahan baku dari permintaan yang selesai</td>
+                            <td colspan="7" class="text-center">Belum ada data penjualan bahan baku dari permintaan yang selesai
+                            </td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -134,11 +129,7 @@
 
     {{-- MODAL DETAIL --}}
     @foreach($submissions as $submission)
-        <x-modal-detail
-            id="modalDetailSales{{ $submission->id }}"
-            size="modal-lg"
-            title="Detail Penjualan Bahan Baku"
-        >
+        <x-modal-detail id="modalDetailSales{{ $submission->id }}" size="modal-lg" title="Detail Penjualan Bahan Baku">
             <div class="row mb-3">
                 <div class="col-md-6">
                     <table class="table table-borderless table-sm">
@@ -175,7 +166,8 @@
                                 <th class="py-1">Kontak</th>
                                 <td>: {{ $submission->supplier->kontak }} - {{ $submission->supplier->nomor }}</td>
                             </tr>
-                            {{-- <p class="text-muted small mb-0">Kontak: {{ $submission->supplier->kontak }} - {{ $submission->supplier->nomor }}</p> --}}
+                            {{-- <p class="text-muted small mb-0">Kontak: {{ $submission->supplier->kontak }} - {{
+                                $submission->supplier->nomor }}</p> --}}
                         @endif
                     </table>
                 </div>
@@ -222,31 +214,29 @@
 
 @push('js')
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             // Handle tombol download invoice untuk sale-materials-kitchen
-            $(document).on('click', '.btn-download-invoice', function() {
+            $(document).on('click', '.btn-print-invoice', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                console.log('BUTTON CLICKED');
+
                 let kode = $(this).data('kode');
-                
-                // URL untuk download
-                let downloadUrl = "{{ route('transaction.sale-materials-kitchen.invoice.download', ':kode') }}";
-                downloadUrl = downloadUrl.replace(':kode', kode);
-                
-                // URL untuk preview (buka di tab baru)
-                let previewUrl = "{{ route('transaction.sale-materials-kitchen.invoice', ':kode') }}";
-                previewUrl = previewUrl.replace(':kode', kode);
-                
-                // Buat elemen link untuk download
-                let downloadLink = document.createElement('a');
-                downloadLink.href = downloadUrl;
-                downloadLink.download = 'Invoice_' + kode + '_' + new Date().toISOString().split('T')[0] + '.pdf';
-                document.body.appendChild(downloadLink);
-                downloadLink.click();
-                document.body.removeChild(downloadLink);
-                
-                // Buka preview di tab baru setelah sedikit delay
-                setTimeout(function() {
-                    window.open(previewUrl, '_blank');
-                }, 500);
+                console.log('KODE:', kode);
+
+                if (!kode) {
+                    console.error('Kode kosong');
+                    return;
+                }
+
+                let url = "{{ route('transaction.sale-materials-partner.invoice', ':kode') }}"
+                    .replace(':kode', kode);
+                url = url.replace(':kode', kode);
+
+                console.log('OPEN URL:', url);
+
+                window.open(url, '_blank');
             });
         });
     </script>

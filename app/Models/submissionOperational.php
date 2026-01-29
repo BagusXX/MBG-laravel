@@ -30,13 +30,13 @@ class SubmissionOperational extends Model
     // Parent Submission (Self Reference)
     public function parentSubmission()
     {
-        return $this->belongsTo(SubmissionOperational::class, 'parent_id');
+        return $this->belongsTo(submissionOperational::class, 'parent_id');
     }
 
     // Children (Pecahan PO)
     public function children()
     {
-        return $this->hasMany(SubmissionOperational::class, 'parent_id');
+        return $this->hasMany(submissionOperational::class, 'parent_id');
     }
 
     public function supplier()
@@ -51,7 +51,7 @@ class SubmissionOperational extends Model
 
     public function details()
     {
-        return $this->hasMany(SubmissionOperationalDetails::class, 'operational_submission_id');
+        return $this->hasMany(submissionOperationalDetails::class, 'operational_submission_id');
     }
 
     /*

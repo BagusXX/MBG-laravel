@@ -222,12 +222,9 @@
 
 @push('js')
     <script>
-        console.log('SCRIPT LOADED');
-
         $(document).ready(function() {
-            // Handle tombol download invoice untuk sale-materials-partner
+            // Handle tombol download invoice untuk sale-materials-kitchen
             $(document).on('click', '.btn-print-invoice', function(e) {
-
                 e.preventDefault();
                 e.stopPropagation();
 
