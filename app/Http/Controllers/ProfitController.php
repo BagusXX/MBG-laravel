@@ -18,8 +18,10 @@ class ProfitController extends Controller
 
         $query = SubmissionDetails::with([
             'submission.kitchen',
+            'submission.parentSubmission',
             'bahan_baku',
-            'submission.supplier'
+            'submission.supplier',
+            'recipeBahanBaku.bahan_baku.unit'
         ]);
 
         $query->whereHas('submission', function ($q) {
@@ -67,23 +69,21 @@ class ProfitController extends Controller
             
             $item = $this->applyConversion($item);
 
-            $porsi = $item->submission->porsi ?? 0;
-
-            $item->harga_dapur_total = ($item->harga_dapur ?? 0) * $porsi;
-            $item->harga_mitra_total = ($item->harga_mitra ?? 0) * $porsi;
+            $item->harga_dapur_total = ($item->harga_dapur ?? 0) * ($item->display_qty ?? 0);
+            $item->harga_mitra_total = ($item->harga_mitra ?? 0) * ($item->display_qty ?? 0);
             $item->selisih_total     = $item->harga_dapur_total - $item->harga_mitra_total;
 
             return $item;
         });
 
-        $totalPageSubtotal = $reports->getCollection()->sum('selisih_total');
+        $totalPageSubtotal = $reports->sum('selisih_total');
 
         return view('report.profit', compact('kitchens', 'reports', 'suppliers', 'totalPageSubtotal'));
     }
 
     public function invoice(Request $request)
     {
-        $query = SubmissionDetails::with(['submission.kitchen', 'bahanBaku', 'submission.supplier']);
+        $query = SubmissionDetails::with(['submission.kitchen', 'bahanBaku.unit', 'submission.supplier', 'recipeBahanBaku.bahan_baku.unit']);
 
         $query->whereHas('submission', function ($q) {
             $q->whereNotNull('parent_id')
@@ -112,6 +112,14 @@ class ProfitController extends Controller
 
 
         $reports = $query->get();
+
+        $reports->transform(function ($item) {
+            $item = $this->applyConversion($item);
+            $item->selisih_total = (($item->harga_dapur ?? 0) * $item->display_qty) - (($item->harga_mitra ?? 0) * $item->display_qty);
+            return $item;
+        });
+
+        $reports = $reports->sortByDesc(fn($item) => $item->submission->tanggal);
 
         $today = date('d-m-Y');
 

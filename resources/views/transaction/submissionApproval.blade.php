@@ -68,7 +68,8 @@
             <thead>
                 <tr>
                     <th>Kode</th>
-                    <th>Tanggal Pengajuan</th>
+                    <th width="15%">Tanggal Pengajuan</th>
+                    <th width="15%">Tanggal Digunakan</th>
                     <th>Dapur</th>
                     <th>Menu</th>
                     <th>Porsi</th>
@@ -85,7 +86,8 @@
                     data-date="{{ \Carbon\Carbon::parse($item->tanggal)->format('Y-m-d') }}"
                 >
                     <td>{{ $item->kode }}</td>
-                    <td>{{ \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y') }}</td>
+                    <td>{{ \Carbon\Carbon::parse($item->tanggal)->locale('id')->translatedFormat('l, d-m-Y') }}</td>
+                    <td>{{ \Carbon\Carbon::parse($item->tanggal_digunakan)->locale('id')->translatedFormat('l, d-m-Y') }}</td>
                     <td>{{ $item->kitchen->nama ?? '-' }}</td>
                     <td>{{ $item->menu ? $item->menu->nama : '-' }}</td>
                     <td>{{ $item->porsi ? $item->porsi : '-' }}</td>
@@ -154,10 +156,11 @@
                 {{-- INFO & HEADER ACTIONS --}}
                 <div class=" row mb-3 pb-3">
                     <div class="col-md-6">
-                        <table class="table-borderless" style="width: 50%">
-                            <tr><th width="120" class="py-1">Kode</th><td class="py-1">: <span id="modalTitleKode"></span></td></tr>
-                            <tr><th width="60%"class="py-1">Tanggal Pengajuan</th><td class="py-1">: <span id="infoTanggal"></span></td></tr>
-                            <tr><th class="py-1 ">Status</th><td class="py-1">: <span id="infoStatusBadge"></span></td></tr>
+                        <table class="table table-borderless table-sm" style="width: 100%">
+                            <tr><th style="width: 35%; vertical-align: middle;" >Kode</th><td style="vertical-align: middle;">: <span id="modalTitleKode"></span></td></tr>
+                            <tr><th style="vertical-align: middle;">Tanggal Pengajuan</th><td style="vertical-align: middle;">: <span id="infoTanggal"></span></td></tr>
+                            <tr><th style="vertical-align: middle;">Tanggal Digunakan</th><td style="vertical-align: middle;">: <span id="infoTanggalDigunakan"></span></td></tr>
+                            <tr><th style="vertical-align: middle;">Status</th><td style="vertical-align: middle;">: <span id="infoStatusBadge"></span></td></tr>
                         </table>
                     </div>
                     <div class="col-md-6">
@@ -329,6 +332,17 @@
         }).format(number);
     };
 
+    const formatTanggalIndo = (dateString) => {
+        if (!dateString) return '-';
+
+        return new Date(dateString).toLocaleDateString('id-ID', {
+            weekday: 'long',
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+    };
+
     $(document).ready(function() {
         
         $('#selectBahanManual').select2({ dropdownParent: $('#modalAddBahanManual') });
@@ -392,6 +406,7 @@
             $.get("{{ url('dashboard/transaksi/approval-menu') }}/" + currentSubmissionId + "/data", function(data) {
                 $('#modalTitleKode').text(data.kode);
                 $('#infoTanggal').text(data.tanggal);
+                $('#infoTanggalDigunakan').text(data.tanggal_digunakan);
                 $('#infoMenu').text(data.menu)
                 $('#infoPorsi').text(data.porsi)
                 $('#infoDapur').text(data.kitchen);

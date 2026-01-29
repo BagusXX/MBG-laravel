@@ -97,7 +97,7 @@ class SaleMaterialsPartnerController extends Controller
                 $q->where('status', 'diproses')
                     ->orWhere('tipe', 'disetujui');
             })
-            ->orderByDesc('tanggal');
+            ->latest('id');
 
         if ($request->filled('from_date')) {
             $query->whereDate('tanggal', '>=', $request->from_date);

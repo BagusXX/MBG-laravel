@@ -60,7 +60,8 @@
             <thead>
                 <tr>
                     <th>Kode</th>
-                    <th>Tanggal Pengajuan</th>
+                    <th width="15%">Tanggal Pengajuan</th>
+                    <th width="15%">Tanggal Digunakan</th>
                     <th>Dapur</th>
                     <th>Menu</th>
                     <th>Porsi</th>
@@ -77,7 +78,8 @@
                     data-date="{{ \Carbon\Carbon::parse($item->tanggal)->format('Y-m-d') }}"
                 >
                     <td>{{ $item->kode }}</td>
-                    <td>{{ \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y') }}</td>
+                    <td>{{ \Carbon\Carbon::parse($item->tanggal)->locale('id')->translatedFormat('l, d-m-Y') }}</td>
+                    <td>{{ \Carbon\Carbon::parse($item->tanggal_digunakan)->locale('id')->translatedFormat('l, d-m-Y') }}</td>
                     <td>{{ $item->kitchen->nama ?? '-' }}</td>
                     <td>{{ $item->menu->nama ?? '-' }}</td>
                     <td>{{ $item->porsi }}</td>
@@ -141,16 +143,22 @@
 >
     @csrf
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="form-group">
                 <label>Kode Pengajuan</label>
                 <input type="text" class="form-control" value="{{ $nextKode }}" readonly>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="form-group">
                 <label>Tanggal Pengajuan</label>
                 <input type="date" name="tanggal" class="form-control" value="{{ date('Y-m-d') }}" required>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label>Tanggal Digunakan</label>
+                <input type="date" name="tanggal_digunakan" class="form-control" value="{{ date('Y-m-d') }}" required>
             </div>
         </div>
     </div>
@@ -203,6 +211,7 @@
             <table class="table table-borderless table-sm">
                 <tr><th width="30%">Kode</th><td>: <span id="det-kode" >-</span></td></tr>
                 <tr><th width="60%">Tanggal Pengajuan</th><td>: <span id="det-tanggal">-</span></td></tr>
+                <tr><th width="60%">Tanggal Digunakan</th><td>: <span id="det-tanggal-digunakan">-</span></td></tr>
                 <tr><th>Status</th><td>: <span id="det-status">-</span></td></tr>
             </table>
         </div>
@@ -380,7 +389,8 @@
                 success: function(data) {
                     // Isi Header
                     $('#det-kode').text(data.kode);
-                    $('#det-tanggal').text(formatDate(data.tanggal));
+                    $('#det-tanggal').text(data.tanggal);
+                    $('#det-tanggal-digunakan').text(data.tanggal_digunakan);
                     $('#det-dapur').text(data.kitchen ? data.kitchen.nama : '-');
                     $('#det-menu').text(data.menu ? data.menu.nama : '-');
                     $('#det-porsi').text(data.porsi);

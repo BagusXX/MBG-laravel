@@ -178,6 +178,7 @@ class SubmissionController extends Controller
 
         $request->validate([
             'tanggal' => 'required|date',
+            'tanggal_digunakan' => 'required|date',
             'kitchen_id' => [
                 'required',
                 Rule::exists('kitchens', 'id')->where(
@@ -210,6 +211,7 @@ class SubmissionController extends Controller
             $submission = Submission::create([
                 'kode' => $this->generateKode(),
                 'tanggal' => $request->tanggal,
+                'tanggal_digunakan' => $request->tanggal_digunakan,
                 'kitchen_id' => $request->kitchen_id,
                 'menu_id' => $request->menu_id, // Menu ID langsung dari request
                 'porsi' => $request->porsi,
@@ -235,6 +237,7 @@ class SubmissionController extends Controller
         abort_if(!in_array($submission->kitchen->kode, $kitchenCodes->toArray()), 403);
 
         $request->validate([
+            'tanggal_digunakan' => 'required|date',
             'menu_id' => [
                 'required',
                 Rule::exists('menus', 'id')->where('kitchen_id', $request->kitchen_id)
@@ -257,6 +260,7 @@ class SubmissionController extends Controller
             }
 
             $submission->update([
+                'tanggal_digunakan' => $request->tanggal_digunakan,
                 'menu_id' => $request->menu_id,
                 'porsi' => $request->porsi,
             ]);
@@ -364,7 +368,12 @@ class SubmissionController extends Controller
         return response()->json([
             'id' => $submission->id,
             'kode' => $submission->kode,
-            'tanggal' => $submission->tanggal,
+            'tanggal' =>\Carbon\Carbon::parse($submission->tanggal)
+            ->locale('id')
+            ->translatedFormat('l, d-m-Y'),
+            'tanggal_digunakan' => \Carbon\Carbon::parse($submission->tanggal_digunakan)
+            ->locale('id')
+            ->translatedFormat('l, d-m-Y'),
             'status' => $submission->status,
             'porsi' => $submission->porsi,
             'kitchen' => $submission->kitchen,
@@ -405,7 +414,14 @@ class SubmissionController extends Controller
         return response()->json([
             'id' => $submission->id,
             'kode' => $submission->kode,
-            'tanggal' => date('d-m-Y', strtotime($submission->tanggal)),
+            'tanggal' => \Carbon\Carbon::parse($submission->tanggal)
+            ->locale('id')
+            ->translatedFormat('l, d-m-Y'),
+            'tanggal_digunakan' => $submission->tanggal_digunakan
+            ? \Carbon\Carbon::parse($submission->tanggal_digunakan)
+                ->locale('id')
+                ->translatedFormat('l, d-m-Y') 
+            : '-',
             'kitchen' => $submission->kitchen->nama,
             'menu' => $submission->menu->nama,
             'porsi' => $submission->porsi,

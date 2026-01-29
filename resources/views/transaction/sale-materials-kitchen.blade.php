@@ -52,7 +52,7 @@
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <label>Bahan Baku</label>
+                        <label>Menu</label>
                         <select name="menu_id" class="form-control select2">
                             <option value="">Semua Menu</option>
                             @foreach ($menus as $menu)
@@ -84,8 +84,8 @@
                 <thead>
                     <tr>
                         <th>No</th>
-                        <th>Kode Permintaan</th>
-                        <th>Tanggal</th>
+                        <th>Kode</th>
+                        <th>Tanggal Pengajuan</th>
                         <th>Dapur</th>
                         <th>Menu</th>
                         <th>Porsi</th>
@@ -98,7 +98,7 @@
                         <tr>
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $submission->kode ?? '-' }}</td>
-                            <td>{{ $submission->tanggal ? \Carbon\Carbon::parse($submission->tanggal)->format('d/m/Y') : '-' }}</td>
+                            <td>{{ \Carbon\Carbon::parse($submission->parentSubmission ? $submission->parentSubmission->tanggal : $submission->tanggal)->locale('id')->translatedFormat('d F Y') }}</td>
                             <td>{{ $submission->kitchen ? $submission->kitchen->nama : '-' }}</td>
                             <td>{{ $submission->menu ? $submission->menu->nama : '-' }}</td>
                             <td>{{ $submission->porsi ?? '-' }}</td>
@@ -147,21 +147,25 @@
                             <td>: {{ $submission->kode }}</td>
                         </tr>
                         <tr>
-                            <th class="py-1">Tanggal</th>
-                            <td>: {{ \Carbon\Carbon::parse($submission->tanggal)->format('d F Y') }}</td>
+                            <th class="py-1">Tanggal Pengajuan</th>
+                            <td>: {{ \Carbon\Carbon::parse($submission->parentSubmission ? $submission->parentSubmission->tanggal : $submission->tanggal)->locale('id')->translatedFormat('l, d-m-Y') }}</td>
+                        </tr>
+                        <tr>
+                            <th class="py-1">Tanggal Digunakan</th>
+                            <td>: {{ \Carbon\Carbon::parse($submission->parentSubmission->tanggal_digunakan)->locale('id')->translatedFormat('l, d-m-Y') }}</td>
                         </tr>
                         <tr>
                             <th class="py-1">Dapur</th>
                             <td>: {{ $submission->kitchen->nama }}</td>
                         </tr>
-                        <tr>
-                            <th class="py-1">Menu</th>
-                            <td>: {{ $submission->menu->nama }}</td>
-                        </tr>
                     </table>
                 </div>
                 <div class="col-md-6">
                     <table class="table table-borderless table-sm">
+                        <tr>
+                            <th class="py-1">Menu</th>
+                            <td>: {{ $submission->menu->nama }}</td>
+                        </tr>
                         <tr>
                             <th width="30%" class="py-1">Porsi</th>
                             <td>: {{$submission->porsi}}</td>
@@ -238,7 +242,7 @@
                     return;
                 }
 
-                let url = "{{ route('transaction.sale-materials-partner.invoice', ':kode') }}"
+                let url = "{{ route('transaction.sale-materials-kitchen.invoice', ':kode') }}"
                     .replace(':kode', kode);
                 url = url.replace(':kode', kode);
 
