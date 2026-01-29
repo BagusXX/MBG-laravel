@@ -15,7 +15,9 @@
 
     <div class="row mb-3">
         <div class="col-md-6">
-            <x-button-add idTarget="#modalAddMaterials" text="Tambah Bahan Baku" />  
+            @if($canManage)
+                <x-button-add idTarget="#modalAddMaterials" text="Tambah Bahan Baku" />  
+            @endif
         </div>
         <div class="col-md-6">
             <form action="{{ route('dashboard.master.bahan-baku.index') }}" method="GET">
@@ -51,7 +53,9 @@
                         <th>Satuan</th>
                         {{-- <th>Harga Satuan</th> --}}
                         <th>Dapur</th>
-                        <th>Aksi</th>
+                        @if($canManage)
+                            <th>Aksi</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
@@ -63,6 +67,7 @@
                             <td>{{ $item->unit->satuan ?? '-' }}</td>
                             {{-- <td>Rp {{ number_format($item->harga, 2, ',', '.') }}</td> --}}
                             <td>{{ $item->kitchen->nama ?? '-' }}</td>
+                            @if($canManage)
                             <td>
                                 {{-- BUTTON EDIT --}}
                                 <button type="button" class="btn btn-warning btn-sm btnEditMaterials"
@@ -78,6 +83,7 @@
                                     action="{{ route('dashboard.master.bahan-baku.destroy', $item->id) }}"
                                     text="Hapus" /> --}}
                             </td>
+                            @endif
                         </tr>
                     @empty
                         <tr>

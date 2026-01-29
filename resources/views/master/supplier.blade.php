@@ -11,11 +11,7 @@
 @endsection
 
 @section('content')
-    {{-- BUTTON ADD --}}
-    {{-- <x-button-add 
-        idTarget="#modalAddSupplier"
-        text="Tambah Supplier"
-    /> --}}
+    
     @if($canManage)
         <x-button-add 
             idTarget="#modalAddSupplier"
@@ -23,12 +19,6 @@
         />
     @endif
 
-    {{-- ALERT SUCCESS --}}
-    {{-- @if(session('success'))
-        <div class="alert alert-success mt-2">
-            {{ session('success') }}
-        </div>
-    @endif --}}
     <x-notification-pop-up />
 
     {{-- TABLE --}}
@@ -193,6 +183,7 @@
         </div>
 
     </x-modal-form>
+    
 
     {{-- MODAL EDIT SUPPLIER --}}
     <x-modal-form
