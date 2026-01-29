@@ -311,9 +311,11 @@ class RecipeController extends Controller
 
         DB::transaction(function () use ($sourceMenu, $sourceRecipes, $request, $kitchen) {
 
+
+            $newKode = Menu::generateUniqueKode($kitchen->kode, true);
             // 1️⃣ Buat MENU BARU di dapur tujuan (MASTER DAPUR)
             $newMenu = Menu::create([
-                'kode' => $this->generateMenuKode(),
+                'kode' => $newKode,
                 'nama' => $request->new_menu_name,
                 'kitchen_id' => $kitchen->id,
             ]);
@@ -332,7 +334,7 @@ class RecipeController extends Controller
 
         return redirect()
             ->route('recipe.index')
-            ->with('success', 'Menu berhasil diduplikasi. Harga di-reset ke 0.');
+            ->with('success', 'Menu berhasil diduplikasi');
     }
 
     private function generateMenuKode(): string
