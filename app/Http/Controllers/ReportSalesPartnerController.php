@@ -176,7 +176,7 @@ class ReportSalesPartnerController extends Controller
             '.'
         );
 
-        $item->subtotal = ($item->display_qty ?? 0) * ($item->harga_dapur ?? 0);
+        $item->subtotal = ($item->display_qty ?? 0) * ($item->harga_mitra ?? 0);
 
         return $item;
     }

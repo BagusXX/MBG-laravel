@@ -21,22 +21,22 @@
                         <label>Dari</label>
                         <input type="date" name="from_date" class="form-control ">
                     </div>
-                    
+
                     {{-- FILTER MENU "SAMPAI"--}}
                     <div class="col-md-2">
                         <label>Sampai</label>
                         <input type="date" name="to_date" class="form-control ">
                     </div>
-                    
+
                     {{-- FILTER DAPUR --}}
                     <div class="col-md-3">
                         <label>Dapur</label>
                         <select name="kitchen_id" class="form-control">
                             <option value="">Semua Dapur</option>
                             @foreach ($kitchens as $kitchen)
-                            <option value="{{ $kitchen->id }}" {{ request('kitchen_id') == $kitchen->id ? 'selected' : '' }}>
-                                {{ $kitchen->nama }}
-                            </option>
+                                <option value="{{ $kitchen->id }}" {{ request('kitchen_id') == $kitchen->id ? 'selected' : '' }}>
+                                    {{ $kitchen->nama }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -45,9 +45,9 @@
                         <select name="supplier_id" class="form-control">
                             <option value="">Semua Supplier</option>
                             @foreach ($suppliers as $supplier)
-                            <option value="{{ $supplier->id }}" {{ request('supplier_id') == $supplier->id ? 'selected' : '' }}>
-                                {{ $supplier->nama }}
-                            </option>
+                                <option value="{{ $supplier->id }}" {{ request('supplier_id') == $supplier->id ? 'selected' : '' }}>
+                                    {{ $supplier->nama }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -69,7 +69,8 @@
                         <a href="{{ route('transaction.sale-materials-kitchen.index') }}" class="btn btn-danger">
                             <i class="fa fa-undo"></i> Reset
                         </a>
-                        {{-- <a href="{{ route('report.sales-kitchen.invoice', request()->all()) }}" class="btn btn-warning ml-2" target="_blank">
+                        {{-- <a href="{{ route('report.sales-kitchen.invoice', request()->all()) }}"
+                            class="btn btn-warning ml-2" target="_blank">
                             <i class="fa fa-print"></i> Print
                         </a> --}}
                     </div>
@@ -104,27 +105,29 @@
                             <td>{{ $submission->porsi ?? '-' }}</td>
                             <td>{{ $submission->supplier ? $submission->supplier->nama : '-' }}</td>
                             <td>
-                                <button
-                                    type="button"
-                                    class="btn btn-primary btn-sm"
-                                    data-toggle="modal"
-                                    data-target="#modalDetailSales{{ $submission->id }}"
-                                >
+                                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal"
+                                    data-target="#modalDetailSales{{ $submission->id }}">
                                     Detail
                                 </button>
+<<<<<<< HEAD
+                                <button type="button" class="btn btn-warning btn-sm btn-print-invoice"
+                                    data-kode="{{ $submission->kode }}" window="_blank">
+=======
                                 <button 
                                     type="button"
                                     class="btn btn-warning btn-sm btn-print-invoice"
                                     data-kode="{{ $submission->kode }}"
                                     window="_blank"
                                 >
+>>>>>>> 5625e6babe8d806104fea6fa4c0af22b1b28969a
                                     <i class="fas fa-print mr-1"></i>Cetak
                                 </button>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center">Belum ada data penjualan bahan baku dari permintaan yang selesai</td>
+                            <td colspan="7" class="text-center">Belum ada data penjualan bahan baku dari permintaan yang selesai
+                            </td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -134,11 +137,7 @@
 
     {{-- MODAL DETAIL --}}
     @foreach($submissions as $submission)
-        <x-modal-detail
-            id="modalDetailSales{{ $submission->id }}"
-            size="modal-lg"
-            title="Detail Penjualan Bahan Baku"
-        >
+        <x-modal-detail id="modalDetailSales{{ $submission->id }}" size="modal-lg" title="Detail Penjualan Bahan Baku">
             <div class="row mb-3">
                 <div class="col-md-6">
                     <table class="table table-borderless table-sm">
@@ -179,7 +178,8 @@
                                 <th class="py-1">Kontak</th>
                                 <td>: {{ $submission->supplier->kontak }} - {{ $submission->supplier->nomor }}</td>
                             </tr>
-                            {{-- <p class="text-muted small mb-0">Kontak: {{ $submission->supplier->kontak }} - {{ $submission->supplier->nomor }}</p> --}}
+                            {{-- <p class="text-muted small mb-0">Kontak: {{ $submission->supplier->kontak }} - {{
+                                $submission->supplier->nomor }}</p> --}}
                         @endif
                     </table>
                 </div>
@@ -226,9 +226,13 @@
 
 @push('js')
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             // Handle tombol download invoice untuk sale-materials-kitchen
+<<<<<<< HEAD
+            $(document).on('click', '.btn-print-invoice', function (e) {
+=======
             $(document).on('click', '.btn-print-invoice', function(e) {
+>>>>>>> 5625e6babe8d806104fea6fa4c0af22b1b28969a
                 e.preventDefault();
                 e.stopPropagation();
 
