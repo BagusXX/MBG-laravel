@@ -71,12 +71,13 @@ class BahanBakuController extends Controller
     // Generate kode bahan baku: 2 digit + kode dapur
     private function generateKode($kodeDapur)
     {
-        // Cari kode terakhir khusus dapur tertentu
-        $lastItem = BahanBaku::where('kode', 'LIKE', "BN{$kodeDapur}%")
+        // Gunakan withTrashed() agar data yang sudah di-soft delete tetap terbaca.
+        // Jika tidak, kode bisa bentrok (Duplicate Entry) dengan data sampah.
+        $lastItem = BahanBaku::withTrashed()
+            ->where('kode', 'LIKE', "BN{$kodeDapur}%")
             ->orderBy('kode', 'desc')
             ->first();
 
-        // Jika belum ada data, mulai dari 111
         if (!$lastItem) {
             return 'BN' . $kodeDapur . '111';
         }
