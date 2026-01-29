@@ -33,7 +33,8 @@ require __DIR__ . '/auth.php';
 Route::get('/', [HomePageController::class, 'index'])->name('portal.index');
 Route::get('/menunggu-persetujuan', function () {
     return view('auth.waiting-approval');
-})->middleware('auth')->name('waiting.approval');
+})->middleware(['auth', 'disetujui'])->name('waiting.approval');
+
 
 Route::middleware(['auth', 'disetujui'])->group(function () {
 
@@ -421,7 +422,7 @@ Route::middleware(['auth', 'disetujui'])->group(function () {
             Route::post('/{id}/update-prices', 'updatePrices')
                 ->middleware('permission:transaction.operational-approval.update-prices')
                 ->name('update-prices');
-            Route::put('/operational-submission/{id}',  'update')
+            Route::put('/operational-submission/{id}', 'update')
                 ->name('operational-submission.update');
         });
 
