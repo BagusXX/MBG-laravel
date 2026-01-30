@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BankAccountController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SubmissionApprovalController;
 use Illuminate\Support\Facades\Route;
@@ -118,6 +119,18 @@ Route::middleware(['auth', 'disetujui'])->group(function () {
             Route::put('/{supplier}', 'update')->middleware('permission:master.supplier.update')->name('update');
             Route::delete('/{supplier}', 'destroy')->middleware('permission:master.supplier.delete')->name('destroy');
         });
+
+    Route::prefix('dashboard/master/bank')
+        ->name('master.bank')
+        ->controller(BankAccountController::class)
+        ->group(function () {
+            Route::get('/', 'index')->middleware('permission:master.bank.view')->name('view');
+            Route::post('/', 'store')->middleware('permission:master.bank.create')->name('store');
+            Route::get('/detail/{id}', 'show')->middleware('permission:master.bank.view')->name('detail');
+            Route::patch('/{id}', 'update')->middleware('permission:master.bank.update')->name('update');
+            Route::delete('/{id}', 'destroy')->middleware('permission:master.bank.delete')->name('delete');
+        });
+
 
     /*
     |------------------------------------------------------------------

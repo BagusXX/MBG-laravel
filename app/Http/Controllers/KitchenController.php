@@ -13,8 +13,15 @@ class KitchenController extends Controller
     // Tampilkan halaman dapur
     public function index()
     {
+        $user = auth()->user();
+
         $kitchens = Kitchen::with('region')
+        ->whereHas('users', function ($q) use ($user) {
+            $q->where('users.id', $user->id);
+        })
+        ->orderBy('kitchens.id')
         ->paginate(10);
+        
         $kodeBaru = $this->generateKode();
         $regions = region::all();
 

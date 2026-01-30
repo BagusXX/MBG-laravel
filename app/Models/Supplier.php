@@ -23,4 +23,8 @@ class Supplier extends Model
     public function kitchens(){
         return $this->belongsToMany(Kitchen::class,'kitchen_suppliers','suppliers_id','kitchen_kode','id','kode');
     }
+
+    public function bank_account(){
+        return $this->belongsTo(BankAccount::class);
+    }
 }
