@@ -121,7 +121,7 @@ Route::middleware(['auth', 'disetujui'])->group(function () {
         });
 
     Route::prefix('dashboard/master/bank')
-        ->name('master.bank')
+        ->name('master.bank.')
         ->controller(BankAccountController::class)
         ->group(function () {
             Route::get('/', 'index')->middleware('permission:master.bank.view')->name('view');

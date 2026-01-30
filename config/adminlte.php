@@ -371,7 +371,7 @@ return [
                 [
                     'text' => 'Akun Bank',
                     'icon' => 'fas fa-money-bill-wave',
-                    'route' => 'master.bank-account.index',
+                    'route' => 'master.bank.view',
                     // 'can' => 'master.bank-account.view',
                 ],
 

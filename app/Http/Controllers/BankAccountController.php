@@ -11,7 +11,18 @@ class BankAccountController extends Controller
      */
     public function index()
     {
-        //
+        // 1. Pastikan menggunakan paginate(), bukan get() atau all()
+        // karena di View Anda memanggil $banks->links() dan $banks->firstItem()
+        $banks = \App\Models\BankAccount::paginate(10);
+
+        // 2. Definisi permission check
+        // Jika Anda menggunakan Spatie Permission:
+        $canManage = auth()->user()->can('master.bank.create');
+        // ATAU set manual true untuk testing:
+        // $canManage = true;
+
+        // 3. Kirim kedua variabel ke view
+        return view('master.bank', compact('banks', 'canManage'));
     }
 
     /**
