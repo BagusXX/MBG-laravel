@@ -48,13 +48,12 @@
 
         .layout-table {
         width: 100%;
-        margin-bottom: 20px;
         border-collapse: collapse;
         }
 
         .layout-table td {
+            padding-bottom: 5px;
             vertical-align: top; /* Pastikan teks mulai dari atas */
-            padding: 0;
         }
 
         /* Helper untuk lebar kolom */
@@ -69,7 +68,7 @@
             color: #333;
             font-size: 15px;
             margin-bottom: 10px;
-            border-bottom: 2px solid #333;
+            border-bottom: 1px solid #333;
             padding-bottom: 5px;
         }
 
@@ -185,22 +184,19 @@
 <div class="invoice-container">
         <table class="layout-table" style="border-bottom: 3px double #000; margin-bottom: 20px;">
             <tr>
-                <td style="width: 20%; text-align: center; vertical-align: top;">
+                <td style="width: 20%; text-align: center; vertical-align: top; margin-bottom: 50px;">
                     {{-- Ganti path logo_bgn_mbg.png sesuai lokasi file Anda --}}
                     <img src="{{('icon_mbg.png') }}" alt="Logo BGN" style="height: 100px; width: 100px; object-fit: contain; margin-bottom: 20px;">
                 </td>
 
                 <td style="width: 60%; text-align: center; vertical-align: middle;">
-                    <h2 style="margin: 0; text-transform: uppercase;">Koperasi Produsen</h2>
-                    <h2 style="margin: 0; text-transform: uppercase;">{{ $submission->supplier->nama ?? 'NAMA SUPPLIER' }}</h2>
-                    <p style="margin: 5px 0; font-size: 12px; line-height: 1.4;">
-                        {{ $submission->supplier->alamat ?? '-' }}
-                    </p>
+                    <h1 style="margin: 0; text-transform: uppercase;">Laporan Pembelian</h1>
+                    <h1 style="margin: 0; text-transform: uppercase;">Dapur</h1>
                 </td>
 
                 <td style="width: 20%; text-align: center; vertical-align: top;">
                     @if($submission->supplier && $submission->supplier->gambar)
-                        <img src="{{ public_path('storage/' . $submission->supplier->gambar) }}" alt="Logo Supplier" style="height: 100px; width: 100px; object-fit: contain;">
+                        <img src="{{ public_path('storage/' . $submission->supplier->gambar) }}" alt=" " style="height: 100px; width: 100px; object-fit: contain;">
                     @else
                         {{-- Placeholder jika tidak ada gambar --}}
                         <div style="height: 80px; width: 80px; display: inline-block;"></div>
@@ -208,6 +204,13 @@
                 </td>
             </tr>
         </table>
+    <div class="invoice-info">
+        <div class="info-box" style="margin-bottom: 20px">
+            <h3>Informasi Laporan</h3>
+            <p><strong>Total Transaksi:</strong> {{ $reports->count() }}</p>
+            <p><strong>Tanggal Cetak: </strong> {{ now()->locale('id')->translatedFormat('l, d F Y') }}</p>
+        </div>
+    </div>
     {{-- TABLE --}}
     <table>
         <thead>
@@ -215,11 +218,11 @@
                 <th class="text-left" style="text-align: left;">Tanggal</th>
                 <th class="text-left" style="text-align: left;">Dapur</th>
                 <th class="text-left" style="text-align: left;">Supplier</th>
-                <th width="50%">Bahan Baku</th>
+                <th class="text-left">Bahan Baku</th>
                 <th class="text-center" style="text-align: center;">Qty</th>
                 <th class="text-center" style="text-align: center;">Satuan</th>
                 <th class="text-center" style="text-align: center;">Porsi</th>
-                <th class="text-center" style="text-align: center;">Harga Dapur</th>
+                <th class="text-center" style="text-align: center;">Harga</th>
                 <th class="text-center" style="text-align: center;">Subtotal</th>
             </tr>
         </thead>
@@ -253,7 +256,7 @@
             <td style="width: 50%; text-align: right; vertical-align: middle; padding-top: 10px">
 
                 <div style="font-size: 18px; font-weight: bold; margin-bottom: 30px;">
-                    TOTAL: Rp{{ number_format($submission->total_harga, 0, ',', '.') }}
+                    TOTAL: Rp{{ number_format($totalPageSubtotal, 0, ',', '.') }}
                 </div>
                 
                 <div style="display: inline-block; text-align: center; width: 200px;">

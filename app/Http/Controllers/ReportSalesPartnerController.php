@@ -22,6 +22,7 @@ class ReportSalesPartnerController extends Controller
 
         $query = SubmissionDetails::with([
             'submission.kitchen',
+            'submission.parentSubmission',
             'bahan_baku',
             'submission.supplier',
             'recipeBahanBaku.bahan_baku'
@@ -74,8 +75,12 @@ class ReportSalesPartnerController extends Controller
         }
 
         $query->orderByDesc(\App\Models\Submission::select('tanggal')
-            ->whereColumn('submissions.id', 'submission_details.submission_id')
-            ->limit(1));
+        ->whereIn('id', function($subQuery) {
+            $subQuery->select('parent_id')
+                ->from('submissions')
+                ->whereColumn('id', 'submission_details.submission_id');
+        })
+        ->limit(1));
             
         $reports = $query->paginate(10)->withQueryString();
 
@@ -90,7 +95,7 @@ class ReportSalesPartnerController extends Controller
 
     public function invoice(Request $request)
     {
-        $query = SubmissionDetails::with(['submission.kitchen', 'bahan_baku', 'submission.supplier']); 
+        $query = SubmissionDetails::with(['submission.kitchen', 'bahan_baku.unit', 'submission.supplier', 'recipeBahanBaku.bahan_baku.unit']); 
 
         $query->whereHas('submission', function ($q) {
             $q->whereNotNull('parent_id');
@@ -116,6 +121,14 @@ class ReportSalesPartnerController extends Controller
 
     
     $reports = $query->get();
+
+    $reports->transform(function ($item) {
+        return $this->applyConversion($item);
+    });
+
+    $reports = $reports->sortByDesc(function($item) {
+        return $item->submission->tanggal;
+    });
 
     $today = date('d-m-Y');
 

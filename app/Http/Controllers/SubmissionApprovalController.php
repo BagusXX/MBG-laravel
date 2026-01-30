@@ -245,7 +245,14 @@ class SubmissionApprovalController extends Controller
         return response()->json([
             'id' => $submission->id,
             'kode' => $submission->kode,
-            'tanggal' => date('d-m-Y', strtotime($submission->tanggal)),
+            'tanggal' => \Carbon\Carbon::parse($submission->tanggal)
+            ->locale('id')
+            ->translatedFormat('l, d-m-Y'),
+            'tanggal_digunakan' => $submission->tanggal_digunakan
+            ? \Carbon\Carbon::parse($submission->tanggal_digunakan)
+                ->locale('id')
+                ->translatedFormat('l, d-m-Y') 
+            : '-',
             'kitchen' => $submission->kitchen->nama,
             'menu' => $submission->menu->nama,
             'porsi' => $submission->porsi,

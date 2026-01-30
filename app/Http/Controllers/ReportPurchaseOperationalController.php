@@ -188,13 +188,17 @@ class ReportPurchaseOperationalController extends Controller
 
         $today = date('d-m-Y');
 
+        $submission = $reports->first()->submission ?? null;
+
         // ============================================================
         // 2. GENERATE PDF
         // ============================================================
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('report.invoiceReport-purchaseOperational', [
             'reports' => $reports,
+            'submission' => $submission,
             'fromDate' => $request->from_date,
             'toDate' => $request->to_date,
+            'today' => $today,
         ]);
 
         $pdf->setPaper('a4', 'landscape'); // Landscape agar muat banyak kolom

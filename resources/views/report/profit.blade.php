@@ -70,7 +70,7 @@
                 <thead>
                     <tr>
                         <th width="50">No</th>
-                        <th>Tanggal</th>
+                        <th>Tanggal Pengajuan</th>
                         {{-- <th>Dapur</th> --}}
                         {{-- <th>Supplier</th> --}}
                         <th>Bahan Baku</th>
@@ -85,7 +85,7 @@
                     @forelse ($reports as $report)
                         <tr>
                             <td>{{ $reports->firstItem() + $loop->index }}</td>
-                            <td>{{ \Carbon\Carbon::parse($report->submission->tanggal)->format('d-m-Y') }}</td>
+                            <td>{{ \Carbon\Carbon::parse($report->submission->parentSubmission->tanggal ?? $report->submission->tanggal)->locale('id')->translatedFormat('d F Y') }}</td>
                             {{-- <td>{{ $report->submission->kitchen->nama}}</td>
                             <td>
                                 @if ($report->submission->supplier_id)
@@ -123,6 +123,11 @@
                     </tr>
                 </tfoot>
             </table>
+            <div class="d-flex justify-content-end align-items-center mt-3">
+                <div class="mt-3 d-flex justify-content-end">
+                {{ $reports->links('pagination::bootstrap-4') }}
+                </div>
+            </div>
         </div>
     </div>
 

@@ -225,8 +225,8 @@
 
                 <td style="width: 35%; text-align: right; vertical-align: top;">
                     <div style="margin-bottom: 10px;">
-                        <p style="margin: 0; font-weight: bold; text-transform: uppercase;">TANGGAL :</p> 
-                        <p style="margin: 0; font-size: 14px;">{{ \Carbon\Carbon::parse($submission->tanggal)->locale('id')->isoFormat('dddd, D MMMM YYYY') }}</p>
+                        <p style="margin: 0; font-weight: bold; text-transform: uppercase;">TANGGAL CETAK :</p> 
+                        <p style="margin: 0; font-size: 14px;">{{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMMM YYYY') }}</p>
                     </div>
                     @php
                         $romans = ['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];

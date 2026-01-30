@@ -105,7 +105,7 @@
                             <tr>
                                 <td class="text-center">{{ $reports->firstItem() + $index}}</td>
                                 <td>
-                                    {{ \Carbon\Carbon::parse($item->submission->tanggal)->format('d-m-Y') }}
+                                    {{ \Carbon\Carbon::parse($item->submission->tanggal)->locale('id')->translatedFormat('d F Y') }}
                                 </td>
                                 {{-- <td>
                                     <span class="badge badge-light border">

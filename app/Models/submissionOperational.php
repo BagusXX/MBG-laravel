@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class SubmissionOperational extends Model
+class submissionOperational extends Model
 {
     protected $table = 'submission_operationals';
 
