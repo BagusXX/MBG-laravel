@@ -47,7 +47,7 @@
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>No</th>
+                        <th width="5%">No</th>
                         <th>Kode</th>
                         <th>Nama Bahan</th>
                         <th>Satuan</th>

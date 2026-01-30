@@ -12,6 +12,7 @@
 
 @section('content')
     {{-- BUTTON ADD --}}
+    @if($canManage)
     <div class="row mb-3">
         <div class="col-md-6">
             <x-button-add
@@ -37,13 +38,8 @@
             </form>
         </div>
     </div>
+    @endif
     
-    {{-- ALERT SUCCESS --}}
-    {{-- @if(session('success'))
-        <div class="alert alert-success mt-2">
-            {{ session('success') }}
-        </div>
-    @endif --}}
     <x-notification-pop-up />
     
     {{-- TABLE --}}
@@ -52,11 +48,13 @@
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>No</th>
+                        <th width="5%">No</th>
                         <th>Kode Menu</th> {{-- Tambah kolom kode menu --}}
                         <th>Dapur</th>
                         <th>Nama Menu</th>
+                        @if($canManage)
                         <th>Aksi</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
@@ -66,6 +64,7 @@
                             <td>{{ $item->kode }}</td> {{-- Kode menu --}}
                             <td>{{ $item->kitchen->nama ?? '-' }}</td> 
                             <td>{{ $item->nama }}</td>
+                            @if($canManage)
                             <td>
                                 <button
                                     type="button"
@@ -89,6 +88,7 @@
                                     text="Hapus"
                                 />
                             </td>
+                            @endif
                         </tr>
                     @empty
                         <tr>

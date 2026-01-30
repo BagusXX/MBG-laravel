@@ -6,6 +6,7 @@ use App\Models\operationals;
 use App\Models\Recipe;
 use App\Models\RecipeBahanBaku;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class OperationalController extends Controller
 {
@@ -13,6 +14,8 @@ class OperationalController extends Controller
     {
 
         $user = auth()->user();
+
+        $canManage = $this->canManage();
 
         // 1️⃣ Untuk dropdown (kode => nama)
         $kitchens = $user->kitchens()->pluck('nama', 'kode');
@@ -42,12 +45,16 @@ class OperationalController extends Controller
 
         $items = $operationals->paginate(10)->withQueryString();
 
-        return view('master.operational', compact('items', 'nextKode', 'kitchens'));
+        return view('master.operational', compact('items', 'nextKode', 'kitchens', 'canManage'));
     }
 
     public function store(Request $request)
     {
         $user = auth()->user();
+
+        if (!$this->canManage()) {
+            abort(403, 'Anda tidak memiliki akses untuk menambah data.');
+        }
 
         $request->validate([
             'nama' => 'required',
@@ -89,6 +96,10 @@ class OperationalController extends Controller
         $operational = operationals::findOrFail($id);
         $user = auth()->user();
 
+        if (!$this->canManage()) {
+            abort(403, 'Anda tidak memiliki akses untuk menambah data.');
+        }
+
         if (! $user->kitchens()->where('kode', $operational->kitchen_kode)->exists()) {
             abort(403);
         }
@@ -119,11 +130,22 @@ class OperationalController extends Controller
             abort(403);
         }
 
+        if (!$this->canManage()) {
+            abort(403, 'Anda tidak memiliki akses untuk menambah data.');
+        }
+
         // baru hapus operational
         $operational->delete();
 
         return redirect()
             ->route('master.operational.index')
             ->with('success', 'Biaya Operasional berhasil dihapus');
+    }
+
+    private function canManage()
+    {
+        $user = Auth::user();
+        // Pastikan user memiliki salah satu dari role ini
+        return $user->hasAnyRole(['superadmin', 'operatorDapur']);
     }
 }

@@ -110,17 +110,12 @@
                                     data-target="#modalDetailSales{{ $submission->id }}">
                                     Detail
                                 </button>
-<<<<<<< HEAD
-                                <button type="button" class="btn btn-warning btn-sm btn-print-invoice"
-                                    data-kode="{{ $submission->kode }}" window="_blank">
-=======
                                 <button 
                                     type="button"
                                     class="btn btn-warning btn-sm btn-print-invoice"
                                     data-kode="{{ $submission->kode }}"
                                     window="_blank"
                                 >
->>>>>>> 5625e6babe8d806104fea6fa4c0af22b1b28969a
                                     <i class="fas fa-print mr-1"></i>Cetak
                                 </button>
                             </td>
