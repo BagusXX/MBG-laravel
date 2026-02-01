@@ -11,7 +11,9 @@
 @endsection
 
 @section('content')
-    {{-- BUTTON ADD --}}
+
+{{-- BUTTON ADD --}}
+@if($canManage)
     <div class="row mb-3">
         <div class="col-md-6">
         <x-button-add 
@@ -37,13 +39,8 @@
             </form>
         </div>
     </div>
+    @endif
 
-    {{-- ALERT SUCCESS --}}
-    {{-- @if(session('success'))
-        <div class="alert alert-success mt-2">
-            {{ session('success') }}
-        </div>
-    @endif --}}
     <x-notification-pop-up />
 
     {{-- TABLE --}}
@@ -52,13 +49,15 @@
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>No</th>
+                        <th width="5%">No</th>
                         <th>Kode</th>
                         <th>Dapur</th>
                         <th>Nama Biaya</th>
                         {{-- <th>Harga Satuan</th> --}}
                         <th>Tanggal</th>
+                        @if($canManage)
                         <th>Aksi</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
@@ -70,6 +69,7 @@
                             <td>{{ $item->nama }}</td>
                             {{-- <td>Rp {{ number_format($item->harga_default, 2, ',', '.') }}</td> --}}
                             <td>{{ $item->updated_at }}</td>
+                            @if($canManage)
                             <td>
                                 <button 
                                     type="button" 
@@ -92,6 +92,7 @@
                                 />
 
                             </td>
+                            @endif
                         </tr>
                     @empty
                         <tr>

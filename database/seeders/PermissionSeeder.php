@@ -52,6 +52,13 @@ class PermissionSeeder extends Seeder
             'master.supplier.update',
             'master.supplier.delete',
 
+            'master.bank.view',
+            'master.bank.create',
+            'master.bank.update',
+            'master.bank.delete',
+
+            
+
             // SETUP
             'setup.user.view',
             'setup.user.create',

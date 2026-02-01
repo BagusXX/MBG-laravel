@@ -368,6 +368,12 @@ return [
                     'route' => 'master.unit.index',
                     'can' => 'master.unit.view',
                 ],
+                [
+                    'text' => 'Akun Bank',
+                    'icon' => 'fas fa-money-bill-wave',
+                    'route' => 'master.bank.view',
+                    // 'can' => 'master.bank-account.view',
+                ],
 
                 [
                     'text' => 'Bahan Baku',
@@ -474,7 +480,7 @@ return [
             'text' => 'Laporan',
             'icon' => 'fas fa-fw fa-file-alt',
             'submenu' => [
-                
+
                 [
                     'text' => 'Penjualan Dapur',
                     'icon' => 'fas fa-file-signature',
@@ -494,7 +500,7 @@ return [
                     'route' => 'report.sales-kitchen',
                     'can'   => 'report.sales-kitchen.view',
                 ],
-                
+
                 [
                     'text' => 'Bahan Baku Mitra',
                     'icon' => 'fas fa-file-signature',

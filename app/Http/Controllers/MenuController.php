@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Menu;
 use App\Models\Kitchen;
+use Illuminate\Support\Facades\Auth;
 
 class MenuController extends Controller
 {
@@ -12,6 +13,8 @@ class MenuController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
+        $canManage = $this->canManage();
+
         $kitchens = $user->kitchens()->get();
 
         $query = Menu::with('kitchen')
@@ -32,7 +35,7 @@ class MenuController extends Controller
             $generatedCodes[$k->id] = $this->generateKode($k->kode);
         }
 
-        return view('master.menu', compact('kitchens', 'generatedCodes', 'items'));
+        return view('master.menu', compact('kitchens', 'generatedCodes', 'items', 'canManage'));
     }
 
 
@@ -94,6 +97,10 @@ class MenuController extends Controller
     {
         $user = auth()->user();
 
+        if (!$this->canManage()) {
+            abort(403, 'Anda tidak memiliki akses untuk menambah data.');
+        }
+
         $request->validate([
             'nama' => 'required|string|max:255',
             'kitchen_id' => 'required|exists:kitchens,id' // dapur wajib dipilih
@@ -123,6 +130,11 @@ class MenuController extends Controller
     public function update(Request $request, $id)
     {
         $user = auth()->user();
+
+        if (!$this->canManage()) {
+            abort(403, 'Anda tidak memiliki akses untuk menambah data.');
+        }
+
         if (!$user->kitchens()->where('kitchens.id', $request->kitchen_id)->exists()) {
             abort(403, 'Anda tidak memiliki akses ke dapur ini');
         }
@@ -155,6 +167,10 @@ class MenuController extends Controller
     // Hapus menu
     public function destroy($id)
     {
+        if (!$this->canManage()) {
+            abort(403, 'Anda tidak memiliki akses untuk menambah data.');
+        }
+
         $menu = Menu::findOrFail($id);
         if (!auth()->user()->kitchens()->where('kitchens.id', $menu->kitchen_id)->exists()) {
             abort(403);
@@ -163,5 +179,12 @@ class MenuController extends Controller
         $menu->delete();
 
         return redirect()->route('master.menu.index')->with('success', 'Menu berhasil dihapus.');
+    }
+
+    private function canManage()
+    {
+        $user = Auth::user();
+        // Pastikan user memiliki salah satu dari role ini
+        return $user->hasAnyRole(['superadmin', 'operatorDapur']);
     }
 }

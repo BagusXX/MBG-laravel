@@ -20,7 +20,7 @@ class SupplierController extends Controller
         $user = auth()->user();
         // Sesuaikan 'role' dengan nama kolom di database user Anda
         // atau gunakan $user->hasRole(...) jika pakai Spatie
-        return $user->hasAnyRole(['superadmin', 'operatorKoperasi']);
+        return $user->hasAnyRole(['superadmin', 'operatorkoperasi']);
     }
 
     public function index()
@@ -233,7 +233,6 @@ class SupplierController extends Controller
                 $exists->withTrashed();
             }
             $isDuplicate = $exists->where('kode', $nextKode)->exists();
-
         } while ($isDuplicate);
 
         return $nextKode;

@@ -17,6 +17,7 @@ class submissionOperationalDetails extends Model
         'harga_satuan',
         'harga_dapur',
         'harga_mitra',
+        'subtotal',
 
         'subtotal_dapur',
         'subtotal_mitra',

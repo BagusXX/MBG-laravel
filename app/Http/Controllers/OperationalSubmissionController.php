@@ -134,7 +134,7 @@ class OperationalSubmissionController extends Controller
                     'qty' => $qty,
                     'harga_satuan' => $hargaDapur,
 
-                    // Simpan Harga Snapshot
+                    
                     'harga_dapur' => $hargaDapur,
                     'harga_mitra' => $hargaMitra,
 
