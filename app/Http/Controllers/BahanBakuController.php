@@ -16,6 +16,8 @@ class BahanBakuController extends Controller
     {
         $user = Auth::user();
 
+        $canManage = $this->canManage();
+
         // -----------------------------------------------------------
         // 1. AMBIL KITCHEN MILIK USER (LOGIC BARU)
         // -----------------------------------------------------------
@@ -63,7 +65,7 @@ class BahanBakuController extends Controller
         }
 
         // Variabel tetap $kitchens sesuai permintaan
-        return view('dashboard.master.bahan-baku.index', compact('items', 'kitchens', 'units', 'generatedCodes'));
+        return view('dashboard.master.bahan-baku.index', compact('items', 'kitchens', 'units', 'generatedCodes', 'canManage'));
     }
 
     // Generate kode bahan baku: 2 digit + kode dapur
@@ -94,6 +96,11 @@ class BahanBakuController extends Controller
     // Simpan bahan baku baru
     public function store(Request $request)
     {
+
+        if (!$this->canManage()) {
+            abort(403, 'Anda tidak memiliki akses untuk menambah data.');
+        }
+
         $user = Auth::user();
 
         $request->validate([
@@ -132,6 +139,11 @@ class BahanBakuController extends Controller
 
     public function update(Request $request, $id)
     {
+
+        if (!$this->canManage()) {
+            abort(403, 'Anda tidak memiliki akses untuk menambah data.');
+        }
+
         $user = Auth::user();
 
         $item = BahanBaku::with('kitchen')->findOrFail($id);
@@ -188,6 +200,10 @@ class BahanBakuController extends Controller
 
     public function destroy($id)
     {
+        if (!$this->canManage()) {
+            abort(403, 'Anda tidak memiliki akses untuk menambah data.');
+        }
+
         $user = Auth::user();
         $item = BahanBaku::with('kitchen')->findOrFail($id);
 
@@ -205,5 +221,12 @@ class BahanBakuController extends Controller
 
         return redirect()->route('dashboard.master.bahan-baku.index')
             ->with('success', 'Bahan baku berhasil dihapus.');
+    }
+    // Fungsi bantuan untuk cek role
+    private function canManage()
+    {
+        $user = Auth::user();
+        // Pastikan user memiliki salah satu dari role ini
+        return $user->hasAnyRole(['superadmin', 'operatorDapur']);
     }
 }

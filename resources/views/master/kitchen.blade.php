@@ -11,8 +11,9 @@
 @endsection
 
 @section('content')
-
+    @if($canCreateDelete)
     <x-button-add idTarget="#modalAddKitchen" text="Tambah Dapur" />
+    @endif
 
     <x-notification-pop-up />
 
@@ -58,12 +59,15 @@
                                     data-toggle="modal"
                                     data-target="#modalEditKitchen"
                                 >Edit</button>
+
+                                @if($canCreateDelete)
                                 <x-button-delete 
                                     idTarget="#modalDeleteKitchen" 
                                     formId="formDeleteKitchen"
                                     action="{{ route('master.kitchen.destroy', $k->id) }}"
                                     text="Hapus" 
                                 />
+                                @endif
                             </td>
                         </tr>
                     @empty

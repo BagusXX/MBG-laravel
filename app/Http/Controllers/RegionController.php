@@ -4,11 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\region;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class RegionController extends Controller
 {
     public function index()
     {
+
+        $canManage = $this->canManage();
+
         $regions = Region::paginate(10);
 
         $lastRegion = Region::orderBy('kode_region', 'desc')->first();
@@ -20,11 +24,15 @@ class RegionController extends Controller
             $nextKode = 'RGN' . str_pad($lastNumber + 1, 2, '0', STR_PAD_LEFT);
         }
 
-        return view('master.region', compact('regions', 'nextKode'));
+        return view('master.region', compact('regions', 'nextKode', 'canManage'));
     }
 
     public function store(Request $request)
     {
+        if (!$this->canManage()) {
+            abort(403, 'Anda tidak memiliki akses untuk menambah data.');
+        }
+
         $request->validate([
             'nama_region' => 'required',
             'penanggung_jawab' => 'required',
@@ -32,8 +40,8 @@ class RegionController extends Controller
 
         // ambil kode terakhir
         $lastRegion = Region::withTrashed()
-        ->orderBy('kode_region', 'desc')
-        ->first();
+            ->orderBy('kode_region', 'desc')
+            ->first();
 
         if (!$lastRegion) {
             $kode = 'RGN01';
@@ -55,6 +63,10 @@ class RegionController extends Controller
 
     public function destroy($id)
     {
+        if (!$this->canManage()) {
+            abort(403, 'Anda tidak memiliki akses untuk menambah data.');
+        }
+
         Region::findOrFail($id)->delete();
 
         return redirect()
@@ -63,6 +75,10 @@ class RegionController extends Controller
     }
     public function update(Request $request, $id)
     {
+        if (!$this->canManage()) {
+            abort(403, 'Anda tidak memiliki akses untuk menambah data.');
+        }
+
         $request->validate([
             'nama_region' => 'required',
             'penanggung_jawab' => 'required',
@@ -78,5 +94,12 @@ class RegionController extends Controller
         return redirect()
             ->route('master.region.index')
             ->with('success', 'Region berhasil diperbarui');
+    }
+
+    private function canManage()
+    {
+        $user = Auth::user();
+        // Pastikan user memiliki salah satu dari role ini
+        return $user->hasAnyRole(['superadmin']);
     }
 }

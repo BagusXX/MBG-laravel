@@ -6,26 +6,28 @@ use App\Models\Kitchen;
 use App\Models\region;
 use Illuminate\Http\Request;
 use App\Models\User;
-
+use Illuminate\Support\Facades\Auth;
 
 class KitchenController extends Controller
 {
     // Tampilkan halaman dapur
     public function index()
     {
+        $canCreateDelete = Auth::user()->hasRole('superadmin');
+
         $user = auth()->user();
 
         $kitchens = Kitchen::with('region')
-        ->whereHas('users', function ($q) use ($user) {
-            $q->where('users.id', $user->id);
-        })
-        ->orderBy('kitchens.id')
-        ->paginate(10);
-        
+            ->whereHas('users', function ($q) use ($user) {
+                $q->where('users.id', $user->id);
+            })
+            ->orderBy('kitchens.id')
+            ->paginate(10);
+
         $kodeBaru = $this->generateKode();
         $regions = region::all();
 
-        return view('master.kitchen', compact('kitchens', 'kodeBaru', 'regions'));
+        return view('master.kitchen', compact('kitchens', 'kodeBaru', 'regions', 'canCreateDelete'));
     }
 
     private function generateKode()
@@ -44,6 +46,10 @@ class KitchenController extends Controller
     // Simpan data dapur baru
     public function store(Request $request)
     {
+        if (!Auth::user()->hasRole('superadmin')) {
+            abort(403, 'Akses ditolak. Hanya Superadmin yang boleh menambah data.');
+        }
+
         $request->validate([
             'nama' => 'required',
             'alamat' => 'required',
@@ -80,6 +86,10 @@ class KitchenController extends Controller
     // Update data dapur
     public function update(Request $request, $id)
     {
+        if (!Auth::user()->hasAnyRole(['superadmin', 'operatorkoperasi'])) {
+            abort(403, 'Anda tidak memiliki akses untuk mengedit data.');
+        }
+
         $request->validate([
             'nama' => 'required',
             'alamat' => 'required',
@@ -107,6 +117,11 @@ class KitchenController extends Controller
     // Hapus data dapur
     public function destroy($id)
     {
+
+        if (!Auth::user()->hasRole('superadmin')) {
+            abort(403, 'Akses ditolak. Hanya Superadmin yang boleh menghapus data.');
+        }
+
         $kitchen = Kitchen::findOrFail($id);
         $kitchen->delete();
 

@@ -12,17 +12,13 @@
 
 @section('content')
     {{-- BUTTON ADD --}}
+    @if($canManage)
     <x-button-add 
         idTarget="#modalAddRegion"
         text="Tambah Region"
     />
+    @endif
 
-    {{-- ALERT SUCCESS --}}
-    {{-- @if(session('success'))
-        <div class="alert alert-success mt-2">
-            {{ session('success') }}
-        </div>
-    @endif --}}
     <x-notification-pop-up />
 
     {{-- TABLE --}}
@@ -31,14 +27,16 @@
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>No</th>
+                        <th width="5%">No</th>
                         <th>Kode</th>
                         <th>Nama Region</th>
                         <th>Penanggung Jawab</th>
                         {{-- <th>Region</th>
                         <th>Kontak Person</th>
                         <th>Nomor</th> --}}
+                        @if($canManage)
                         <th>Aksi</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
@@ -48,6 +46,7 @@
                             <td>{{ $region->kode_region }}</td>
                             <td>{{ $region->nama_region }}</td>
                             <td>{{ $region->penanggung_jawab }}</td>
+                            @if($canManage)
                             <td>
                                 <button 
                                 class="btn btn-warning btn-sm"
@@ -68,6 +67,7 @@
                                 />
 
                             </td>
+                            @endif
                         </tr>
                     @empty
                         <tr>

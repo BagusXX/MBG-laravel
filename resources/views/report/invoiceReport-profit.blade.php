@@ -146,10 +146,28 @@
 <div class="invoice-container">
 
     {{-- HEADER --}}
-    <div class="header">
-        <h1>LAPORAN</h1>
-        <h1>SELISIH PENJUALAN</h1>
-    </div>
+    <table class="layout-table" style="border-bottom: 3px double #000; margin-bottom: 20px;">
+            <tr>
+                <td style="width: 20%; text-align: center; vertical-align: top; margin-bottom: 50px;">
+                    {{-- Ganti path logo_bgn_mbg.png sesuai lokasi file Anda --}}
+                    <img src="{{('icon_mbg.png') }}" alt="Logo BGN" style="height: 100px; width: 100px; object-fit: contain; margin-bottom: 20px;">
+                </td>
+
+                <td style="width: 60%; text-align: center; vertical-align: middle;">
+                    <h1 style="margin: 0; text-transform: uppercase;">Laporan Selisih</h1>
+                    <h1 style="margin: 0; text-transform: uppercase;">Bahan Baku Dapur</h1>
+                </td>
+
+                <td style="width: 20%; text-align: center; vertical-align: top;">
+                    @if($submission->supplier && $submission->supplier->gambar)
+                        <img src="{{ public_path('storage/' . $submission->supplier->gambar) }}" alt=" " style="height: 100px; width: 100px; object-fit: contain;">
+                    @else
+                        {{-- Placeholder jika tidak ada gambar --}}
+                        <div style="height: 80px; width: 80px; display: inline-block;"></div>
+                    @endif
+                </td>
+            </tr>
+        </table>
 
     {{-- INFO --}}
     <div class="invoice-info">

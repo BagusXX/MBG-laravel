@@ -11,11 +11,7 @@
 @endsection
 
 @section('content')
-    {{-- BUTTON ADD --}}
-    {{-- <x-button-add 
-        idTarget="#modalAddSupplier"
-        text="Tambah Supplier"
-    /> --}}
+    
     @if($canManage)
         <x-button-add 
             idTarget="#modalAddSupplier"
@@ -23,12 +19,6 @@
         />
     @endif
 
-    {{-- ALERT SUCCESS --}}
-    {{-- @if(session('success'))
-        <div class="alert alert-success mt-2">
-            {{ session('success') }}
-        </div>
-    @endif --}}
     <x-notification-pop-up />
 
     {{-- TABLE --}}
@@ -41,9 +31,10 @@
                         <th>Kode</th>
                         <th>Supplier</th>
                         <th>Alamat</th>
-                        <th>Dapur</th>
+                        <th width="150px">Dapur</th>
                         <th>Kontak Person</th>
                         <th>Nomor</th>
+                        <th>Akun Bank</th>
                         <th>Logo Supplier</th>
                         @if($canManage)
                         <th>Aksi</th>
@@ -64,6 +55,7 @@
                             </td>
                             <td>{{ $supplier->kontak }}</td>
                             <td>{{ $supplier->nomor }}</td>
+                            <td>{{ $supplier->bank }}</td>
                             <td class="text-center">
                                 @if($supplier->gambar)
                                     <img 
@@ -193,6 +185,7 @@
         </div>
 
     </x-modal-form>
+    
 
     {{-- MODAL EDIT SUPPLIER --}}
     <x-modal-form
