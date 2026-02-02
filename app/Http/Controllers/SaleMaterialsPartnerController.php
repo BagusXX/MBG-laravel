@@ -92,36 +92,42 @@ class SaleMaterialsPartnerController extends Controller
             'details.recipeBahanBaku.bahan_baku.unit',
             'details.bahan_baku.unit'
         ])
-            ->whereNotNull('parent_id')
-            ->where(function ($q) {
-                $q->where('status', 'diproses')
-                    ->orWhere('tipe', 'disetujui');
-            })
-            ->latest('id');
+        ->whereNotNull('parent_id')
+        ->where(function ($q) use ($request) {
+            $q->where(function ($q2) {
+                $q2->where('status', 'diproses')
+                ->orWhere('tipe', 'disetujui');
+            });
 
-        if ($request->filled('from_date')) {
-            $query->whereDate('tanggal', '>=', $request->from_date);
-        }
+            $q->whereHas('parentSubmission', function ($ps) use ($request) {
 
-        if ($request->filled('to_date')) {
-            $query->whereDate('tanggal', '<=', $request->to_date);
-        }
+                if ($request->filled('from_date')) {
+                    $ps->whereDate('tanggal', '>=', $request->from_date);
+                }
 
-        if ($request->filled('kitchen_id')) {
-            $query->where('kitchen_id', $request->kitchen_id);
-        }
-        if ($request->filled('supplier_id')) {
-            $query->where('supplier_id', $request->supplier_id);
-        }
-        if ($request->filled('menu_id')) {
-            $selectedMenu = Menu::find($request->menu_id);
+                if ($request->filled('to_date')) {
+                    $ps->whereDate('tanggal', '<=', $request->to_date);
+                }
 
-            if ($selectedMenu) {
-                $query->whereHas('menu', function ($q) use ($selectedMenu) {
-                    $q->where('nama', $selectedMenu->nama);
-                });
+            });
+
+            if ($request->filled('kitchen_id')) {
+                $q->where('kitchen_id', $request->kitchen_id);
             }
-        }
+            if ($request->filled('supplier_id')) {
+                $q->where('supplier_id', $request->supplier_id);
+            }
+            if ($request->filled('menu_id')) {
+                $selectedMenu = Menu::find($request->menu_id);
+
+                if ($selectedMenu) {
+                    $q->whereHas('menu', function ($mq) use ($selectedMenu) {
+                        $mq->where('nama', $selectedMenu->nama);
+                    });
+                }
+            }
+        })
+        ->latest('id');
 
         $submissions = $query->paginate(10)->withQueryString();
 

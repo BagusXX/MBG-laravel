@@ -32,16 +32,18 @@ class ReportSalesPartnerController extends Controller
             $q->whereNotNull('parent_id');
         });
 
-        if ($request->filled('from_date')) {
-            $query->whereHas('submission', fn ($q) =>
-                $q->whereDate('tanggal', '>=', $request->from_date)
-            );
-        }
+        if ($request->filled('from_date') || $request->filled('to_date')) {
+            $query->whereHas('submission.parentSubmission', function ($ps) use ($request) {
 
-        if ($request->filled('to_date')) {
-            $query->whereHas('submission', fn ($q) =>
-                $q->whereDate('tanggal', '<=', $request->to_date)
-            );
+                if ($request->filled('from_date')) {
+                    $ps->whereDate('tanggal', '>=', $request->from_date);
+                }
+
+                if ($request->filled('to_date')) {
+                    $ps->whereDate('tanggal', '<=', $request->to_date);
+                }
+
+            });
         }
 
         if ($request->filled('kitchen_id')) {

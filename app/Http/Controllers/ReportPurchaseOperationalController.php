@@ -24,34 +24,26 @@ class ReportPurchaseOperationalController extends Controller
             'submission.parentSubmission' // Opsional: jika butuh info dari parent aslinya
         ]);
 
-        // 2. FILTER PENTING:
-        // Kita hanya mau mengambil detail dari submission yang MERUPAKAN CHILD (parent_id tidak null)
-        // Dan statusnya 'disetujui' (artinya ini adalah PO yang valid)
         $query->whereHas('submission', function ($q) {
             $q->whereNotNull('parent_id') // Pastikan ini baris Child
                 ->where('tipe', 'disetujui'); // Pastikan tipenya approval
-
-            // Opsional: Jika Anda hanya ingin laporan muncul kalau Parent-nya sudah status 'selesai'
-            // $q->whereHas('parent', fn($p) => $p->where('status', 'selesai'));
         });
 
         // --- FILTERING INPUT USER ---
 
         // Filter Tanggal (Gunakan tanggal approval/child)
-        if ($request->filled('from_date')) {
-            $query->whereHas(
-                'submission',
-                fn($q) =>
-                $q->whereDate('tanggal', '>=', $request->from_date)
-            );
-        }
+        if ($request->filled('from_date') || $request->filled('to_date')) {
+            $query->whereHas('submission.parentSubmission', function ($ps) use ($request) {
 
-        if ($request->filled('to_date')) {
-            $query->whereHas(
-                'submission',
-                fn($q) =>
-                $q->whereDate('tanggal', '<=', $request->to_date)
-            );
+                if ($request->filled('from_date')) {
+                    $ps->whereDate('tanggal', '>=', $request->from_date);
+                }
+
+                if ($request->filled('to_date')) {
+                    $ps->whereDate('tanggal', '<=', $request->to_date);
+                }
+
+            });
         }
 
         // Filter Dapur

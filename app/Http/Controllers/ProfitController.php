@@ -22,26 +22,23 @@ class ProfitController extends Controller
             'bahan_baku',
             'submission.supplier',
             'recipeBahanBaku.bahan_baku.unit'
-        ]);
-
-        $query->whereHas('submission', function ($q) {
+        ])
+        ->whereHas('submission', function ($q) {
             $q->whereNotNull('parent_id');
         });
 
-        if ($request->filled('from_date')) {
-            $query->whereHas(
-                'submission',
-                fn($q) =>
-                $q->whereDate('tanggal', '>=', $request->from_date)
-            );
-        }
+        if ($request->filled('from_date') || $request->filled('to_date')) {
+            $query->whereHas('submission.parentSubmission', function ($q) use ($request) {
 
-        if ($request->filled('to_date')) {
-            $query->whereHas(
-                'submission',
-                fn($q) =>
-                $q->whereDate('tanggal', '<=', $request->to_date)
-            );
+                if ($request->filled('from_date')) {
+                    $q->whereDate('tanggal', '>=', $request->from_date);
+                }
+
+                if ($request->filled('to_date')) {
+                    $q->whereDate('tanggal', '<=', $request->to_date);
+                }
+
+            });
         }
 
         if ($request->filled('kitchen_id')) {
