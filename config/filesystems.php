@@ -40,8 +40,9 @@ return [
 
         'public' => [
             'driver' => 'local',
-            'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
+            // 'root' => storage_path('app/public'),
+            'root' => base_path('../public_html/galeri'),
+            'url' => env('APP_URL').'/galeri',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
