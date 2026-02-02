@@ -125,11 +125,12 @@ Route::middleware(['auth', 'disetujui'])->group(function () {
         ->name('master.bank.')
         ->controller(BankAccountController::class)
         ->group(function () {
+
             Route::get('/', 'index')->middleware('permission:master.bank.view')->name('view');
             Route::post('/', 'store')->middleware('permission:master.bank.create')->name('store');
-            Route::get('/detail/{id}', 'show')->middleware('permission:master.bank.view')->name('detail');
-            Route::patch('/{id}', 'update')->middleware('permission:master.bank.update')->name('update');
-            Route::delete('/{id}', 'destroy')->middleware('permission:master.bank.delete')->name('delete');
+            Route::get('/{id}', 'show')->middleware('permission:master.bank.view')->name('show');
+            Route::match(['put', 'patch'], '/{id}', 'update')->middleware('permission:master.bank.update')->name('update');
+            Route::delete('/{id}', 'destroy')->middleware('permission:master.bank.delete')->name('destroy');
         });
 
 
