@@ -7,14 +7,14 @@
 @endsection
 
 @section('content_header')
-    <h1>Penjualan Bahan Baku</h1>
+    <h1>Laporan Selisih Penjualan</h1>
 @endsection
 
 @section('content')
     <x-notification-pop-up />
     <div class="card mb-3">
         <div class="card-body">
-            <form action="{{ route('transaction.sale-materials-kitchen.index') }}" method="GET">
+            <form action="{{ route('report.sales-profit') }}" method="GET">
                 <div class="row align-items-end">
                     {{-- FILTER TANGGAL "DARI" --}}
                     <div class="col-md-2">
@@ -66,7 +66,7 @@
                         <button type="submit" class="btn btn-primary mr-2">
                             <i class="fa fa-search"></i> Filter
                         </button>
-                        <a href="{{ route('transaction.sale-materials-kitchen.index') }}" class="btn btn-danger">
+                        <a href="{{ route('report.sales-profit') }}" class="btn btn-danger">
                             <i class="fa fa-undo"></i> Reset
                         </a>
                         {{-- <a href="{{ route('report.sales-kitchen.invoice', request()->all()) }}"
@@ -91,6 +91,7 @@
                         <th>Menu</th>
                         <th>Porsi</th>
                         <th>Supplier</th>
+                        <th>Total Selisih</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -104,6 +105,7 @@
                             <td>{{ $submission->menu ? $submission->menu->nama : '-' }}</td>
                             <td>{{ $submission->porsi ?? '-' }}</td>
                             <td>{{ $submission->supplier ? $submission->supplier->nama : '-' }}</td>
+                            <td>Rp{{ number_format($submission->details->sum('selisih'), 0, ',', '.') }}</td>
                             <td>
                                 <button type="button" class="btn btn-primary btn-sm" data-toggle="modal"
                                     data-target="#modalDetailSales{{ $submission->id }}">
@@ -183,8 +185,9 @@
                                 <th>Bahan Baku</th>
                                 <th>Qty Digunakan</th>
                                 <th>Satuan</th>
-                                <th>Harga Dapur</th>
-                                <th>Subtotal Dapur</th>
+                                <th>Total Dapur</th>
+                                <th>Total Mitra</th>
+                                <th>Selisih</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -193,8 +196,9 @@
                                     <td>{{ $detail->recipeBahanBaku?->bahan_baku?->nama ?? $detail->bahan_baku?->nama ?? '-' }}</td>
                                     <td>{{ number_format($detail->display_qty, 2, ',', '.') }}</td>
                                     <td>{{ $detail->display_unit }}</td>
-                                    <td>Rp {{ number_format($detail->harga_dapur, 0, ',', '.') }}</td>
                                     <td>Rp {{ number_format($detail->subtotal_dapur, 0, ',', '.') }}</td>
+                                    <td>Rp {{ number_format($detail->subtotal_mitra, 0, ',', '.') }}</td>
+                                    <td>Rp {{ number_format($detail->selisih, 0, ',', '.') }}</td>
                                 </tr>
                             @empty
                                 <tr>
@@ -204,8 +208,8 @@
                         </tbody>
                         <tfoot>
                             <tr>
-                                <th colspan="4" class="text-right">Total :</th>
-                                <th>Rp{{ number_format($submission->details->sum('subtotal_dapur'), 0, ',', '.') }}</th>
+                                <th colspan="5" class="text-right">Total Selisih :</th>
+                                <th>Rp{{ number_format($submission->details->sum('selisih'), 0, ',', '.') }}</th>
                             </tr>
                         </tfoot>
                     </table>
@@ -233,7 +237,7 @@
                     return;
                 }
 
-                let url = "{{ route('transaction.sale-materials-kitchen.invoice', ':kode') }}"
+                let url = "{{ route('report.sales-profit.printInvoice', ':kode') }}"
                     .replace(':kode', kode);
                 url = url.replace(':kode', kode);
 

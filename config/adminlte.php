@@ -516,7 +516,14 @@ return [
                 ],
 
                 [
-                    'text' => 'Laporan Selisih',
+                    'text' => 'Selisih Penjualan',
+                    'icon' => 'fas fa-file-signature',
+                    'route' => 'report.sales-profit',
+                    'can'   => 'report.sales-profit.view',
+                ],
+
+                [
+                    'text' => 'Selisih Bahan Baku',
                     'icon' => 'fas fa-file-signature',
                     'route' => 'report.profit',
                     'can'   => 'report.profit.view',
