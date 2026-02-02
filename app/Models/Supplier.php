@@ -25,6 +25,6 @@ class Supplier extends Model
     }
 
     public function bank_account(){
-        return $this->belongsTo(BankAccount::class);
+        return $this->hasMany(BankAccount::class,);
     }
 }
