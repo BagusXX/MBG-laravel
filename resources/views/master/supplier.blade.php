@@ -31,9 +31,10 @@
                         <th>Kode</th>
                         <th>Supplier</th>
                         <th>Alamat</th>
-                        <th>Dapur</th>
+                        <th width="150px">Dapur</th>
                         <th>Kontak Person</th>
                         <th>Nomor</th>
+                        <th>Akun Bank</th>
                         <th>Logo Supplier</th>
                         @if($canManage)
                         <th>Aksi</th>
@@ -54,6 +55,7 @@
                             </td>
                             <td>{{ $supplier->kontak }}</td>
                             <td>{{ $supplier->nomor }}</td>
+                            <td>{{ $supplier->bank }}</td>
                             <td class="text-center">
                                 @if($supplier->gambar)
                                     <img 
