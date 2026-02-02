@@ -141,7 +141,14 @@
 
             <div class="form-group mt-2">
                 <label>No. Rekening</label>
-                <input id="editAccountNumber" type="text" class="form-control" name="account_number" required />
+                <input id="editAccountNumber" type="text" 
+                    class="form-control @error('account_number') is-invalid @enderror" 
+                    name="account_number" 
+                    value="{{ old('account_number') }}"
+                    required />
+                @error('account_number')
+                    <span class="invalid-feedback">{{ $message }}</span>
+                @enderror
             </div>
         </x-modal-form>
 
@@ -151,41 +158,107 @@
 
 @endsection
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 @section('js')
     @if(isset($canManage) && $canManage)
         <script>
+            
             document.addEventListener('DOMContentLoaded', function () {
-                @if($errors->has('account_number'))
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal Menyimpan!',
-                        text: '{{ $errors->first("account_number") }}', // Mengambil pesan custom dari controller
-                        confirmButtonColor: '#d33',
-                        confirmButtonText: 'Tutup'
-                    }).then((result) => {
-                        // Opsi Tambahan: Buka kembali modal input agar user bisa langsung ganti
-                        // Sesuaikan ID modalnya (Tambah atau Edit)
-                        // Logika sederhana: jika ada error, buka modal tambah (atau sesuaikan kebutuhan)
-                        $('#modalAddBank').modal('show');
+                console.log("JS Loaded"); // Cek ini di Console F12
+
+                // Fungsi Pengecekan
+            async function isAccountDuplicate(accountNumber, currentId = null) {
+                if (!accountNumber) return false;
+                
+                // Tambahkan URL param agar lebih jelas
+                const url = `{{ route('master.bank.check') }}?account_number=${accountNumber}${currentId ? '&id=' + currentId : ''}`;
+                
+                try {
+                    const response = await fetch(url, {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Content-Type': 'application/json'
+                        }
                     });
-                @endif
-                document.querySelectorAll('.btnEditBank').forEach(btn => {
-                    btn.addEventListener('click', function () {
-                        const id = this.dataset.id;
 
-                        // Ambil data dari atribut tombol
-                        document.getElementById('editSuppliersId').value = this.dataset.suppliers_id;
-                        document.getElementById('editBankName').value = this.dataset.bank_name;
-                        document.getElementById('editHolderName').value = this.dataset.account_holder_name;
-                        document.getElementById('editAccountNumber').value = this.dataset.account_number;
+                    if (!response.ok) {
+                        // Jika masih error 500, kita bisa baca pesan errornya di console
+                        const errData = await response.json();
+                        console.error("Server Error Detail:", errData);
+                        return false;
+                    }
 
-                        // Update action URL untuk form Edit
-                        // Karena prefix URL tidak berubah (/dashboard/master/bank), JS ini tetap aman
-                        document.querySelector('#modalEditBank form').action =
-                            "{{ url('/dashboard/master/bank') }}/" + id;
+                    const data = await response.json();
+                    return data.exists;
+                } catch (e) {
+                    console.error("Fetch error", e);
+                    return false;
+                }
+            }
+
+                // 1. PENANGANAN MODAL ADD
+                const modalAdd = document.getElementById('modalAddBank');
+                if (modalAdd) {
+                    const formAdd = modalAdd.querySelector('form');
+                    const inputAdd = modalAdd.querySelector('input[name="account_number"]');
+
+                    formAdd.addEventListener('submit', async function (e) {
+                        e.preventDefault(); // STOP FORM REFRESH
+                        console.log("Checking Add Account...");
+
+                        const duplicate = await isAccountDuplicate(inputAdd.value);
+                        if (duplicate) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Oops...',
+                                text: 'Nomor rekening ini sudah terdaftar!',
+                                confirmButtonColor: '#3085d6'
+                            });
+                        } else {
+                            this.submit(); // Jalankan submit jika aman
+                        }
                     });
-                });
+                }
 
+                // 2. PENANGANAN MODAL EDIT
+                const modalEdit = document.getElementById('modalEditBank');
+                let currentEditId = null;
+
+                if (modalEdit) {
+                    const formEdit = modalEdit.querySelector('form');
+                    const inputEdit = document.getElementById('editAccountNumber');
+
+                    // Listener untuk tombol edit di tabel
+                    document.querySelectorAll('.btnEditBank').forEach(btn => {
+                        btn.addEventListener('click', function () {
+                            currentEditId = this.dataset.id;
+                            document.getElementById('editSuppliersId').value = this.dataset.suppliers_id;
+                            document.getElementById('editBankName').value = this.dataset.bank_name;
+                            document.getElementById('editHolderName').value = this.dataset.account_holder_name;
+                            inputEdit.value = this.dataset.account_number;
+                            
+                            formEdit.action = "{{ url('/dashboard/master/bank') }}/" + currentEditId;
+                        });
+                    });
+
+                    formEdit.addEventListener('submit', async function (e) {
+                        e.preventDefault(); // STOP FORM REFRESH
+                        console.log("Checking Edit Account...");
+
+                        const duplicate = await isAccountDuplicate(inputEdit.value, currentEditId);
+                        if (duplicate) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Nomor Rekening Sama',
+                                text: 'Nomor rekening sudah digunakan oleh supplier lain.',
+                                confirmButtonColor: '#d33'
+                            });
+                        } else {
+                            this.submit();
+                        }
+                    });
+                }
             });
         </script>
     @endif

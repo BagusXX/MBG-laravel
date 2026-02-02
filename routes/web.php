@@ -126,6 +126,7 @@ Route::middleware(['auth', 'disetujui'])->group(function () {
         ->controller(BankAccountController::class)
         ->group(function () {
 
+            Route::get('/check-account', 'checkAccountNumber')->name('check');
             Route::get('/', 'index')->middleware('permission:master.bank.view')->name('view');
             Route::post('/', 'store')->middleware('permission:master.bank.create')->name('store');
             Route::get('/{id}', 'show')->middleware('permission:master.bank.view')->name('show');

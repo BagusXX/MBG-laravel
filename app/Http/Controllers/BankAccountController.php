@@ -57,7 +57,7 @@ class BankAccountController extends Controller
             'bank_name' => 'required|string|max:100',
             'account_holder_name' => 'required|string|max:100',
             'account_number' => 'required|string|max:50|unique:bank_accounts,account_number',
-        ],[
+        ], [
             'account_number.unique' => 'Nomor rekening ini sudah terdaftar di sistem! Silakan cek kembali.',
         ]);
 
@@ -95,7 +95,8 @@ class BankAccountController extends Controller
                 'string',
                 'max:50',
                 Rule::unique('bank_accounts')->ignore($bankAccount->id)
-            ],[
+            ],
+            [
                 'account_number.unique' => 'Nomor rekening ini sudah terdaftar di sistem! Silakan cek kembali.',
             ]
         ]);
@@ -121,5 +122,21 @@ class BankAccountController extends Controller
         $bankAccount->delete();
 
         return back()->with('success', 'Rekening bank berhasil dihapus.');
+    }
+
+    public function checkAccountNumber(Request $request)
+    {
+        try {
+            $exists = BankAccount::where('account_number', $request->account_number)
+                ->when($request->id, function ($q) use ($request) {
+                    return $q->where('id', '!=', $request->id);
+                })
+                ->exists();
+
+            return response()->json(['exists' => $exists]);
+        } catch (\Exception $e) {
+            // Ini akan membantu Anda melihat error di log jika masih 500
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 }
