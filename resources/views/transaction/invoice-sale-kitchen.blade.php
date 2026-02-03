@@ -297,7 +297,22 @@
         </table>
         <table class="table-footer" style="width: 100%; border-top: 2px solid #333; margin-top: 20px;">
             <tr>
-                <td style="width: 50%;"></td>
+                <td style="width: 30%;">
+                    <div style="font-size: 13px; line-height: 1.6;">
+                        <p style="margin: 0; font-weight: bold;">PEMBAYARAN :</p>
+
+                        @forelse($submission->supplier->bank_account as $bank)
+                            <div style="margin-bottom: 10px;">
+                                {{-- <p style="margin: 0;">{{ strtoupper($submission->supplier->nama) }}</p> --}}
+                                <p style="margin: 0;">BANK {{ $bank->bank_name }}</p>
+                                <p style="margin: 0;">A.N. {{ strtoupper( $bank->account_holder_name ?? $submission->supplier->nama) }}</p>
+                                <p style="margin: 0;">{{ $bank->account_number }}</p>
+                            </div>
+                        @empty
+                            <p style="margin: 0; color: #888;">Data bank tidak tersedia</p>
+                        @endforelse
+                    </div>
+                </td>
 
                 <td style="width: 50%; text-align: right; vertical-align: middle; padding-top: 10px">
 
