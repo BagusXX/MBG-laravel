@@ -18,6 +18,7 @@ class MenuController extends Controller
         $kitchens = $user->kitchens()->get();
 
         $query = Menu::with('kitchen')
+            ->withCount('recipes')
             ->whereIn('kitchen_id', $kitchens->pluck('id'));
 
         if ($request->filled('search')) {
@@ -140,12 +141,18 @@ class MenuController extends Controller
         }
 
 
+
+        $menu = Menu::findOrFail($id);
+
+        if ($menu->recipes()->exists()) {
+            return back()->withErrors('Menu tidak bisa diubah karena sudah memiliki resep.');
+        }
+
         $request->validate([
             'nama' => 'required|string|max:255',
             'kitchen_id' => 'required|exists:kitchens,id',
         ]);
 
-        $menu = Menu::findOrFail($id);
 
         // jika dapur berubah → generate ulang kode
         if ($menu->kitchen_id != $request->kitchen_id) {
@@ -172,6 +179,11 @@ class MenuController extends Controller
         }
 
         $menu = Menu::findOrFail($id);
+
+        if ($menu->recipes()->exists()) {
+            return back()->withErrors('Menu tidak bisa dihapus karena sudah terdaftar dalam resep.');
+        }
+
         if (!auth()->user()->kitchens()->where('kitchens.id', $menu->kitchen_id)->exists()) {
             abort(403);
         }

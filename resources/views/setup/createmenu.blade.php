@@ -53,7 +53,7 @@
                         @foreach ($recipesByKitchen as $kitchenId => $ingredients)
                             @php
                                 $kitchen = $ingredients->first()->kitchen;
-                                // Perhitungan total harga dihapus
+                                $isUsedInSubmission = $ingredients->sum('submission_details_count') > 0;
                             @endphp
                             <tr>
                                 <td>{{ $no++ }}</td>
@@ -70,15 +70,23 @@
 
                                     {{-- Tombol Edit --}}
                                     <button type="button" class="btn btn-warning btn-sm btnEditRecipe"
-                                        data-menu="{{ $menu->id }}" data-kitchen="{{ $kitchenId }}"
-                                        data-toggle="modal" data-target="#modalEditRecipe">
+                                        data-menu="{{ $menu->id }}" 
+                                        data-kitchen="{{ $kitchenId }}"
+                                        data-is-used="{{ $isUsedInSubmission ? 'true' : 'false' }}" {{-- Tambahkan data attribute --}}
+                                        data-toggle="modal" 
+                                        data-target="#modalEditRecipe">
                                         Edit
                                     </button>
 
-                                    {{-- Tombol Delete --}}
-                                    <x-button-delete idTarget="#modalDeleteRecipe" formId="formDeleteRecipe"
-                                        action="{{ route('recipe.destroy', ['menu' => $menu->id, 'kitchen' => $kitchenId]) }}"
-                                        text="Hapus" />
+                                    @if($isUsedInSubmission)
+                                        <button type="button" class="btn btn-danger btn-sm" onclick="alert('Resep tidak bisa dihapus karena sudah digunakan dalam data Submission.')">
+                                        <i class="fas fa-lock"></i> Hapus
+                                        </button>
+                                    @else
+                                        <x-button-delete idTarget="#modalDeleteRecipe" formId="formDeleteRecipe"
+                                            action="{{ route('recipe.destroy', ['menu' => $menu->id, 'kitchen' => $kitchenId]) }}"
+                                            text="Hapus" />
+                                    @endif
                                     
                                     <button type="button" class="btn btn-info btn-sm btnDuplicateRecipe"
                                         data-menu="{{ $menu->id }}" 
@@ -467,20 +475,33 @@
                 btn.addEventListener('click', function() {
                     const menuId = this.dataset.menu;
                     const kitchenId = this.dataset.kitchen;
+                    const isUsed = this.dataset.isUsed === 'true';
+                    
+                    const modal = document.getElementById('modalEditRecipe');
+                    const form = modal.querySelector('form');
+                    const wrapper = document.getElementById('bahan-wrapper-edit');
+                    const btnSubmit = modal.querySelector('button[type="submit"]');
+                    const btnAddBahan = document.getElementById('add-bahan-edit');
 
-                    // Ambil nama menu/dapur dari baris tabel
+                    if (isUsed) {
+                        alert('Perhatian: Resep ini sudah digunakan dalam data Submission. Anda tidak dapat mengubah komposisi bahan untuk menjaga validitas data laporan.');
+                        
+                        // Sembunyikan tombol Simpan dan tombol Tambah Bahan
+                        if (btnSubmit) btnSubmit.style.display = 'none';
+                        if (btnAddBahan) btnAddBahan.style.display = 'none';
+                    } else {
+                        // Tampilkan kembali jika resep sebelumnya terkunci
+                        if (btnSubmit) btnSubmit.style.display = 'block';
+                        if (btnAddBahan) btnAddBahan.style.display = 'block';
+                    }
+
+                     // Ambil nama menu/dapur dari baris tabel
                     const row = this.closest('tr');
                     const kitchenName = row.children[1].textContent;
                     const menuName = row.children[2].textContent;
 
-                    const modal = document.getElementById('modalEditRecipe');
-                    const form = modal.querySelector('form');
-                    const wrapper = document.getElementById('bahan-wrapper-edit');
-
                     // Set Action URL
                     form.action = `/dashboard/setup/racik-menu/${menuId}/${kitchenId}`;
-
-                    // Set Hidden & Display Values
                     document.getElementById('edit_kitchen_id').value = kitchenId;
                     document.getElementById('edit_menu_id').value = menuId;
                     document.getElementById('display_kitchen_name').value = kitchenName;
@@ -506,6 +527,18 @@
                                 const bahanHtml = generateBahanRowHtml(item);
                                 wrapper.insertAdjacentHTML('beforeend', bahanHtml);
                             });
+
+                            if (isUsed) {
+                                wrapper.querySelectorAll('.remove-bahan').forEach(delBtn => {
+                                    delBtn.disabled = true;
+                                    delBtn.style.opacity = '0.5';
+                                });
+                                wrapper.querySelectorAll('input, select').forEach(input => {
+                                    input.readOnly = true;
+                                    input.style.pointerEvents = 'none';
+                                    input.classList.add('bg-light');
+                                });
+                            }
                         })
                         .catch(err => {
                             console.error(err);

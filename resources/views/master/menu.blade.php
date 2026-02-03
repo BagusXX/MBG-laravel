@@ -13,35 +13,33 @@
 @section('content')
     {{-- BUTTON ADD --}}
     @if($canManage)
-    <div class="row mb-3">
-        <div class="col-md-6">
-            <x-button-add
-                    idTarget="#modalAddMenu"
-                    text="Tambah Nama Menu"
-                />
-        </div>
-        <div class="col-md-6">
-            <form action="{{ route('master.menu.index') }}" method="GET">
-            <div class="input-group">
-                <input type="text" name="search" class="form-control" placeholder="Cari nama menu atau kode..." value="{{ request('search') }}">
-                <div class="input-group-append">
-                    <button class="btn btn-primary" type="submit">
-                        <i class="fa fa-search"></i>
-                    </button>
-                    @if(request('search'))
-                        <a href="{{ route('master.menu.index') }}" class="btn btn-danger">
-                            <i class="fa fa-times"></i>
-                        </a>
-                    @endif
-                </div>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <x-button-add idTarget="#modalAddMenu" text="Tambah Nama Menu" />
             </div>
-            </form>
+            <div class="col-md-6">
+                <form action="{{ route('master.menu.index') }}" method="GET">
+                    <div class="input-group">
+                        <input type="text" name="search" class="form-control" placeholder="Cari nama menu atau kode..."
+                            value="{{ request('search') }}">
+                        <div class="input-group-append">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            @if(request('search'))
+                                <a href="{{ route('master.menu.index') }}" class="btn btn-danger">
+                                    <i class="fa fa-times"></i>
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
     @endif
-    
+
     <x-notification-pop-up />
-    
+
     {{-- TABLE --}}
     <div class="card mt-2">
         <div class="card-body">
@@ -53,7 +51,7 @@
                         <th>Dapur</th>
                         <th>Nama Menu</th>
                         @if($canManage)
-                        <th>Aksi</th>
+                            <th>Aksi</th>
                         @endif
                     </tr>
                 </thead>
@@ -62,32 +60,29 @@
                         <tr>
                             <td>{{ $items->firstItem() + $index }}</td>
                             <td>{{ $item->kode }}</td> {{-- Kode menu --}}
-                            <td>{{ $item->kitchen->nama ?? '-' }}</td> 
+                            <td>{{ $item->kitchen->nama ?? '-' }}</td>
                             <td>{{ $item->nama }}</td>
                             @if($canManage)
-                            <td>
-                                <button
-                                    type="button"
-                                    class="btn btn-warning btn-sm btnEditMenu"
-                                    data-id="{{ $item->id }}"
-                                    data-kode="{{ $item->kode }}"
-                                    data-nama="{{ $item->nama }}"
-                                    data-dapur-id="{{ $item->kitchen_id }}"
-                                    data-old-kode="{{ $item->kode }}"
-                                    data-old-dapur-id="{{ $item->kitchen_id }}"
-                                    data-toggle="modal"
-                                    data-target="#modalEditMenu"
-
-                                >
-                                    Edit
-                                </button>
-                                <x-button-delete 
-                                    idTarget="#modalDeleteMenu"
-                                    formId="formDeleteMenu"
-                                    action="{{ route('master.menu.destroy', $item->id) }}"
-                                    text="Hapus"
-                                />
-                            </td>
+                                <td>
+                                    <button type="button" class="btn btn-warning btn-sm btnEditMenu" data-id="{{ $item->id }}"
+                                        data-kode="{{ $item->kode }}" data-nama="{{ $item->nama }}"
+                                        data-dapur-id="{{ $item->kitchen_id }}" data-old-kode="{{ $item->kode }}"
+                                        data-old-dapur-id="{{ $item->kitchen_id }}"
+                                        data-is-used="{{ $item->recipes_count > 0 ? 'true' : 'false' }}" data-toggle="modal"
+                                        data-target="#modalEditMenu">
+                                        Edit
+                                    </button>
+                                    @if($item->recipes_count > 0)
+                                        <button class="btn btn-danger btn-sm"
+                                            onclick="alert('Menu tidak bisa dihapus karena sudah memiliki resep.')"> 
+                                            <i class="fa fa-lock"></i>
+                                            <span > Hapus</span>
+                                        </button>
+                                    @else
+                                            <x-button-delete idTarget="#modalDeleteMenu" formId="formDeleteMenu"
+                                                action="{{ route('master.menu.destroy', $item->id) }}" text="Hapus" />
+                                        @endif
+                                </td>
                             @endif
                         </tr>
                     @empty
@@ -104,20 +99,15 @@
     </div>
 
     {{-- MODAL ADD MENU --}}
-    <x-modal-form
-        id="modalAddMenu"
-        title="Tambah Nama Menu"
-        action="{{ route('master.menu.store') }}"
-        submitText="Simpan"
-    >
+    <x-modal-form id="modalAddMenu" title="Tambah Nama Menu" action="{{ route('master.menu.store') }}" submitText="Simpan">
         <div class="form-group">
             <label>Kode</label>
-            <input id="kode_menu" type="text" class="form-control" name="kode" readonly required/>
+            <input id="kode_menu" type="text" class="form-control" name="kode" readonly required />
         </div>
 
         <div class="form-group">
             <label>Nama Menu</label>
-            <input type="text" placeholder="Mie Ayam" class="form-control" name="nama" required/>
+            <input type="text" placeholder="Mie Ayam" class="form-control" name="nama" required />
         </div>
 
         <div class="form-group mt-2">
@@ -132,34 +122,17 @@
     </x-modal-form>
 
     {{-- MODAL EDIT --}}
-    <x-modal-form
-        id="modalEditMenu"
-        title="Edit Menu"
-        action=""
-        submitText="Update"
-    >
+    <x-modal-form id="modalEditMenu" title="Edit Menu" action="" submitText="Update">
         @method('PUT')
 
         <div class="form-group">
             <label>Kode</label>
-            <input
-                id="editKodeMenu"
-                type="text" 
-                class="form-control"
-                name="kode"
-                readonly
-                required
-            />
+            <input id="editKodeMenu" type="text" class="form-control" name="kode" readonly required />
         </div>
 
         <div class="form-group">
             <label>Nama Menu</label>
-            <input
-                id="editMenu"
-                type="text" 
-                class="form-control" 
-                name="nama" 
-                required/>
+            <input id="editMenu" type="text" class="form-control" name="nama" required />
         </div>
 
         <div class="form-group">
@@ -174,13 +147,8 @@
     </x-modal-form>
 
     {{-- MODAL DELETE --}}
-    <x-modal-delete 
-        id="modalDeleteMenu"
-        formId="formDeleteMenu"
-        title="Konfirmasi Hapus"
-        message="Apakah Anda yakin ingin menghapus Data ini?"
-        confirmText="Hapus" 
-    />
+    <x-modal-delete id="modalDeleteMenu" formId="formDeleteMenu" title="Konfirmasi Hapus"
+        message="Apakah Anda yakin ingin menghapus Data ini?" confirmText="Hapus" />
 @endsection
 
 @push('js')
@@ -203,7 +171,21 @@
                 btn.addEventListener('click', function () {
 
                     const id = this.dataset.id;
+                    const isUsed = this.dataset.isUsed === 'true';
+                    if (isUsed) {
+                        // Opsional: Gunakan SweetAlert jika Anda menginstalnya
+                        alert('Perhatian: Menu ini sudah memiliki resep. Anda tidak dapat mengubah Dapur atau Nama Menu untuk menjaga konsistensi data.');
 
+                        // Lock field agar tidak bisa diedit
+                        document.getElementById('editMenu').readOnly = true;
+                        document.getElementById('editDapur').disabled = true;
+                        document.querySelector('#modalEditMenu button[type="submit"]').style.display = 'none';
+                    } else {
+                        // Unlock field jika menu masih "bersih"
+                        document.getElementById('editMenu').readOnly = false;
+                        document.getElementById('editDapur').disabled = false;
+                        document.querySelector('#modalEditMenu button[type="submit"]').style.display = 'block';
+                    }
                     // Simpan dapur lama & kode lama
                     oldKitchenId = this.dataset.oldDapurId;
                     oldKode = this.dataset.oldKode;
@@ -215,7 +197,7 @@
 
                     // Update action
                     document.querySelector('#modalEditMenu form').action =
-                    "{{ url('/dashboard/master/nama-menu') }}/" + id;
+                        "{{ url('/dashboard/master/nama-menu') }}/" + id;
 
                 });
             });

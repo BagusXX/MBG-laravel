@@ -26,6 +26,7 @@ class RecipeController extends Controller
             ->with([
                 'recipes' => function ($q) use ($kitchenKodes) {
                     $q->with(['bahan_baku.unit', 'kitchen'])
+                        ->withCount('submissionDetails')
                         ->whereHas('kitchen', function ($k) use ($kitchenKodes) {
                             $k->whereIn('kode', $kitchenKodes);
                         });
@@ -118,12 +119,18 @@ class RecipeController extends Controller
             $rowId = $request->row_id[$i] ?? null;
 
             if ($rowId) {
-                RecipeBahanBaku::where('id', $rowId)
+                $recipe = RecipeBahanBaku::where('id', $rowId)
                     ->where('kitchen_id', $kitchenId)
-                    ->update([
-                        'bahan_baku_id' => $bahanId,
-                        'jumlah' => $request->jumlah[$i],
-                    ]);
+                    ->firstOrFail();
+
+                if ($recipe->submissionDetails()->exists()) {
+                    return back()->withErrors("Bahan '{$recipe->bahan_baku->nama}' tidak bisa diubah karena sudah masuk dalam data Submission.");
+                }
+
+                $recipe->update([
+                    'bahan_baku_id' => $bahanId,
+                    'jumlah' => $request->jumlah[$i],
+                ]);
 
                 $existingIds[] = $rowId;
             } else {

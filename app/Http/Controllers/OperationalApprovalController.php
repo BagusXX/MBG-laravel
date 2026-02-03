@@ -100,7 +100,7 @@ class OperationalApprovalController extends Controller
                     'harga_satuan' => $finalHargaDapur,
                     'harga_dapur' => $finalHargaDapur,
                     'harga_mitra' => $hargaMitra,
-                    'subtotal' => $subtotalDapur,
+                    // 'subtotal' => $subtotalDapur,
                     'subtotal_dapur' => $subtotalDapur,
                     'subtotal_mitra' => $subtotalMitra,
                     'keterangan' => $parentDetail->keterangan,
