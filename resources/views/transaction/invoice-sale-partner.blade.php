@@ -193,7 +193,7 @@
                 </td>
 
                 <td style="width: 60%; text-align: center; vertical-align: middle;">
-                    <h2 style="margin: 0; text-transform: uppercase;">Koperasi Produsen</h2>
+                    {{-- <h2 style="margin: 0; text-transform: uppercase;">Koperasi Produsen</h2> --}}
                     <h2 style="margin: 0; text-transform: uppercase;">{{ $submission->supplier->nama ?? 'NAMA SUPPLIER' }}</h2>
                     <p style="margin: 5px 0; font-size: 12px; line-height: 1.4;">
                         {{ $submission->supplier->alamat ?? '-' }}

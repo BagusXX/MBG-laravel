@@ -17,7 +17,7 @@
         }
 
         .invoice-container {
-            max-width: 800px;
+            max-width: 1000px;
             margin: 0 auto;
             background: white;
             padding: 30px;
@@ -95,6 +95,7 @@
         table td {
             padding: 10px;
             border-bottom: 1px solid #ddd;
+            font-size: 13px;
         }
 
         .text-right {
@@ -118,7 +119,7 @@
         .footer {
             margin-top: 40px;
             padding-top: 20px;
-            /* border-top: 1px solid #ddd; */
+             border-top: 1px solid #ddd; 
             text-align: center;
             color: #666;
             font-size: 12px;
@@ -171,7 +172,7 @@
             </td>
 
             <td style="width: 60%; text-align: center; vertical-align: middle;">
-                <h2 style="margin: 0; text-transform: uppercase;">Koperasi Produsen</h2>
+                <!--<h2 style="margin: 0; text-transform: uppercase;">Koperasi Produsen</h2>-->
                 <h2 style="margin: 0; text-transform: uppercase;">{{ $submission->supplier->nama ?? 'NAMA SUPPLIER' }}</h2>
                 <p style="margin: 5px 0; font-size: 12px; line-height: 1.4;">
                     {{ $submission->supplier->alamat ?? '-' }}
@@ -252,7 +253,22 @@
     {{-- SECTION TOTAL & TANDA TANGAN SEJAJAR --}}
     <table class="table-footer" style="width: 100%; border-top: 2px solid #333; margin-top: 20px;">
         <tr>
-            <td style="width: 50%;"></td>
+            <td style="width: 30%;">
+                <div style="font-size: 13px; line-height: 1.6;">
+                    <p style="margin: 0; font-weight: bold;">PEMBAYARAN :</p>
+    
+                    @forelse($submission->supplier->bank_account as $bank)
+                        <div style="margin-bottom: 10px;">
+                            {{-- <p style="margin: 0;">{{ strtoupper($submission->supplier->nama) }}</p> --}}
+                            <p style="margin: 0;">BANK {{ $bank->bank_name }}</p>
+                            <p style="margin: 0;">A.N. {{ strtoupper( $bank->account_holder_name ?? $submission->supplier->nama) }}</p>
+                            <p style="margin: 0;">{{ $bank->account_number }}</p>
+                        </div>
+                    @empty
+                        <p style="margin: 0; color: #888;">Data bank tidak tersedia</p>
+                    @endforelse
+                </div>
+            </td>
 
             <td style="width: 50%; text-align: right; vertical-align: middle; padding-top: 10px">
 

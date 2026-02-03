@@ -234,18 +234,21 @@
                 <img src="{{('icon_mbg.png') }}" alt="Logo BGN" style="height: 100px; width: 100px; object-fit: contain; margin-bottom: 20px;">
             </td>
             <td style="width: 60%; text-align: center; vertical-align: middle;">
-                <h2 style="margin: 0; text-transform: uppercase;">Koperasi Produsen</h2>
+                <!--<h2 style="margin: 0; text-transform: uppercase;">Koperasi Produsen</h2>-->
                 <h2 style="margin: 0; text-transform: uppercase;">{{ $submission->supplier->nama ?? 'NAMA SUPPLIER' }}</h2>
                 <p style="margin: 5px 0; font-size: 12px; line-height: 1.4;">
                     {{ $submission->supplier->alamat ?? '-' }}
                 </p>
             </td>
             <td style="width: 20%; text-align: center; vertical-align: top;">
-                @if($submission->supplier && $submission->supplier->gambar)
-                    <img src="{{ public_path('storage/' . $submission->supplier->gambar) }}" alt="Logo Supplier" style="height: 100px; width: 100px; object-fit: contain;">
-                @else
-                    {{-- Placeholder jika tidak ada gambar --}}
-                    <div style="height: 80px; width: 80px; display: inline-block;"></div>
+                @php
+                    $logoPath = realpath(public_path('../public_html/galeri/uploads/suppliers' . $submission->supplier->gambar));
+                @endphp
+                
+                @if($logoPath && file_exists($logoPath))
+                    <img src="{{ $logoPath }}"
+                         alt="Logo Supplier"
+                         style="height:100px;width:100px;object-fit:contain;">
                 @endif
             </td>
         </tr>
@@ -300,8 +303,6 @@
             </div>
         </div> --}}
 
-    
-
     {{-- TABLE --}}
     <table>
         <thead>
@@ -335,24 +336,25 @@
     </table>
 
     {{-- TOTAL --}}
+    
 
     <table class="table-footer" style="width: 100%; border-top: 2px solid #333; margin-top: 20px;">
         <tr>
             <td style="width: 30%;">
                 <div style="font-size: 13px; line-height: 1.6;">
-                        <p style="margin: 0; font-weight: bold;">PEMBAYARAN :</p>
+                    <p style="margin: 0; font-weight: bold;">PEMBAYARAN :</p>
 
-                        @forelse($submission->supplier->bank_account as $bank)
-                            <div style="margin-bottom: 10px;">
-                                {{-- <p style="margin: 0;">{{ strtoupper($submission->supplier->nama) }}</p> --}}
-                                <p style="margin: 0;">BANK {{ $bank->bank_name }}</p>
-                                <p style="margin: 0;">A.N. {{ strtoupper( $bank->account_holder_name ?? $submission->supplier->nama) }}</p>
-                                <p style="margin: 0;">{{ $bank->account_number }}</p>
-                            </div>
-                        @empty
-                            <p style="margin: 0; color: #888;">Data bank tidak tersedia</p>
-                        @endforelse
-                    </div>
+                    @forelse($submission->supplier->bank_account as $bank)
+                        <div style="margin-bottom: 10px;">
+                            {{-- <p style="margin: 0;">{{ strtoupper($submission->supplier->nama) }}</p> --}}
+                            <p style="margin: 0;">BANK {{ $bank->bank_name }}</p>
+                            <p style="margin: 0;">A.N. {{ strtoupper( $bank->account_holder_name ?? $submission->supplier->nama) }}</p>
+                            <p style="margin: 0;">No Rek. {{ $bank->account_number }}</p>
+                        </div>
+                    @empty
+                        <p style="margin: 0; color: #888;">Data bank tidak tersedia</p>
+                    @endforelse
+                </div>
             </td>
 
             <td style="width: 50%; text-align: right; vertical-align: middle; padding-top: 10px">
