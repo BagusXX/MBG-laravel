@@ -22,7 +22,7 @@ class ReportSalesPartnerController extends Controller
     {
         $kitchensCodes = $this->userKitchenCodes();
 
-        $kitchens = Kitchen::whereIn('kode', $kitchensCodes)->orderBy('nama')->get();
+        $kitchens = Kitchen::whereIn('id', $kitchensCodes)->orderBy('nama')->get();
         $suppliers = Supplier::all();
         $bahanBakus = BahanBaku::selectRaw('MIN(id) as id, nama')
             ->groupBy('nama')
