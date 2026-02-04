@@ -14,13 +14,20 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReportSalesKitchenController extends Controller
 {
+    protected function userKitchenCodes()
+    {
+        return auth()->user()->kitchens()->pluck('kode')->toArray();
+    }
     public function index(Request $request)
     {
-        $kitchens = Kitchen::all();
+        $kitchensCodes = $this->userKitchenCodes();
+
+        $kitchens = Kitchen::whereIn('kode', $kitchensCodes)->orderBy('nama')->get();
         $suppliers = Supplier::all();
         $bahanBakus = BahanBaku::selectRaw('MIN(id) as id, nama')
             ->groupBy('nama')
             ->get();
+
 
         $query = SubmissionDetails::with([
             'submission.kitchen',
@@ -30,8 +37,9 @@ class ReportSalesKitchenController extends Controller
             'recipeBahanBaku.bahan_baku.unit'
         ]);
 
-        $query->whereHas('submission', function ($q) {
-            $q->whereNotNull('parent_id');
+        $query->whereHas('submission', function ($q) use ($kitchensCodes) {
+            $q->whereNotNull('parent_id')
+                ->whereIn('kitchen_kode', $kitchensCodes);
         });
 
         if ($request->filled('from_date') || $request->filled('to_date')) {
@@ -63,7 +71,7 @@ class ReportSalesKitchenController extends Controller
             );
         }
         if ($request->filled('bahan_baku_id')) {
-            $selectedBahan = \App\Models\BahanBaku::find($request->bahan_baku_id);
+            $selectedBahan = BahanBaku::find($request->bahan_baku_id);
 
             if ($selectedBahan) {
                 $namaBahan = $selectedBahan->nama;
@@ -82,12 +90,12 @@ class ReportSalesKitchenController extends Controller
             }
         }
         $query->orderByDesc(\App\Models\Submission::select('tanggal')
-        ->whereIn('id', function($subQuery) {
-            $subQuery->select('parent_id')
-                ->from('submissions')
-                ->whereColumn('id', 'submission_details.submission_id');
-        })
-        ->limit(1));
+            ->whereIn('id', function ($subQuery) {
+                $subQuery->select('parent_id')
+                    ->from('submissions')
+                    ->whereColumn('id', 'submission_details.submission_id');
+            })
+            ->limit(1));
 
         $reports = $query->paginate(10)->withQueryString();
 
@@ -102,10 +110,14 @@ class ReportSalesKitchenController extends Controller
 
     public function invoice(Request $request)
     {
+        $kitchenCodes = $this->userKitchenCodes();
+
         $query = SubmissionDetails::with(['submission.kitchen', 'bahan_baku.unit', 'submission.supplier', 'recipeBahanBaku.bahan_baku.unit']);
 
-        $query->whereHas('submission', function ($q) {
-            $q->whereNotNull('parent_id');
+        $query->whereHas('submission', function ($q) use ($kitchenCodes) {
+            $q->whereNotNull('parent_id')
+                ->whereIn('kitchen_kode', $kitchenCodes);
+
         });
 
         if ($request->from_date && $request->to_date) {
@@ -133,7 +145,7 @@ class ReportSalesKitchenController extends Controller
             return $this->applyConversion($item);
         });
 
-        $reports = $reports->sortByDesc(function($item) {
+        $reports = $reports->sortByDesc(function ($item) {
             return $item->submission->tanggal;
         });
 

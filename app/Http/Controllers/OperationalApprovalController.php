@@ -17,14 +17,6 @@ class OperationalApprovalController extends Controller
     public function index()
     {
         $user = Auth::user();
-
-        // ==================================================================
-        // 1. FILTER DAPUR BERDASARKAN ROLE (LOGIK SAMA DENGAN SUBMISSION)
-        // ==================================================================
-
-        // Cek permission/role untuk melihat semua dapur
-        // Sesuaikan 'Super Admin' dengan nama role di DB Anda
-        // Atau gunakan permission: if ($user->can('view_all_kitchens'))
         $kitchens = $user->kitchens()->orderBy('nama')->get();
         $kitchenCodes = $kitchens->pluck('kode'); // A
 

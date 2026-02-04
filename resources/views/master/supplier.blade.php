@@ -12,7 +12,7 @@
 
 @section('content')
     
-    @if($canManage)
+    @if($canCreate)
         <x-button-add 
             idTarget="#modalAddSupplier"
             text="Tambah Supplier"
@@ -90,6 +90,7 @@
                                 >
                                     Edit    
                                 </button>
+                                @if($canDelete)
                                 {{-- Tombol Hapus --}}
                                 <x-button-delete 
                                     idTarget="#modalDeleteSupplier" 
@@ -97,6 +98,7 @@
                                     action="{{ route('master.supplier.destroy', $supplier->id) }}"
                                     text="Hapus" 
                                 />
+                                @endif
 
                             </td>
                             @endif
@@ -185,7 +187,7 @@
         </div>
 
     </x-modal-form>
-    
+   
 
     {{-- MODAL EDIT SUPPLIER --}}
     <x-modal-form

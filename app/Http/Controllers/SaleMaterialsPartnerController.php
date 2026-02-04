@@ -18,6 +18,10 @@ use App\Models\Supplier;
 
 class SaleMaterialsPartnerController extends Controller
 {
+    protected function userKitchenCodes()
+    {
+        return auth()->user()->kitchens()->pluck('kode')->toArray();
+    }
     protected function convertQtyForCalculation(SubmissionDetails $detail): float
     {
         $qty = (float) $detail->qty_digunakan;
@@ -75,7 +79,8 @@ class SaleMaterialsPartnerController extends Controller
 
     public function index(Request $request)
     {
-        $kitchens = Kitchen::all();
+        $kitchensCodes = $this->userKitchenCodes();
+        $kitchens = Kitchen::whereIn('kode',$kitchensCodes)->orderBy('nama')->get();
         $suppliers = Supplier::all();
         $bahanBakus = BahanBaku::selectRaw('MIN(id) as id, nama')
             ->groupBy('nama')
@@ -92,42 +97,43 @@ class SaleMaterialsPartnerController extends Controller
             'details.recipeBahanBaku.bahan_baku.unit',
             'details.bahan_baku.unit'
         ])
-        ->whereNotNull('parent_id')
-        ->where(function ($q) use ($request) {
-            $q->where(function ($q2) {
-                $q2->where('status', 'diproses')
-                ->orWhere('tipe', 'disetujui');
-            });
+            ->whereNotNull('parent_id')
+            ->whereIn('kitchen_kode',$kitchensCodes)
+            ->where(function ($q) use ($request) {
+                $q->where(function ($q2) {
+                    $q2->where('status', 'diproses')
+                        ->orWhere('tipe', 'disetujui');
+                });
 
-            $q->whereHas('parentSubmission', function ($ps) use ($request) {
+                $q->whereHas('parentSubmission', function ($ps) use ($request) {
 
-                if ($request->filled('from_date')) {
-                    $ps->whereDate('tanggal', '>=', $request->from_date);
+                    if ($request->filled('from_date')) {
+                        $ps->whereDate('tanggal', '>=', $request->from_date);
+                    }
+
+                    if ($request->filled('to_date')) {
+                        $ps->whereDate('tanggal', '<=', $request->to_date);
+                    }
+
+                });
+
+                if ($request->filled('kitchen_id')) {
+                    $q->where('kitchen_id', $request->kitchen_id);
                 }
-
-                if ($request->filled('to_date')) {
-                    $ps->whereDate('tanggal', '<=', $request->to_date);
+                if ($request->filled('supplier_id')) {
+                    $q->where('supplier_id', $request->supplier_id);
                 }
+                if ($request->filled('menu_id')) {
+                    $selectedMenu = Menu::find($request->menu_id);
 
-            });
-
-            if ($request->filled('kitchen_id')) {
-                $q->where('kitchen_id', $request->kitchen_id);
-            }
-            if ($request->filled('supplier_id')) {
-                $q->where('supplier_id', $request->supplier_id);
-            }
-            if ($request->filled('menu_id')) {
-                $selectedMenu = Menu::find($request->menu_id);
-
-                if ($selectedMenu) {
-                    $q->whereHas('menu', function ($mq) use ($selectedMenu) {
-                        $mq->where('nama', $selectedMenu->nama);
-                    });
+                    if ($selectedMenu) {
+                        $q->whereHas('menu', function ($mq) use ($selectedMenu) {
+                            $mq->where('nama', $selectedMenu->nama);
+                        });
+                    }
                 }
-            }
-        })
-        ->latest('id');
+            })
+            ->latest('id');
 
         $submissions = $query->paginate(10)->withQueryString();
 
@@ -143,10 +149,10 @@ class SaleMaterialsPartnerController extends Controller
                 $qty = (float) $detail->qty_digunakan;
 
                 if (in_array(strtolower($unit), ['gram', 'ml'])) {
-                    $displayQty  = $qty / 1000;
+                    $displayQty = $qty / 1000;
                     $displayUnit = $unit === 'gram' ? 'kg' : 'liter';
                 } else {
-                    $displayQty  = $qty;
+                    $displayQty = $qty;
                     $displayUnit = $unit ?? '-';
                 }
 
@@ -154,9 +160,9 @@ class SaleMaterialsPartnerController extends Controller
                 $subtotal = $displayQty * ($detail->harga_mitra ?? 0);
 
                 // ===== Inject ke object =====
-                $detail->display_qty     = $displayQty;
-                $detail->display_unit    = $displayUnit;
-                $detail->subtotal_mitra  = $subtotal;
+                $detail->display_qty = $displayQty;
+                $detail->display_unit = $displayUnit;
+                $detail->subtotal_mitra = $subtotal;
             });
         });
 
@@ -234,6 +240,7 @@ class SaleMaterialsPartnerController extends Controller
 
     public function printInvoice($kode)
     {
+        $kitchensCodes = $this->userKitchenCodes();
         // Ambil submission berdasarkan kode
         $submission = Submission::with([
             'parentSubmission',
@@ -245,6 +252,7 @@ class SaleMaterialsPartnerController extends Controller
         ])
             ->onlyChild()
             ->where('kode', $kode)
+            ->whereIn('kitchen_kode', $kitchensCodes)
             ->where('status', 'diproses')
             ->first();
 
@@ -263,17 +271,17 @@ class SaleMaterialsPartnerController extends Controller
             $unit = $bahanBaku?->unit?->satuan;
 
             // ===== Konversi Qty =====
-            $qty = (float)(
+            $qty = (float) (
                 $detail->qty_digunakan
                 ?? $detail->qty
                 ?? 0
             );
 
             if (in_array(strtolower($unit), ['gram', 'ml'])) {
-                $displayQty  = $qty / 1000;
+                $displayQty = $qty / 1000;
                 $displayUnit = $unit === 'gram' ? 'kg' : 'liter';
             } else {
-                $displayQty  = $qty;
+                $displayQty = $qty;
                 $displayUnit = $unit ?? '-';
             }
 
@@ -281,9 +289,9 @@ class SaleMaterialsPartnerController extends Controller
             $subtotal = $displayQty * ($detail->harga_mitra ?? 0);
 
             // ===== Inject ke object =====
-            $detail->display_qty     = $displayQty;
-            $detail->display_unit    = $displayUnit;
-            $detail->subtotal_mitra  = $subtotal;
+            $detail->display_qty = $displayQty;
+            $detail->display_unit = $displayUnit;
+            $detail->subtotal_mitra = $subtotal;
         });
 
 
@@ -296,7 +304,7 @@ class SaleMaterialsPartnerController extends Controller
         );
 
         // return view('transaction.invoice-sale-partner', compact('submission', 'totalHarga'));
-        return $pdf->download('Invoice-' . $submission->kode . '_' . date('d-m-Y') .'.pdf');
+        return $pdf->download('Invoice-' . $submission->kode . '_' . date('d-m-Y') . '.pdf');
     }
 
     // public function downloadInvoice($kode)

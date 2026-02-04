@@ -11,10 +11,17 @@ use Illuminate\Http\Request;
 
 class ReportPurchaseOperationalController extends Controller
 {
+    protected function userKitchenCodes()
+    {
+        return auth()->user()->kitchens()->pluck('kode')->toArray();
+    }
+
     public function index(Request $request)
     {
         $kitchens = Kitchen::orderBy('nama')->get();
         $suppliers = Supplier::orderBy('nama')->get();
+
+        $kitchenCodes = $this->userKitchenCodes();
 
         // 1. UBAH QUERY: Ambil details, tapi filter submission-nya harus yang CHILD (Approval)
         $query = submissionOperationalDetails::with([
@@ -24,9 +31,10 @@ class ReportPurchaseOperationalController extends Controller
             'submission.parentSubmission' // Opsional: jika butuh info dari parent aslinya
         ]);
 
-        $query->whereHas('submission', function ($q) {
+        $query->whereHas('submission', function ($q) use ($kitchenCodes, $request) {
             $q->whereNotNull('parent_id') // Pastikan ini baris Child
-                ->where('tipe', 'disetujui'); // Pastikan tipenya approval
+                ->where('tipe', 'disetujui');
+            $q->whereIn('kitchen_kode', $kitchenCodes); // Pastikan tipenya approval
         });
 
         // --- FILTERING INPUT USER ---
@@ -127,6 +135,7 @@ class ReportPurchaseOperationalController extends Controller
         // ============================================================
         // 1. QUERY HARUS SAMA PERSIS DENGAN FUNCTION INDEX
         // ============================================================
+        $kitchenCodes = $this->userKitchenCodes();
 
         $query = submissionOperationalDetails::with([
             'submission.kitchen',
@@ -136,9 +145,10 @@ class ReportPurchaseOperationalController extends Controller
         ]);
 
         // FILTER STATUS: Ambil status yang valid (Draft/Dihapus jangan ikut)
-        $query->whereHas('submission', function ($q) {
+        $query->whereHas('submission', function ($q) use ($kitchenCodes) {
             // Logic ini disamakan dengan index agar data Parent juga tampil
-            $q->whereIn('status', ['diajukan', 'diproses', 'disetujui', 'selesai']);
+            $q->whereIn('status', ['diajukan', 'diproses', 'disetujui', 'selesai'])
+                ->whereIn('kitchen_kode', $kitchenCodes);
         });
 
         // 🔑 PENTING: HANYA SUBMISSION AKTIF
@@ -185,7 +195,7 @@ class ReportPurchaseOperationalController extends Controller
         // ============================================================
         // 2. GENERATE PDF
         // ============================================================
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('report.invoiceReport-purchaseOperational', [
+        $pdf = Pdf::loadView('report.invoiceReport-purchaseOperational', [
             'reports' => $reports,
             'submission' => $submission,
             'fromDate' => $request->from_date,

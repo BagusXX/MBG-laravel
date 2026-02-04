@@ -21,6 +21,11 @@ class SubmissionApprovalController extends Controller
         abort_if($submission->status === 'selesai', 403, 'Submission terkunci');
     }
 
+    protected function userKitchenCodes()
+    {
+        return auth()->user()->kitchens()->pluck('kode')->toArray();
+    }
+
     private function applyConversion($item)
     {
         // 1. Ambil Nama Satuan
@@ -118,6 +123,7 @@ class SubmissionApprovalController extends Controller
 
     public function index()
     {
+        $kitchenCodes = $this->userKitchenCodes();
         $submissions = Submission::with([
             'kitchen',
             'menu',
@@ -128,13 +134,24 @@ class SubmissionApprovalController extends Controller
         ])
             ->onlyParent()
             ->pengajuan()
+            ->whereHas('kitchen', fn($q) => $q->whereIn('kode', $kitchenCodes))
             ->latest()
             ->paginate(10);
 
+        $filteredSuppliers = Supplier::whereHas('kitchens', function ($query) use ($kitchenCodes) {
+            $query->whereIn('kode', $kitchenCodes);
+        })
+            ->orderBy('nama')
+            ->get();
+
+        $filteredKitchens = Kitchen::whereIn('kode', $kitchenCodes)
+            ->orderBy('nama')
+            ->get();
+
         return view('transaction.submissionApproval', [
             'submissions' => $submissions,
-            'kitchens' => Kitchen::orderBy('nama')->get(),
-            'suppliers' => Supplier::orderBy('nama')->get(),
+            'kitchens' => $filteredKitchens,
+            'suppliers' => $filteredSuppliers,
         ]);
     }
 
@@ -246,13 +263,13 @@ class SubmissionApprovalController extends Controller
             'id' => $submission->id,
             'kode' => $submission->kode,
             'tanggal' => \Carbon\Carbon::parse($submission->tanggal)
-            ->locale('id')
-            ->translatedFormat('l, d-m-Y'),
-            'tanggal_digunakan' => $submission->tanggal_digunakan
-            ? \Carbon\Carbon::parse($submission->tanggal_digunakan)
                 ->locale('id')
-                ->translatedFormat('l, d-m-Y') 
-            : '-',
+                ->translatedFormat('l, d-m-Y'),
+            'tanggal_digunakan' => $submission->tanggal_digunakan
+                ? \Carbon\Carbon::parse($submission->tanggal_digunakan)
+                    ->locale('id')
+                    ->translatedFormat('l, d-m-Y')
+                : '-',
             'kitchen' => $submission->kitchen->nama,
             'menu' => $submission->menu->nama,
             'porsi' => $submission->porsi,

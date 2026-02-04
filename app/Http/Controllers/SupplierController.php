@@ -6,6 +6,7 @@ use App\Models\Kitchen;
 use App\Models\region;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Storage;
 
@@ -26,6 +27,8 @@ class SupplierController extends Controller
     public function index()
     {
         $user = auth()->user();
+
+        $canCreateDelete = Auth::user()->hasRole('superadmin');
 
         $userKitchenKode = $user->kitchens()->pluck('kode');
 

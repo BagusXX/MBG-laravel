@@ -12,13 +12,19 @@ use App\Models\BahanBaku;
 
 class ReportSalesPartnerController extends Controller
 {
+    protected function userKitchenCodes()
+    {
+        return auth()->user()->kitchens()->pluck('kode')->toArray();
+    }
     public function index(Request $request)
     {
-        $kitchens = Kitchen::all();
+        $kitchensCodes = $this->userKitchenCodes();
+
+        $kitchens = Kitchen::whereIn('kode', $kitchensCodes)->orderBy('nama')->get();
         $suppliers = Supplier::all();
         $bahanBakus = BahanBaku::selectRaw('MIN(id) as id, nama')
-        ->groupBy('nama') 
-        ->get();
+            ->groupBy('nama')
+            ->get();
 
         $query = SubmissionDetails::with([
             'submission.kitchen',
@@ -28,8 +34,9 @@ class ReportSalesPartnerController extends Controller
             'recipeBahanBaku.bahan_baku'
         ]);
 
-        $query->whereHas('submission', function ($q) {
-            $q->whereNotNull('parent_id');
+        $query->whereHas('submission', function ($q) use ($kitchensCodes) {
+            $q->whereNotNull('parent_id')
+                ->whereIn('kitchen_kode', $kitchensCodes);
         });
 
         if ($request->filled('from_date') || $request->filled('to_date')) {
@@ -47,43 +54,47 @@ class ReportSalesPartnerController extends Controller
         }
 
         if ($request->filled('kitchen_id')) {
-            $query->whereHas('submission', fn ($q) =>
+            $query->whereHas(
+                'submission',
+                fn($q) =>
                 $q->where('kitchen_id', $request->kitchen_id)
             );
         }
         if ($request->filled('supplier_id')) {
-            $query->whereHas('submission', fn ($q) =>
+            $query->whereHas(
+                'submission',
+                fn($q) =>
                 $q->where('supplier_id', $request->supplier_id)
             );
         }
         if ($request->filled('bahan_baku_id')) {
             $selectedBahan = \App\Models\BahanBaku::find($request->bahan_baku_id);
-            
+
             if ($selectedBahan) {
-                $namaBahan = $selectedBahan->nama; 
+                $namaBahan = $selectedBahan->nama;
 
                 $query->where(function ($q) use ($namaBahan) {
                     // Filter 1: Lewat relasi langsung bahanBaku
                     $q->whereHas('bahan_baku', function ($qb) use ($namaBahan) {
                         $qb->where('nama', $namaBahan);
                     })
-                    // Filter 2: Lewat relasi resep (Gunakan bahan_baku sesuai modelmu)
-                    // Nested relationship: recipeBahanBaku -> bahan_baku
-                    ->orWhereHas('recipeBahanBaku.bahan_baku', function ($qr) use ($namaBahan) {
-                        $qr->where('nama', $namaBahan);
-                    });
+                        // Filter 2: Lewat relasi resep (Gunakan bahan_baku sesuai modelmu)
+                        // Nested relationship: recipeBahanBaku -> bahan_baku
+                        ->orWhereHas('recipeBahanBaku.bahan_baku', function ($qr) use ($namaBahan) {
+                            $qr->where('nama', $namaBahan);
+                        });
                 });
             }
         }
 
         $query->orderByDesc(\App\Models\Submission::select('tanggal')
-        ->whereIn('id', function($subQuery) {
-            $subQuery->select('parent_id')
-                ->from('submissions')
-                ->whereColumn('id', 'submission_details.submission_id');
-        })
-        ->limit(1));
-            
+            ->whereIn('id', function ($subQuery) {
+                $subQuery->select('parent_id')
+                    ->from('submissions')
+                    ->whereColumn('id', 'submission_details.submission_id');
+            })
+            ->limit(1));
+
         $reports = $query->paginate(10)->withQueryString();
 
         $reports->getCollection()->transform(function ($item) {
@@ -97,52 +108,55 @@ class ReportSalesPartnerController extends Controller
 
     public function invoice(Request $request)
     {
-        $query = SubmissionDetails::with(['submission.kitchen', 'bahan_baku.unit', 'submission.supplier', 'recipeBahanBaku.bahan_baku.unit']); 
+        $kitchenCodes = $this->userKitchenCodes();
+        $query = SubmissionDetails::with(['submission.kitchen', 'bahan_baku.unit', 'submission.supplier', 'recipeBahanBaku.bahan_baku.unit']);
 
         $query->whereHas('submission', function ($q) {
             $q->whereNotNull('parent_id');
         });
 
-    if ($request->from_date && $request->to_date) {
-        $query->whereHas('submission', function($q) use ($request) {
-            $q->whereBetween('tanggal', [$request->from_date, $request->to_date]);
+        if ($request->from_date && $request->to_date) {
+            $query->whereHas('submission', function ($q) use ($kitchenCodes, $request) {
+                $q->whereBetween('tanggal', [$request->from_date, $request->to_date])
+                    ->whereIn('kitchen_kode', $kitchenCodes);
+
+            });
+        }
+
+        if ($request->kitchen_id) {
+            $query->whereHas('submission', function ($q) use ($request) {
+                $q->where('kitchen_id', $request->kitchen_id);
+            });
+        }
+
+        if ($request->supplier_id) {
+            $query->whereHas('submission', function ($q) use ($request) {
+                $q->where('supplier_id', $request->supplier_id);
+            });
+        }
+
+
+        $reports = $query->get();
+
+        $reports->transform(function ($item) {
+            return $this->applyConversion($item);
         });
-    }
 
-    if ($request->kitchen_id) {
-        $query->whereHas('submission', function($q) use ($request) {
-            $q->where('kitchen_id', $request->kitchen_id);
+        $reports = $reports->sortByDesc(function ($item) {
+            return $item->submission->tanggal;
         });
-    }
 
-    if ($request->supplier_id) {
-        $query->whereHas('submission', function($q) use ($request) {
-            $q->where('supplier_id', $request->supplier_id);
-        });
-    }
+        $today = date('d-m-Y');
 
-    
-    $reports = $query->get();
+        $submission = $reports->first()->submission ?? null;
 
-    $reports->transform(function ($item) {
-        return $this->applyConversion($item);
-    });
+        $totalPageSubtotal = $reports->sum('subtotal');
 
-    $reports = $reports->sortByDesc(function($item) {
-        return $item->submission->tanggal;
-    });
+        $pdf = PDF::loadView('report.invoiceReport-sales-partner', compact('submission', 'reports', 'totalPageSubtotal'));
 
-    $today = date('d-m-Y');
+        $pdf->setPaper('a4', 'landscape');
 
-    $submission = $reports->first()->submission ?? null;
-
-    $totalPageSubtotal = $reports->sum('subtotal');
-
-    $pdf = PDF::loadView('report.invoiceReport-sales-partner', compact('submission','reports', 'totalPageSubtotal'));
-
-    $pdf->setPaper('a4', 'landscape');
-    
-    return $pdf->download('laporan penjualan mitra_' .$today. '.pdf');
+        return $pdf->download('laporan penjualan mitra_' . $today . '.pdf');
     }
 
     private function applyConversion($item)
