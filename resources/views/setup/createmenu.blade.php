@@ -35,7 +35,7 @@
                         <th>Dapur</th>
                         <th>Nama Menu</th>
                         {{-- Kolom Harga Dihapus --}}
-                        <th style="width: 23%">Aksi</th>
+                        <th style="width: 25%">Aksi</th>
                     </tr>
                 </thead>
 
@@ -74,7 +74,12 @@
                                         data-kitchen="{{ $kitchenId }}"
                                         data-is-used="{{ $isUsedInSubmission ? 'true' : 'false' }}" {{-- Tambahkan data attribute --}}
                                     >
-                                        Edit
+                                        @if($isUsedInSubmission)
+                                            <i class="fas fa-lock mr-1"></i>
+                                            Edit
+                                        @else
+                                            Edit
+                                        @endif
                                     </button>
 
                                     @if($isUsedInSubmission)
@@ -83,7 +88,7 @@
                                             class="btn btn-danger btn-sm btnLockedDelete"
                                             data-message="Resep tidak bisa dihapus karena sudah digunakan dalam data Pengajuan."
                                         >
-                                            <i class="fas fa-lock"></i> Hapus
+                                            <i class="fas fa-lock mr-1"></i> Hapus
                                         </button>
                                     @else
                                         <x-button-delete idTarget="#modalDeleteRecipe" formId="formDeleteRecipe"
@@ -97,7 +102,7 @@
                                         data-menuname="{{ $menu->nama }}" 
                                         data-toggle="modal" 
                                         data-target="#modalDuplicateRecipe">
-                                        <i class="fas fa-copy"></i> Copy
+                                        <i class="fas fa-copy mr-1"></i> Copy
                                     </button>
                                 </td>
                             </tr>
@@ -350,16 +355,26 @@
                 }
             });
 
-            document.addEventListener('click', function (e) {
-                if (e.target.closest('.btnLockedDelete')) {
-                    const btn = e.target.closest('.btnLockedDelete');
+            let hasShownDeleteWarning = false;
 
-                    showNotificationPopUp(
-                        'warning',
-                        btn.dataset.message,
-                        'Aksi Ditolak'
-                    );
-                }
+            document.addEventListener('click', function (e) {
+                const btn = e.target.closest('.btnLockedDelete');
+                if (!btn) return;
+
+                if (hasShownDeleteWarning) return;
+
+                hasShownDeleteWarning = true;
+
+                showNotificationPopUp(
+                    'warning',
+                    btn.dataset.message,
+                    'Aksi Ditolak'
+                );
+
+                // Reset setelah popup selesai (samakan dengan durasi toast)
+                setTimeout(() => {
+                    hasShownDeleteWarning = false;
+                }, 7000);
             });
 
             // --- GLOBAL EVENT: Auto Fill Satuan saat Pilih Bahan (Harga Dihapus) ---
@@ -485,6 +500,8 @@
             });
 
             // --- LOGIC: Tombol EDIT ---
+            let hasShownEditWarning = false;
+
             document.querySelectorAll('.btnEditRecipe').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const menuId = this.dataset.menu;
@@ -498,11 +515,19 @@
                     const btnAddBahan = document.getElementById('add-bahan-edit');
 
                     if (isUsed) {
+                        if (hasShownEditWarning) return;
+
+                        hasShownEditWarning = true;
+                        
                         showNotificationPopUp(
                             'warning',
                             'Resep ini sudah digunakan dalam data Pengajuan. Anda tidak dapat mengubah komposisi bahan untuk menjaga validitas data laporan.',
                             'Perhatian'
                         );
+                        
+                        setTimeout(() => {
+                            hasShownEditWarning = false;
+                        }, 7000);
                         return;
                     }
 
