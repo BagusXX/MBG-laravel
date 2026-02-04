@@ -14,7 +14,9 @@ class ReportSalesPartnerController extends Controller
 {
     protected function userKitchenCodes()
     {
-        return auth()->user()->kitchens()->pluck('kode')->toArray();
+        $allowedCodes = auth()->user()->kitchens()->pluck('kode');
+        return Kitchen::whereIn('kode', $allowedCodes)->pluck('id')->toArray();
+
     }
     public function index(Request $request)
     {
@@ -36,7 +38,7 @@ class ReportSalesPartnerController extends Controller
 
         $query->whereHas('submission', function ($q) use ($kitchensCodes) {
             $q->whereNotNull('parent_id')
-                ->whereIn('kitchen_kode', $kitchensCodes);
+                ->whereIn('kitchen_id', $kitchensCodes);
         });
 
         if ($request->filled('from_date') || $request->filled('to_date')) {
@@ -118,7 +120,7 @@ class ReportSalesPartnerController extends Controller
         if ($request->from_date && $request->to_date) {
             $query->whereHas('submission', function ($q) use ($kitchenCodes, $request) {
                 $q->whereBetween('tanggal', [$request->from_date, $request->to_date])
-                    ->whereIn('kitchen_kode', $kitchenCodes);
+                    ->whereIn('kitchen_id', $kitchenCodes);
 
             });
         }

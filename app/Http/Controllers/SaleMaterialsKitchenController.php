@@ -20,7 +20,9 @@ class SaleMaterialsKitchenController extends Controller
 {
     protected function userKitchenCodes()
     {
-        return auth()->user()->kitchens()->pluck('kode')->toArray();
+        $allowedCodes = auth()->user()->kitchens()->pluck('kode');
+        return Kitchen::whereIn('kode', $allowedCodes)->pluck('id')->toArray();
+
     }
     protected function convertQtyForCalculation(SubmissionDetails $detail): float
     {
@@ -80,8 +82,8 @@ class SaleMaterialsKitchenController extends Controller
     public function index(Request $request)
     {
         $kitchensCodes = $this->userKitchenCodes();
-        
-        $kitchens = Kitchen::whereIn('kode',$kitchensCodes)->orderBy('name')->get();
+
+        $kitchens = Kitchen::whereIn('kode', $kitchensCodes)->orderBy('nama')->get();
         $suppliers = Supplier::all();
         $bahanBakus = BahanBaku::selectRaw('MIN(id) as id, nama')
             ->groupBy('nama')
@@ -99,7 +101,7 @@ class SaleMaterialsKitchenController extends Controller
             'details.bahan_baku.unit'
         ])
             ->whereNotNull('parent_id')
-            ->whereIn('kitchen_kode', $kitchensCodes)
+            ->whereIn('kitchen_id', $kitchensCodes)
             ->where(function ($q) use ($request) {
                 $q->where(function ($q2) {
                     $q2->where('status', 'diproses')
@@ -295,7 +297,7 @@ class SaleMaterialsKitchenController extends Controller
         ])
             ->onlyChild()
             ->where('kode', $kode)
-            ->whereIn('kitchen_kode', $kitchensCodes)
+            ->whereIn('kitchen_id', $kitchensCodes)
             ->where('status', 'diproses')
             ->first();
 

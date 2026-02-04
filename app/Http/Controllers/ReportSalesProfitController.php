@@ -20,7 +20,9 @@ class ReportSalesProfitController extends Controller
 {
     protected function userKitchenCodes()
     {
-        return auth()->user()->kitchens()->pluck('kode')->toArray();
+        $allowedCodes = auth()->user()->kitchens()->pluck('kode');
+        return Kitchen::whereIn('kode', $allowedCodes)->pluck('id')->toArray();
+
     }
     protected function convertQtyForCalculation(SubmissionDetails $detail): float
     {
@@ -98,7 +100,7 @@ class ReportSalesProfitController extends Controller
             'details.bahan_baku.unit'
         ])
             ->whereNotNull('parent_id')
-            ->whereIn('kitchen_kode', $kitchensCodes)
+            ->whereIn('kitchen_id', $kitchensCodes)
             ->where(function ($q) use ($request) {
 
                 // ===== STATUS & TIPE (AMANKAN OR) =====
@@ -307,7 +309,7 @@ class ReportSalesProfitController extends Controller
         ])
             ->onlyChild()
             ->where('kode', $kode)
-            ->whereIn('kitchen_kode', $kitchensCodes)
+            ->whereIn('kitchen_id', $kitchensCodes)
             ->where('status', 'diproses')
             ->first();
 
