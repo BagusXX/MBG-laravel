@@ -35,7 +35,7 @@
                         <th>Dapur</th>
                         <th>Nama Menu</th>
                         {{-- Kolom Harga Dihapus --}}
-                        <th style="width: 21%">Aksi</th>
+                        <th style="width: 23%">Aksi</th>
                     </tr>
                 </thead>
 
@@ -73,14 +73,17 @@
                                         data-menu="{{ $menu->id }}" 
                                         data-kitchen="{{ $kitchenId }}"
                                         data-is-used="{{ $isUsedInSubmission ? 'true' : 'false' }}" {{-- Tambahkan data attribute --}}
-                                        data-toggle="modal" 
-                                        data-target="#modalEditRecipe">
+                                    >
                                         Edit
                                     </button>
 
                                     @if($isUsedInSubmission)
-                                        <button type="button" class="btn btn-danger btn-sm" onclick="alert('Resep tidak bisa dihapus karena sudah digunakan dalam data Submission.')">
-                                        <i class="fas fa-lock"></i> Hapus
+                                        <button 
+                                            type="button" 
+                                            class="btn btn-danger btn-sm btnLockedDelete"
+                                            data-message="Resep tidak bisa dihapus karena sudah digunakan dalam data Pengajuan."
+                                        >
+                                            <i class="fas fa-lock"></i> Hapus
                                         </button>
                                     @else
                                         <x-button-delete idTarget="#modalDeleteRecipe" formId="formDeleteRecipe"
@@ -256,6 +259,7 @@
 @endsection
 
 @push('js')
+    @include('components.notification-pop-up-script')
     <script>
         // Simpan data master bahan baku ke global variable agar ringan
         window.BAHAN_LIST = @json($bahanBaku);
@@ -346,7 +350,17 @@
                 }
             });
 
-            
+            document.addEventListener('click', function (e) {
+                if (e.target.closest('.btnLockedDelete')) {
+                    const btn = e.target.closest('.btnLockedDelete');
+
+                    showNotificationPopUp(
+                        'warning',
+                        btn.dataset.message,
+                        'Aksi Ditolak'
+                    );
+                }
+            });
 
             // --- GLOBAL EVENT: Auto Fill Satuan saat Pilih Bahan (Harga Dihapus) ---
             document.addEventListener('change', function(e) {
@@ -484,16 +498,15 @@
                     const btnAddBahan = document.getElementById('add-bahan-edit');
 
                     if (isUsed) {
-                        alert('Perhatian: Resep ini sudah digunakan dalam data Submission. Anda tidak dapat mengubah komposisi bahan untuk menjaga validitas data laporan.');
-                        
-                        // Sembunyikan tombol Simpan dan tombol Tambah Bahan
-                        if (btnSubmit) btnSubmit.style.display = 'none';
-                        if (btnAddBahan) btnAddBahan.style.display = 'none';
-                    } else {
-                        // Tampilkan kembali jika resep sebelumnya terkunci
-                        if (btnSubmit) btnSubmit.style.display = 'block';
-                        if (btnAddBahan) btnAddBahan.style.display = 'block';
+                        showNotificationPopUp(
+                            'warning',
+                            'Resep ini sudah digunakan dalam data Pengajuan. Anda tidak dapat mengubah komposisi bahan untuk menjaga validitas data laporan.',
+                            'Perhatian'
+                        );
+                        return;
                     }
+
+                    $('#modalEditRecipe').modal('show');
 
                      // Ambil nama menu/dapur dari baris tabel
                     const row = this.closest('tr');
@@ -546,7 +559,7 @@
                         });
                 });
             });
-
+            
             // Helper: Generate HTML Row untuk Edit (TANPA HARGA)
             function generateBahanRowHtml(item = null) {
                 let options = '<option value="" disabled>Pilih Bahan</option>';
