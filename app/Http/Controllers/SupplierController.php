@@ -21,18 +21,21 @@ class SupplierController extends Controller
         $user = auth()->user();
         // Sesuaikan 'role' dengan nama kolom di database user Anda
         // atau gunakan $user->hasRole(...) jika pakai Spatie
-        return $user->hasAnyRole(['superadmin', 'operatorkoperasi']);
+        return $user->hasAnyRole(['superadmin', 'operatorkoperasi','superadminDapur']);
     }
 
     public function index()
     {
         $user = auth()->user();
 
-        $canCreateDelete = Auth::user()->hasRole('superadmin');
+        // 1. Definisikan siapa yang boleh TAMBAH data (superadminDapur TIDAK MASUK)
+        $canCreate = $user->hasAnyRole(['superadmin', 'operatorkoperasi']);
+
+        // 2. Definisikan siapa yang boleh HAPUS data (Hanya Superadmin)
+        $canDelete = $user->hasRole('superadmin');
 
         $userKitchenKode = $user->kitchens()->pluck('kode');
-
-
+        
         $suppliers = Supplier::with('kitchens')
             ->whereHas('kitchens', function ($q) use ($userKitchenKode) {
                 $q->whereIn('kitchens.kode', $userKitchenKode);
@@ -45,14 +48,14 @@ class SupplierController extends Controller
 
         $canManage = $this->canManage();
 
-        return view('master.supplier', compact('suppliers', 'kitchens', 'kodeBaru', 'canManage'));
+        return view('master.supplier', compact('suppliers', 'kitchens', 'kodeBaru', 'canManage','canCreate', 'canDelete'));
     }
 
 
     public function store(Request $request)
     {
         // 1. Cek Role (Hanya Operator Koperasi & Superadmin)
-        abort_if(!$this->canManage(), 403, 'Anda tidak memiliki akses untuk menambah data.');
+        abort_if(!auth()->user()->hasAnyRole(['superadmin', 'operatorkoperasi']), 403, 'Anda tidak memiliki akses untuk menambah data.');
 
         $user = auth()->user();
         $userKitchenKode = $user->kitchens()->pluck('kode')->toArray();
@@ -180,7 +183,7 @@ class SupplierController extends Controller
     public function destroy(Supplier $supplier)
     {
         // 1. Cek Role
-        abort_if(!$this->canManage(), 403, 'Anda tidak memiliki akses untuk menghapus data.');
+        abort_if(!auth()->user()->hasRole('superadmin'), 403, 'Akses ditolak. Hanya Superadmin yang dapat menghapus data.');
 
         $user = auth()->user();
         $userKitchenKode = $user->kitchens()->pluck('kode')->toArray();
