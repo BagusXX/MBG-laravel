@@ -242,15 +242,16 @@
             </td>
             <td style="width: 20%; text-align: center; vertical-align: top;">
                 @php
-                    $logoPath = realpath(public_path('../public_html/galeri/uploads/suppliers' . $submission->supplier->gambar));
+                    $logoPath = storage_path('app/public/uploads/suppliers/' . $submission->supplier->gambar);
                 @endphp
-                
-                @if($logoPath && file_exists($logoPath))
-                    <img src="{{ $logoPath }}"
-                         alt="Logo Supplier"
-                         style="height:100px;width:100px;object-fit:contain;">
+
+                @if(!empty($submission->supplier->gambar) && file_exists($logoPath))
+                    <img src="file://{{ $logoPath }}"
+                        alt="Logo Supplier"
+                        style="height:100px;width:100px;object-fit:contain;">
                 @endif
             </td>
+
         </tr>
     </table>
 

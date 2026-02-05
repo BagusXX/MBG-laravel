@@ -197,6 +197,6 @@ class MenuController extends Controller
     {
         $user = Auth::user();
         // Pastikan user memiliki salah satu dari role ini
-        return $user->hasAnyRole(['superadmin', 'operatorDapur']);
+        return $user->hasAnyRole(['superadmin', 'operatorDapur','superadminDapur']);
     }
 }

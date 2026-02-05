@@ -59,13 +59,13 @@
                             <td class="text-center">
                                 @if($supplier->gambar)
                                     <img 
-                                        src="{{ asset('galeri/' . $supplier->gambar) }}" 
+                                        src="{{ asset('storage/' . $supplier->gambar) }}" 
                                         class="img-thumbnail supplier-image"
                                         style="width: 60px; height: 60px; object-fit: contain; object-position: center; cursor: pointer;"
                                         style="cursor:pointer"
                                         data-toggle="modal"
                                         data-target="#modalPreviewImage"
-                                        data-src="{{ asset('galeri/' . $supplier->gambar) }}"
+                                        data-src="{{ asset('storage/' . $supplier->gambar) }}"
                                     >
                                 @else
                                     <span class="text-muted">-</span>
@@ -345,7 +345,7 @@
             const preview = document.getElementById('edit_preview_gambar');
 
             if (gambar) {
-                preview.src = `/galeri/${gambar}`;
+                preview.src = `/storage/${gambar}`;
                 preview.style.display = 'block';
             } else {
                 preview.style.display = 'none';
