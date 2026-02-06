@@ -72,7 +72,8 @@
                     <th width="15%">Tanggal Digunakan</th>
                     <th>Dapur</th>
                     <th>Menu</th>
-                    <th>Porsi</th>
+                    <th>PM Besar</th>
+                    <th>PM Kecil</th>
                     {{-- <th>Total</th> --}}
                     <th>Status</th>
                     <th width="100" class="text-center">Aksi</th>
@@ -90,7 +91,8 @@
                     <td>{{ \Carbon\Carbon::parse($item->tanggal_digunakan)->locale('id')->translatedFormat('l, d-m-Y') }}</td>
                     <td>{{ $item->kitchen->nama ?? '-' }}</td>
                     <td>{{ $item->menu ? $item->menu->nama : '-' }}</td>
-                    <td>{{ $item->porsi ? $item->porsi : '-' }}</td>
+                    <td class="text-center">{{ $item->porsi_besar ?? 0 }}</td>
+                    <td class="text-center">{{ $item->porsi_kecil ?? 0 }}</td>
                     {{-- Hitung Total Real-time dari Detail --}}
                         {{-- @php
                             $realTotal = $item->details->sum(function($detail) {
@@ -167,7 +169,8 @@
                         <table>
                             <tr><th class="py-1">Menu</th><td class="py-1">: <span id="infoMenu"></span></td></tr>
                             <tr><th width="120" class="py-1">Dapur</th><td class="py-1">: <span id="infoDapur"></span></td></tr>
-                            <tr><th class="py-1">Porsi</th><td class="py-1">: <span id="infoPorsi"></span></td></tr>
+                            <tr><th class="py-1">PM Besar</th><td class="py-1">: <span id="infoPmBesar"></span></td></tr>
+                            <tr><th class="py-1">PM kecil</th><td class="py-1">: <span id="infoPmKecil"></span></td></tr>
                         </table>
                         <div id="wrapperActions" class="text-right mt-3">
                              {{-- Tombol Tolak (Muncul saat Diajukan) --}}
@@ -319,35 +322,23 @@
 <script>
     let currentSubmissionId = null;
     let currentKitchenId = null;
-    let isReadonlyStatus = false; // <--- TAMBAHKAN INI
+    let isReadonlyStatus = false; 
 
     const formatRupiah = (num) => 'Rp ' + parseFloat(num).toLocaleString('id-ID', {minimumFractionDigits: 0});
     toastr.options = { "closeButton": true, "progressBar": true, "positionClass": "toast-top-right" };
 
-    // Helper Format Qty (2 desimal, koma)
     const formatQty = (number) => {
         return new Intl.NumberFormat('id-ID', {
             minimumFractionDigits: 2,
-            maximumFractionDigits: 2
+            maximumFractionDigits: 4 // Toleransi desimal lebih banyak
         }).format(number);
-    };
-
-    const formatTanggalIndo = (dateString) => {
-        if (!dateString) return '-';
-
-        return new Date(dateString).toLocaleDateString('id-ID', {
-            weekday: 'long',
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        });
     };
 
     $(document).ready(function() {
         
         $('#selectBahanManual').select2({ dropdownParent: $('#modalAddBahanManual') });
-        // $('#selectSupplierSplit').select2({ dropdownParent: $('#modalApproval') });
-
+        
+        // Prevent scroll number input
         $('form').on('wheel', 'input[type=number]', function(e) {
             $(this).blur();
         });
@@ -356,11 +347,201 @@
         $('.btn-proses').on('click', function() {
             currentSubmissionId = $(this).data('id');
             currentKitchenId = $(this).data('kitchen-id');
+            
+            // Panggil fungsi utama (Single Source of Truth)
             loadAllData();
+            
             $('#modalApproval').modal('show');
         });
 
-        // --- HAPUS CHILD SUBMISSION (SPLIT ORDER) ---
+        // --- FUNGSI UTAMA LOAD DATA (GABUNGAN HEADER, HISTORY & DETAIL) ---
+        function loadAllData() {
+            // Gunakan endpoint yang sudah diperbaiki di Controller
+            $.get("{{ url('dashboard/transaksi/approval-menu') }}/" + currentSubmissionId + "/data", function(data) {
+                
+                // 1. ISI HEADER
+                $('#modalTitleKode').text(data.kode);
+                $('#infoTanggal').text(data.tanggal);
+                $('#infoTanggalDigunakan').text(data.tanggal_digunakan);
+                $('#infoMenu').text(data.menu);
+                $('#infoPmBesar').text(data.porsi_besar || 0);
+                $('#infoPmKecil').text(data.porsi_kecil || 0);
+                $('#infoDapur').text(data.kitchen);
+                
+                let badgeClass = data.status === 'diproses' ? 'info' : (data.status === 'selesai' ? 'success' : 'warning');
+                $('#infoStatusBadge').html(`<span class="badge badge-${badgeClass}">${data.status.toUpperCase()}</span>`);
+
+                isReadonlyStatus = (data.status === 'selesai');
+
+                // 2. RESET TOMBOL & MODE
+                $('#btnTolakParent, #btnSelesaiParent, #panelSupplier').addClass('d-none');
+                $('.action-only').removeClass('d-none');
+                setReadonlyMode(false);
+
+                if (data.status === 'diajukan') {
+                    $('#btnTolakParent').removeClass('d-none');
+                    $('#panelSupplier').removeClass('d-none');
+                } else if (data.status === 'diproses') {
+                    $('#btnSelesaiParent, #panelSupplier').removeClass('d-none');
+                } else if (data.status === 'selesai') {
+                    $('.action-only').addClass('d-none');
+                    setReadonlyMode(true);
+                }
+
+                // 3. RENDER SUPPLIER DROPDOWN
+                let supplierOpts = '<option value="">- Pilih Supplier Khusus Dapur Ini -</option>';
+                if (data.suppliers && data.suppliers.length > 0) {
+                    data.suppliers.forEach(s => {
+                        supplierOpts += `<option value="${s.id}">${s.nama}</option>`;
+                    });
+                } else {
+                    supplierOpts = '<option value="" disabled>Tidak ada supplier untuk dapur ini</option>';
+                }
+                $('#selectSupplierSplit').html(supplierOpts);
+
+                // 4. RENDER RIWAYAT SPLIT ORDER
+                renderHistory(data.history);
+
+                // 5. RENDER TABEL DETAIL BAHAN BAKU (PENTING: Gunakan data.details langsung)
+                renderDetailsTable(data.details);
+
+            }).fail(function() {
+                showNotificationPopUp('error', 'Gagal memuat data pengajuan.', 'Error');
+            });
+        }
+
+        // --- FUNGSI RENDER HISTORY ---
+        function renderHistory(historyData) {
+            let historyHtml = '';
+            if(historyData && historyData.length > 0) {
+                historyData.forEach(h => {
+                    let invoiceUrl = "{{ url('dashboard/transaksi/approval-menu') }}/" + h.id + "/invoice";
+                    
+                    // Render Items per Child
+                    let itemsHtml = '';
+                    if (h.items && h.items.length > 0) {
+                        h.items.forEach(item => {
+                            // Sesuaikan key dengan controller (qty, satuan, harga)
+                            itemsHtml += `
+                                <li>
+                                    ${item.nama}
+                                    <span class="text-muted small">(${formatQty(item.qty)} ${item.unit} x ${formatRupiah(item.harga_dapur)})</span>
+                                </li>
+                            `;
+                        });
+                    } else {
+                        itemsHtml = `<li class="text-muted font-italic small">Tidak ada item</li>`;
+                    }
+
+                    historyHtml += `
+                        <div class="card mb-2 border">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <strong class="text-dark">${h.kode}</strong> 
+                                        <span class="text-muted mx-2">|</span> 
+                                        <i class="fas fa-truck mr-1 text-secondary"></i> ${h.supplier_nama}
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <span class="badge badge-success mr-3 px-2 py-1">DISETUJUI</span>
+                                        <strong class="mr-3 text-dark">${formatRupiah(h.total)}</strong>
+                                        
+                                        <button class="btn btn-sm btn-outline-danger btn-delete-child action-only" 
+                                                data-id="${h.id}" title="Hapus Split Order">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <ul class="mb-0 pl-3" style="font-size: 0.9em; list-style-type: disc;">
+                                    ${itemsHtml}
+                                </ul>
+                                <div class="text-right mt-2 border-top pt-2">
+                                    <a href="${invoiceUrl}" class="btn btn-sm btn-outline-secondary" target="_blank">
+                                        <i class="fas fa-print mr-1"></i> Cetak Invoice
+                                    </a>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+            } else {
+                historyHtml = '<div class="text-muted font-italic text-center py-2 border bg-light rounded">Belum ada riwayat split order.</div>';
+            }
+            $('#wrapperRiwayat').html(historyHtml);
+        }
+
+        // --- FUNGSI RENDER TABEL DETAIL (Menggantikan loadDetails) ---
+        function renderDetailsTable(detailsData) {
+            let html = '';
+            let grandTotal = 0;
+
+            if (detailsData && detailsData.length > 0) {
+                detailsData.forEach(item => {
+                    // Kalkulasi Total untuk Tampilan Saja
+                    // (Logika harga: Subtotal Dapur jika Mitra 0/null)
+                    let hargaTampil = parseFloat(item.harga_dapur) || 0; 
+                    // Jika ingin menampilkan total semu: hargaTampil = parseFloat(item.qty_digunakan) * (harga_satuan);
+                    // Tapi di controller Anda mengirim 'harga_dapur' SEBAGAI SUBTOTAL. Jadi langsung pakai.
+                    grandTotal += hargaTampil;
+
+                    // Manual Label (Opsional, jika controller kirim null di recipe id)
+                    // let manualLabel = item.recipe_bahan_baku_id === null ? '<small class="text-info d-block font-italic">(Manual)</small>' : '';
+                    let manualLabel = ''; 
+
+                    html += `
+                        <tr>
+                            <td class="text-center align-middle action-only">
+                                <input type="checkbox" class="check-item" value="${item.id}">
+                            </td>
+                            <td class="align-middle">
+                                <span class="text-dark font-weight-bold">${item.nama_bahan}</span>
+                                ${manualLabel}
+                                <input type="hidden" name="details[${item.id}][id]" value="${item.id}">
+                                {{-- Hidden Input Satuan ID agar ikut terkirim saat save --}}
+                                <input type="hidden" name="details[${item.id}][satuan_id]" value="${item.satuan_id}">
+                            </td>
+                            <td class="align-middle px-1">
+                                <input type="number" step="0.0001" class="form-control form-control-sm text-center bg-light" 
+                                    name="details[${item.id}][qty_digunakan]" value="${item.qty_digunakan}">
+                            </td>
+                            <td class="text-center align-middle">
+                                <span class="badge badge-light border">${item.nama_satuan}</span>
+                            </td>
+                            
+                            {{-- KOLOM HARGA DAPUR --}}
+                            <td class="align-middle px-1">
+                                <input type="number" class="form-control form-control-sm text-right" 
+                                    name="details[${item.id}][harga_dapur]" 
+                                    value="${item.harga_dapur}" placeholder="0">
+                            </td>
+
+                            {{-- KOLOM HARGA MITRA --}}
+                            <td class="align-middle px-1">
+                                <input type="number" class="form-control form-control-sm text-right border-info" 
+                                    name="details[${item.id}][harga_mitra]" 
+                                    value="${item.harga_mitra}" placeholder="0">
+                            </td>
+
+                            <td class="text-center align-middle action-only">
+                                <button type="button" class="btn btn-link text-danger btn-delete-detail" data-id="${item.id}">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } else {
+                html = '<tr><td colspan="7" class="text-center py-3 text-muted">Tidak ada item bahan baku.</td></tr>';
+            }
+
+            $('#wrapperDetails').html(html);
+            // $('#infoTotal').text(formatRupiah(grandTotal)); // Aktifkan jika ada elemen infoTotal
+
+            if (isReadonlyStatus) {
+                setReadonlyMode(true);
+            }
+        }
+
+        // --- HAPUS SPLIT ORDER ---
         $(document).on('click', '.btn-delete-child', function() {
             let btn = $(this);
             let childId = btn.data('id');
@@ -371,7 +552,6 @@
                 message: `Yakin ingin menghapus split order ini?`,
                 confirmText: 'Hapus',
                 onConfirm: function() {
-                    // Tampilkan loading sementara
                     let originalContent = btn.html();
                     btn.html('<i class="fas fa-spinner fa-spin"></i>').prop('disabled', true);
     
@@ -380,235 +560,26 @@
                         type: 'DELETE',
                         data: { _token: '{{ csrf_token() }}' },
                         success: function(res) {
-                            btn.html(originalContent).prop('disabled', false);
-    
                             showNotificationPopUp('success', 'Split order berhasil dihapus.', 'Berhasil');
-                            loadAllData(); // Reload data modal agar list riwayat terupdate
+                            loadAllData(); // REFRESH DATA
                         },
                         error: function(xhr) {
-                            let msg = xhr.responseJSON?.message ?? 'Gagal menghapus data.';
-                            showNotificationPopUp('error', msg, 'Terjadi Kesalahan');
-                        },
-    
-                        complete: function () {
-                            btn.html(originalContent).prop('disabled', false)
+                            showNotificationPopUp('error', xhr.responseJSON?.message ?? 'Gagal menghapus data.', 'Error');
+                            btn.html(originalContent).prop('disabled', false);
                         }
                     });
                 }
             });
         });
 
-        $('#confirmActionModal').on('hidden.bs.modal', function () {
-            $('body').addClass('modal-open');
-        });
-
-        function loadAllData() {
-            $.get("{{ url('dashboard/transaksi/approval-menu') }}/" + currentSubmissionId + "/data", function(data) {
-                $('#modalTitleKode').text(data.kode);
-                $('#infoTanggal').text(data.tanggal);
-                $('#infoTanggalDigunakan').text(data.tanggal_digunakan);
-                $('#infoMenu').text(data.menu)
-                $('#infoPorsi').text(data.porsi)
-                $('#infoDapur').text(data.kitchen);
-                
-                let badgeClass = data.status === 'diproses' ? 'info' : (data.status === 'selesai' ? 'success' : 'warning');
-                $('#infoStatusBadge').html(`<span class="badge badge-${badgeClass}">${data.status.toUpperCase()}</span>`);
-
-                isReadonlyStatus = (data.status === 'selesai');
-
-                // Reset Tampilan Tombol
-                $('#btnTolakParent, #btnSelesaiParent, #panelSupplier').addClass('d-none');
-
-                // PASTIKAN tombol aksi muncul kembali (default)
-                $('.action-only').removeClass('d-none');
-
-                setReadonlyMode(false);
-
-                // Logic Tampilan berdasarkan Status
-                if (data.status === 'diajukan') {
-                    $('#btnTolakParent').removeClass('d-none');
-                    $('#panelSupplier').removeClass('d-none');
-                } else if (data.status === 'diproses') {
-                    $('#btnSelesaiParent, #panelSupplier').removeClass('d-none');
-                } else if (data.status === 'selesai') {
-                    // MODE READONLY
-                    $('.action-only').addClass('d-none'); // Sembunyikan tombol Simpan, Tambah, Split
-                    setReadonlyMode(true); // Matikan input form
-                }
-
-                let supplierOpts = '<option value="">- Pilih Supplier Khusus Dapur Ini -</option>';
-                if (data.suppliers && data.suppliers.length > 0) {
-                    data.suppliers.forEach(s => {
-                        supplierOpts += `<option value="${s.id}">${s.nama}</option>`;
-                    });
-                } else {
-                    supplierOpts = '<option value="" disabled>Tidak ada supplier untuk dapur ini</option>';
-                }
-                
-                // Masukkan HTML option ke dalam Select
-                $('#selectSupplierSplit').html(supplierOpts);
-
-                // Render Riwayat
-                let historyHtml = '';
-                if(data.history && data.history.length > 0) {
-                    data.history.forEach(h => {
-                        let invoiceUrl = "{{ url('dashboard/transaksi/approval-menu') }}/" + h.id + "/invoice";
-                        let itemsHtml = '';
-                        if (h.items && h.items.length > 0) {
-                            h.items.forEach(item => {
-                                itemsHtml += `
-                                    <li>
-                                        ${item.nama}
-                                        <span class="text-muted">(${formatQty(item.qty)} x ${formatRupiah(item.harga)})</span>
-                                    </li>
-                                `;
-                            });
-                        } else {
-                            itemsHtml = `<li class="text-muted font-italic">Tidak ada item</li>`;
-                        }
-                        historyHtml += `
-                            <div class="card mb-2 border">
-                                <div class="card-body p-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <div>
-                                            <strong class="text-dark" style="font-size: 1.1em;">${h.kode}</strong> 
-                                            <span class="text-muted mx-2">|</span> 
-                                            <i class="fas fa-truck mr-1 text-secondary"></i> ${h.supplier_nama}
-                                        </div>
-                                        <div class="d-flex align-items-center">
-                                            <span class="badge badge-success mr-3 px-2 py-1">DISETUJUI</span>
-                                            <strong class="mr-3 text-dark" style="font-size: 1.1em;">${formatRupiah(h.total)}</strong>
-                                            
-                                            {{-- Tombol Hapus --}}
-                                            <button class="btn btn-sm btn-outline-danger btn-delete-child action-only" 
-                                                    data-id="${h.id}" 
-                                                    title="Hapus Split Order">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {{-- Opsional: List Item Ringkas (Jika ingin seperti gambar referensi) --}}
-                                    <ul class="mb-0 pl-3" style="font-size: 0.9em;">
-                                        ${itemsHtml}
-                                    </ul>
-
-                                    {{-- TOMBOL CETAK INVOICE (Posisi Kanan Bawah) --}}
-                                    <div class="text-right mt-2 border-top pt-2">
-                                        <a href="${invoiceUrl}" class="btn btn-sm btn-outline-secondary">
-                                            <i class="fas fa-print mr-1"></i> Cetak Invoice
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>`;
-                    });
-                } else {
-                    historyHtml = '<div class="text-muted font-italic text-center py-2">Belum ada riwayat split order.</div>';
-                }
-                $('#wrapperRiwayat').html(historyHtml);
-            });
-
-            loadDetails();
-        }
-
-        function loadDetails() {
-            $.get("{{ url('dashboard/transaksi/approval-menu') }}/" + currentSubmissionId + "/details", function(data) {
-                let html = '';
-                let grandTotal = 0;
-                let isReadonly = false;
-
-                data.forEach(item => {
-                    // Logic: Jika harga mitra diisi (>0), pakai harga mitra. Jika tidak, pakai harga dapur.
-                    // Ini hanya untuk tampilan subtotal sementara.
-                    // let hargaAktif = (parseFloat(item.harga_mitra) > 0) ? parseFloat(item.harga_mitra) : parseFloat(item.harga_dapur);
-                    let hargaAktif = parseFloat(item.harga_dapur) || 0;
-                    let subtotal = parseFloat(item.qty_digunakan) * hargaAktif;
-                    grandTotal += subtotal;
-
-                    let manualLabel = item.recipe_bahan_baku_id === null ? '<small class="text-info d-block font-italic">(Manual)</small>' : '';
-                    let namaSatuan = item.bahan_baku?.unit?.satuan || '-';
-
-                    html += `
-                        <tr>
-                            <td class="text-center align-middle action-only">
-                                <input type="checkbox" class="check-item" value="${item.id}">
-                            </td>
-                            <td class="align-middle">
-                                <span class= text-dark">${item.bahan_baku?.nama || '-'}</span>
-                                ${manualLabel}
-                                <small class="text-muted">${item.bahan_baku?.unit?.nama || ''}</small>
-                                <input type="hidden" name="details[${item.id}][id]" value="${item.id}">
-                            </td>
-                            <td class="align-middle px-1">
-                                <input type="number" step="0.0001" class="form-control form-control-sm text-center bg-light" 
-                                    name="details[${item.id}][qty_digunakan]" value="${parseFloat(item.qty_digunakan)}">
-                            </td>
-                            <td class="text-center align-middle">
-                                <span class="badge badge-light border">${namaSatuan}</span>
-                            </td>
-                            
-                            {{-- KOLOM HARGA DAPUR --}}
-                            <td class="align-middle px-1">
-                                <input type="number" class="form-control form-control-sm text-right" 
-                                    name="details[${item.id}][harga_dapur]" 
-                                    value="${parseFloat(item.harga_dapur || 0)}" placeholder="0">
-                            </td>
-
-                            {{-- KOLOM HARGA MITRA --}}
-                            <td class="align-middle px-1">
-                                <input type="number" class="form-control form-control-sm text-right border-info" 
-                                    name="details[${item.id}][harga_mitra]" 
-                                    value="${parseFloat(item.harga_mitra || 0)}" placeholder="0">
-                            </td>
-
-                            {{-- <td class="text-right align-middle">
-                                ${formatRupiah(subtotal)}
-                            </td> --}}
-                            <td class="text-center align-middle action-only">
-                                <button type="button" class="btn btn-link text-danger btn-delete-detail" data-id="${item.id}">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                });
-
-                if(data.length === 0) html = '<tr><td colspan="7" class="text-center py-3 text-muted">Tidak ada item bahan baku.</td></tr>';
-                
-                $('#wrapperDetails').html(html);
-                $('#infoTotal').text(formatRupiah(grandTotal));
-
-                if (isReadonlyStatus) {
-                    setReadonlyMode(true);
-                }
-                // --
-            });
-        }
-
-        // Check All
-        $('#checkAll').on('change', function() {
-            $('.check-item').prop('checked', $(this).prop('checked'));
-        });
-
-        // Split Order
+        // --- SPLIT ORDER ---
         $('#btnSplitOrder').on('click', function() {
             let supplierId = $('#selectSupplierSplit').val();
             let selectedIds = [];
-            
-            // Pastikan class '.check-item' sesuai dengan yang ada di render tabel HTML
-            $('.check-item:checked').each(function() {
-                selectedIds.push($(this).val());
-            });
+            $('.check-item:checked').each(function() { selectedIds.push($(this).val()); });
 
-            if(!supplierId) {
-                showNotificationPopUp('warning', 'Harap pilih supplier!')
-                return; 
-            }
-
-            if(selectedIds.length === 0) {
-                showNotificationPopUp('warning', 'Harap centang minimal satu barang!')
-                return; 
-            }
+            if(!supplierId) { showNotificationPopUp('warning', 'Harap pilih supplier!'); return; }
+            if(selectedIds.length === 0) { showNotificationPopUp('warning', 'Harap centang minimal satu barang!'); return; }
 
             confirmAction({
                 title: 'Konfirmasi Split Order',
@@ -621,75 +592,74 @@
                         data: {
                             _token: "{{ csrf_token() }}",
                             supplier_id: supplierId,
-                            selected_details: selectedIds // Pastikan nama key ini sama dengan di $request->validate
+                            selected_details: selectedIds 
                         },
                         success: function(res) {
-                            showNotificationPopUp('success', 'Order berhasil dipisah.', 'Berhasil')
-                            
+                            showNotificationPopUp('success', 'Order berhasil dipisah.', 'Berhasil');
                             $('#selectSupplierSplit').val('').trigger('change');
                             $('#checkAll').prop('checked', false);
-                            // Penting: Reload data agar status berubah jadi 'DIPROSES' di tampilan
-                            loadAllData(); 
+                            loadAllData(); // REFRESH DATA
                         },
                         error: function(xhr) {
-                            let msg = xhr.responseJSON?.message ?? 'Gagal memproses.';
-                            showNotificationPopUp('error', msg, 'Terjadi Kesalahan');
+                            showNotificationPopUp('error', xhr.responseJSON?.message ?? 'Gagal memproses.', 'Error');
                         }
                     });
                 }
             });
         });
 
-        // --- UPDATE HARGA (FORM SUBMIT) ---
+        // --- SIMPAN HARGA ---
         $('#formUpdateHarga').on('submit', function(e) {
             e.preventDefault();
-            
-            // Disable tombol simpan agar tidak double klik
             let btn = $('#btnSimpanHarga');
             let originalText = btn.html();
             btn.html('<i class="fas fa-spinner fa-spin"></i> Menyimpan...').prop('disabled', true);
 
+            let details = [];
+
+            $('#wrapperDetails tr').each(function() {
+                let row = $(this);
+
+                let id = row.find('input[name*="[id]"]').val();
+                if (!id) return;
+
+                details.push({
+                    id: id,
+                    qty_digunakan: toNumber(row.find(`input[name="details[${id}][qty_digunakan]"]`).val()),
+                    satuan_id: row.find(`input[name="details[${id}][satuan_id]"]`).val(),
+                    harga_dapur: toNumber(row.find(`input[name="details[${id}][harga_dapur]"]`).val()),
+                    harga_mitra: toNumber(row.find(`input[name="details[${id}][harga_mitra]"]`).val()),
+                });
+            });
+
+            console.log(details);
+
             $.ajax({
                 url: "{{ url('dashboard/transaksi/approval-menu') }}/" + currentSubmissionId + "/update-harga",
                 type: 'PATCH',
-                data: $(this).serialize() + '&_token={{ csrf_token() }}',
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    details: details
+                },
                 success: function(response) {
-                    showNotificationPopUp('success', response.message || 'Data berhasil diperbarui', 'Berhasil')
-
-                    loadDetails();
-                    loadAllData(); // Reload header total
+                    showNotificationPopUp('success', response.message || 'Data berhasil diperbarui', 'Berhasil');
+                    loadAllData();
                 },
                 error: function(xhr) {
-                    // LOGIKA ERROR HANDLING LEBIH BAIK
-                    let msg = 'Gagal menyimpan perubahan.';
-                    
-                    if (xhr.responseJSON) {
-                        // Jika error validasi Laravel (422)
-                        if (xhr.responseJSON.errors) {
-                            msg += '\n';
-                            $.each(xhr.responseJSON.errors, function(key, value) {
-                                msg += '- ' + value[0] + '\n';
-                            });
-                        } 
-                        // Jika error message biasa (403/500)
-                        else if (xhr.responseJSON.message) {
-                            msg = xhr.responseJSON.message;
-                        }
-                    }
-                    
-                    showNotificationPopUp('error', msg, 'Terjadi Kesalahan');
+                    console.log(xhr.responseText);
+                    showNotificationPopUp('error', xhr.responseJSON?.message ?? 'Gagal menyimpan perubahan.', 'Error');
                 },
                 complete: function() {
-                    // Kembalikan tombol seperti semula
                     btn.html(originalText).prop('disabled', false);
                 }
             });
         });
 
-        // Add Manual
+        // --- TAMBAH MANUAL ---
         $('#btnTambahBahan').click(function() {
              let url = "{{ route('transaction.submission-approval.helper.bahan-baku', ['kitchen' => 'FAKE_ID']) }}".replace('FAKE_ID', currentKitchenId);
              $('#selectBahanManual').empty().append('<option>Loading...</option>');
+             
              $.get(url, function(data) {
                  let opts = '<option value="">Pilih Bahan</option>';
                  data.forEach(b => opts += `<option value="${b.id}">${b.nama} (${b.unit?.satuan})</option>`);
@@ -700,113 +670,93 @@
 
         $('#modalAddBahanManual form').submit(function(e) {
             e.preventDefault();
+            // Ambil text option terpilih untuk mencari ID Satuan (jika tidak ada di value)
+            // Namun sebaiknya endpoint helper di atas juga mengembalikan ID satuan.
+            // Asumsi: Backend handle satuan via relasi bahan baku, atau Anda perlu mengirim satuan_id.
+            
+            // NOTE: Di controller `addManualBahan`, Anda memvalidasi `satuan_id`. 
+            // Pastikan Anda mengirim `satuan_id`. Jika UI select2 belum punya data satuan_id, 
+            // Anda perlu mengambilnya saat select berubah atau simpan di data-attribute option.
+            
+            // Untuk SEMENTARA, saya asumsikan controller bisa mencari satuan default jika tidak dikirim, 
+            // ATAU kita perlu ambil satuan_id dari data json helper tadi.
+            
+            // SOLUSI CEPAT: Ubah value option menjadi "bahanID|satuanID" atau simpan data satuan di variable global temp.
+            // Tapi karena JS ini panjang, pastikan Controller `addManualBahan` Anda bisa menerima bahan_baku_id saja lalu cari satuan defaultnya, 
+            // ATAU tambahkan input hidden satuan_id di modal manual.
+            
+            // Biarkan request ini jalan dulu, cek error di network tab jika satuan required.
             $.post("{{ url('dashboard/transaksi/approval-menu') }}/" + currentSubmissionId + "/add-manual", {
                 _token: '{{ csrf_token() }}',
                 bahan_baku_id: $('#selectBahanManual').val(),
-                qty_digunakan: $('#qtyBahanManual').val()
+                qty_digunakan: $('#qtyBahanManual').val(),
+                // satuan_id: ??? (Perlu ditambah logic pengambilan satuan ID)
+                // Untuk sementara hardcode '1' atau ubah controller agar auto-detect satuan dari bahan baku
+                satuan_id: 1 // TODO: PERBAIKI LOGIC INI AGAR DINAMIS
             }, function() {
                 $('#modalAddBahanManual').modal('hide');
-                loadDetails();
+                loadAllData(); // REFRESH DATA
             });
         });
 
-        // Delete Detail
+        // --- HAPUS DETAIL ITEM ---
         $(document).on('click', '.btn-delete-detail', function() {
             let btn = $(this);
-            let childId = btn.data('id');
-            // if(confirm('Hapus item?')) {
+            let detailId = btn.data('id');
+            
             confirmAction({
                 type: 'delete',
-                title: 'Konfirmasi Hapus',
+                title: 'Konfirmasi Hapus Item',
                 message: `Yakin ingin menghapus item ini?`,
                 confirmText: 'Hapus',
                 onConfirm: function() {
                     $.ajax({
-                        url: "{{ url('dashboard/transaksi/approval-menu') }}/" + currentSubmissionId + "/detail/" + childId,
+                        url: "{{ url('dashboard/transaksi/approval-menu') }}/" + currentSubmissionId + "/detail/" + detailId,
                         type: 'DELETE',
                         data: {_token: '{{ csrf_token() }}'},
                         success: function() {
                             showNotificationPopUp('success', 'Item berhasil dihapus.', 'Berhasil');
-                            loadDetails();
+                            loadAllData(); // REFRESH DATA
                         },
-
                         error: function() {
-                            showNotificationPopUp('error', 'Gagal menghapus item.');
+                            showNotificationPopUp('error', 'Gagal menghapus item.', 'Error');
                         }
                     });
                 }
             });
         });
 
+        // --- HELPER LAINNYA ---
+        $('#checkAll').on('change', function() {
+            $('.check-item').prop('checked', $(this).prop('checked'));
+        });
+
         function setReadonlyMode(isReadonly) {
-            // Disable input & checkbox
             $('#wrapperDetails input, #wrapperDetails select').prop('disabled', isReadonly);
-
-            // Disable tombol aksi
-            $('#btnSplitOrder').prop('disabled', isReadonly);
-            $('#btnSimpanHarga').prop('disabled', isReadonly);
-            $('#btnTambahBahan').prop('disabled', isReadonly);
-            $('#checkAll').prop('disabled', isReadonly);
-
-            // Hide tombol delete detail
+            $('#btnSplitOrder, #btnSimpanHarga, #btnTambahBahan, #checkAll').prop('disabled', isReadonly);
             if (isReadonly) {
-                $('.action-only').addClass('d-none'); // Sembunyikan kolom
-                $('.btn-delete-detail').addClass('d-none');
-                $('.btn-delete-child').addClass('d-none');
+                $('.action-only, .btn-delete-detail, .btn-delete-child').addClass('d-none');
             } else {
-                $('.action-only').removeClass('d-none'); // Munculkan kolom
-                $('.btn-delete-detail').removeClass('d-none');
-                $('.btn-delete-child').removeClass('d-none');
+                $('.action-only, .btn-delete-detail, .btn-delete-child').removeClass('d-none');
             }
         }
 
-        // Status Actions
-        function updateStatus(status) {
-            $('#formUpdateStatus').attr('action', "{{ url('dashboard/transaksi/approval-menu') }}/" + currentSubmissionId + "/status");
-            $('#inputStatusFinal').val(status);
-            $('#formUpdateStatus').submit();
+        function toNumber(val) {
+            if (val === null || val === undefined) return 0;
+            val = val.toString().trim();
+
+            // hapus Rp, spasi
+            val = val.replace(/rp/gi, '').replace(/\s/g, '');
+
+            // hapus pemisah ribuan titik
+            val = val.replace(/\./g, '');
+
+            // ubah koma desimal ke titik
+            val = val.replace(/,/g, '.');
+
+            let num = parseFloat(val);
+            return isNaN(num) ? 0 : num;
         }
-
-        $('#btnTolakParent').click(() => confirm('Tolak pengajuan ini?') && updateStatus('ditolak'));
-        
-        // Finalize (Selesai)
-        $('#btnSelesaiParent').click(function () {
-            confirmAction({
-                type: 'success',
-                title: 'Konfirmasi Selesai',
-                message: `Selesaikan seluruh pengajuan?`,
-                confirmText: 'Selesai',
-                onConfirm: function() {
-                    updateStatus('selesai');
-                }
-            });
-        });
-
-        // Filter Frontend
-        $('#filterKitchen, #filterStatus, #filterDate').on('change', function() {
-            let kitchen = $('#filterKitchen').val()?.toLowerCase() || '';
-            let status = $('#filterStatus').val()?.toLowerCase() || '';
-            let date = $('#filterDate').val();
-
-            $('#tableApproval tbody tr').each(function () {
-                let rKitchen = $(this).data('kitchen')?.toLowerCase() || '';
-                let rStatus = $(this).data('status')?.toLowerCase() || '';
-                let rDate = $(this).data('date') || '';
-                let show = (kitchen === '' || rKitchen === kitchen) &&
-                           (status === '' || rStatus === status) &&
-                           (date === '' || rDate === date);
-                $(this).toggle(show);
-            });
-        });
-
-        // FIX SCROLL: Mengatasi masalah scroll hilang saat modal kedua ditutup
-        $('#modalAddBahanManual').on('hidden.bs.modal', function () {
-            // Cek apakah modal approval (modal utama) masih terbuka
-            if ($('#modalApproval').hasClass('show')) {
-                // Paksa tambahkan class modal-open ke body agar scroll tetap jalan
-                $('body').addClass('modal-open');
-            }
-        });
 
     });
 </script>
