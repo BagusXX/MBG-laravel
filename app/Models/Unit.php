@@ -21,4 +21,8 @@ class Unit extends Model
     {
         return $this->hasMany(BahanBaku::class);
     }
+
+    public function submission_details(){
+        return $this->hasMany(SubmissionDetails::class);
+    }
 }

@@ -16,7 +16,7 @@ class recipeBahanBaku extends Model
         'kitchen_id',
         'menu_id',
         'bahan_baku_id',
-        'jumlah',
+        // 'jumlah',
     ];
 
     public function menu()
@@ -33,10 +33,10 @@ class recipeBahanBaku extends Model
         return $this->belongsTo(BahanBaku::class);
     }
 
-    public function submissionDetails()
-    {
-        return $this->hasMany(SubmissionDetails::class);
-    }
+    // public function submissionDetails()
+    // {
+    //     return $this->hasMany(SubmissionDetails::class);
+    // }
 
     // public function detail_submission(){
     //     return $this->hasMany(SubmissionDetails::class);

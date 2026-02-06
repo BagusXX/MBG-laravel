@@ -6,7 +6,6 @@ use App\Models\Menu;
 use App\Models\Kitchen;
 use App\Models\BahanBaku;
 use App\Models\RecipeBahanBaku;
-use App\Models\Unit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -25,7 +24,7 @@ class RecipeController extends Controller
         })
             ->with([
                 'recipes' => function ($q) use ($kitchenKodes) {
-                    $q->with(['bahan_baku.unit', 'kitchen'])
+                    $q->with(['kitchen'])
                         ->withCount('submissionDetails')
                         ->whereHas('kitchen', function ($k) use ($kitchenKodes) {
                             $k->whereIn('kode', $kitchenKodes);
@@ -33,22 +32,13 @@ class RecipeController extends Controller
                 }
             ])->paginate(10);
 
-        // HANYA dapur user
-
-        $bahanBaku = BahanBaku::with('unit')
-            ->whereHas('kitchen', function ($q) use ($kitchenKodes) {
-                $q->whereIn('kode', $kitchenKodes);
-            })
-            ->get();
-
-        $units = Unit::all();
+        $bahanBaku = BahanBaku::whereIn('kitchen_id', $kitchens->pluck('id'))->get();
 
         // Pastikan nama view ini benar ada di folder resources/views/setup/createmenu.blade.php
         return view('setup.createmenu', compact(
             'menus',
             'kitchens',
             'bahanBaku',
-            'units'
         ));
     }
 
@@ -62,8 +52,8 @@ class RecipeController extends Controller
             'kitchen_id' => 'required|exists:kitchens,id',
             'bahan_baku_id' => 'required|array|min:1',
             'bahan_baku_id.*' => 'exists:bahan_baku,id',
-            'jumlah' => 'required|array|min:1',
-            'jumlah.*' => 'numeric|min:0.0001',
+            // 'jumlah' => 'required|array|min:1',
+            // 'jumlah.*' => 'numeric|min:0.0001',
         ]);
 
         // 🔒 pastikan dapur milik user (VALID UNTUK CENTRAL & CABANG)
@@ -88,7 +78,7 @@ class RecipeController extends Controller
                 'menu_id' => $request->menu_id,
                 'kitchen_id' => $kitchen->id,
                 'bahan_baku_id' => $bahanId,
-                'jumlah' => $request->jumlah[$i],
+                // 'jumlah' => $request->jumlah[$i],
             ]);
         }
 
@@ -110,7 +100,7 @@ class RecipeController extends Controller
 
         $request->validate([
             'bahan_baku_id' => 'required|array|min:1',
-            'jumlah' => 'required|array|min:1',
+            // 'jumlah' => 'required|array|min:1',
         ]);
 
         $existingIds = [];
@@ -129,7 +119,7 @@ class RecipeController extends Controller
 
                 $recipe->update([
                     'bahan_baku_id' => $bahanId,
-                    'jumlah' => $request->jumlah[$i],
+                    // 'jumlah' => $request->jumlah[$i],
                 ]);
 
                 $existingIds[] = $rowId;
@@ -138,7 +128,7 @@ class RecipeController extends Controller
                     'menu_id' => $menuId,
                     'kitchen_id' => $kitchenId,
                     'bahan_baku_id' => $bahanId,
-                    'jumlah' => $request->jumlah[$i],
+                    // 'jumlah' => $request->jumlah[$i],
                 ]);
 
                 $existingIds[] = $new->id;
@@ -190,7 +180,7 @@ class RecipeController extends Controller
         $user = auth()->user();
         $kitchenKode = $user->kitchens()->pluck('kode');
 
-        $recipes = RecipeBahanBaku::with(['bahan_baku.unit'])
+        $recipes = RecipeBahanBaku::with(['bahan_baku'])
             ->where('menu_id', $menuId)
             ->where('kitchen_id', $kitchenId)
             ->whereHas('bahan_baku')
@@ -209,14 +199,13 @@ class RecipeController extends Controller
 
     public function getRecipeDetail($menuId, $kitchenId)
     {
-        return RecipeBahanBaku::with(['bahan_baku.unit', 'kitchen', 'menu'])
+        return RecipeBahanBaku::with(['bahan_baku', 'kitchen', 'menu'])
             ->join('bahan_baku', 'bahan_baku.id', '=', 'recipe_bahan_baku.bahan_baku_id')
             ->where('recipe_bahan_baku.menu_id', $menuId)
             ->where('recipe_bahan_baku.kitchen_id', $kitchenId)
             ->orderBy('bahan_baku.nama', 'asc')
             ->select('recipe_bahan_baku.*')
             ->get();
-
     }
 
 
@@ -242,14 +231,12 @@ class RecipeController extends Controller
 
     public function getBahanDetail($id)
     {
-        $bahan = BahanBaku::with('unit')->findOrFail($id);
+        $bahan = BahanBaku::select('id', 'nama')->findOrFail($id);
 
         return response()->json([
             'id' => $bahan->id,
             'nama' => $bahan->nama,
-            'harga' => $bahan->harga,
-            'satuan_id' => $bahan->satuan_id,
-            'satuan' => $bahan->unit?->satuan,
+
         ]);
     }
 
@@ -257,24 +244,15 @@ class RecipeController extends Controller
     {
         $user = auth()->user();
 
-        // pastikan dapur milik user
         $kitchen = Kitchen::where('id', $kitchenId)
             ->whereIn('kode', $user->kitchens()->pluck('kode'))
             ->firstOrFail();
 
+        // Hanya ambil id dan nama (harga dihapus sesuai permintaan sebelumnya)
         $bahanBaku = BahanBaku::where('kitchen_id', $kitchen->id)
-            ->with('unit')
-            ->select('id', 'nama', 'harga', 'satuan_id', 'kitchen_id')
-            ->get()
-            ->map(function ($item) {
-                return [
-                    'id' => $item->id,
-                    'nama' => $item->nama,
-                    'harga' => $item->harga,
-                    'satuan_id' => $item->satuan_id,
-                    'satuan' => $item->unit ? $item->unit->satuan : null,
-                ];
-            });
+            ->select('id', 'nama')
+            ->orderBy('nama', 'asc')
+            ->get();
 
         return response()->json($bahanBaku);
     }
@@ -333,7 +311,7 @@ class RecipeController extends Controller
                     'menu_id' => $newMenu->id,
                     'kitchen_id' => $kitchen->id,
                     'bahan_baku_id' => $recipe->bahan_baku_id,
-                    'jumlah' => $recipe->jumlah,
+                    // 'jumlah' => $recipe->jumlah,
                 ]);
             }
         });

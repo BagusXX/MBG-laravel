@@ -13,17 +13,14 @@ return new class extends Migration {
         Schema::create('submission_details', function (Blueprint $table) {
             $table->id();
             $table->foreignId('submission_id')->constrained('submissions')->onDelete('cascade');
-            $table->foreignId('recipe_bahan_baku_id')
-                ->nullable()
-                ->constrained('recipe_bahan_baku')
-                ->nullOnDelete();
             $table->foreignId('bahan_baku_id')->nullable()->constrained('bahan_baku')->onDelete('cascade');
             $table->decimal('qty_digunakan',15,4);// Total berat (takaran x porsi)
-            $table->decimal('harga_satuan',15,2); // Harga per gram saat submit
             $table->decimal('harga_dapur', 15, 2)->nullable();
             $table->decimal('harga_mitra', 15, 2)->nullable();
-            $table->decimal('subtotal_harga',15,2);
-             // <--- HARGA PER BAHAN DIKALI PORSI MASUK SINI
+            $table->decimal('subtotal_dapur', 15, 2)->nullable();
+            $table->decimal('subtotal_mitra', 15, 2)->nullable();
+            // $table->decimal('subtotal_harga', 15, 2)->nullable();
+            $table->foreignId('satuan_id')->constrained('units')->onDelete('cascade');
 
             $table->timestamps();
 

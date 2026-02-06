@@ -9,83 +9,84 @@ use App\Models\BahanBaku;
 class BahanBakuSeeder extends Seeder
 {
     public function run(): void
-{
-    // 1. Cukup definisikan daftar bahan baku saja di sini
-    $daftarBahan = [
-        ['nama' => 'Ayam Potong', 'harga' => 15000, 'satuan_id' => 2],
-        ['nama' => 'Baking Powder', 'harga' => 35000, 'satuan_id' => 2],
-        ['nama' => 'Bawang Bombay', 'harga' => 35000, 'satuan_id' => 2],
-        ['nama' => 'Bawang Merah', 'harga' => 35000, 'satuan_id' => 2],
-        ['nama' => 'Bawang Putih', 'harga' => 40000, 'satuan_id' => 2],
-        ['nama' => 'Beras', 'harga' => 15000, 'satuan_id' => 2],
-        ['nama' => 'Cabe Hijau Teropong', 'harga' => 15000, 'satuan_id' => 2],
-        ['nama' => 'Cabe Merah Teropong', 'harga' => 15000, 'satuan_id' => 2],
-        ['nama' => 'Cabe Merah Keriting', 'harga' => 15000, 'satuan_id' => 2],
-        ['nama' => 'Daun Bawang', 'harga' => 15000, 'satuan_id' => 2],
-        ['nama' => 'Daun Jeruk', 'harga' => 15000, 'satuan_id' => 2],
-        ['nama' => 'Daun Salam', 'harga' => 15000, 'satuan_id' => 2],
-        ['nama' => 'Daun Sereh', 'harga' => 15000, 'satuan_id' => 2],
-        ['nama' => 'Garam', 'harga' => 15000, 'satuan_id' => 2],
-        ['nama' => 'Gula Merah', 'harga' => 15000, 'satuan_id' => 2],
-        ['nama' => 'Gula Pasir', 'harga' => 15000, 'satuan_id' => 2],
-        ['nama' => 'Jahe', 'harga' => 15000, 'satuan_id' => 2],
-        ['nama' => 'Jinten Bubuk', 'harga' => 15000, 'satuan_id' => 2],
-        ['nama' => 'Kecap Asin', 'harga' => 15000, 'satuan_id' => 4],
-        ['nama' => 'Kecap Manis Lele', 'harga' => 15000, 'satuan_id' => 4],
-        ['nama' => 'Kemiri', 'harga' => 15000, 'satuan_id' => 2],
-        ['nama' => 'Kencur', 'harga' => 15000, 'satuan_id' => 2],
-        ['nama' => 'Kentang', 'harga' => 15000, 'satuan_id' => 2],
-        ['nama' => 'Ketumbar Bubuk', 'harga' => 15000, 'satuan_id' => 2],
-        ['nama' => 'Ketumbar Bubuk Desaku', 'harga' => 15000, 'satuan_id' => 2],
-        ['nama' => 'Kol', 'harga' => 15000, 'satuan_id' => 2],
-        ['nama' => 'Kunyit Bubuk Desaku', 'harga' => 15000, 'satuan_id' => 2],
-        ['nama' => 'Labu Siam', 'harga' => 15000, 'satuan_id' => 2],
-        ['nama' => 'Lengkuas', 'harga' => 15000, 'satuan_id' => 2],
-        ['nama' => 'Masako Ayam', 'harga' => 15000, 'satuan_id' => 2],
-        ['nama' => 'Mayonaise', 'harga' => 15000, 'satuan_id' => 4],
-        ['nama' => 'Merica Bubuk Desaku', 'harga' => 15000, 'satuan_id' => 2],
-        ['nama' => 'Minyak Goreng', 'harga' => 15000, 'satuan_id' => 3],
-        ['nama' => 'Minyak Wijen', 'harga' => 15000, 'satuan_id' => 4],
-        ['nama' => 'Palmia', 'harga' => 15000, 'satuan_id' => 4],
-        ['nama' => 'Santan Kara', 'harga' => 15000, 'satuan_id' => 4],
-        ['nama' => 'Saus Cabe Delmonte', 'harga' => 15000, 'satuan_id' => 4],
-        ['nama' => 'Saus Teriyaki', 'harga' => 15000, 'satuan_id' => 4],
-        ['nama' => 'Saus Tiram', 'harga' => 15000, 'satuan_id' => 4],
-        ['nama' => 'Saus Tomat Delmonte', 'harga' => 15000, 'satuan_id' => 4],
-        ['nama' => 'Sawi Putih', 'harga' => 28000, 'satuan_id' => 2],
-        ['nama' => 'Tahu', 'harga' => 28000, 'satuan_id' => 2],
-        ['nama' => 'Telur Ayam', 'harga' => 28000, 'satuan_id' => 2],
-        ['nama' => 'Tempe', 'harga' => 28000, 'satuan_id' => 2],
-        ['nama' => 'Tepung Maizena', 'harga' => 28000, 'satuan_id' => 2],
-        ['nama' => 'Tepung Terigu Segitiga', 'harga' => 28000, 'satuan_id' => 2],
-        ['nama' => 'Timun', 'harga' => 28000, 'satuan_id' => 2],
-        ['nama' => 'Tomat', 'harga' => 28000, 'satuan_id' => 2],
-        ['nama' => 'Wortel', 'harga' => 28000, 'satuan_id' => 2],
-        ['nama' => 'Wijen Sangrai', 'harga' => 28000, 'satuan_id' => 2],
+    {
+        // 1. Cukup definisikan daftar bahan baku saja di sini
+        $daftarBahan = [
+            ['nama' => 'Ayam Potong'],
+            ['nama' => 'Baking Powder'],
+            ['nama' => 'Bawang Bombay'],
+            ['nama' => 'Bawang Merah'],
+            ['nama' => 'Bawang Putih'],
+            ['nama' => 'Beras'],
+            ['nama' => 'Cabe Hijau Teropong'],
+            ['nama' => 'Cabe Merah Teropong'],
+            ['nama' => 'Cabe Merah Keriting'],
+            ['nama' => 'Daun Bawang'],
+            ['nama' => 'Daun Jeruk'],
+            ['nama' => 'Daun Salam'],
+            ['nama' => 'Daun Sereh'],
+            ['nama' => 'Garam'],
+            ['nama' => 'Gula Merah'],
+            ['nama' => 'Gula Pasir'],
+            ['nama' => 'Jahe'],
+            ['nama' => 'Jinten Bubuk'],
+            ['nama' => 'Kecap Asin'],
+            ['nama' => 'Kecap Manis Lele'],
+            ['nama' => 'Kemiri'],
+            ['nama' => 'Kencur'],
+            ['nama' => 'Kentang'],
+            ['nama' => 'Ketumbar Bubuk'],
+            ['nama' => 'Ketumbar Bubuk Desaku'],
+            ['nama' => 'Kol'],
+            ['nama' => 'Kunyit Bubuk Desaku'],
+            ['nama' => 'Labu Siam'],
+            ['nama' => 'Lengkuas'],
+            ['nama' => 'Masako Ayam'],
+            ['nama' => 'Mayonaise'],
+            ['nama' => 'Merica Bubuk Desaku'],
+            ['nama' => 'Minyak Goreng'],
+            ['nama' => 'Minyak Wijen'],
+            ['nama' => 'Palmia'],
+            ['nama' => 'Santan Kara'],
+            ['nama' => 'Saus Cabe Delmonte'],
+            ['nama' => 'Saus Teriyaki'],
+            ['nama' => 'Saus Tiram'],
+            ['nama' => 'Saus Tomat Delmonte'],
+            ['nama' => 'Sawi Putih'],
+            ['nama' => 'Tahu'],
+            ['nama' => 'Telur Ayam'],
+            ['nama' => 'Tempe'],
+            ['nama' => 'Tepung Maizena'],
+            ['nama' => 'Tepung Terigu Segitiga'],
+            ['nama' => 'Timun'],
+            ['nama' => 'Tomat'],
+            ['nama' => 'Wortel'],
+            ['nama' => 'Wijen Sangrai'],
+        ];
+
+
 
         // teh celup sosro (kemasan isi 50), bakso bandeng & kelapa butir (butir) => pastikan satuan nya besok pas ke pati (jangan dihapus)
-    ];
+        ;
 
-    // 2. Ambil semua data dapur yang sudah dibuat oleh KitchenSeeder
-    $semuaDapur = Kitchen::all();
+        // 2. Ambil semua data dapur yang sudah dibuat oleh KitchenSeeder
+        $semuaDapur = Kitchen::all();
 
-    // 3. Loop setiap dapur
-    foreach ($semuaDapur as $dapur) {
-        foreach ($daftarBahan as $index => $bahan) {
-            $nomorUrut = str_pad($index + 1, 3, '0', STR_PAD_LEFT);
-            
-            $kodeFinal = 'BHN' . $dapur->kode . $nomorUrut;
+        // 3. Loop setiap dapur
+        foreach ($semuaDapur as $dapur) {
+            foreach ($daftarBahan as $index => $bahan) {
+                $nomorUrut = str_pad($index + 1, 3, '0', STR_PAD_LEFT);
 
-            BahanBaku::updateOrCreate(
-                ['kode' => $kodeFinal],
-                [
-                    'nama' => $bahan['nama'],
-                    'harga' => $bahan['harga'],
-                    'satuan_id' => $bahan['satuan_id'],
-                    'kitchen_id' => $dapur->id,
-                ]
-            );
+                $kodeFinal = 'BHN' . $dapur->kode . $nomorUrut;
+
+                BahanBaku::updateOrCreate(
+                    ['kode' => $kodeFinal],
+                    [
+                        'nama' => $bahan['nama'],
+                        'kitchen_id' => $dapur->id,
+                    ]
+                );
+            }
         }
     }
-}
 }

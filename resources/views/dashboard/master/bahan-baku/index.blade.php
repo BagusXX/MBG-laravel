@@ -50,7 +50,7 @@
                         <th width="5%">No</th>
                         <th>Kode</th>
                         <th>Nama Bahan</th>
-                        <th>Satuan</th>
+                        <!-- <th>Satuan</th> -->
                         {{-- <th>Harga Satuan</th> --}}
                         <th>Dapur</th>
                         @if($canManage)
@@ -64,15 +64,13 @@
                             <td>{{ $items->firstItem() + $index }}</td>
                             <td>{{ $item->kode }}</td>
                             <td>{{ $item->nama }}</td>
-                            <td>{{ $item->unit->satuan ?? '-' }}</td>
-                            {{-- <td>Rp {{ number_format($item->harga, 2, ',', '.') }}</td> --}}
                             <td>{{ $item->kitchen->nama ?? '-' }}</td>
                             @if($canManage)
                             <td>
                                 {{-- BUTTON EDIT --}}
                                 <button type="button" class="btn btn-warning btn-sm btnEditMaterials"
                                     data-id="{{ $item->id }}" data-kode="{{ $item->kode }}"
-                                    data-nama="{{ $item->nama }}" data-satuan-id="{{ $item->satuan_id }}"
+                                    data-nama="{{ $item->nama }}"
                                     data-harga="{{ $item->harga }}" data-dapur-id="{{ $item->kitchen_id }}"
                                     data-old-kode="{{ $item->kode }}" data-old-dapur-id="{{ $item->kitchen_id }}"
                                     data-toggle="modal" data-target="#modalEditMaterials">
@@ -113,23 +111,6 @@
             <label>Nama Bahan</label>
             <input type="text" placeholder="Bawang Merah" class="form-control" name="nama" required>
         </div>
-        <div class="form-group">
-            <label>Satuan</label>
-            <select name="satuan_id" class="form-control" required>
-                <option value="">-- Pilih Satuan --</option>
-                @foreach ($units as $unit)
-                    <option value="{{ $unit->id }}">
-                        {{ $unit->satuan }}
-                    </option>
-                @endforeach
-            </select>
-
-        </div>
-
-        {{-- <div class="form-group">
-            <label>Harga</label>
-            <input type="number" step="0.01" placeholder="10000" class="form-control" name="harga" required>
-        </div> --}}
 
         <div class="form-group mt-2">
             <label>Dapur</label>
@@ -155,21 +136,6 @@
             <label>Nama Bahan</label>
             <input id="editBahan" type="text" placeholder="Bawang Merah" class="form-control" name="nama" required>
         </div>
-
-        <div class="form-group">
-            <label>Satuan</label>
-            <select id="editSatuan" class="form-control" name="satuan_id" required>
-                <option value="" disabled selected>Pilih Satuan</option>
-                @foreach ($units as $unit)
-                    <option value="{{ $unit->id }}">{{ $unit->satuan }}</option>
-                @endforeach
-            </select>
-        </div>
-
-        {{-- <div class="form-group">
-            <label>Harga</label>
-            <input id="editHarga" type="number" step="0.01" class="form-control" name="harga" required>
-        </div> --}}
 
         <div class="form-group mt-2">
             <label>Dapur</label>
@@ -228,9 +194,9 @@
                         document.getElementById('editBahan').value = this.dataset.nama;
                     }
 
-                    if(document.getElementById('editSatuan')) {
-                        document.getElementById('editSatuan').value = this.dataset.satuanId;
-                    }
+                    // if(document.getElementById('editSatuan')) {
+                    //     document.getElementById('editSatuan').value = this.dataset.satuanId;
+                    // }
 
                     // PENTING: Cek dulu apakah editHarga ada di HTML sebelum di-set value-nya
                     if(document.getElementById('editHarga')) {

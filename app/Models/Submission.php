@@ -18,13 +18,14 @@ class Submission extends Model
         'tanggal_digunakan',
         'kitchen_id',
         'menu_id',
-        'porsi',
+        'porsi_besar',
+        'porsi_kecil',
         'total_harga',
+        'tipe',
         'status',
         'keterangan',
         'parent_id',
         'supplier_id',
-        'tipe'
     ];
 
     public function kitchen()

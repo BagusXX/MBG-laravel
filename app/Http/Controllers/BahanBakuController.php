@@ -37,7 +37,7 @@ class BahanBakuController extends Controller
         // -----------------------------------------------------------
         // 2. QUERY DATA BAHAN BAKU
         // -----------------------------------------------------------
-        $query = BahanBaku::with(['kitchen', 'unit']);
+        $query = BahanBaku::with(['kitchen']);
 
         // Filter: Hanya tampilkan bahan baku yang kitchen_id nya ada di list dapur user
         if ($kitchenIds->isNotEmpty()) {
@@ -56,7 +56,7 @@ class BahanBakuController extends Controller
         }
 
         $items = $query->paginate(10)->withQueryString();
-        $units = Unit::all();
+
 
         // Pre-generate kode untuk semua dapur milik user
         $generatedCodes = [];
@@ -65,7 +65,7 @@ class BahanBakuController extends Controller
         }
 
         // Variabel tetap $kitchens sesuai permintaan
-        return view('dashboard.master.bahan-baku.index', compact('items', 'kitchens', 'units', 'generatedCodes', 'canManage'));
+        return view('dashboard.master.bahan-baku.index', compact('items', 'kitchens', 'generatedCodes', 'canManage'));
     }
 
     // Generate kode bahan baku: 2 digit + kode dapur
@@ -106,7 +106,6 @@ class BahanBakuController extends Controller
         $request->validate([
             'nama' => 'required|string|max:255',
             'harga' => 'nullable|numeric|min:0',
-            'satuan_id' => 'required|exists:units,id',
             'kitchen_id' => 'required|exists:kitchens,id',
         ]);
 
@@ -129,7 +128,6 @@ class BahanBakuController extends Controller
             'kode' => $this->generateKode($kitchen->kode),
             'nama' => $request->nama,
             'harga' => $request->input('harga', 0),
-            'satuan_id' => $request->satuan_id,
             'kitchen_id' => $request->kitchen_id,
         ]);
 
@@ -163,14 +161,12 @@ class BahanBakuController extends Controller
         $request->validate([
             'nama' => 'required|string|max:255',
             'harga' => 'nullable|numeric|min:0',
-            'satuan_id' => 'required|exists:units,id',
             'kitchen_id' => 'required|exists:kitchens,id',
         ]);
 
         $data = [
             'nama' => $request->nama,
             'harga' => $request->input('harga', 0),
-            'satuan_id' => $request->satuan_id,
             'kitchen_id' => $request->kitchen_id,
         ];
 

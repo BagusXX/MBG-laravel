@@ -34,7 +34,6 @@
                         <th style="width: 5%">No</th>
                         <th>Dapur</th>
                         <th>Nama Menu</th>
-                        {{-- Kolom Harga Dihapus --}}
                         <th style="width: 25%">Aksi</th>
                     </tr>
                 </thead>
@@ -147,9 +146,6 @@
             {{-- Header Kolom Bahan (Harga dihapus, kolom diperlebar) --}}
             <div class="form-row mb-2 small text-muted font-weight-bold">
                 <div class="col-md-6">Bahan Baku</div>
-                <div class="col-md-3">Jumlah</div>
-                <div class="col-md-2">Satuan</div>
-                {{-- Kolom Harga Dihapus --}}
                 <div class="col-md-1"></div>
             </div>
 
@@ -163,15 +159,6 @@
                                 <option value="{{ $b->id }}">{{ $b->nama }}</option>
                             @endforeach
                         </select>
-                    </div>
-
-                    <div class="col-md-3">
-                        <input type="number" step="any" name="jumlah[]" class="form-control" placeholder="0" required>
-                    </div>
-
-                    <div class="col-md-2">
-                        <input type="text" class="form-control satuan-text bg-light" placeholder="-" readonly>
-                        <input type="hidden" name="satuan_id[]" class="satuan-id">
                     </div>
 
                     {{-- Input Harga Dihapus --}}
@@ -212,9 +199,6 @@
             <label class="font-weight-bold">Komposisi Bahan</label>
             <div class="form-row mb-2 small text-muted font-weight-bold">
                 <div class="col-md-6">Bahan Baku</div>
-                <div class="col-md-3">Jumlah</div>
-                <div class="col-md-2">Satuan</div>
-                {{-- Kolom Harga Dihapus --}}
                 <div class="col-md-1"></div>
             </div>
 
@@ -381,20 +365,18 @@
             document.addEventListener('change', function(e) {
                 if (!e.target.matches('select[name="bahan_baku_id[]"]')) return;
 
-                const row = e.target.closest('.bahan-group');
-                const bahanId = e.target.value;
+                // const row = e.target.closest('.bahan-group');
+                // const bahanId = e.target.value;
 
-                // Cari data di window.BAHAN_LIST
-                const selectedBahan = window.BAHAN_LIST.find(b => b.id == bahanId);
+                // // Cari data di window.BAHAN_LIST
+                // const selectedBahan = window.BAHAN_LIST.find(b => b.id == bahanId);
 
-                if (selectedBahan) {
-                    const satuanText = selectedBahan.unit ? selectedBahan.unit.satuan : '-';
-                    row.querySelector('.satuan-text').value = satuanText;
-                    if (row.querySelector('.satuan-id')) row.querySelector('.satuan-id').value =
-                        selectedBahan.satuan_id;
-
-                    // Logic pengisian harga dihapus
-                }
+                // if (selectedBahan) {
+                //     const satuanText = selectedBahan.unit ? selectedBahan.unit.satuan : '-';
+                //     row.querySelector('.satuan-text').value = satuanText;
+                //     if (row.querySelector('.satuan-id')) row.querySelector('.satuan-id').value =
+                //         selectedBahan.satuan_id;
+                // }
             });
 
             // --- LOGIC: Fetch Menu dan Bahan Baku berdasarkan Kitchen (Modal Add) ---
@@ -587,41 +569,32 @@
             
             // Helper: Generate HTML Row untuk Edit (TANPA HARGA)
             function generateBahanRowHtml(item = null) {
-                let options = '<option value="" disabled>Pilih Bahan</option>';
-                const currentBahanId = item ? item.bahan_baku_id : '';
+            let options = '<option value="" disabled>Pilih Bahan</option>';
+            const currentBahanId = item ? item.bahan_baku_id : '';
 
-                window.BAHAN_LIST.forEach(b => {
-                    const selected = b.id == currentBahanId ? 'selected' : '';
-                    options += `<option value="${b.id}" ${selected}>${b.nama}</option>`;
-                });
+            window.BAHAN_LIST.forEach(b => {
+                const selected = b.id == currentBahanId ? 'selected' : '';
+                options += `<option value="${b.id}" ${selected}>${b.nama}</option>`;
+            });
 
-                const rowIdInput = item ? `<input type="hidden" name="row_id[]" value="${item.id}">` : '';
-                const jumlahVal = item ? Number(item.jumlah).toFixed(2) : '';
-                const satuanVal = item && item.bahan_baku && item.bahan_baku.unit ? item.bahan_baku.unit.satuan : '-';
-                
-                // Layout kolom disesuaikan (Total 12 grid)
-                return `
-                        <div class="form-row mb-3 bahan-group">
-                            ${rowIdInput}
-                            <div class="col-md-6">
-                                <select name="bahan_baku_id[]" class="form-control" required>
-                                    ${options}
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <input type="number" step="any" name="jumlah[]" class="form-control" value="${jumlahVal}" required>
-                            </div>
-                            <div class="col-md-2">
-                                <input type="text" class="form-control satuan-text bg-light" value="${satuanVal}" readonly>
-                            </div>
-                            <div class="col-md-1">
-                                <button type="button" class="btn btn-outline-danger btn-sm remove-bahan w-100">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-            }
+            const rowIdInput = item ? `<input type="hidden" name="row_id[]" value="${item.id}">` : '';
+            
+            return `
+                <div class="form-row mb-3 bahan-group">
+                    ${rowIdInput}
+                    <div class="col-md-7">
+                        <select name="bahan_baku_id[]" class="form-control" required>
+                            ${options}
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="button" class="btn btn-outline-danger btn-sm remove-bahan w-100">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
 
             // Logic Tambah Baris di Modal Edit
             const btnAddEdit = document.getElementById('add-bahan-edit');
@@ -660,13 +633,10 @@
                             let rows = '';
 
                             data.forEach(item => {
-                                const satuan = item.bahan_baku && item.bahan_baku.unit ?
-                                    item.bahan_baku.unit.satuan : '';
 
                                 rows += `
                                             <tr>
                                                 <td>${item.bahan_baku ? item.bahan_baku.nama : '-'}</td>
-                                                <td>${Number(item.jumlah).toFixed(2)} ${satuan}</td>
                                             </tr>
                                         `;
                             });

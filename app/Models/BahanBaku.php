@@ -11,7 +11,7 @@ class BahanBaku extends Model
     use HasFactory, SoftDeletes;
 
     protected $table = 'bahan_baku';
-    protected $fillable = ['kode', 'nama', 'harga', 'satuan_id', 'kitchen_id',];
+    protected $fillable = ['kode', 'nama', 'harga', 'kitchen_id',];
 
     public function kitchen()
     {
@@ -23,10 +23,10 @@ class BahanBaku extends Model
         return $this->hasMany(PurchaseBahanBaku::class);
     }
 
-    public function unit()
-    {
-        return $this->belongsTo(Unit::class, 'satuan_id')->withTrashed();
-    }
+    // public function unit()
+    // {
+    //     return $this->belongsTo(Unit::class, 'satuan_id')->withTrashed();
+    // }
 
     public function recipes()
     {

@@ -11,8 +11,8 @@ return new class extends Migration {
             $table->id();
             $table->string('kode');
             $table->string('nama');
-            $table->decimal('harga',15,2);
-            $table->foreignId('satuan_id')->constrained('units')->onDelete('cascade');
+            $table->decimal('harga',15,2)->nullable();
+            // $table->foreignId('satuan_id')->constrained('units')->onDelete('cascade');
             $table->foreignId('kitchen_id')->constrained('kitchens')->onDelete('cascade');
             $table->timestamps();
             $table->softDeletes();

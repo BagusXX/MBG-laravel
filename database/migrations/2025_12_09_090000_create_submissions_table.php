@@ -14,7 +14,8 @@ return new class extends Migration {
             $table->date('tanggal');
             $table->foreignId('kitchen_id')->constrained('kitchens')->onDelete('cascade');
             $table->foreignId('menu_id')->constrained('menus')->onDelete('cascade');
-            $table->integer('porsi');
+            $table->integer('porsi_besar')->nullable();
+            $table->integer('porsi_kecil')->nullable();
             $table->decimal('total_harga', 15, 2)->default(0);
             $table->enum('tipe', ['pengajuan', 'disetujui'])->default('pengajuan');
             $table->enum('status', [
@@ -37,8 +38,6 @@ return new class extends Migration {
             $table->softDeletes();
         });
     }
-
-
 
     public function down(): void
     {
