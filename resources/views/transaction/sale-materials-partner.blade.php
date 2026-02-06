@@ -206,8 +206,8 @@
                             @forelse($submission->details as $detail)
                                 <tr>
                                     <td>{{ $detail->recipeBahanBaku?->bahan_baku?->nama ?? $detail->bahan_baku?->nama ?? '-' }}</td>
-                                    <td>{{ number_format($detail->display_qty, 2, ',', '.') }}</td>
-                                    <td>{{ $detail->display_unit}}</td>
+                                    <td>{{ number_format($detail->qty_digunakan ?? 0, 2, ',', '.') }}</td>
+                                    <td>{{ $detail->unit?->satuan}}</td>
                                     <td>Rp {{ number_format($detail->harga_mitra ?? 0, 0, ',', '.') }}</td>
                                     <td>Rp {{ number_format($detail->subtotal_mitra ?? 0, 0, ',', '.') }}</td>
                                 </tr>
