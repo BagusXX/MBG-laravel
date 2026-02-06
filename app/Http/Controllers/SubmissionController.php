@@ -397,7 +397,14 @@ class SubmissionController extends Controller
 
     public function getSubmissionData(Submission $submission)
     {
-        $submission->load(['kitchen', 'menu', 'children.supplier', 'children.details.bahan_baku']); // Load children & suppliernya
+        $submission->load([
+            'kitchen',
+            'menu',
+            'children.supplier',
+            'children.details.bahan_baku',
+            'details.bahan_baku',
+            'details.unit'
+        ]);
 
         // Format data children untuk riwayat
         $history = $submission->children->map(function ($child) {
@@ -407,7 +414,7 @@ class SubmissionController extends Controller
                 'supplier_nama' => $child->supplier->nama ?? 'Umum',
                 'status' => $child->status,
                 'total' => $child->total_harga,
-                'item_count' => $child->details()->count(), // Opsional: jumlah item
+                'item_count' => $child->details()->count(),
                 'items' => $child->details->map(function ($detail) {
                     return [
                         'nama' => $detail->bahan_baku->nama ?? '-',
@@ -433,11 +440,22 @@ class SubmissionController extends Controller
                 : '-',
             'kitchen' => $submission->kitchen->nama,
             'menu' => $submission->menu->nama,
-            'porsi_besar' => $submission->porsi_besar, // Dulu $submission->porsi (Error)
+            'porsi_besar' => $submission->porsi_besar,
             'porsi_kecil' => $submission->porsi_kecil,
             'status' => $submission->status,
             'history' => $history,
-            'suppliers' => $availableSuppliers // <--- Kirim data riwayat ke JS
+            'suppliers' => $availableSuppliers,
+            // TAMBAHKAN INI: Return details langsung
+            'details' => $submission->details->map(function ($detail) {
+                return [
+                    'id' => $detail->id,
+                    'nama_bahan' => $detail->bahan_baku->nama ?? '-',
+                    'qty' => (float) $detail->qty_digunakan,
+                    'nama_satuan' => $detail->unit->satuan ?? '-',
+                    'harga_dapur' => (float) $detail->harga_dapur,
+                    'subtotal_dapur' => (float) $detail->subtotal_dapur,
+                ];
+            })->values()
         ]);
     }
 
