@@ -343,8 +343,7 @@ class SubmissionController extends Controller
 
             foreach ($detailsToCopy as $detail) {
                 // Gunakan harga mitra jika ada, jika tidak pakai harga dapur
-                $hargaSatuanFix = $detail->harga_mitra > 0 ? $detail->harga_mitra : 0;
-                $subtotalFix = $detail->qty_digunakan * $hargaSatuanFix;
+                $hargaSatuanFix = $detail->harga_dapur > 0 ? $detail->harga_dapur : ($detail->harga_mitra > 0 ? $detail->harga_mitra : 0);                $subtotalFix = $detail->qty_digunakan * $hargaSatuanFix;
 
                 SubmissionDetails::create([
                     'submission_id' => $child->id,

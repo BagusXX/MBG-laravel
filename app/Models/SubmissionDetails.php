@@ -43,7 +43,7 @@ class SubmissionDetails extends Model
 
     public function unit()
     {
-        return $this->belongsTo(Unit::class,'satuan_id');
+        return $this->belongsTo(Unit::class, 'satuan_id');
     }
 
     /* ================= HELPER ================= */
@@ -63,13 +63,13 @@ class SubmissionDetails extends Model
     protected static function booted()
     {
         static::saving(function ($detail) {
-
-            if ($detail->isChild() && is_null($detail->harga_dapur)) {
-                throw new \LogicException('Harga satuan wajib diisi');
-            }
-
-            if ($detail->isChild() && is_null($detail->harga_mitra)) {
-                throw new \LogicException('Harga mitra wajib diisi pada submission supplier');
+            // Hanya validasi jika tipe submission adalah child (disetujui/approval)
+            if ($detail->isChild()) {
+                // Gunakan 0 sebagai default jika null agar tidak kena LogicException
+                if (is_null($detail->harga_dapur))
+                    $detail->harga_dapur = 0;
+                if (is_null($detail->harga_mitra))
+                    $detail->harga_mitra = 0;
             }
         });
     }

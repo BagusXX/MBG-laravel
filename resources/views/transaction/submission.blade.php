@@ -200,9 +200,7 @@
         {{-- BARIS 4: INPUT ITEM MANUAL (DINAMIS) --}}
         <div class="d-flex justify-content-between align-items-center mb-2">
             <label class="font-weight-bold">Rincian Bahan Baku (Input Manual)</label>
-            <button type="button" class="btn btn-sm btn-success" id="btnAddRow">
-                <i class="fas fa-plus"></i> Tambah Item
-            </button>
+            
         </div>
 
         <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
@@ -220,6 +218,15 @@
                 <tbody>
                     {{-- Row ditambahkan via JS --}}
                 </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="6" class="text-right text-end"> 
+                            <button type="button" class="btn btn-sm btn-success" id="btnAddRow">
+                                <i class="fas fa-plus"></i> Tambah Item
+                            </button>
+                        </td>
+                    </tr>
+                </tfoot>
             </table>
         </div>
     </x-modal-form>
@@ -665,31 +672,61 @@
                             $.each(data.history, function (i, h) {
                                 let invoiceUrl = "{{ route('transaction.submission-approval.invoice', ['submission' => 'FAKE_ID']) }}".replace('FAKE_ID', h.id);
 
+                                // 1. BUILD HTML UNTUK ITEM BAHAN BAKU
+                                let listItems = '';
+                                if (h.items && h.items.length > 0) {
+                                    listItems += '<div class="mt-2 pt-2 border-top" style="font-size: 0.85rem;">';
+                                    listItems += '<p class="mb-1 font-weight-bold text-muted">Rincian Item:</p>';
+                                    
+                                    $.each(h.items, function(idx, item) {
+                                        // Tampilkan Nama, Qty, dan Harga per item untuk debugging
+                                        listItems += `
+                                            <div class="d-flex justify-content-between mb-1">
+                                                <span>• ${item.nama}</span>
+                                                <span>
+                                                    ${formatQty(item.qty)} x 
+                                                    <span class="text-muted">${formatRupiah(item.harga || 0)}</span>
+                                                </span>
+                                            </div>
+                                        `;
+                                    });
+                                    listItems += '</div>';
+                                } else {
+                                    listItems = '<div class="mt-2 text-danger small">Tidak ada item tercatat (Error Data)</div>';
+                                }
+
+                                // 2. MASUKKAN KE DALAM CARD
                                 historyHtml += `
-                            <div class="card mb-2 border" style="background-color: #f8f9fa;">
-                                <div class="card-body p-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <div>
-                                            <strong class="text-primary">${h.kode}</strong> 
-                                            <span class="text-muted mx-2">|</span> 
-                                            <i class="fas fa-truck mr-1 text-secondary"></i> ${h.supplier_nama}
+                                    <div class="card mb-2 border" style="background-color: #f8f9fa;">
+                                        <div class="card-body p-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <div>
+                                                    <strong class="text-primary">${h.kode}</strong> 
+                                                    <span class="text-muted mx-2">|</span> 
+                                                    <i class="fas fa-truck mr-1 text-secondary"></i> ${h.supplier_nama || h.supplier || '-'}
+                                                </div>
+                                                <div>
+                                                    <span class="badge badge-${h.status === 'diproses' ? 'info' : 'success'} mr-2">${h.status.toUpperCase()}</span>
+                                                    <strong class="text-dark">${formatRupiah(h.total)}</strong>
+                                                </div>
+                                            </div>
+                                            
+                                            {{-- INFO JUMLAH ITEM --}}
+                                            <div class="text-muted small mb-2">
+                                                <i class="fas fa-box-open mr-1"></i> ${h.item_count} item bahan baku
+                                            </div>
+
+                                            {{-- INJECT LIST ITEM DI SINI --}}
+                                            ${listItems}
+
+                                            <div class="text-right border-top pt-2 mt-2">
+                                                <a href="${invoiceUrl}" target="_blank" class="btn btn-xs btn-outline-secondary">
+                                                    <i class="fas fa-print mr-1"></i> Cetak Invoice
+                                                </a>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <span class="badge badge-${h.status === 'diproses' ? 'info' : 'success'} mr-2">${h.status.toUpperCase()}</span>
-                                            <strong class="text-dark">${formatRupiah(h.total)}</strong>
-                                        </div>
                                     </div>
-                                    <div class="text-muted small mb-2">
-                                        ${h.item_count} item bahan baku
-                                    </div>
-                                    <div class="text-right border-top pt-2">
-                                        <a href="${invoiceUrl}" target="_blank" class="btn btn-xs btn-outline-secondary">
-                                            <i class="fas fa-print mr-1"></i> Cetak Invoice
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
+                                `;
                             });
                         } else {
                             historyHtml = '<div class="text-muted font-italic text-center py-2 border rounded bg-light">Belum ada riwayat split order.</div>';
