@@ -108,7 +108,8 @@ class SaleMaterialsPartnerController extends Controller
                         ->orWhere('tipe', 'disetujui');
                 });
 
-                $q->whereHas('parentSubmission', function ($ps) use ($request) {
+                if ($request->filled('from_date') || $request->filled('to_date')) {
+                    $q->whereHas('submission.parentSubmission', function ($ps) use ($request) {
 
                     if ($request->filled('from_date')) {
                         $ps->whereDate('tanggal', '>=', $request->from_date);
@@ -118,8 +119,8 @@ class SaleMaterialsPartnerController extends Controller
                         $ps->whereDate('tanggal', '<=', $request->to_date);
                     }
 
-                });
-
+                    });
+                }
                 if ($request->filled('kitchen_id')) {
                     $q->where('kitchen_id', $request->kitchen_id);
                 }

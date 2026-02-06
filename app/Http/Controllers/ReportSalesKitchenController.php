@@ -8,7 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Kitchen;
 use App\Models\SubmissionDetails;
+use App\Models\Submission;
 use App\Models\Supplier;
+use App\Models\Menu;
 use SebastianBergmann\CodeCoverage\Report\Xml\Report;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -29,85 +31,94 @@ class ReportSalesKitchenController extends Controller
         $bahanBakus = BahanBaku::selectRaw('MIN(id) as id, nama')
             ->groupBy('nama')
             ->get();
-
+        $menus = Menu::selectRaw('MIN(id) as id, nama')
+            ->groupBy('nama')
+            ->get();
 
         $query = SubmissionDetails::with([
-            'submission.kitchen',
             'submission.parentSubmission',
-            'bahan_baku.unit',
+            'submission.kitchen',
+            'submission.menu',
             'submission.supplier',
-            'recipeBahanBaku.bahan_baku.unit'
-        ]);
-
-        $query->whereHas('submission', function ($q) use ($kitchensCodes) {
-            $q->whereNotNull('parent_id')
-                ->whereIn('kitchen_id', $kitchensCodes);
-        });
-
-        if ($request->filled('from_date') || $request->filled('to_date')) {
-            $query->whereHas('submission.parentSubmission', function ($ps) use ($request) {
-
-            if ($request->filled('from_date')) {
-                $ps->whereDate('tanggal', '>=', $request->from_date);
-            }
-
-            if ($request->filled('to_date')) {
-                $ps->whereDate('tanggal', '<=', $request->to_date);
-            }
-
+            'bahan_baku.unit'
+        ])
+        // ->whereNotNull('parent_id')
+        ->whereIn('kitchen_id', $kitchensCodes)
+        ->where(function ($q) use ($request) {
+            $q->whereHas('submission', function($sub) {
+                $sub->whereNotNull('parent_id');
             });
-        }
+            $q->where(function ($q2) {
+                $q2->where('status', 'selesai')
+                    ->orWhere('tipe', 'disetujui');
+            });
 
-        if ($request->filled('kitchen_id')) {
-            $query->whereHas(
-                'submission',
-                fn($q) =>
-                $q->where('kitchen_id', $request->kitchen_id)
-            );
-        }
-        if ($request->filled('supplier_id')) {
-            $query->whereHas(
-                'submission',
-                fn($q) =>
-                $q->where('supplier_id', $request->supplier_id)
-            );
-        }
-        if ($request->filled('bahan_baku_id')) {
-            $selectedBahan = BahanBaku::find($request->bahan_baku_id);
+                if ($request->filled('from_date') || $request->filled('to_date')) {
+                    $q->whereHas('submission.parentSubmission', function ($ps) use ($request) {
 
-            if ($selectedBahan) {
-                $namaBahan = $selectedBahan->nama;
+                    if ($request->filled('from_date')) {
+                        $ps->whereDate('tanggal', '>=', $request->from_date);
+                    }
 
-                $query->where(function ($q) use ($namaBahan) {
-                    // Filter 1: Lewat relasi langsung bahanBaku
-                    $q->whereHas('bahan_baku', function ($qb) use ($namaBahan) {
-                        $qb->where('nama', $namaBahan);
-                    })
-                        // Filter 2: Lewat relasi resep (Gunakan bahan_baku sesuai modelmu)
-                        // Nested relationship: recipeBahanBaku -> bahan_baku
-                        ->orWhereHas('recipeBahanBaku.bahan_baku', function ($qr) use ($namaBahan) {
-                            $qr->where('nama', $namaBahan);
+                    if ($request->filled('to_date')) {
+                        $ps->whereDate('tanggal', '<=', $request->to_date);
+                    }
+
+                    });
+                }
+
+                if ($request->filled('kitchen_id')) {
+                    $q->where('kitchen_id', $request->kitchen_id);
+                }
+                if ($request->filled('supplier_id')) {
+                    $q->where('supplier_id', $request->supplier_id);
+                }
+                if ($request->filled('menu_id')) {
+                    $selectedMenu = Menu::find($request->menu_id);
+
+                    if ($selectedMenu) {
+                        $q->whereHas('menu', function ($mq) use ($selectedMenu) {
+                            $mq->where('nama', $selectedMenu->nama);
                         });
-                });
-            }
-        }
-        $query->orderByDesc(\App\Models\Submission::select('tanggal')
-            ->whereIn('id', function ($subQuery) {
-                $subQuery->select('parent_id')
-                    ->from('submissions')
-                    ->whereColumn('id', 'submission_details.submission_id');
+                    }
+                }
             })
-            ->limit(1));
+            ->latest('id');
 
-        $reports = $query->paginate(10)->withQueryString();
+        $submissions = $query->paginate(10)->withQueryString();
 
-        $reports->getCollection()->transform(function ($item) {
-            return $this->applyConversion($item);
+        $submissions->getCollection()->each(function ($submission) {
+            $submission->details->each(function ($detail) {
+
+                $bahanBaku = $detail->bahan_baku
+                    ?? $detail->recipeBahanBaku?->bahan_baku;
+
+                $unit = $bahanBaku?->unit?->satuan;
+
+                // ===== Konversi Qty =====
+                $qty = (float) $detail->qty_digunakan;
+
+                if (in_array(strtolower($unit), ['gram', 'ml'])) {
+                    $displayQty = $qty / 1000;
+                    $displayUnit = $unit === 'gram' ? 'kg' : 'liter';
+                } else {
+                    $displayQty = $qty;
+                    $displayUnit = $unit ?? '-';
+                }
+
+                // ===== Subtotal =====
+                $subtotal = $displayQty * ($detail->harga_dapur ?? 0);
+
+                // ===== Inject ke object =====
+                $detail->display_qty = $displayQty;
+                $detail->display_unit = $displayUnit;
+                $detail->subtotal_dapur = $subtotal;
+            });
         });
 
-        $totalPageSubtotal = $reports->getCollection()->sum('subtotal');
+        $totalPageSubtotal = $submissions->getCollection()->sum('subtotal_dapur');
 
-        return view('report.sales-kitchen', compact('kitchens', 'reports', 'suppliers', 'totalPageSubtotal', 'bahanBakus'));
+        return view('report.sales-kitchen', compact('submissions', 'kitchens', 'suppliers', 'totalPageSubtotal', 'bahanBakus', 'menus'));
     }
 
     public function invoice(Request $request)

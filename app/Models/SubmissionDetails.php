@@ -28,7 +28,7 @@ class SubmissionDetails extends Model
 
     public function submission()
     {
-        return $this->belongsTo(Submission::class);
+        return $this->belongsTo(Submission::class, 'submission_id');
     }
 
     // public function recipeBahanBaku()

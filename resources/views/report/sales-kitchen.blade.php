@@ -92,51 +92,47 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($reports as $report )
+                    @forelse ($submissions as $submission )
                     <tr>
-                        <td>{{ $reports->firstItem() + $loop->index }}</td>
-                        <td>{{ \Carbon\Carbon::parse($report->submission->parentSubmission->tanggal ?? $report->submission->tanggal)->locale('id')->translatedFormat('d F Y') }}</td>
-                        <td>{{ $report->submission->kitchen->nama}}</td>
+                        <td>{{ $submissions->firstItem() + $loop->index }}</td>
+                        <td>{{ \Carbon\Carbon::parse($submission->parentSubmission ? $submission->parentSubmission->tanggal : $submission->tanggal)->locale('id')->translatedFormat('d F Y')}}</td>
+                        <td>{{ $submission->kitchen->nama}}</td>
                         <td>
-                            @if ($report->submission->supplier_id)
-                                {{ optional($report->submission->supplier)->nama }}
-                            @else-
-
-                            @endif
+                            {{ optional(optional($submission->submission)->supplier)->nama ?? '-' }}
                         </td>
                         <td>
-                            @if ($report->bahan_baku_id)
-                                {{ $report->bahan_baku->nama ?? '-' }}
-                            @elseif ($report->recipeBahanBaku)
-                                {{ $report->recipeBahanBaku->bahan_baku->nama ?? '-' }}
+                            @if ($submission->bahan_baku_id)
+                                {{ $submission->bahan_baku->nama ?? '-' }}
+                            @elseif ($submission->recipeBahanBaku)
+                                {{ $submission->recipeBahanBaku->bahan_baku->nama ?? '-' }}
                             @else
                                 -
                             @endif
                         </td>
 
-                        <td>{{ $report->formatted_qty }}</td>
-                        <td>{{ $report->display_unit }}</td>
-                        <td>{{ $report->submission->porsi }}</td>
+                        <td>{{ $submission->formatted_qty }}</td>
+                        <td>{{ $submission->display_unit }}</td>
+                        <td>{{ $submission->porsi_besar ?? '-' }}</td>
 
-                        <td>Rp{{ number_format($report->harga_dapur, 0, ',', '.') }}</td>
-                        <td>Rp{{ number_format(($report->subtotal), 0, ',', '.') }}</td>
+                        <td>Rp{{ number_format($submission->harga_dapur, 0, ',', '.') }}</td>
+                        <td>Rp{{ number_format(($submission->subtotal), 0, ',', '.') }}</td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="text-center">Data tidak ditemukan untuk periode ini.</td>
+                        <td colspan="10" class="text-center">Data tidak ditemukan untuk periode ini.</td>
                     </tr>
                     @endforelse
                 </tbody>
                 <tfoot>
                     <tr>
                         <td colspan="9" class="text-right"><strong>Total :</strong></td>
-                        <td class="text-left"><strong>Rp{{ number_format($totalPageSubtotal, 0, '.', '.') }}</strong></td>
+                        <td class="text-left"><strong>Rp{{ number_format($totalPageSubtotal, 0, ',', '.') }}</strong></td>
                     </tr>
                 </tfoot>
             </table>
             <div class="d-flex justify-content-end align-items-center mt-3">
                 <div class="mt-3 d-flex justify-content-end">
-                {{ $reports->links('pagination::bootstrap-4') }}
+                {{ $submissions->links('pagination::bootstrap-4') }}
                 </div>
             </div>
             </div>

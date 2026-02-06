@@ -89,7 +89,8 @@
                         <th>Tanggal Pengajuan</th>
                         <th>Dapur</th>
                         <th>Menu</th>
-                        <th>Porsi</th>
+                        <th>PM (besar)</th>
+                        <th>PM (kecil)</th>
                         <th>Supplier</th>
                         <th>Aksi</th>
                     </tr>
@@ -102,7 +103,8 @@
                             <td>{{ \Carbon\Carbon::parse($submission->parentSubmission ? $submission->parentSubmission->tanggal : $submission->tanggal)->locale('id')->translatedFormat('d F Y')}}</td>
                             <td>{{ $submission->kitchen ? $submission->kitchen->nama : '-' }}</td>
                             <td>{{ $submission->menu ? $submission->menu->nama : '-' }}</td>
-                            <td>{{ $submission->porsi ?? '-' }}</td>
+                            <td>{{ $submission->porsi_besar ?? '-' }}</td>
+                            <td>{{ $submission->porsi_kecil ?? '-' }}</td>
                             <td>{{ $submission->supplier ? $submission->supplier->nama : '-' }}</td>
                             <td>
                                 <button
@@ -124,7 +126,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center">Belum ada data penjualan bahan baku dari permintaan yang selesai</td>
+                            <td colspan="9" class="text-center">Belum ada data penjualan bahan baku dari permintaan yang selesai</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -158,17 +160,21 @@
                             <th class="py-1">Dapur</th>
                             <td>: {{ $submission->kitchen->nama }}</td>
                         </tr>
+                        <tr>
+                            <th class="py-1">Menu</th>
+                            <td>: {{ $submission->menu->nama }}</td>
+                        </tr>
                     </table>
                 </div>
                 <div class="col-md-6">
                     <table class="table table-borderless table-sm">
                         <tr>
-                            <th class="py-1">Menu</th>
-                            <td>: {{ $submission->menu->nama }}</td>
+                            <th width="30%" class="py-1">PM (besar)</th>
+                            <td>: {{$submission->porsi_besar}}</td>
                         </tr>
                         <tr>
-                            <th width="30%" class="py-1">Porsi</th>
-                            <td>: {{$submission->porsi}}</td>
+                            <th width="30%" class="py-1">PM (kecil)</th>
+                            <td>: {{$submission->porsi_kecil}}</td>
                         </tr>
                         @if($submission->supplier)
                             <tr>

@@ -83,8 +83,10 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="9" class="text-right"><strong>Total :</strong></td>
-                        {{-- <td class="text-left"><strong>Rp{{ number_format($totalPageSubtotal, 0, '.', '.') }}</strong></td> --}}
+                        <td colspan="3" class="text-right"><strong>Total :</strong></td>
+                        <td class="text-left"><strong>Rp{{ number_format($totalSelisih, 0, '.', '.') }}</strong></td>
+                        <td class="text-left"><strong>Rp{{ number_format($totalPersen85, 0, '.', '.') }}</strong></td>
+                        <td class="text-left"><strong>Rp{{ number_format($totalPersen15, 0, '.', '.') }}</strong></td>
                     </tr>
                 </tfoot>
             </table>

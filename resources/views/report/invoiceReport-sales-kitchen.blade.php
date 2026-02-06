@@ -186,7 +186,7 @@
             <tr>
                 <td style="width: 20%; text-align: center; vertical-align: top; margin-bottom: 50px;">
                     {{-- Ganti path logo_bgn_mbg.png sesuai lokasi file Anda --}}
-                    <img src="{{('icon_mbg.png') }}" alt="Logo BGN" style="height: 100px; width: 100px; object-fit: contain; margin-bottom: 20px;">
+                    <img src="{{('icon_mbg.png') }}" alt="Logo BGN" style="height: 80px; width: 80px; object-fit: contain; margin-bottom: 20px;">
                 </td>
 
                 <td style="width: 60%; text-align: center; vertical-align: middle;">

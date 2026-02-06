@@ -100,15 +100,16 @@ class SaleMaterialsKitchenController extends Controller
             'details.recipeBahanBaku.bahan_baku.unit',
             'details.bahan_baku.unit'
         ])
-            ->whereNotNull('parent_id')
-            ->whereIn('kitchen_id', $kitchensCodes)
-            ->where(function ($q) use ($request) {
-                $q->where(function ($q2) {
-                    $q2->where('status', 'diproses')
-                        ->orWhere('tipe', 'disetujui');
-                });
+        ->whereNotNull('parent_id')
+        ->whereIn('kitchen_id', $kitchensCodes)
+        ->where(function ($q) use ($request) {
+            $q->where(function ($q2) {
+                $q2->where('status', 'diproses')
+                    ->orWhere('tipe', 'disetujui');
+        });
 
-                $q->whereHas('parentSubmission', function ($ps) use ($request) {
+                if ($request->filled('from_date') || $request->filled('to_date')) {
+                    $q->whereHas('submission.parentSubmission', function ($ps) use ($request) {
 
                     if ($request->filled('from_date')) {
                         $ps->whereDate('tanggal', '>=', $request->from_date);
@@ -118,7 +119,8 @@ class SaleMaterialsKitchenController extends Controller
                         $ps->whereDate('tanggal', '<=', $request->to_date);
                     }
 
-                });
+                    });
+                }
 
                 if ($request->filled('kitchen_id')) {
                     $q->where('kitchen_id', $request->kitchen_id);

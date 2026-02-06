@@ -96,23 +96,23 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($submissions as $index => $submission)
+                    @forelse($submissions as $index => $detail)
                         <tr>
                             <td>{{ $index + 1 }}</td>
-                            <td>{{ $submission->kode ?? '-' }}</td>
-                            <td>{{ \Carbon\Carbon::parse($submission->parentSubmission ? $submission->parentSubmission->tanggal : $submission->tanggal)->locale('id')->translatedFormat('d F Y') }}</td>
-                            <td>{{ $submission->kitchen ? $submission->kitchen->nama : '-' }}</td>
-                            <td>{{ $submission->menu ? $submission->menu->nama : '-' }}</td>
-                            <td>{{ $submission->porsi ?? '-' }}</td>
-                            <td>{{ $submission->supplier ? $submission->supplier->nama : '-' }}</td>
-                            <td>Rp{{ number_format($submission->details->sum('selisih'), 0, ',', '.') }}</td>
+                            <td>{{ $detail->kode ?? '-' }}</td>
+                            <td>{{ \Carbon\Carbon::parse($detail->parentSubmission ? $detail->parentSubmission->tanggal : $detail->tanggal)->locale('id')->translatedFormat('d F Y') }}</td>
+                            <td>{{ $detail->kitchen ? $detail->kitchen->nama : '-' }}</td>
+                            <td>{{ $detail->menu ? $detail->menu->nama : '-' }}</td>
+                            <td>{{ $detail->porsi_kecil ?? '-' }}</td>
+                            <td>{{ $detail->supplier ? $detail->supplier->nama : '-' }}</td>
+                            <td>Rp{{ number_format($detail->details->sum('selisih'), 0, ',', '.') }}</td>
                             <td>
                                 <button type="button" class="btn btn-primary btn-sm" data-toggle="modal"
-                                    data-target="#modalDetailSales{{ $submission->id }}">
+                                    data-target="#modalDetailSales{{ $detail->id }}">
                                     Detail
                                 </button>
                                 <button type="button" class="btn btn-warning btn-sm btn-print-invoice"
-                                    data-kode="{{ $submission->kode }}" window="_blank">
+                                    data-kode="{{ $detail->kode }}" window="_blank">
                                     <i class="fas fa-print mr-1"></i>Cetak
                                 </button>
                             </td>
@@ -191,14 +191,14 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($submission->details as $detail)
+                            @forelse($submission as $index => $detail)
                                 <tr>
-                                    <td>{{ $detail->recipeBahanBaku?->bahan_baku?->nama ?? $detail->bahan_baku?->nama ?? '-' }}</td>
-                                    <td>{{ number_format($detail->display_qty, 2, ',', '.') }}</td>
-                                    <td>{{ $detail->display_unit }}</td>
-                                    <td>Rp {{ number_format($detail->subtotal_dapur, 0, ',', '.') }}</td>
-                                    <td>Rp {{ number_format($detail->subtotal_mitra, 0, ',', '.') }}</td>
-                                    <td>Rp {{ number_format($detail->selisih, 0, ',', '.') }}</td>
+                                    <td>{{ $detail->submission->bahan_baku->nama ?? $detail->bahan_baku?->nama ?? '-' }}</td>
+                                    <td>{{ number_format($detail->harga_dapur, 2, ',', '.') }}</td>
+                                    <td>{{ $detail->submission->porsi_besar }}</td>
+                                    <td>Rp {{ number_format($detail->sub->porsi_besar, 0, ',', '.') }}</td>
+                                    <td>Rp {{ number_format($detail->submission->porsi_besar, 0, ',', '.') }}</td>
+                                    <td>Rp {{ number_format($detail->submission->porsi_besar, 0, ',', '.') }}</td>
                                 </tr>
                             @empty
                                 <tr>

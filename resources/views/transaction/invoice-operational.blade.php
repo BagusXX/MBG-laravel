@@ -168,7 +168,7 @@
         <tr>
             <td style="width: 20%; text-align: center; vertical-align: top;">
                 {{-- Ganti path logo_bgn_mbg.png sesuai lokasi file Anda --}}
-                <img src="{{('icon_mbg.png') }}" alt="Logo BGN" style="height: 100px; width: 100px; object-fit: contain; margin-bottom: 20px;">
+                <img src="{{('icon_mbg.png') }}" alt="Logo BGN" style="height: 80px; width: 80px; object-fit: contain; margin-bottom: 20px;">
             </td>
 
             <td style="width: 60%; text-align: center; vertical-align: middle;">
@@ -180,11 +180,14 @@
             </td>
 
             <td style="width: 20%; text-align: center; vertical-align: top;">
-                @if($submission->supplier && $submission->supplier->gambar)
-                    <img src="{{ public_path('storage/' . $submission->supplier->gambar) }}" alt="Logo Supplier" style="height: 100px; width: 100px; object-fit: contain;">
-                @else
-                    {{-- Placeholder jika tidak ada gambar --}}
-                    <div style="height: 80px; width: 80px; display: inline-block;"></div>
+                @php
+                    $logoPath = realpath(public_path('../public_html/galeri/uploads/suppliers' . $submission->supplier->gambar));
+                @endphp
+                
+                @if($logoPath && file_exists($logoPath))
+                    <img src="{{ $logoPath }}"
+                         alt="Logo Supplier"
+                         style="height:100px;width:100px;object-fit:contain;">
                 @endif
             </td>
         </tr>

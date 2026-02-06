@@ -25,12 +25,18 @@ class SalesSummaryController extends Controller
             ->whereIn('kitchen_id', $kitchensCodes)
             ->with('kitchen');
 
-        if ($request->filled('from_date')) {
-            $query->whereDate('tanggal', '>=', $request->from_date);
-        }
+        if ($request->filled('from_date') || $request->filled('to_date')) {
+            $query->whereHas('submission.parentSubmission', function ($ps) use ($request) {
 
-        if ($request->filled('to_date')) {
-            $query->whereDate('tanggal', '<=', $request->to_date);
+            if ($request->filled('from_date')) {
+                $ps->whereDate('tanggal', '>=', $request->from_date);
+            }
+
+            if ($request->filled('to_date')) {
+                $ps->whereDate('tanggal', '<=', $request->to_date);
+            }
+
+            });
         }
 
         if ($request->filled('kitchen_id')) {
@@ -61,7 +67,7 @@ class SalesSummaryController extends Controller
                 'submissions.tanggal',
                 'submissions.kitchen_id'
             )
-            ->orderByDesc('submissions.tanggal')
+            ->orderByDesc('submissions.id')
             ->paginate(10)
             ->withQueryString();
 
@@ -72,6 +78,12 @@ class SalesSummaryController extends Controller
             return $item;
         });
 
-        return view('report.sales-summary', compact('kitchens','reports'));
+        $collection =$reports->getCollection();
+
+        $totalSelisih = $collection->sum('selisih');
+        $totalPersen85 = $collection->sum('persen_85');
+        $totalPersen15 = $collection->sum('persen_15');
+
+        return view('report.sales-summary', compact('kitchens','reports', 'totalSelisih', 'totalPersen85', 'totalPersen15'));
     }
 }
