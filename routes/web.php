@@ -28,6 +28,7 @@ use App\Http\Controllers\ReportSalesKitchenController;
 use App\Http\Controllers\ReportSalesPartnerController;
 use App\Http\Controllers\ProfitController;
 use App\Http\Controllers\ReportSalesProfitController;
+use App\Http\Controllers\SalesSummaryController;
 
 require __DIR__ . '/auth.php';
 
@@ -528,6 +529,10 @@ Route::middleware(['auth', 'disetujui'])->group(function () {
             Route::get('/profit/invoice/{kode}', [ReportSalesProfitController::class, 'printInvoice'])
                 ->middleware('permission:report.sales-profit.invoice')
                 ->name('sales-profit.printInvoice');
+
+            Route::get('/total-penjualan-dan-selisih', [SalesSummaryController::class, 'index'])
+                ->middleware('permission:report.sales-summary.view')
+                ->name('sales-summary');
         });
 
     Route::prefix('dashboard/profile')
