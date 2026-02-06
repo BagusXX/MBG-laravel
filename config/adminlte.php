@@ -417,12 +417,12 @@ return [
                     'can' => 'setup.role.view',
                 ],
 
-                [
-                    'text' => 'Racik Menu',
-                    'icon' => 'fas fa-fw fa-blender',
-                    'route' => 'recipe.index',
-                    'can' => 'recipe.view',
-                ],
+                // [
+                //     'text' => 'Racik Menu',
+                //     'icon' => 'fas fa-fw fa-blender',
+                //     'route' => 'recipe.index',
+                //     'can' => 'recipe.view',
+                // ],
 
             ],
         ],
