@@ -259,6 +259,11 @@ Route::middleware(['auth', 'disetujui'])->group(function () {
             Route::get('/helper/menu-by-kitchen/{kitchenId}', 'getMenuByKitchen')
                 ->middleware('permission:transaction.submission.view')
                 ->name('menu-by-kitchen');
+
+            // Tambahkan di bawah route menu-by-kitchen
+            Route::get('/helper/bahan-by-kitchen/{kitchenId}', 'getBahanByKitchen')
+                ->middleware('permission:transaction.submission.view')
+                ->name('bahan-by-kitchen');
         });
 
 

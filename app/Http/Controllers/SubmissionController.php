@@ -458,6 +458,18 @@ class SubmissionController extends Controller
             })->values()
         ]);
     }
+    public function getBahanByKitchen($kitchenId)
+    {
+        $bahanBakus = BahanBaku::whereHas('suppliers.kitchens', function ($q) use ($kitchenId) {
+            $q->where('kitchens.id', $kitchenId);
+        })
+            ->select('id', 'nama')
+            ->distinct()
+            ->orderBy('nama')
+            ->get();
+
+        return response()->json($bahanBakus);
+    }
 
 
 

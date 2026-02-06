@@ -26,96 +26,16 @@ class SubmissionApprovalController extends Controller
         return auth()->user()->kitchens()->pluck('kode')->toArray();
     }
 
-    private function applyConversion($item)
-    {
-        // 1. Ambil Nama Satuan
-        $unitNama = '-';
-        if ($item->recipeBahanBaku && $item->recipeBahanBaku->bahan_baku) {
-            $unitNama = optional($item->recipeBahanBaku->bahan_baku->unit)->satuan;
-        } elseif ($item->bahan_baku) {
-            $unitNama = optional($item->bahan_baku->unit)->satuan;
-        }
-
-        $unitLower = strtolower($unitNama);
-        $qty = (float) $item->qty_digunakan;
-
-        $item->display_qty = $qty;
-        $item->display_unit = $unitNama;
-
-        // 2. Logika Konversi ke Kg / L
-        if ($unitLower == 'gram') {
-            $item->display_unit = 'Kg';
-            $item->display_qty = $qty / 1000;
-        } elseif ($unitLower == 'ml') {
-            $item->display_unit = 'L';
-            $item->display_qty = $qty / 1000;
-        } else {
-            $item->display_unit = $unitNama;
-            $item->display_qty = $qty;
-        }
-
-        // 3. Format Angka (Gunakan koma untuk desimal, hilangkan desimal jika bulat)
-        $item->formatted_qty = number_format(
-            $item->display_qty,
-            ($item->display_qty == floor($item->display_qty) ? 0 : 2),
-            ',',
-            '.'
-        );
-
-        return $item;
-    }
-
-    protected function convertQtyForCalculation(SubmissionDetails $detail): float
-    {
-        $qty = (float) $detail->qty_digunakan;
-
-        // Ambil bahan baku dari mana pun sumbernya
-        $bahanBaku = $detail->bahan_baku
-            ?? $detail->recipeBahanBaku?->bahan_baku;
-
-        if (!$bahanBaku || !$bahanBaku->unit) {
-            return $qty; // Default jika unit tidak ditemukan
-        }
-
-        $unit = strtolower($bahanBaku->unit->satuan);
-
-        return match ($unit) {
-            'gram' => $qty / 1000,
-            'ml' => $qty / 1000,
-            default => $qty,
-        };
-    }
 
     // KODE BARU (SOLUSI 1)
     protected function recalculateTotal(Submission $submission)
     {
-        $submission->load(['details.bahan_baku.unit', 'details.recipeBahanBaku.bahan_baku.unit']);
+        // Refresh relasi details
+        $submission->load('details');
 
-        $total = 0;
+        // Sum kolom subtotal_dapur (karena input user = subtotal)
+        $total = $submission->details->sum('subtotal_dapur');
 
-        foreach ($submission->details as $detail) {
-
-            // Pilih harga: mitra > dapur
-            $harga = $detail->harga_dapur ?? $detail->harga_mitra ?? 0;
-
-            if ($harga === null) {
-                continue;
-            }
-
-            // KONVERSI QTY (gram -> kg, ml -> liter)
-            $qtyKonversi = $this->convertQtyForCalculation($detail);
-
-            $subtotal = $harga * $qtyKonversi;
-
-            // Optional: simpan subtotal agar konsisten
-            $detail->update([
-                'subtotal_harga' => $subtotal,
-            ]);
-
-            $total += $subtotal;
-        }
-
-        // 3. Update hasil perhitungan ke tabel parent
         $submission->update(['total_harga' => $total]);
     }
 
@@ -128,8 +48,6 @@ class SubmissionApprovalController extends Controller
             'kitchen',
             'menu',
             'supplier',
-            'details',
-            'details.recipeBahanBaku.bahan_baku.unit',
             'details.bahan_baku.unit'
         ])
             ->onlyParent()
