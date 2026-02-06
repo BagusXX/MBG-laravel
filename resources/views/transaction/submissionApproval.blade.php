@@ -596,12 +596,23 @@
                         },
                         success: function(res) {
                             showNotificationPopUp('success', 'Order berhasil dipisah.', 'Berhasil');
+                            // --- TAMBAHKAN INI UNTUK MENGATASI STUCK ---
+                            // 1. Pastikan backdrop modal konfirmasi benar-benar hilang
+                            $('.modal-backdrop').remove(); 
+                            
+                            // 2. Paksa class modal-open tetap ada di body agar modal utama bisa di-scroll
+                            $('body').addClass('modal-open').css('overflow', 'auto');
+
                             $('#selectSupplierSplit').val('').trigger('change');
                             $('#checkAll').prop('checked', false);
+
                             loadAllData(); // REFRESH DATA
                         },
                         error: function(xhr) {
                             showNotificationPopUp('error', xhr.responseJSON?.message ?? 'Gagal memproses.', 'Error');
+
+                            // Jika error pun tetap stuck, pastikan scroll dikembalikan
+                        $('body').addClass('modal-open');
                         }
                     });
                 }
@@ -758,6 +769,24 @@
             return isNaN(num) ? 0 : num;
         }
 
+    });
+
+    // --- TOMBOL SELESAIKAN PENGAJUAN ---
+    $('#btnSelesaiParent').on('click', function() {
+        confirmAction({
+            title: 'Selesaikan Pengajuan',
+            message: 'Apakah Anda yakin ingin menyelesaikan pengajuan ini? Status akan dikunci dan tidak dapat diubah lagi.',
+            confirmText: 'Ya, Selesaikan',
+            onConfirm: function() {
+                // Gunakan form hidden yang sudah ada di HTML Anda
+                let form = $('#formUpdateStatus');
+                let url = "{{ url('dashboard/transaksi/approval-menu') }}/" + currentSubmissionId + "/status";
+                
+                form.attr('action', url);
+                $('#inputStatusFinal').val('selesai');
+                form.submit();
+            }
+        });
     });
 </script>
 @endsection
