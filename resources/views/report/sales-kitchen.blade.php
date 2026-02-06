@@ -17,13 +17,13 @@
                             {{-- FILTER TANGGAL "DARI" --}}
                             <div class="col-md-2">
                                 <label>Dari</label>
-                                <input type="date" name="from_date" class="form-control ">
+                                <input type="date" name="from_date" value="{{ request('from_date') }}" class="form-control ">
                             </div>
                             
-                            {{-- FILTER MENU "SAMPAI"--}}
+                            {{-- FILTER "SAMPAI"--}}
                             <div class="col-md-2">
                                 <label>Sampai</label>
-                                <input type="date" name="to_date" class="form-control ">
+                                <input type="date" name="to_date" value="{{ request('to_date') }}" class="form-control ">
                             </div>
                             
                             {{-- FILTER DAPUR --}}
@@ -86,36 +86,29 @@
                         <th>Bahan Baku</th>
                         <th>Qty</th>
                         <th width="50">Satuan</th>
-                        <th>Porsi</th>
+                        <th>Porsi Besar</th>
+                        <th>Porsi Kecil</th>
                         <th>Harga</th>
                         <th>Subtotal</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($submissions as $submission )
+                    @forelse ($submissions as $item)
                     <tr>
                         <td>{{ $submissions->firstItem() + $loop->index }}</td>
-                        <td>{{ \Carbon\Carbon::parse($submission->parentSubmission ? $submission->parentSubmission->tanggal : $submission->tanggal)->locale('id')->translatedFormat('d F Y')}}</td>
-                        <td>{{ $submission->kitchen->nama}}</td>
-                        <td>
-                            {{ optional(optional($submission->submission)->supplier)->nama ?? '-' }}
-                        </td>
-                        <td>
-                            @if ($submission->bahan_baku_id)
-                                {{ $submission->bahan_baku->nama ?? '-' }}
-                            @elseif ($submission->recipeBahanBaku)
-                                {{ $submission->recipeBahanBaku->bahan_baku->nama ?? '-' }}
-                            @else
-                                -
-                            @endif
-                        </td>
-
-                        <td>{{ $submission->formatted_qty }}</td>
-                        <td>{{ $submission->display_unit }}</td>
-                        <td>{{ $submission->porsi_besar ?? '-' }}</td>
-
-                        <td>Rp{{ number_format($submission->harga_dapur, 0, ',', '.') }}</td>
-                        <td>Rp{{ number_format(($submission->subtotal), 0, ',', '.') }}</td>
+                        {{-- Mengambil tanggal dari parentSubmission (disetujui) atau submission --}}
+                        <td>{{ \Carbon\Carbon::parse($item->submission->parentSubmission ? $item->submission->parentSubmission->tanggal : $item->submission->tanggal)->locale('id')->translatedFormat('d F Y')}}</td>
+                        <td>{{ $item->submission->kitchen->nama ?? '-' }}</td>
+                        <td>{{ $item->submission->supplier->nama ?? '-' }}</td>
+                        <td>{{ $item->bahan_baku->nama ?? '-' }}</td>
+                        {{-- Menampilkan Qty asli tanpa konversi --}}
+                        <td>{{ number_format($item->qty_digunakan, 0, ',', '.') }}</td>
+                        <td>{{ $item->unit->satuan ?? '-' }}</td>
+                        <td>{{ $item->submission->porsi_besar ?? '-' }}</td>
+                        <td>{{ $item->submission->porsi_kecil ?? '-' }}</td>
+                        <td>Rp{{ number_format($item->harga_dapur, 0, ',', '.') }}</td>
+                        {{-- Menggunakan kolom subtotal_harga langsung --}}
+                        <td>Rp{{ number_format($item->subtotal_dapur, 0, ',', '.') }}</td>
                     </tr>
                     @empty
                     <tr>
@@ -131,69 +124,8 @@
                 </tfoot>
             </table>
             <div class="d-flex justify-content-end align-items-center mt-3">
-                <div class="mt-3 d-flex justify-content-end">
                 {{ $submissions->links('pagination::bootstrap-4') }}
-                </div>
-            </div>
             </div>
         </div>
     </div>
-
-    {{-- MODAL DETAIL --}}
-    <x-modal-detail
-        id="modalDetailSubmission"
-        size="modal-lg"
-        title="Detail Pengajuan Menu"
-    >
-        <div>
-            <div>
-                <p class="font-weight-bold mb-0">Tanggal:</p>
-                <p>Rabu, 10 Desember 2025</p>
-            </div>
-            <div>
-                <p class="font-weight-bold mb-0">Nama Menu:</p>
-                <p>Nasi Goreng</p>
-            </div>
-            <div>
-                <p class="font-weight-bold mb-0">Porsi:</p>
-                <p>1000</p>
-            </div>
-            <div>
-                <p class="font-weight-bold mb-0">Dapur:</p>
-                <p>Dapur A Tembalang</p>
-            </div>
-            <div>
-                <table class="table table-bordered table-striped">
-                    <thead>
-                        <tr>
-                            <th>Bahan Baku</th>
-                            <th>Jumlah</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Bawang Merah</td>
-                            <td>10 kg</td>
-                        </tr>
-                        <tr>
-                            <td>Bawang Putih</td>
-                            <td>10 kg</td>
-                        </tr>
-                        <tr>
-                            <td>Beras</td>
-                            <td>100 kg</td>
-                        </tr>
-                        <tr>
-                            <td>Kecap</td>
-                            <td>15 L</td>
-                        </tr>
-                        <tr>
-                            <td>Minyak Goreng</td>
-                            <td>20 L</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </x-modal-detail>
 @endsection
