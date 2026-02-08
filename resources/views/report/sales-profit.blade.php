@@ -84,12 +84,13 @@
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>No</th>
+                        <!--<th>No</th>-->
                         <th>Kode</th>
                         <th>Tanggal Pengajuan</th>
                         <th>Dapur</th>
                         <th>Menu</th>
-                        <th>Porsi</th>
+                        <th>PM (besar)</th>
+                        <th>PM (kecil)</th>
                         <th>Supplier</th>
                         <th>Total Selisih</th>
                         <th>Aksi</th>
@@ -98,12 +99,13 @@
                 <tbody>
                     @forelse($submissions as $index => $submission)
                         <tr>
-                            <td>{{ $index + 1 }}</td>
+                            <!--<td>{{ $index + 1 }}</td>-->
                             <td>{{ $submission->kode ?? '-' }}</td>
                             <td>{{ \Carbon\Carbon::parse($submission->parentSubmission ? $submission->parentSubmission->tanggal : $submission->tanggal)->locale('id')->translatedFormat('d F Y') }}</td>
                             <td>{{ $submission->kitchen ? $submission->kitchen->nama : '-' }}</td>
                             <td>{{ $submission->menu ? $submission->menu->nama : '-' }}</td>
-                            <td>{{ $submission->porsi ?? '-' }}</td>
+                            <td>{{ $submission->porsi_besar ?? '-' }}</td>
+                            <td>{{ $submission->porsi_kecil ?? '-' }}</td>
                             <td>{{ $submission->supplier ? $submission->supplier->nama : '-' }}</td>
                             <td>Rp{{ number_format($submission->details->sum('selisih'), 0, ',', '.') }}</td>
                             <td>
@@ -150,17 +152,22 @@
                             <th class="py-1">Dapur</th>
                             <td>: {{ $submission->kitchen->nama }}</td>
                         </tr>
-                    </table>
-                </div>
-                <div class="col-md-6">
-                    <table class="table table-borderless table-sm">
                         <tr>
                             <th class="py-1">Menu</th>
                             <td>: {{ $submission->menu->nama }}</td>
                         </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-borderless table-sm">
+                        
                         <tr>
-                            <th width="30%" class="py-1">Porsi</th>
-                            <td>: {{$submission->porsi}}</td>
+                            <th width="30%" class="py-1">PM (besar)</th>
+                            <td>: {{$submission->porsi_besar}}</td>
+                        </tr>
+                        <tr>
+                            <th width="30%" class="py-1">PM (kecil)</th>
+                            <td>: {{$submission->porsi_kecil}}</td>
                         </tr>
                         @if($submission->supplier)
                             <tr>
@@ -193,9 +200,9 @@
                         <tbody>
                             @forelse($submission->details as $detail)
                                 <tr>
-                                    <td>{{ $detail->recipeBahanBaku?->bahan_baku?->nama ?? $detail->bahan_baku?->nama ?? '-' }}</td>
-                                    <td>{{ number_format($detail->display_qty, 2, ',', '.') }}</td>
-                                    <td>{{ $detail->display_unit }}</td>
+                                    <td>{{ $detail->bahan_baku?->nama ?? '-' }}</td>
+                                    <td>{{ number_format($detail->qty_digunakan, 2, ',', '.') }}</td>
+                                    <td>{{ $detail->unit?->satuan ?? '-' }}</td>
                                     <td>Rp {{ number_format($detail->subtotal_dapur, 0, ',', '.') }}</td>
                                     <td>Rp {{ number_format($detail->subtotal_mitra, 0, ',', '.') }}</td>
                                     <td>Rp {{ number_format($detail->selisih, 0, ',', '.') }}</td>

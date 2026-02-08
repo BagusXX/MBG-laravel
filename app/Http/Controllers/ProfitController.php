@@ -47,7 +47,9 @@ class ProfitController extends Controller
             Submission::select('tanggal')
                 ->whereColumn('submissions.id', 'submission_details.submission_id')
                 ->limit(1)
-        );
+        )
+        ->orderBy('submission_details.submission_id')
+        ->orderBy('submission_details.id');
     }
 
     public function index(Request $request)
@@ -62,7 +64,7 @@ class ProfitController extends Controller
             return $item;
         });
 
-        $totalPageSubtotal = $reports->sum('selisih_total');
+        $totalPageSubtotal = $reports->sum('selisih');
 
         return view('report.profit', compact('kitchens', 'reports', 'suppliers', 'totalPageSubtotal'));
     }

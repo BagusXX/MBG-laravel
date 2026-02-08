@@ -56,10 +56,10 @@
                                 <a href="{{ route('report.profit') }}" class="btn btn-danger">
                                     <i class="fa fa-undo"></i> Reset
                                 </a>
-                                <a href="{{ route('report.profit.invoice', request()->all()) }}"
-                                    class="btn btn-warning ml-2">
-                                    <i class="fa fa-print"></i> Print
-                                </a>
+                                <!--<a href="{{ route('report.profit.invoice', request()->all()) }}"-->
+                                <!--    class="btn btn-warning ml-2">-->
+                                <!--    <i class="fa fa-print"></i> Print-->
+                                <!--</a>-->
                             </div>
                         </div>
                     </form>
@@ -75,7 +75,8 @@
                         {{-- <th>Supplier</th> --}}
                         <th>Bahan Baku</th>
                         <th>Satuan</th>
-                        <th>Porsi</th>
+                        <th>PM (besar)</th>
+                        <th>PM (kecil)</th>
                         <th>Harga Dapur</th>
                         <th>Harga Mitra</th>
                         <th>Selisih</th>
@@ -95,19 +96,18 @@
                                 @endif
                             </td> --}}
                             <td>
-                                @if ($report->recipe_bahan_baku_id)
-                                    {{ optional(\App\Models\BahanBaku::find($report->recipe_bahan_baku_id))->nama }}
-                                @elseif ($report->bahan_baku_id)
-                                    {{ optional($report->bahanBaku)->nama }}
+                                @if ($report->bahan_baku_id)
+                                    {{ optional($report->bahan_baku)->nama }}
                                 @else
                                     -
                                 @endif
                             </td>
-                            <td>{{ $report->display_unit ?? '-' }}</td>
-                            <td>{{ $report->submission->porsi }}</td>
-                            <td>Rp {{ number_format($report->harga_dapur_total, 0, ',', '.') }}</td>
-                            <td>Rp {{ number_format($report->harga_mitra_total, 0, ',', '.') }}</td>
-                            <td>Rp {{ number_format($report->selisih_total, 0, ',', '.') }}</td>
+                            <td>{{ $report->unit?->satuan ?? '-' }}</td>
+                            <td>{{ $report->submission->porsi_besar }}</td>
+                            <td>{{ $report->submission->porsi_kecil }}</td>
+                            <td>Rp {{ number_format($report->subtotal_dapur, 0, ',', '.') }}</td>
+                            <td>Rp {{ number_format($report->subtotal_mitra, 0, ',', '.') }}</td>
+                            <td>Rp {{ number_format($report->selisih, 0, ',', '.') }}</td>
 
                         </tr>
                     @empty
@@ -118,7 +118,7 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="7" class="text-right"><strong>Total Selisih :</strong></td>
+                        <td colspan="8" class="text-right"><strong>Total Selisih :</strong></td>
                         <td class="text-left"><strong>Rp{{ number_format($totalPageSubtotal, 0, '.', '.') }}</strong></td>
                     </tr>
                 </tfoot>

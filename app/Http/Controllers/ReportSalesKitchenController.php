@@ -78,7 +78,7 @@ class ReportSalesKitchenController extends Controller
         $submissions = $query->latest('id')->paginate(10)->withQueryString();
 
         // Kalkulasi Total per Halaman menggunakan kolom subtotal_harga dari DB
-        $totalPageSubtotal = $submissions->sum('subtotal_harga');
+        $totalPageSubtotal = $submissions->sum('subtotal_dapur');
 
         return view('report.sales-kitchen', compact('submissions', 'kitchens', 'suppliers', 'totalPageSubtotal', 'bahanBakus', 'menus'));
     }
@@ -114,7 +114,7 @@ class ReportSalesKitchenController extends Controller
             });
 
         $reports = $query->get()->sortByDesc('submission.tanggal');
-        $totalPageSubtotal = $reports->sum('subtotal_harga');
+        $totalPageSubtotal = $reports->sum('subtotal_dapur');
         $submission = $reports->first()->submission ?? null;
         $today = date('d-m-Y');
 

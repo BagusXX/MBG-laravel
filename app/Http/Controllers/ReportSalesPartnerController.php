@@ -33,7 +33,6 @@ class ReportSalesPartnerController extends Controller
             'submission.parentSubmission',
             'bahan_baku',
             'submission.supplier',
-            'recipeBahanBaku.bahan_baku'
         ]);
 
         $query->whereHas('submission', function ($q) use ($kitchensCodes) {
@@ -82,7 +81,7 @@ class ReportSalesPartnerController extends Controller
                     })
                         // Filter 2: Lewat relasi resep (Gunakan bahan_baku sesuai modelmu)
                         // Nested relationship: recipeBahanBaku -> bahan_baku
-                        ->orWhereHas('recipeBahanBaku.bahan_baku', function ($qr) use ($namaBahan) {
+                        ->orWhereHas('bahan_baku', function ($qr) use ($namaBahan) {
                             $qr->where('nama', $namaBahan);
                         });
                 });
@@ -97,11 +96,7 @@ class ReportSalesPartnerController extends Controller
             })
             ->limit(1));
 
-        $reports = $query->paginate(10)->withQueryString();
-
-        $reports->getCollection()->transform(function ($item) {
-            return $this->applyConversion($item);
-        });
+        $reports = $query->latest('id')->paginate(10)->withQueryString();
 
         $totalPageSubtotal = $reports->sum('subtotal');
 
@@ -111,7 +106,7 @@ class ReportSalesPartnerController extends Controller
     public function invoice(Request $request)
     {
         $kitchenCodes = $this->userKitchenCodes();
-        $query = SubmissionDetails::with(['submission.kitchen', 'bahan_baku.unit', 'submission.supplier', 'recipeBahanBaku.bahan_baku.unit']);
+        $query = SubmissionDetails::with(['submission.kitchen', 'bahan_baku.unit', 'submission.supplier', 'bahan_baku.unit']);
 
         $query->whereHas('submission', function ($q) {
             $q->whereNotNull('parent_id');
@@ -140,10 +135,6 @@ class ReportSalesPartnerController extends Controller
 
         $reports = $query->get();
 
-        $reports->transform(function ($item) {
-            return $this->applyConversion($item);
-        });
-
         $reports = $reports->sortByDesc(function ($item) {
             return $item->submission->tanggal;
         });
@@ -161,41 +152,4 @@ class ReportSalesPartnerController extends Controller
         return $pdf->download('laporan penjualan mitra_' . $today . '.pdf');
     }
 
-    private function applyConversion($item)
-    {
-        // 1. Ambil Nama Satuan
-        $unitNama = '-';
-        if ($item->recipeBahanBaku && $item->recipeBahanBaku->bahan_baku) {
-            $unitNama = optional($item->recipeBahanBaku->bahan_baku->unit)->satuan;
-        } elseif ($item->bahan_baku) {
-            $unitNama = optional($item->bahan_baku->unit)->satuan;
-        }
-
-        $unitLower = strtolower($unitNama);
-        $qty = $item->qty_digunakan;
-
-        // 2. Logika Konversi ke Kg / L
-        if ($unitLower == 'gram') {
-            $item->display_unit = 'Kg';
-            $item->display_qty = $qty / 1000;
-        } elseif ($unitLower == 'ml') {
-            $item->display_unit = 'L';
-            $item->display_qty = $qty / 1000;
-        } else {
-            $item->display_unit = $unitNama;
-            $item->display_qty = $qty;
-        }
-
-        // 3. Format Angka (Gunakan koma untuk desimal, hilangkan desimal jika bulat)
-        $item->formatted_qty = number_format(
-            $item->display_qty,
-            ($item->display_qty == floor($item->display_qty) ? 0 : 2),
-            ',',
-            '.'
-        );
-
-        $item->subtotal = ($item->display_qty ?? 0) * ($item->harga_mitra ?? 0);
-
-        return $item;
-    }
 }

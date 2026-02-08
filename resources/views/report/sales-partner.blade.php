@@ -67,9 +67,9 @@
                                 <a href="{{ route('report.sales-partner') }}" class="btn btn-danger">
                                     <i class="fa fa-undo"></i> Reset
                                 </a>
-                                <a href="{{ route('report.sales-partner.invoice', request()->all()) }}" class="btn btn-warning ml-2" target="_blank">
-                                    <i class="fa fa-print"></i> Print
-                                </a>
+                                <!--<a href="{{ route('report.sales-partner.invoice', request()->all()) }}" class="btn btn-warning ml-2" target="_blank">-->
+                                <!--    <i class="fa fa-print"></i> Print-->
+                                <!--</a>-->
                             </div>
                         </div>
                     </form>
@@ -86,8 +86,8 @@
                         <th>Bahan Baku</th>
                         <th>Qty</th>
                         <th width="50">Satuan</th>
-                        <th>Porsi</th>
-                        <th>Harga</th>
+                        <th>PM (besar)</th>
+                        <th>PM (kecil)</th>
                         <th>Subtotal</th>
                     </tr>
                 </thead>
@@ -107,19 +107,17 @@
                         <td>
                             @if ($report->bahan_baku_id)
                                 {{ $report->bahan_baku->nama ?? '-' }}
-                            @elseif ($report->recipeBahanBaku)
-                                {{ $report->recipeBahanBaku->bahan_baku->nama ?? '-' }}
                             @else
                                 -
                             @endif
                         </td>
 
-                        <td>{{ $report->formatted_qty }}</td>
-                        <td>{{ $report->display_unit }}</td>
-                        <td>{{ $report->submission->porsi }}</td>
+                        <td>{{ $report->qty_digunakan }}</td>
+                        <td>{{ $report->unit?->satuan ?? '-' }}</td>
+                        <td>{{ $report->submission->porsi_besar }}</td>
+                        <td>{{ $report->submission->porsi_kecil }}</td>
 
-                        <td>Rp{{ number_format($report->harga_mitra, 0, ',', '.') }}</td>
-                        <td>Rp{{ number_format(($report->subtotal), 0, ',', '.') }}</td>
+                        <td>Rp{{ number_format($report->subtotal_mitra, 0, ',', '.') }}</td>
                     </tr>
                     @empty
                     <tr>

@@ -182,7 +182,7 @@
 <body>
     <div class="invoice-container">
         {{-- <div class="print-btn no-print">
-            <button onclick="window.print()">🖨️ Cetak Invoice</button>
+            <button onclick="window.print()">Cetak Invoice</button>
         </div> --}}
 
         <table class="layout-table" style="border-bottom: 3px double #000; margin-bottom: 20px;">
@@ -194,7 +194,7 @@
 
                 <td style="width: 60%; text-align: center; vertical-align: middle;">
                     <h2 style="margin: 0; text-transform: uppercase;">Laporan Selisih Penjualan</h2>
-                    <h2 style="margin: 0; text-transform: uppercase;">{{ $submission->kitchen->nama ?? 'NAMA SUPPLIER' }}</h2>
+                    <h2 style="margin: 0; text-transform: uppercase;">{{ $submission->kitchen->nama ?? 'NAMA DAPUR' }}</h2>
                     {{-- <h2 style="margin: 0; text-transform: uppercase;">Supplier : {{ $submission->supplier->nama ?? 'NAMA SUPPLIER' }}</h2> --}}
                     <p style="margin: 5px 0; font-size: 12px; line-height: 1.4;">
                         {{ $submission->kitchen->alamat ?? '-' }}
@@ -203,13 +203,14 @@
 
                 <td style="width: 20%; text-align: center; vertical-align: top;">
                 @php
-                    $logoPath = realpath(public_path('../public_html/galeri/uploads/suppliers' . $submission->supplier->gambar));
+                    $relativePath = ltrim($submission->supplier->gambar, '/');
+                    $logoPath = storage_path('app/public/' . $relativePath);
                 @endphp
                 
-                @if($logoPath && file_exists($logoPath))
+                @if(file_exists($logoPath))
                     <img src="{{ $logoPath }}"
-                         alt="Logo Supplier"
-                         style="height:100px;width:100px;object-fit:contain;">
+                         width="100"
+                         style="object-fit: contain;">
                 @endif
             </td>
             </tr>
@@ -278,6 +279,8 @@
                     <th width="30%">Bahan Baku</th>
                     <th class="text-center" style="text-align: center;">Qty</th>
                     <th class="text-center" style="text-align: center;">Satuan</th>
+                    <th class="text-center" style="text-align: center;">PM (besar)</th>
+                    <th class="text-center" style="text-align: center;">PM (kecil)</th>
                     <th class="text-center" style="text-align: center;">Total Dapur</th>
                     <th class="text-center" style="text-align: center;">Total Mitra</th>
                     <th class="text-center" style="text-align: center;">Selisih</th>
@@ -288,8 +291,10 @@
                     <tr>
                         <td>{{ $loop->iteration}}</td>
                         <td>{{ $detail->recipeBahanBaku?->bahan_baku?->nama ?? $detail->bahan_baku?->nama ?? '-'  }}</td>
-                        <td class="text-center">{{ number_format($detail->display_qty, 2, ',', '.') }}</td>
-                        <td class="text-center">{{ $detail->display_unit }}</td>
+                        <td class="text-center">{{ number_format($detail->qty_digunakan, 2, ',', '.') }}</td>
+                        <td class="text-center">{{ $detail->unit?->satuan ?? '-' }}</td>
+                        <td class="text-center">{{ $detail->submission->porsi_besar }}</td>
+                        <td class="text-center">{{ $detail->submission->porsi_kecil }}</td>
                         <td class="text-center">Rp{{ number_format($detail->subtotal_dapur, 0, ',', '.') }}</td>
                         <td class="text-center">Rp{{ number_format($detail->subtotal_mitra, 0, ',', '.') }}</td>
                         <td class="text-center">Rp{{ number_format($detail->selisih, 0, ',', '.') }}</td>

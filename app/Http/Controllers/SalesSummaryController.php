@@ -21,7 +21,7 @@ class SalesSummaryController extends Controller
         $kitchensCodes = $this->userKitchenCodes();
         $kitchens = Kitchen::whereIn('id', $kitchensCodes)->orderBy('nama')->get();
         $query = Submission::query()
-            ->whereNull('parent_id') // PARENT TRANSAKSI
+            ->whereNotNull('parent_id') // PARENT TRANSAKSI
             ->whereIn('kitchen_id', $kitchensCodes)
             ->with('kitchen');
 
@@ -51,12 +51,12 @@ class SalesSummaryController extends Controller
                 'submissions.kitchen_id',
 
                 DB::raw('
-                    SUM(submission_details.qty_digunakan * submission_details.harga_dapur)
+                    SUM(subtotal_dapur)
                     as total_dapur
                 '),
 
                 DB::raw('
-                    SUM(submission_details.qty_digunakan * submission_details.harga_mitra)
+                    SUM(subtotal_mitra)
                     as total_mitra
                 ')
             ])
