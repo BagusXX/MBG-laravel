@@ -7,69 +7,58 @@ use Illuminate\Http\Request;
 use App\Models\Kitchen;
 use App\Models\SubmissionDetails;
 use App\Models\Supplier;
+use App\Models\Submission;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class ProfitController extends Controller
 {
-    public function index(Request $request)
+    // Fungsi pembantu agar logic filter tidak diulang-ulang
+    private function getReportQuery(Request $request)
     {
-        $kitchens = Kitchen::all();
-        $suppliers = Supplier::all();
-
         $query = SubmissionDetails::with([
             'submission.kitchen',
             'submission.parentSubmission',
             'bahan_baku',
             'submission.supplier',
-            'recipeBahanBaku.bahan_baku.unit'
+            'unit'
         ])
         ->whereHas('submission', function ($q) {
             $q->whereNotNull('parent_id');
         });
 
+        // Filter Tanggal
         if ($request->filled('from_date') || $request->filled('to_date')) {
             $query->whereHas('submission.parentSubmission', function ($q) use ($request) {
-
-                if ($request->filled('from_date')) {
-                    $q->whereDate('tanggal', '>=', $request->from_date);
-                }
-
-                if ($request->filled('to_date')) {
-                    $q->whereDate('tanggal', '<=', $request->to_date);
-                }
-
+                if ($request->filled('from_date')) $q->whereDate('tanggal', '>=', $request->from_date);
+                if ($request->filled('to_date')) $q->whereDate('tanggal', '<=', $request->to_date);
             });
         }
 
+        // Filter Kitchen & Supplier
         if ($request->filled('kitchen_id')) {
-            $query->whereHas(
-                'submission',
-                fn($q) =>
-                $q->where('kitchen_id', $request->kitchen_id)
-            );
+            $query->whereRelation('submission', 'kitchen_id', $request->kitchen_id);
         }
         if ($request->filled('supplier_id')) {
-            $query->whereHas(
-                'submission',
-                fn($q) =>
-                $q->where('supplier_id', $request->supplier_id)
-            );
+            $query->whereRelation('submission', 'supplier_id', $request->supplier_id);
         }
 
-        $query->orderByDesc(\App\Models\Submission::select('tanggal')
-            ->whereColumn('submissions.id', 'submission_details.submission_id')
-            ->limit(1));
-            
-        $reports = $query->paginate(10)->withQueryString();
+        // Sorting di tingkat Database
+        return $query->orderByDesc(
+            Submission::select('tanggal')
+                ->whereColumn('submissions.id', 'submission_details.submission_id')
+                ->limit(1)
+        );
+    }
+
+    public function index(Request $request)
+    {
+        $kitchens = Kitchen::all();
+        $suppliers = Supplier::all();
+
+        $reports = $this->getReportQuery($request)->paginate(10)->withQueryString();
 
         $reports->getCollection()->transform(function ($item) {
-            
-            $item = $this->applyConversion($item);
-
-            $item->harga_dapur_total = ($item->harga_dapur ?? 0) * ($item->display_qty ?? 0);
-            $item->harga_mitra_total = ($item->harga_mitra ?? 0) * ($item->display_qty ?? 0);
-            $item->selisih_total     = $item->harga_dapur_total - $item->harga_mitra_total;
-
+            $item->selisih_total = ($item->subtotal_dapur ?? 0) - ($item->subtotal_mitra ?? 0);
             return $item;
         });
 
@@ -80,97 +69,18 @@ class ProfitController extends Controller
 
     public function invoice(Request $request)
     {
-        $query = SubmissionDetails::with(['submission.kitchen', 'bahanBaku.unit', 'submission.supplier', 'recipeBahanBaku.bahan_baku.unit']);
-
-        $query->whereHas('submission', function ($q) {
-            $q->whereNotNull('parent_id')
-                ->orderByDesc(\App\Models\Submission::select('tanggal')
-                    ->whereColumn('submissions.id', 'submission_details.submission_id')
-                    ->limit(1));
-        });
-
-        if ($request->from_date && $request->to_date) {
-            $query->whereHas('submission', function ($q) use ($request) {
-                $q->whereBetween('tanggal', [$request->from_date, $request->to_date]);
-            });
-        }
-
-        if ($request->kitchen_id) {
-            $query->whereHas('submission', function ($q) use ($request) {
-                $q->where('kitchen_id', $request->kitchen_id);
-            });
-        }
-
-        if ($request->supplier_id) {
-            $query->whereHas('submission', function ($q) use ($request) {
-                $q->where('supplier_id', $request->supplier_id);
-            });
-        }
-
-
-        $reports = $query->get();
+        $reports = $this->getReportQuery($request)->get();
 
         $reports->transform(function ($item) {
-            $item = $this->applyConversion($item);
-            $item->selisih_total = (($item->harga_dapur ?? 0) * $item->display_qty) - (($item->harga_mitra ?? 0) * $item->display_qty);
+            $item->selisih_total = ($item->subtotal_dapur ?? 0) - ($item->subtotal_mitra ?? 0);
             return $item;
         });
 
-        $reports = $reports->sortByDesc(fn($item) => $item->submission->tanggal);
-
-        $today = date('d-m-Y');
-
         $submission = $reports->first()->submission ?? null;
-
-        $totalPageSubtotal = $reports->sum(function ($item) {
-            return (
-                ($item->harga_dapur ?? 0) * ($item->submission->porsi ?? 0)
-            ) - (
-                ($item->harga_mitra ?? 0) * ($item->submission->porsi ?? 0)
-            );
-
-        });
+        $totalPageSubtotal = $reports->sum('selisih_total');
+        $today = now()->format('d-m-Y');
 
         $pdf = PDF::loadView('report.invoiceReport-profit', compact('submission', 'reports', 'totalPageSubtotal'));
-
-        return $pdf->download('laporan selisih penjualan_' . $today . '.pdf');
-    }
-
-    private function applyConversion($item)
-    {
-        // 1. Ambil Nama Satuan
-        $unitNama = '-';
-        if ($item->recipeBahanBaku && $item->recipeBahanBaku->bahan_baku) {
-            $unitNama = optional($item->recipeBahanBaku->bahan_baku->unit)->satuan;
-        } elseif ($item->bahan_baku) {
-            $unitNama = optional($item->bahan_baku->unit)->satuan;
-        }
-
-        $unitLower = strtolower($unitNama);
-        $qty = $item->qty_digunakan;
-
-        // 2. Logika Konversi ke Kg / L
-        if ($unitLower == 'gram') {
-            $item->display_unit = 'Kg';
-            $item->display_qty = $qty / 1000;
-        } elseif ($unitLower == 'ml') {
-            $item->display_unit = 'L';
-            $item->display_qty = $qty / 1000;
-        } else {
-            $item->display_unit = $unitNama;
-            $item->display_qty = $qty;
-        }
-
-        // 3. Format Angka (Gunakan koma untuk desimal, hilangkan desimal jika bulat)
-        $item->formatted_qty = number_format(
-            $item->display_qty,
-            ($item->display_qty == floor($item->display_qty) ? 0 : 2),
-            ',',
-            '.'
-        );
-
-        $item->subtotal = ($item->display_qty ?? 0) * ($item->harga_dapur ?? 0);
-
-        return $item;
+        return $pdf->download("laporan_selisih_penjualan_{$today}.pdf");
     }
 }

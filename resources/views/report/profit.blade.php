@@ -104,7 +104,7 @@
                                 @endif
                             </td>
                             <td>{{ $report->display_unit ?? '-' }}</td>
-                            <td>{{ $report->submission->porsi_kecil }}</td>
+                            <td>{{ $report->submission->porsi }}</td>
                             <td>Rp {{ number_format($report->harga_dapur_total, 0, ',', '.') }}</td>
                             <td>Rp {{ number_format($report->harga_mitra_total, 0, ',', '.') }}</td>
                             <td>Rp {{ number_format($report->selisih_total, 0, ',', '.') }}</td>
