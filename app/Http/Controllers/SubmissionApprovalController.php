@@ -155,34 +155,50 @@ class SubmissionApprovalController extends Controller
                     if ($detail) {
                         $qty = (float) $row['qty_digunakan'];
                         $inputSubtotalDapur = (float) ($row['harga_dapur'] ?? 0);
-                        $inputSubtotalMitra = (float) ($row['harga_mitra'] ?? 0);
+                        
+                        // Hitung harga satuan baru
+                        $unitPriceDapur = $qty > 0 ? ($inputSubtotalDapur / $qty) : 0;
 
-                        // Hitung Harga Satuan secara otomatis
-                        $unitPriceDapur = ($qty > 0) ? ($inputSubtotalDapur / $qty) : 0;
-                        $unitPriceMitra = ($qty > 0) ? ($inputSubtotalMitra / $qty) : 0;
-
+                        // 1. Update Detail di Parent
                         $detail->update([
                             'qty_digunakan' => $qty,
-                            'satuan_id' => $row['satuan_id'],
-                            'harga_dapur' => $unitPriceDapur,     // Simpan hasil bagi
-                            'subtotal_dapur' => $inputSubtotalDapur, // Simpan input murni
-                            'harga_mitra' => $unitPriceMitra,     // Simpan hasil bagi
-                            'subtotal_mitra' => $inputSubtotalMitra, // Simpan input murni
+                            'harga_dapur' => $unitPriceDapur,
+                            'subtotal_dapur' => $inputSubtotalDapur,
+                            'subtotal_mitra' => $inputSubtotalDapur, // Sinkronkan mitra juga jika perlu
                         ]);
+
+                        // 2. UPDATE OTOMATIS KE CHILD (Split Order yang sudah ada)
+                        // Cari child details yang berasal dari parent ini dan bahan baku yang sama
+                        SubmissionDetails::whereHas('submission', function($q) use ($submission) {
+                                $q->where('parent_id', $submission->id);
+                            })
+                            ->where('bahan_baku_id', $detail->bahan_baku_id)
+                            ->get()
+                            ->each(function($childDetail) use ($unitPriceDapur) {
+                                // Hitung subtotal baru untuk child berdasarkan qty child tersebut
+                                $newSubtotal = $childDetail->qty_digunakan * $unitPriceDapur;
+                                
+                                $childDetail->update([
+                                    'harga_dapur' => $unitPriceDapur,
+                                    'subtotal_dapur' => $newSubtotal,
+                                    'harga_mitra' => $unitPriceDapur,
+                                    'subtotal_mitra' => $newSubtotal,
+                                    'subtotal_harga' => $newSubtotal,
+                                ]);
+
+                                // Rekalkulasi total header untuk child tersebut
+                                $this->recalculateTotal($childDetail->submission);
+                            });
                     }
                 }
 
-                // Hitung ulang total harga di tabel submissions (header)
+                // 3. Hitung ulang total di header parent
                 $this->recalculateTotal($submission);
             });
 
-            return response()->json(['success' => true, 'message' => 'Data berhasil diperbarui!']);
-
+            return response()->json(['success' => true, 'message' => 'Harga parent dan split order berhasil diperbarui!']);
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal memperbarui data: ' . $e->getMessage()
-            ], 500);
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
 
@@ -258,6 +274,7 @@ class SubmissionApprovalController extends Controller
                         // ini yang dipakai UI
                         'harga_dapur' => (float) $detail->subtotal_dapur,
                         'harga_mitra' => (float) $detail->subtotal_mitra,
+                        'harga_tampil' => (float) $detail->subtotal_dapur,
                     ];
                 })->values()
             ];

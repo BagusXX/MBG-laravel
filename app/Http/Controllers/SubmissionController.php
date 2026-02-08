@@ -303,73 +303,72 @@ class SubmissionController extends Controller
     }
 
     public function splitToSupplier(Request $request, Submission $submission)
-    {
-        if ($submission->status === 'diajukan') {
-            $submission->update(['status' => 'diproses']);
-        }
+{
+    if ($submission->status === 'diajukan') {
+        $submission->update(['status' => 'diproses']);
+    }
 
-        // Validasi Status
-        abort_if(in_array($submission->status, ['selesai', 'ditolak']), 403, 'Pengajuan sudah ditutup');
+    abort_if(in_array($submission->status, ['selesai', 'ditolak']), 403, 'Pengajuan sudah ditutup');
 
-        $request->validate([
-            'supplier_id' => 'required|exists:suppliers,id',
-            'selected_details' => 'required|array',
-            'selected_details.*' => 'exists:submission_details,id',
+    $request->validate([
+        'supplier_id' => 'required|exists:suppliers,id',
+        'selected_details' => 'required|array',
+        'selected_details.*' => 'exists:submission_details,id',
+    ]);
+
+    DB::transaction(function () use ($submission, $request) {
+        $childSequence = Submission::where('parent_id', $submission->id)->count() + 1;
+        $childKode = $submission->kode . '-' . $childSequence;
+
+        $child = Submission::create([
+            'kode' => $childKode,
+            'tanggal' => now(),
+            'kitchen_id' => $submission->kitchen_id,
+            'menu_id' => $submission->menu_id,
+            'porsi_besar' => $submission->porsi_besar,
+            'porsi_kecil' => $submission->porsi_kecil,
+            'total_harga' => 0,
+            'tipe' => 'disetujui',
+            'status' => 'diproses',
+            'parent_id' => $submission->id,
+            'supplier_id' => $request->supplier_id,
         ]);
 
-        DB::transaction(function () use ($submission, $request) {
-            $childSequence = Submission::where('parent_id', $submission->id)->count() + 1;
-            $childKode = $submission->kode . '-' . $childSequence;
+        $totalHeader = 0;
+        $detailsToCopy = SubmissionDetails::whereIn('id', $request->selected_details)->get();
 
-            // 2. BUAT CHILD SUBMISSION
-            $child = Submission::create([
-                'kode' => $childKode,
-                'tanggal' => now(),
-                'kitchen_id' => $submission->kitchen_id, // Data diambil dari $submission
-                'menu_id' => $submission->menu_id,       // Data diambil dari $submission
-                'porsi_besar' => $submission->porsi_besar,
-                'porsi_kecil' => $submission->porsi_kecil,      // Data diambil dari $submission
-                'total_harga' => 0,
-                'tipe' => 'disetujui',
-                'status' => 'diproses',
-                'parent_id' => $submission->id,
-                'supplier_id' => $request->supplier_id,
+        foreach ($detailsToCopy as $detail) {
+            // Pastikan mengambil nilai dari parent. Jika subtotal_dapur kosong, 
+            // sistem akan mencoba mengambil dari harga_dapur (satuan) dikali qty.
+            $qty = (float) $detail->qty_digunakan;
+            $subtotalParent = (float) ($detail->subtotal_dapur > 0 ? $detail->subtotal_dapur : ($detail->harga_dapur * $qty));
+
+            // Jika masih 0, mungkin user belum klik 'Simpan Harga' di UI sebelum Split
+            $hargaSatuan = $qty > 0 ? ($subtotalParent / $qty) : 0;
+
+            SubmissionDetails::create([
+                'submission_id'  => $child->id,
+                'bahan_baku_id'  => $detail->bahan_baku_id,
+                'satuan_id'      => $detail->satuan_id,
+                'qty_digunakan'  => $qty,
+                
+                // Simpan ke kolom dapur agar muncul di Riwayat (JS)
+                'harga_dapur'    => $hargaSatuan, 
+                'subtotal_dapur' => $subtotalParent,
+                
+                // Simpan juga ke kolom mitra untuk kebutuhan invoice supplier
+                'harga_mitra'    => $hargaSatuan,
+                'subtotal_mitra' => $subtotalParent,
             ]);
 
-            $totalMitra = 0;
+            $totalHeader += $subtotalParent;
+        }
 
-            // 3. PINDAHKAN DETAIL YANG DICENTANG
-            $detailsToCopy = SubmissionDetails::whereIn('id', $request->selected_details)->get();
+        $child->update(['total_harga' => $totalHeader]);
+    });
 
-            foreach ($detailsToCopy as $detail) {
-                // Gunakan harga mitra jika ada, jika tidak pakai harga dapur
-                $hargaSatuanFix = $detail->harga_dapur > 0 ? $detail->harga_dapur : ($detail->harga_mitra > 0 ? $detail->harga_mitra : 0);                $subtotalFix = $detail->qty_digunakan * $hargaSatuanFix;
-
-                SubmissionDetails::create([
-                    'submission_id' => $child->id,
-                    'bahan_baku_id' => $detail->bahan_baku_id,
-                    'satuan_id' => $detail->satuan_id,     // Ikut satuan parent
-                    'qty_digunakan' => $detail->qty_digunakan,
-
-                    'harga_satuan' => $hargaSatuanFix, // Kolom legacy jika masih dipakai
-                    'harga_dapur' => 0, // Child ke supplier tidak perlu harga dapur
-                    'subtotal_dapur' => 0,
-
-                    'harga_mitra' => $hargaSatuanFix,
-                    'subtotal_mitra' => $subtotalFix,
-
-                    'subtotal_harga' => $subtotalFix,
-                ]);
-
-                $totalMitra += $subtotalFix;
-            }
-
-            // Update total harga child
-            $child->update(['total_harga' => $totalMitra]);
-        });
-
-        return response()->json(['success' => true, 'message' => 'Order berhasil dipisah ke supplier']);
-    }
+    return response()->json(['success' => true, 'message' => 'Order berhasil dipisah ke supplier']);
+}
 
 
 
@@ -411,14 +410,18 @@ class SubmissionController extends Controller
                 'id' => $child->id,
                 'kode' => $child->kode,
                 'supplier_nama' => $child->supplier->nama ?? 'Umum',
-                'status' => $child->status,
+                'status' => 'disetujui',
                 'total' => $child->total_harga,
                 'item_count' => $child->details()->count(),
                 'items' => $child->details->map(function ($detail) {
                     return [
                         'nama' => $detail->bahan_baku->nama ?? '-',
                         'qty' => $detail->qty_digunakan,
-                        'harga' => $detail->harga_dapur ?? $detail->harga_mitra,
+                        'unit' => $detail->unit->satuan ?? '-',
+                        // PENTING: Jika ingin menampilkan harga per baris, gunakan subtotal_dapur
+                        'harga_tampil' => (float) ($detail->subtotal_dapur > 0 ? $detail->subtotal_dapur : $detail->subtotal_mitra),
+                        // Jika ingin menampilkan harga satuan (unit price)
+                        'harga_satuan' => (float) ($detail->harga_dapur > 0 ? $detail->harga_dapur : $detail->harga_mitra),
                     ];
                 })->values()
             ];
@@ -459,15 +462,12 @@ class SubmissionController extends Controller
     }
     public function getBahanByKitchen($kitchenId)
     {
-        $bahanBakus = BahanBaku::whereHas('suppliers.kitchens', function ($q) use ($kitchenId) {
-            $q->where('kitchens.id', $kitchenId);
-        })
-            ->select('id', 'nama')
-            ->distinct()
-            ->orderBy('nama')
-            ->get();
-
-        return response()->json($bahanBakus);
+        return response()->json(
+            BahanBaku::where('kitchen_id', $kitchenId)
+                ->select('id', 'nama')
+                ->orderBy('nama')
+                ->get()
+        );
     }
 
 

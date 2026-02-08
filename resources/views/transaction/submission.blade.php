@@ -323,13 +323,15 @@
         // 1. HELPER FUNCTIONS
         // ==========================================
 
-        const formatRupiah = (number) => {
-            return new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR',
+        const formatRupiah = (num) => {
+            // Validasi: jika null, undefined, atau bukan angka, jadikan 0
+            let value = parseFloat(num);
+            if (isNaN(value)) value = 0;
+            
+            return 'Rp ' + value.toLocaleString('id-ID', {
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 0
-            }).format(number);
+            });
         };
 
         const formatDate = (dateString) => {
@@ -348,7 +350,8 @@
         // ==========================================
         // 2. DATA MASTER
         // ==========================================
-        const masterBahan = @json($bahanBakus);
+        let currentBahanList = [];
+
         const masterUnit = @json($units);
 
         $(document).ready(function () {
@@ -385,6 +388,7 @@
 
                 menuSelect.empty().prop('disabled', true).append('<option value="">Pilih Dapur Terlebih Dahulu</option>');
                 inputMenu.val('').prop('disabled', false);
+                
 
                 if (!kitchenId) return;
 
@@ -416,6 +420,30 @@
                         menuSelect.empty().prop('disabled', true).append('<option value="">Gagal memuat menu</option>');
                     }
                 });
+
+                let bahanUrl = "{{ route('transaction.submission.bahan-by-kitchen', ['kitchenId' => 'FAKE_ID']) }}"
+                    .replace('FAKE_ID', kitchenId);
+
+                $.ajax({
+                    url: bahanUrl,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (data) {
+                        currentBahanList = data;
+
+                        // update semua dropdown bahan baku yang sudah ada
+                        refreshAllBahanDropdown();
+                    },
+                    error: function (xhr) {
+                        console.error("Error fetching bahan:", xhr);
+                        currentBahanList = [];
+                        refreshAllBahanDropdown();
+                    }
+                });
+                $('#tableManualItems tbody').empty();
+                rowIdx = 0;
+                addRow();
+
             });
 
             $('#selectMenuStore').on('change', function () {
@@ -441,7 +469,7 @@
 
             function addRow() {
                 let optionsBahan = '<option value="">-- Pilih Bahan --</option>';
-                masterBahan.forEach(b => {
+                (currentBahanList.length ? currentBahanList : []).forEach(b => {
                     optionsBahan += `<option value="${b.id}">${b.nama}</option>`;
                 });
 
@@ -492,6 +520,25 @@
                 $('#tableManualItems tbody').append(tr);
                 rowIdx++;
             }
+
+            function refreshAllBahanDropdown() {
+                let options = `<option value="">-- Pilih Bahan --</option>`;
+
+                if (currentBahanList.length > 0) {
+                    currentBahanList.forEach(b => {
+                        options += `<option value="${b.id}">${b.nama}</option>`;
+                    });
+                } else {
+                    options += `<option value="">(Tidak ada bahan baku)</option>`;
+                }
+
+                $('#tableManualItems tbody select[name*="[bahan_baku_id]"]').each(function () {
+                    let selected = $(this).val(); // simpan pilihan lama
+                    $(this).html(options);
+                    $(this).val(selected); // restore kalau masih ada
+                });
+            }
+
 
             $('#btnAddRow').on('click', function () {
                 addRow();
@@ -672,64 +719,55 @@
                             $.each(data.history, function (i, h) {
                                 let invoiceUrl = "{{ route('transaction.submission-approval.invoice', ['submission' => 'FAKE_ID']) }}".replace('FAKE_ID', h.id);
 
-                                // 1. BUILD HTML UNTUK ITEM BAHAN BAKU
-                                let listItems = '';
+                                // 1. BUILD HTML UNTUK ITEM BAHAN BAKU (Seragamkan dengan Approval)
+                                let itemsHtml = '';
                                 if (h.items && h.items.length > 0) {
-                                    listItems += '<div class="mt-2 pt-2 border-top" style="font-size: 0.85rem;">';
-                                    listItems += '<p class="mb-1 font-weight-bold text-muted">Rincian Item:</p>';
-                                    
-                                    $.each(h.items, function(idx, item) {
-                                        // Tampilkan Nama, Qty, dan Harga per item untuk debugging
-                                        listItems += `
-                                            <div class="d-flex justify-content-between mb-1">
-                                                <span>• ${item.nama}</span>
-                                                <span>
-                                                    ${formatQty(item.qty)} x 
-                                                    <span class="text-muted">${formatRupiah(item.harga || 0)}</span>
+                                    h.items.forEach(item => {
+                                        itemsHtml += `
+                                            <li>
+                                                ${item.nama}
+                                                <span class="text-muted small">
+                                                    (${formatQty(item.qty)} ${item.unit} x ${formatRupiah(item.harga_tampil)}) 
                                                 </span>
-                                            </div>
+                                            </li>
                                         `;
                                     });
-                                    listItems += '</div>';
                                 } else {
-                                    listItems = '<div class="mt-2 text-danger small">Tidak ada item tercatat (Error Data)</div>';
+                                    itemsHtml = `<li class="text-muted font-italic small">Tidak ada item</li>`;
                                 }
 
-                                // 2. MASUKKAN KE DALAM CARD
+                                // 2. MASUKKAN KE DALAM CARD (Gunakan Border & Style yang sama)
                                 historyHtml += `
-                                    <div class="card mb-2 border" style="background-color: #f8f9fa;">
+                                    <div class="card mb-2 border shadow-sm">
                                         <div class="card-body p-3">
                                             <div class="d-flex justify-content-between align-items-center mb-2">
                                                 <div>
-                                                    <strong class="text-primary">${h.kode}</strong> 
+                                                    <strong class="text-dark">${h.kode}</strong> 
                                                     <span class="text-muted mx-2">|</span> 
                                                     <i class="fas fa-truck mr-1 text-secondary"></i> ${h.supplier_nama || h.supplier || '-'}
                                                 </div>
-                                                <div>
-                                                    <span class="badge badge-${h.status === 'diproses' ? 'info' : 'success'} mr-2">${h.status.toUpperCase()}</span>
+                                                <div class="d-flex align-items-center">
+                                                    <span class="badge badge-${h.status === 'disetujui' || h.status === 'selesai' ? 'success' : 'info'} mr-3 px-2 py-1">
+                                                        ${h.status.toUpperCase()}
+                                                    </span>
                                                     <strong class="text-dark">${formatRupiah(h.total)}</strong>
                                                 </div>
                                             </div>
                                             
-                                            {{-- INFO JUMLAH ITEM --}}
-                                            <div class="text-muted small mb-2">
-                                                <i class="fas fa-box-open mr-1"></i> ${h.item_count} item bahan baku
-                                            </div>
+                                            <ul class="mb-0 pl-3" style="font-size: 0.9em; list-style-type: disc; color: #555;">
+                                                ${itemsHtml}
+                                            </ul>
 
-                                            {{-- INJECT LIST ITEM DI SINI --}}
-                                            ${listItems}
-
-                                            <div class="text-right border-top pt-2 mt-2">
-                                                <a href="${invoiceUrl}" target="_blank" class="btn btn-xs btn-outline-secondary">
+                                            <div class="text-right mt-2 border-top pt-2">
+                                                <a href="${invoiceUrl}" class="btn btn-sm btn-outline-secondary" target="_blank">
                                                     <i class="fas fa-print mr-1"></i> Cetak Invoice
                                                 </a>
                                             </div>
                                         </div>
-                                    </div>
-                                `;
+                                    </div>`;
                             });
                         } else {
-                            historyHtml = '<div class="text-muted font-italic text-center py-2 border rounded bg-light">Belum ada riwayat split order.</div>';
+                            historyHtml = '<div class="text-muted font-italic text-center py-3 border bg-light rounded">Belum ada riwayat split order.</div>';
                         }
                         $('#wrapperRiwayat').html(historyHtml);
 

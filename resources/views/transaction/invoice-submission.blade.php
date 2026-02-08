@@ -311,7 +311,7 @@
                 <th>Nama Barang</th>
                 <th width="10%" class="text-center">Jumlah</th>
                 <th width="10%" class="text-center">Satuan</th>
-                <th width="18%" class="text-right">Harga Satuan</th>
+                <!-- <th width="18%" class="text-right">Harga Satuan</th> -->
                 <th width="18%" class="text-right">Subtotal</th>
             </tr>
         </thead>
@@ -322,14 +322,13 @@
                     <td>
                         {{ $item->bahan_baku->nama }}
                         @if(!$item->recipe_bahan_baku_id)
-                            <br><small class="text-muted font-italic">(Item Tambahan)</small>
                         @endif
                     </td>
                     <td class="text-center">{{ number_format($item->cetak_qty, 2, ',', '.') }}</td>
                     <td class="text-center">{{ ucfirst($item->cetak_unit) }}</td>
-                    <td class="text-right">Rp {{ number_format($item->harga_dapur ?? $item->harga_mitra, 0, ',', '.') }}
+                    <!-- <td class="text-right">Rp {{ number_format($item->harga_dapur ?? $item->harga_mitra, 0, ',', '.') }} -->
                     </td>
-                    <td class="text-right">Rp {{ number_format($item->subtotal_harga, 0, ',', '.') }}</td>
+                    <td class="text-right">Rp {{ number_format($item->subtotal_dapur, 0, ',', '.') }}</td>
                 </tr>
             @endforeach
         </tbody>
