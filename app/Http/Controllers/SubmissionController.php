@@ -67,20 +67,19 @@ class SubmissionController extends Controller
 
     protected function saveManualDetails(Submission $submission, array $items)
     {
-        // Hapus detail lama (untuk case update)
+        // Hapus detail lama agar tidak duplikat saat update
         $submission->details()->delete();
 
         foreach ($items as $item) {
-            $qty = (float) $item['qty'];
+            $qty = (float) ($item['qty'] ?? 0);
 
-            // 1. Ambil Subtotal dari Input
-            $inputSubtotalDapur = isset($item['harga_dapur']) ? (float) $item['harga_dapur'] : 0;
-            $inputSubtotalMitra = isset($item['harga_mitra']) ? (float) $item['harga_mitra'] : 0;
+            // Ambil Harga Satuan dari input (bukan subtotal)
+            $hargaDapur = (float) ($item['harga_dapur'] ?? 0);
+            $hargaMitra = (float) ($item['harga_mitra'] ?? 0);
 
-            // 2. Hitung Harga Satuan (Untuk database agar rapi)
-            // Rumus: Harga Satuan = Subtotal / Qty
-            $hargaSatuanDapur = ($qty > 0) ? ($inputSubtotalDapur / $qty) : 0;
-            $hargaSatuanMitra = ($qty > 0) ? ($inputSubtotalMitra / $qty) : 0;
+            // HITUNG SUB TOTAL (Harga * Qty)
+            $subtotalDapur = $hargaDapur * $qty;
+            $subtotalMitra = $hargaMitra * $qty;
 
             SubmissionDetails::create([
                 'submission_id' => $submission->id,
@@ -88,22 +87,20 @@ class SubmissionController extends Controller
                 'satuan_id' => $item['satuan_id'],
                 'qty_digunakan' => $qty,
 
-                // Simpan Harga Satuan (Hasil Hitungan)
-                'harga_dapur' => $hargaSatuanDapur,
-                // Simpan Subtotal (Inputan User)
-                'subtotal_dapur' => $inputSubtotalDapur,
+                // Simpan Harga Satuan
+                'harga_dapur' => $hargaDapur,
+                'harga_mitra' => $hargaMitra,
 
-                // Simpan Harga Satuan Mitra (Hasil Hitungan)
-                'harga_mitra' => $hargaSatuanMitra,
-                // Simpan Subtotal Mitra (Inputan User)
-                'subtotal_mitra' => $inputSubtotalMitra,
+                // Simpan Hasil Perkalian ke Subtotal
+                'subtotal_dapur' => $subtotalDapur,
+                'subtotal_mitra' => $subtotalMitra,
 
-                // Total global baris ini (default pakai harga dapur)
-                'subtotal_harga' => $inputSubtotalDapur,
+                // Total global baris (biasanya mengikuti harga dapur/mitra sesuai kebutuhan laporan)
+                'subtotal_harga' => $subtotalDapur,
             ]);
         }
 
-        // Update Total Harga di Parent Submission
+        // Update Grand Total di tabel Submissions
         $grandTotal = $submission->details()->sum('subtotal_dapur');
         $submission->update(['total_harga' => $grandTotal]);
     }
@@ -257,6 +254,8 @@ class SubmissionController extends Controller
         return response()->json([
             'id' => $submission->id,
             'kode' => $submission->kode,
+            'kitchen_id' => $submission->kitchen_id,
+            'tanggal_digunakan_raw' => $submission->tanggal_digunakan ? date('Y-m-d', strtotime($submission->tanggal_digunakan)) : null,
             'tanggal_digunakan' => $submission->tanggal_digunakan,
             'menu_id' => $submission->menu_id,
             'nama_menu' => $submission->menu->nama ?? '-',
@@ -434,15 +433,19 @@ class SubmissionController extends Controller
         return response()->json([
             'id' => $submission->id,
             'kode' => $submission->kode,
+            'kitchen_id' => $submission->kitchen_id,
             'tanggal' => \Carbon\Carbon::parse($submission->tanggal)
                 ->locale('id')
                 ->translatedFormat('l, d-m-Y'),
+            'tanggal_raw' => date('Y-m-d', strtotime($submission->tanggal)),
+            'tanggal_digunakan_raw' => $submission->tanggal_digunakan ? date('Y-m-d', strtotime($submission->tanggal_digunakan)) : null,
             'tanggal_digunakan' => $submission->tanggal_digunakan
                 ? \Carbon\Carbon::parse($submission->tanggal_digunakan)
                     ->locale('id')
                     ->translatedFormat('l, d-m-Y')
                 : '-',
             'kitchen' => $submission->kitchen->nama,
+            'menu_id' => $submission->menu_id,       // Pastikan menu_id dikirim
             'menu' => $submission->menu->nama,
             'porsi_besar' => $submission->porsi_besar,
             'porsi_kecil' => $submission->porsi_kecil,
@@ -453,11 +456,15 @@ class SubmissionController extends Controller
             'details' => $submission->details->map(function ($detail) {
                 return [
                     'id' => $detail->id,
+                    'bahan_baku_id' => $detail->bahan_baku_id, // Penting buat edit
+                    'satuan_id' => $detail->satuan_id,         // Penting buat edit
                     'nama_bahan' => $detail->bahan_baku->nama ?? '-',
                     'qty' => (float) $detail->qty_digunakan,
                     'nama_satuan' => $detail->unit->satuan ?? '-',
                     'harga_dapur' => (float) $detail->harga_dapur,
+                    'harga_mitra' => (float) $detail->harga_mitra,
                     'subtotal_dapur' => (float) $detail->subtotal_dapur,
+                    'subtotal_mitra' => (float) $detail->subtotal_mitra,
                 ];
             })->values()
         ]);

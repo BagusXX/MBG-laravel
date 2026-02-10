@@ -270,9 +270,10 @@
                                         <th width="90" class="text-center">Qty</th>
                                         <th width="80" class="text-center">Satuan</th>
                                         {{-- DUA KOLOM HARGA DITAMPILKAN --}}
-                                        <th width="140" class="text-right">Hrg Dapur</th>
-                                        <th width="140" class="text-right">Hrg Mitra</th>
-                                        {{-- <th width="150" class="text-right">Subtotal</th> --}}
+                                        <th width="130" class="text-right">Harga Dapur</th>
+                                        <th width="130" class="text-right">Harga Mitra</th>
+                                        <th width="140" class="text-right">Subtotal Dapur</th>
+                                        <th width="140" class="text-right">Subtotal Mitra</th>
                                         <th width="50" class="action-only"></th>
                                     </tr>
                                 </thead>
@@ -501,62 +502,75 @@
             // --- FUNGSI RENDER TABEL DETAIL (Menggantikan loadDetails) ---
             function renderDetailsTable(detailsData) {
                 let html = '';
-                let grandTotal = 0;
+                // let grandTotal = 0;
 
                 if (detailsData && detailsData.length > 0) {
                     detailsData.forEach(item => {
-                        // Kalkulasi Total untuk Tampilan Saja
-                        // (Logika harga: Subtotal Dapur jika Mitra 0/null)
-                        let hargaTampil = parseFloat(item.harga_dapur) || 0;
-                        // Jika ingin menampilkan total semu: hargaTampil = parseFloat(item.qty_digunakan) * (harga_satuan);
-                        // Tapi di controller Anda mengirim 'harga_dapur' SEBAGAI SUBTOTAL. Jadi langsung pakai.
-                        grandTotal += hargaTampil;
+                        // Pastikan nilai angka aman
+                        let qty = parseFloat(item.qty_digunakan) || 0;
+                        let hrgDapur = parseFloat(item.harga_dapur) || 0;
+                        let hrgMitra = parseFloat(item.harga_mitra) || 0;
+                        
+                        // Subtotal dari server (atau hitung ulang via JS juga boleh)
+                        let subDapur = parseFloat(item.subtotal_dapur) || (qty * hrgDapur);
+                        let subMitra = parseFloat(item.subtotal_mitra) || (qty * hrgMitra);
 
-                        // Manual Label (Opsional, jika controller kirim null di recipe id)
-                        // let manualLabel = item.recipe_bahan_baku_id === null ? '<small class="text-info d-block font-italic">(Manual)</small>' : '';
-                        let manualLabel = '';
+                        // Manual Label Logic
+                        let manualLabel = ''; // Sesuaikan jika ada logic manual
 
                         html += `
-                                    <tr>
-                                        <td class="text-center align-middle action-only">
-                                            <input type="checkbox" class="check-item" value="${item.id}">
-                                        </td>
-                                        <td class="align-middle">
-                                            <span class="text-dark font-weight-bold">${item.nama_bahan}</span>
-                                            ${manualLabel}
-                                            <input type="hidden" name="details[${item.id}][id]" value="${item.id}">
-                                            {{-- Hidden Input Satuan ID agar ikut terkirim saat save --}}
-                                            <input type="hidden" name="details[${item.id}][satuan_id]" value="${item.satuan_id}">
-                                        </td>
-                                        <td class="align-middle px-1">
-                                            <input type="number" step="0.0001" class="form-control form-control-sm text-center bg-light" 
-                                                name="details[${item.id}][qty_digunakan]" value="${item.qty_digunakan}">
-                                        </td>
-                                        <td class="text-center align-middle">
-                                            <span class="badge badge-light border">${item.nama_satuan}</span>
-                                        </td>
+                                <tr>
+                                    <td class="text-center align-middle action-only">
+                                        <input type="checkbox" class="check-item" value="${item.id}">
+                                    </td>
+                                    <td class="align-middle">
+                                        <span class="text-dark font-weight-bold">${item.bahan_baku_nama || item.nama_bahan}</span>
+                                        ${manualLabel}
+                                        <input type="hidden" name="details[${item.id}][id]" value="${item.id}">
+                                        <input type="hidden" name="details[${item.id}][satuan_id]" value="${item.satuan_id}">
+                                    </td>
+                                    
+                                    {{-- QTY --}}
+                                    <td class="align-middle px-1">
+                                        <input type="number" step="0.0001" class="form-control form-control-sm text-center bg-light input-hitung input-qty" 
+                                            name="details[${item.id}][qty_digunakan]" value="${item.qty_digunakan}">
+                                    </td>
+                                    
+                                    {{-- SATUAN --}}
+                                    <td class="text-center align-middle">
+                                        <span class="badge badge-light border">${item.nama_satuan}</span>
+                                    </td>
 
-                                        {{-- KOLOM HARGA DAPUR --}}
-                                        <td class="align-middle px-1">
-                                            <input type="number" class="form-control form-control-sm text-right" 
-                                                name="details[${item.id}][harga_dapur]" 
-                                                value="${item.harga_dapur}" placeholder="0">
-                                        </td>
+                                    {{-- HARGA DAPUR (SATUAN) --}}
+                                    <td class="align-middle px-1">
+                                        <input type="number" class="form-control form-control-sm text-right input-hitung input-harga-dapur" 
+                                            name="details[${item.id}][harga_dapur]" 
+                                            value="${hrgDapur}" placeholder="0"> 
+                                    </td>
 
-                                        {{-- KOLOM HARGA MITRA --}}
-                                        <td class="align-middle px-1">
-                                            <input type="number" class="form-control form-control-sm text-right border-info" 
-                                                name="details[${item.id}][harga_mitra]" 
-                                                value="${item.harga_mitra}" placeholder="0">
-                                        </td>
+                                    {{-- HARGA MITRA (SATUAN) --}}
+                                    <td class="align-middle px-1">
+                                        <input type="number" class="form-control form-control-sm text-right border-info input-hitung input-harga-mitra" 
+                                            name="details[${item.id}][harga_mitra]" 
+                                            value="${hrgMitra}" placeholder="0"> </td>
 
-                                        <td class="text-center align-middle action-only">
-                                            <button type="button" class="btn btn-link text-danger btn-delete-detail" data-id="${item.id}">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                `;
+                                    {{-- SUBTOTAL DAPUR (READONLY) --}}
+                                    <td class="align-middle px-1">
+                                        <input type="text" class="form-control form-control-sm text-right bg-light text-bold subtotal-dapur" 
+                                            readonly value="${formatRupiahInput(subDapur)}"> </td>
+
+                                    {{-- SUBTOTAL MITRA (READONLY) --}}
+                                    <td class="align-middle px-1">
+                                        <input type="text" class="form-control form-control-sm text-right bg-light text-bold subtotal-mitra" 
+                                            readonly value="${formatRupiahInput(subMitra)}"> </td>
+
+                                    <td class="text-center align-middle action-only">
+                                        <button type="button" class="btn btn-link text-danger btn-delete-detail" data-id="${item.id}">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
                     });
                 } else {
                     html = '<tr><td colspan="7" class="text-center py-3 text-muted">Tidak ada item bahan baku.</td></tr>';
@@ -569,6 +583,28 @@
                     setReadonlyMode(true);
                 }
             }
+
+            const formatRupiahInput = (num) => {
+                return parseFloat(num).toLocaleString('id-ID', {minimumFractionDigits: 0});
+            };  
+
+            // --- 3. LOGIKA HITUNG OTOMATIS (LIVE CALCULATION) ---
+            $(document).on('input', '.input-hitung', function() {
+                let row = $(this).closest('tr');
+                
+                // Ambil nilai
+                let qty = parseFloat(row.find('.input-qty').val()) || 0;
+                let hargaDapur = parseFloat(row.find('.input-harga-dapur').val()) || 0;
+                let hargaMitra = parseFloat(row.find('.input-harga-mitra').val()) || 0;
+
+                // Hitung
+                let subDapur = qty * hargaDapur;
+                let subMitra = qty * hargaMitra;
+
+                // Tampilkan (Formatted)
+                row.find('.subtotal-dapur').val(formatRupiahInput(subDapur));
+                row.find('.subtotal-mitra').val(formatRupiahInput(subMitra));
+            });
 
             // --- HAPUS SPLIT ORDER ---
             $(document).on('click', '.btn-delete-child', function () {

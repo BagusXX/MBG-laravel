@@ -7,7 +7,7 @@
                     <span>&times;</span>
                 </button>
             </div>
-            <form action="{{ $action }}" method="POST" enctype="multipart/form-data">
+            <form id="{{ $formId ?? '' }}" action="{{ $action }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-body">
                     {{ $slot }}
