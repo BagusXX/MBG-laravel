@@ -6,6 +6,7 @@ use App\Models\Kitchen;
 use App\Models\Submission;
 use App\Models\SubmissionDetails;
 use App\Models\BahanBaku;
+use App\Models\Unit;
 use App\Models\Supplier;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -72,10 +73,13 @@ class SubmissionApprovalController extends Controller
             ->orderBy('nama')
             ->get();
 
+        $filteredUnits = Unit::orderBy('satuan')->get();
+
         return view('transaction.submissionApproval', [
             'submissions' => $submissions,
             'kitchens' => $filteredKitchens,
             'suppliers' => $filteredSuppliers,
+            'units' => $filteredUnits,
         ]);
     }
 
@@ -118,12 +122,19 @@ class SubmissionApprovalController extends Controller
             return [
                 'id' => $detail->id,
                 'bahan_baku_id' => $detail->bahan_baku_id,
+                'bahan_baku_nama' => $detail->bahan_baku->nama ?? 'Item Terhapus',
                 'qty_digunakan' => (float) $detail->qty_digunakan,
                 'satuan_id' => $detail->satuan_id,
-                'nama_satuan' => $detail->unit->satuan ?? '-',
-                'harga_dapur' => (float) $detail->subtotal_dapur,
-                'harga_mitra' => (float) $detail->subtotal_mitra,
-                'bahan_baku_nama' => $detail->bahan_baku->nama ?? 'Item Terhapus',
+                // Prioritas nama satuan: dari tabel details -> dari master bahan
+                'nama_satuan' => $detail->unit->satuan ?? ($detail->bahan_baku->unit->satuan ?? '-'),
+                
+                // PERBAIKAN: Kirim Harga Satuan murni untuk Input
+                'harga_dapur' => (float) $detail->harga_dapur, 
+                'harga_mitra' => (float) $detail->harga_mitra,
+
+                // PERBAIKAN: Kirim Subtotal untuk Tampilan Readonly
+                'subtotal_dapur' => (float) $detail->subtotal_dapur,
+                'subtotal_mitra' => (float) $detail->subtotal_mitra,
             ];
         });
 
@@ -140,9 +151,8 @@ class SubmissionApprovalController extends Controller
             'details' => 'required|array',
             'details.*.id' => 'required|exists:submission_details,id',
             'details.*.qty_digunakan' => 'required|numeric|min:0',
-            'details.*.satuan_id' => 'required|exists:units,id', // Validasi Satuan
-            'details.*.harga_dapur' => 'nullable|numeric|min:0', // Ini adalah Subtotal Input User
-            'details.*.harga_mitra' => 'nullable|numeric|min:0', // Ini adalah Subtotal Input User
+            'details.*.harga_dapur' => 'nullable|numeric|min:0', // Sekarang kita anggap ini Harga Satuan
+            'details.*.harga_mitra' => 'nullable|numeric|min:0', // Sekarang kita anggap ini Harga Satuan
         ]);
 
         try {
@@ -154,39 +164,43 @@ class SubmissionApprovalController extends Controller
 
                     if ($detail) {
                         $qty = (float) $row['qty_digunakan'];
-                        $inputSubtotalDapur = (float) ($row['harga_dapur'] ?? 0);
-                        
-                        // Hitung harga satuan baru
-                        $unitPriceDapur = $qty > 0 ? ($inputSubtotalDapur / $qty) : 0;
+                        $priceDapur = (float) ($row['harga_dapur'] ?? 0);
+                        $priceMitra = (float) ($row['harga_mitra'] ?? 0);
+
+                        // HITUNG SUB TOTAL OTOMATIS
+                        $subtotalDapur = $qty * $priceDapur;
+                        $subtotalMitra = $qty * $priceMitra;
 
                         // 1. Update Detail di Parent
                         $detail->update([
                             'qty_digunakan' => $qty,
-                            'harga_dapur' => $unitPriceDapur,
-                            'subtotal_dapur' => $inputSubtotalDapur,
-                            'subtotal_mitra' => $inputSubtotalDapur, // Sinkronkan mitra juga jika perlu
+                            'harga_dapur' => $priceDapur,
+                            'subtotal_dapur' => $subtotalDapur,
+                            'harga_mitra' => $priceMitra,
+                            'subtotal_mitra' => $subtotalMitra,
+                            'subtotal_harga' => $subtotalDapur,
                         ]);
 
-                        // 2. UPDATE OTOMATIS KE CHILD (Split Order yang sudah ada)
-                        // Cari child details yang berasal dari parent ini dan bahan baku yang sama
-                        SubmissionDetails::whereHas('submission', function($q) use ($submission) {
-                                $q->where('parent_id', $submission->id);
-                            })
+                        // 2. Update Otomatis ke Child (Split Order) jika sudah ada
+                        SubmissionDetails::whereHas('submission', function ($q) use ($submission) {
+                            $q->where('parent_id', $submission->id);
+                        })
                             ->where('bahan_baku_id', $detail->bahan_baku_id)
                             ->get()
-                            ->each(function($childDetail) use ($unitPriceDapur) {
-                                // Hitung subtotal baru untuk child berdasarkan qty child tersebut
-                                $newSubtotal = $childDetail->qty_digunakan * $unitPriceDapur;
-                                
+                            ->each(function ($childDetail) use ($priceDapur, $priceMitra) {
+                                // Qty di child bisa saja berbeda, maka hitung ulang subtotal child
+                                $newSubDapur = $childDetail->qty_digunakan * $priceDapur;
+                                $newSubMitra = $childDetail->qty_digunakan * $priceMitra;
+
                                 $childDetail->update([
-                                    'harga_dapur' => $unitPriceDapur,
-                                    'subtotal_dapur' => $newSubtotal,
-                                    'harga_mitra' => $unitPriceDapur,
-                                    'subtotal_mitra' => $newSubtotal,
-                                    'subtotal_harga' => $newSubtotal,
+                                    'harga_dapur' => $priceDapur,
+                                    'subtotal_dapur' => $newSubDapur,
+                                    'harga_mitra' => $priceMitra,
+                                    'subtotal_mitra' => $newSubMitra,
+                                    'subtotal_harga' => $newSubDapur,
                                 ]);
 
-                                // Rekalkulasi total header untuk child tersebut
+                                // Rekalkulasi total header child
                                 $this->recalculateTotal($childDetail->submission);
                             });
                     }
@@ -196,7 +210,7 @@ class SubmissionApprovalController extends Controller
                 $this->recalculateTotal($submission);
             });
 
-            return response()->json(['success' => true, 'message' => 'Harga parent dan split order berhasil diperbarui!']);
+            return response()->json(['success' => true, 'message' => 'Harga dan Subtotal berhasil diperbarui!']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
@@ -208,37 +222,38 @@ class SubmissionApprovalController extends Controller
 
         $request->validate([
             'bahan_baku_id' => 'required|exists:bahan_baku,id',
-            'qty_digunakan' => 'required|numeric|min:0',
+            'qty_digunakan' => 'required|numeric|min:0.0001',
             'satuan_id' => 'required|exists:units,id',
-            'harga_total' => 'nullable|numeric|min:0', // Subtotal
+            'harga_total' => 'nullable|numeric|min:0',
         ]);
 
-        DB::transaction(function () use ($submission, $request) {
+        try {
+            DB::transaction(function () use ($submission, $request) {
+                $qty = (float) $request->qty_digunakan;
+                $subtotal = (float) ($request->harga_total ?? 0);
+                $unitPrice = $qty > 0 ? ($subtotal / $qty) : 0;
 
-            $qty = (float) $request->qty_digunakan;
-            $subtotal = (float) ($request->harga_total ?? 0);
-            $unitPrice = $qty > 0 ? ($subtotal / $qty) : 0;
+                SubmissionDetails::create([
+                    'submission_id' => $submission->id,
+                    'bahan_baku_id' => $request->bahan_baku_id,
+                    'satuan_id' => $request->satuan_id,
+                    'qty_digunakan' => $qty,
+                    'harga_dapur' => $unitPrice,
+                    'subtotal_dapur' => $subtotal,
+                    'harga_mitra' => $unitPrice, // Default disamakan dulu
+                    'subtotal_mitra' => $subtotal, // Default disamakan dulu
+                    'subtotal_harga' => $subtotal,
+                ]);
 
-            SubmissionDetails::create([
-                'submission_id' => $submission->id,
-                'bahan_baku_id' => $request->bahan_baku_id,
-                'satuan_id' => $request->satuan_id,
-                'qty_digunakan' => $qty,
+                $this->recalculateTotal($submission);
+            });
 
-                'harga_dapur' => $unitPrice,
-                'subtotal_dapur' => $subtotal,
-
-                'harga_mitra' => $unitPrice, // Default sama dengan dapur
-                'subtotal_mitra' => $subtotal,
-
-                'subtotal_harga' => $subtotal,
-            ]);
-
-            $this->recalculateTotal($submission);
-        });
-
-        return response()->json(['success' => true]);
+            return response()->json(['success' => true, 'message' => 'Bahan manual berhasil ditambahkan']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
+
     public function deleteDetail(Submission $submission, SubmissionDetails $detail)
     {
         $this->ensureEditable($submission);
@@ -272,9 +287,10 @@ class SubmissionApprovalController extends Controller
                         'unit' => $detail->unit->satuan ?? '-',
                         // Tampilkan Subtotal
                         // ini yang dipakai UI
-                        'harga_dapur' => (float) $detail->subtotal_dapur,
-                        'harga_mitra' => (float) $detail->subtotal_mitra,
-                        'harga_tampil' => (float) $detail->subtotal_dapur,
+                        'harga_dapur' => (float) $detail->harga_dapur,
+                        'harga_mitra' => (float) $detail->harga_mitra,
+                        'subtotal_dapur' => (float) $detail->subtotal_dapur,
+                        'subtotal_mitra' => (float) $detail->subtotal_mitra,
                     ];
                 })->values()
             ];
@@ -307,8 +323,10 @@ class SubmissionApprovalController extends Controller
                     'satuan_id' => $detail->satuan_id,
                     // Ambil nama satuan dari relasi unit di detail
                     'nama_satuan' => $detail->unit->satuan ?? ($detail->bahan_baku->unit->satuan ?? '-'),
-                    'harga_dapur' => (float) $detail->subtotal_dapur,
-                    'harga_mitra' => (float) $detail->subtotal_mitra,
+                    'harga_dapur' => (float) $detail->harga_dapur,
+                    'harga_mitra' => (float) $detail->harga_mitra,
+                    'subtotal_dapur' => (float) $detail->subtotal_dapur,
+                    'subtotal_mitra' => (float) $detail->subtotal_mitra,
                     'recipe_bahan_baku_id' => null, // Placeholder jika tidak ada kolom ini di DB Anda, set null/abaikan logic manual label
                 ];
             })->values()

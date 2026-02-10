@@ -23,10 +23,10 @@ class BahanBaku extends Model
         return $this->hasMany(PurchaseBahanBaku::class);
     }
 
-    // public function unit()
-    // {
-    //     return $this->belongsTo(Unit::class, 'satuan_id')->withTrashed();
-    // }
+    public function unit()
+    {
+        return $this->belongsTo(Unit::class, 'satuan_id')->withTrashed();
+    }
 
     public function recipes()
     {

@@ -243,7 +243,7 @@ Route::middleware(['auth', 'disetujui'])->group(function () {
                 ->middleware('permission:transaction.submission.show')
                 ->name('detail');
 
-            Route::put('/{submission}', 'update')
+            Route::patch('/{submission}', 'update')
                 ->middleware('permission:transaction.submission.update')
                 ->name('update');
 

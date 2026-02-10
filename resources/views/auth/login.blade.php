@@ -711,30 +711,6 @@
                     @enderror
                 </div>
 
-                <!-- Remember & Forgot Password -->
-                <!-- <div class="form-options">
-                    <label class="checkbox-wrapper">
-                        <input 
-                            id="remember"
-                            name="remember"
-                            type="checkbox"
-                            style="display: none;"
-                        />
-                        <div class="custom-checkbox">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 20 20" fill="white">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                        </div>
-                        <span class="checkbox-label">Ingat saya</span>
-                    </label>
-                    
-                    @if (Route::has('password.request'))
-                        <a href="{{ route('password.request') }}" class="forgot-link">
-                            Lupa password?
-                        </a>
-                    @endif
-                </div> -->
-
                 <!-- Submit Button -->
                 <button type="submit" class="submit-button">
                     Masuk ke Akun

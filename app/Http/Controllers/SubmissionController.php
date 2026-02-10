@@ -4,16 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\Kitchen;
 use App\Models\Menu;
-use App\Models\RecipeBahanBaku;
 use App\Models\Submission;
 use App\Models\BahanBaku;
 use App\Models\SubmissionDetails;
 use App\Models\Unit;
-use Illuminate\Auth\Middleware\Authorize;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Auth\Middleware\Authorize;
+use Illuminate\Support\Facades\Auth;
 
 class SubmissionController extends Controller
 {
@@ -68,20 +67,19 @@ class SubmissionController extends Controller
 
     protected function saveManualDetails(Submission $submission, array $items)
     {
-        // Hapus detail lama (untuk case update)
+        // Hapus detail lama agar tidak duplikat saat update
         $submission->details()->delete();
 
         foreach ($items as $item) {
-            $qty = (float) $item['qty'];
+            $qty = (float) ($item['qty'] ?? 0);
 
-            // 1. Ambil Subtotal dari Input
-            $inputSubtotalDapur = isset($item['harga_dapur']) ? (float) $item['harga_dapur'] : 0;
-            $inputSubtotalMitra = isset($item['harga_mitra']) ? (float) $item['harga_mitra'] : 0;
+            // Ambil Harga Satuan dari input (bukan subtotal)
+            $hargaDapur = (float) ($item['harga_dapur'] ?? 0);
+            $hargaMitra = (float) ($item['harga_mitra'] ?? 0);
 
-            // 2. Hitung Harga Satuan (Untuk database agar rapi)
-            // Rumus: Harga Satuan = Subtotal / Qty
-            $hargaSatuanDapur = ($qty > 0) ? ($inputSubtotalDapur / $qty) : 0;
-            $hargaSatuanMitra = ($qty > 0) ? ($inputSubtotalMitra / $qty) : 0;
+            // HITUNG SUB TOTAL (Harga * Qty)
+            $subtotalDapur = $hargaDapur * $qty;
+            $subtotalMitra = $hargaMitra * $qty;
 
             SubmissionDetails::create([
                 'submission_id' => $submission->id,
@@ -89,22 +87,20 @@ class SubmissionController extends Controller
                 'satuan_id' => $item['satuan_id'],
                 'qty_digunakan' => $qty,
 
-                // Simpan Harga Satuan (Hasil Hitungan)
-                'harga_dapur' => $hargaSatuanDapur,
-                // Simpan Subtotal (Inputan User)
-                'subtotal_dapur' => $inputSubtotalDapur,
+                // Simpan Harga Satuan
+                'harga_dapur' => $hargaDapur,
+                'harga_mitra' => $hargaMitra,
 
-                // Simpan Harga Satuan Mitra (Hasil Hitungan)
-                'harga_mitra' => $hargaSatuanMitra,
-                // Simpan Subtotal Mitra (Inputan User)
-                'subtotal_mitra' => $inputSubtotalMitra,
+                // Simpan Hasil Perkalian ke Subtotal
+                'subtotal_dapur' => $subtotalDapur,
+                'subtotal_mitra' => $subtotalMitra,
 
-                // Total global baris ini (default pakai harga dapur)
-                'subtotal_harga' => $inputSubtotalDapur,
+                // Total global baris (biasanya mengikuti harga dapur/mitra sesuai kebutuhan laporan)
+                'subtotal_harga' => $subtotalDapur,
             ]);
         }
 
-        // Update Total Harga di Parent Submission
+        // Update Grand Total di tabel Submissions
         $grandTotal = $submission->details()->sum('subtotal_dapur');
         $submission->update(['total_harga' => $grandTotal]);
     }
@@ -124,7 +120,7 @@ class SubmissionController extends Controller
             ->pengajuan()
             ->whereHas('kitchen', fn($q) => $q->whereIn('kode', $kitchenCodes))
             ->latest()
-            ->paginate(10);
+            ->paginate(perPage: 10);
 
         return view('transaction.submission', [
             'submissions' => $submissions,
@@ -202,8 +198,8 @@ class SubmissionController extends Controller
         abort_if(!in_array($submission->kitchen->kode, $kitchenCodes->toArray()), 403);
 
         $request->validate([
-            'tanggal_digunakan' => 'required|date',
-            // Logic validasi menu sama dengan store
+            'tanggal_digunakan' => 'nullable|date',
+
             'nama_menu' => 'required_without:menu_id|string|nullable',
             'menu_id' => 'required_without:nama_menu|nullable',
 
@@ -214,6 +210,8 @@ class SubmissionController extends Controller
             'items.*.bahan_baku_id' => 'required|exists:bahan_baku,id',
             'items.*.qty' => 'required|numeric|min:0',
             'items.*.satuan_id' => 'required|exists:units,id',
+            'items.*.harga_dapur' => 'nullable|numeric|min:0',
+            'items.*.harga_mitra' => 'nullable|numeric|min:0',
         ]);
 
         DB::transaction(function () use ($request, $submission) {
@@ -223,7 +221,7 @@ class SubmissionController extends Controller
                 $request->menu_id
             );
 
-            // 2. Update Header
+            // Update field sama seperti store (kecuali status, tipe, kode)
             $submission->update([
                 'tanggal_digunakan' => $request->tanggal_digunakan,
                 'menu_id' => $menuId,
@@ -231,12 +229,13 @@ class SubmissionController extends Controller
                 'porsi_kecil' => $request->porsi_kecil ?? 0,
             ]);
 
-            // 3. Re-create Details (Hapus lama, buat baru dari input form)
+            // Replace detail
             $this->saveManualDetails($submission, $request->items);
         });
 
         return back()->with('success', 'Pengajuan berhasil diperbarui');
     }
+
 
 
     public function show(Submission $submission)
@@ -255,6 +254,8 @@ class SubmissionController extends Controller
         return response()->json([
             'id' => $submission->id,
             'kode' => $submission->kode,
+            'kitchen_id' => $submission->kitchen_id,
+            'tanggal_digunakan_raw' => $submission->tanggal_digunakan ? date('Y-m-d', strtotime($submission->tanggal_digunakan)) : null,
             'tanggal_digunakan' => $submission->tanggal_digunakan,
             'menu_id' => $submission->menu_id,
             'nama_menu' => $submission->menu->nama ?? '-',
@@ -303,72 +304,72 @@ class SubmissionController extends Controller
     }
 
     public function splitToSupplier(Request $request, Submission $submission)
-{
-    if ($submission->status === 'diajukan') {
-        $submission->update(['status' => 'diproses']);
-    }
-
-    abort_if(in_array($submission->status, ['selesai', 'ditolak']), 403, 'Pengajuan sudah ditutup');
-
-    $request->validate([
-        'supplier_id' => 'required|exists:suppliers,id',
-        'selected_details' => 'required|array',
-        'selected_details.*' => 'exists:submission_details,id',
-    ]);
-
-    DB::transaction(function () use ($submission, $request) {
-        $childSequence = Submission::where('parent_id', $submission->id)->count() + 1;
-        $childKode = $submission->kode . '-' . $childSequence;
-
-        $child = Submission::create([
-            'kode' => $childKode,
-            'tanggal' => now(),
-            'kitchen_id' => $submission->kitchen_id,
-            'menu_id' => $submission->menu_id,
-            'porsi_besar' => $submission->porsi_besar,
-            'porsi_kecil' => $submission->porsi_kecil,
-            'total_harga' => 0,
-            'tipe' => 'disetujui',
-            'status' => 'diproses',
-            'parent_id' => $submission->id,
-            'supplier_id' => $request->supplier_id,
-        ]);
-
-        $totalHeader = 0;
-        $detailsToCopy = SubmissionDetails::whereIn('id', $request->selected_details)->get();
-
-        foreach ($detailsToCopy as $detail) {
-            // Pastikan mengambil nilai dari parent. Jika subtotal_dapur kosong, 
-            // sistem akan mencoba mengambil dari harga_dapur (satuan) dikali qty.
-            $qty = (float) $detail->qty_digunakan;
-            $subtotalParent = (float) ($detail->subtotal_dapur > 0 ? $detail->subtotal_dapur : ($detail->harga_dapur * $qty));
-
-            // Jika masih 0, mungkin user belum klik 'Simpan Harga' di UI sebelum Split
-            $hargaSatuan = $qty > 0 ? ($subtotalParent / $qty) : 0;
-
-            SubmissionDetails::create([
-                'submission_id'  => $child->id,
-                'bahan_baku_id'  => $detail->bahan_baku_id,
-                'satuan_id'      => $detail->satuan_id,
-                'qty_digunakan'  => $qty,
-                
-                // Simpan ke kolom dapur agar muncul di Riwayat (JS)
-                'harga_dapur'    => $hargaSatuan, 
-                'subtotal_dapur' => $subtotalParent,
-                
-                // Simpan juga ke kolom mitra untuk kebutuhan invoice supplier
-                'harga_mitra'    => $hargaSatuan,
-                'subtotal_mitra' => $subtotalParent,
-            ]);
-
-            $totalHeader += $subtotalParent;
+    {
+        if ($submission->status === 'diajukan') {
+            $submission->update(['status' => 'diproses']);
         }
 
-        $child->update(['total_harga' => $totalHeader]);
-    });
+        abort_if(in_array($submission->status, ['selesai', 'ditolak']), 403, 'Pengajuan sudah ditutup');
 
-    return response()->json(['success' => true, 'message' => 'Order berhasil dipisah ke supplier']);
-}
+        $request->validate([
+            'supplier_id' => 'required|exists:suppliers,id',
+            'selected_details' => 'required|array',
+            'selected_details.*' => 'exists:submission_details,id',
+        ]);
+
+        DB::transaction(function () use ($submission, $request) {
+            $childSequence = Submission::where('parent_id', $submission->id)->count() + 1;
+            $childKode = $submission->kode . '-' . $childSequence;
+
+            $child = Submission::create([
+                'kode' => $childKode,
+                'tanggal' => now(),
+                'kitchen_id' => $submission->kitchen_id,
+                'menu_id' => $submission->menu_id,
+                'porsi_besar' => $submission->porsi_besar,
+                'porsi_kecil' => $submission->porsi_kecil,
+                'total_harga' => 0,
+                'tipe' => 'disetujui',
+                'status' => 'diproses',
+                'parent_id' => $submission->id,
+                'supplier_id' => $request->supplier_id,
+            ]);
+
+            $totalHeader = 0;
+            $detailsToCopy = SubmissionDetails::whereIn('id', $request->selected_details)->get();
+
+            foreach ($detailsToCopy as $detail) {
+                // Pastikan mengambil nilai dari parent. Jika subtotal_dapur kosong, 
+                // sistem akan mencoba mengambil dari harga_dapur (satuan) dikali qty.
+                $qty = (float) $detail->qty_digunakan;
+                $subtotalParent = (float) ($detail->subtotal_dapur > 0 ? $detail->subtotal_dapur : ($detail->harga_dapur * $qty));
+
+                // Jika masih 0, mungkin user belum klik 'Simpan Harga' di UI sebelum Split
+                $hargaSatuan = $qty > 0 ? ($subtotalParent / $qty) : 0;
+
+                SubmissionDetails::create([
+                    'submission_id' => $child->id,
+                    'bahan_baku_id' => $detail->bahan_baku_id,
+                    'satuan_id' => $detail->satuan_id,
+                    'qty_digunakan' => $qty,
+
+                    // Simpan ke kolom dapur agar muncul di Riwayat (JS)
+                    'harga_dapur' => $hargaSatuan,
+                    'subtotal_dapur' => $subtotalParent,
+
+                    // Simpan juga ke kolom mitra untuk kebutuhan invoice supplier
+                    'harga_mitra' => $hargaSatuan,
+                    'subtotal_mitra' => $subtotalParent,
+                ]);
+
+                $totalHeader += $subtotalParent;
+            }
+
+            $child->update(['total_harga' => $totalHeader]);
+        });
+
+        return response()->json(['success' => true, 'message' => 'Order berhasil dipisah ke supplier']);
+    }
 
 
 
@@ -432,15 +433,19 @@ class SubmissionController extends Controller
         return response()->json([
             'id' => $submission->id,
             'kode' => $submission->kode,
+            'kitchen_id' => $submission->kitchen_id,
             'tanggal' => \Carbon\Carbon::parse($submission->tanggal)
                 ->locale('id')
                 ->translatedFormat('l, d-m-Y'),
+            'tanggal_raw' => date('Y-m-d', strtotime($submission->tanggal)),
+            'tanggal_digunakan_raw' => $submission->tanggal_digunakan ? date('Y-m-d', strtotime($submission->tanggal_digunakan)) : null,
             'tanggal_digunakan' => $submission->tanggal_digunakan
                 ? \Carbon\Carbon::parse($submission->tanggal_digunakan)
                     ->locale('id')
                     ->translatedFormat('l, d-m-Y')
                 : '-',
             'kitchen' => $submission->kitchen->nama,
+            'menu_id' => $submission->menu_id,       // Pastikan menu_id dikirim
             'menu' => $submission->menu->nama,
             'porsi_besar' => $submission->porsi_besar,
             'porsi_kecil' => $submission->porsi_kecil,
@@ -451,11 +456,15 @@ class SubmissionController extends Controller
             'details' => $submission->details->map(function ($detail) {
                 return [
                     'id' => $detail->id,
+                    'bahan_baku_id' => $detail->bahan_baku_id, // Penting buat edit
+                    'satuan_id' => $detail->satuan_id,         // Penting buat edit
                     'nama_bahan' => $detail->bahan_baku->nama ?? '-',
                     'qty' => (float) $detail->qty_digunakan,
                     'nama_satuan' => $detail->unit->satuan ?? '-',
                     'harga_dapur' => (float) $detail->harga_dapur,
+                    'harga_mitra' => (float) $detail->harga_mitra,
                     'subtotal_dapur' => (float) $detail->subtotal_dapur,
+                    'subtotal_mitra' => (float) $detail->subtotal_mitra,
                 ];
             })->values()
         ]);

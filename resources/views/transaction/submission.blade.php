@@ -6,11 +6,20 @@
     <link rel="stylesheet" href="{{ asset('css/notification-pop-up.css') }}">
 @endsection
 
+@section('css')
+    <style>
+        .modal-huge {
+            max-width: 95% !important;
+        }
+    </style>
+@endsection
+
 @section('content_header')
     <h1>Pengajuan Bahan Baku (Menu)</h1>
 @endsection
 
 @section('content')
+
 
     <div id="notification-container"></div>
 
@@ -61,8 +70,8 @@
                         <th width="15%">Tanggal Digunakan</th>
                         <th>Dapur</th>
                         <th>Menu</th>
-                        <th class="text-center">Porsi Besar</th>
-                        <th class="text-center">Porsi Kecil</th>
+                        <th class="text-center">PM Besar</th>
+                        <th class="text-center">PM Kecil</th>
                         <th>Status</th>
                         <th width="150" class="text-center">Aksi</th>
                     </tr>
@@ -96,6 +105,13 @@
                                             data-target="#modalDetail">
                                             Detail
                                         </button>
+                                        
+                                        {{-- Tombol Edit (hanya jika diajukan) --}}
+                                        @if($item->status === 'diajukan')
+                                            <button class="btn btn-warning btn-sm btn-edit" data-id="{{ $item->id }}" data-toggle="modal" data-target="#modalEditSubmission">
+                                                Edit
+                                            </button>
+                                        @endif
 
                                         {{-- Tombol Hapus (Hanya jika status diajukan) --}}
                                         @if($item->status === 'diajukan' || $item->status === 'ditolak')
@@ -114,8 +130,8 @@
                     @endforelse
                 </tbody>
             </table>
-            <div class="mt-3">
-                {{ $submissions->links() }}
+            <div class="mt-3 d-flex justify-content-end">
+                {{ $submissions->links('pagination::bootstrap-4') }}
             </div>
         </div>
     </div>
@@ -183,13 +199,13 @@
         <div class="row">
             <div class="col-md-6">
                 <div class="form-group">
-                    <label>Porsi Besar</label>
+                    <label>PM Besar</label>
                     <input type="number" name="porsi_besar" class="form-control" min="0" value="0">
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="form-group">
-                    <label>Porsi Kecil</label>
+                    <label>PM Kecil</label>
                     <input type="number" name="porsi_kecil" class="form-control" min="0" value="0">
                 </div>
             </div>
@@ -207,11 +223,13 @@
             <table class="table table-bordered table-sm" id="tableManualItems">
                 <thead class="bg-light sticky-top">
                     <tr>
-                        <th width="35%">Bahan Baku</th>
-                        <th width="15%">Qty</th>
-                        <th width="15%">Satuan</th>
-                        <th width="20%">Harga Dapur</th>
-                        <th width="20%">Harga Mitra</th>
+                        <th width="20%">Bahan Baku</th>
+                        <th width="10%">Qty</th>
+                        <th width="10%">Satuan</th>
+                        <th width="15%">Harga Dapur</th>
+                        <th width="15%">Harga Mitra</th>
+                        <th width="15%">Subtotal Dapur</th>
+                        <th width="15%">Subtotal Mitra</th>
                         <th width="5%"></th>
                     </tr>
                 </thead>
@@ -220,8 +238,120 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="6" class="text-right text-end"> 
+                        <td colspan="8" class="text-right text-end"> 
                             <button type="button" class="btn btn-sm btn-success" id="btnAddRow">
+                                <i class="fas fa-plus"></i> Tambah Item
+                            </button>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </x-modal-form>
+
+    {{-- =========================
+    MODAL EDIT
+    ========================= --}}
+    <x-modal-form id="modalEditSubmission" size="modal-xl" title="Edit Pengajuan Bahan Baku"
+        action="#" submitText="Perbarui Pengajuan" formId="formEditSubmission">
+        @csrf
+        <input type="hidden" name="_method" value="PATCH">
+
+        {{-- BARIS 1: Info Dasar --}}
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>Kode Pengajuan</label>
+                    <input type="text" id="edit-kode" class="form-control" value="-" readonly>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>Tanggal Pengajuan</label>
+                    <input type="date" id="edit-tanggal" class="form-control" readonly>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>Tanggal Digunakan</label>
+                    <input type="date" name="tanggal_digunakan" id="edit-tanggal-digunakan" class="form-control">
+                </div>
+            </div>
+        </div>
+
+        {{-- BARIS 2: Dapur & Menu --}}
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>Dapur</label>
+                    <select name="kitchen_id" id="selectKitchenEdit" class="form-control" disabled>
+                        @foreach($kitchens as $k)
+                            <option value="{{ $k->id }}">{{ $k->nama }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>Pilih Menu (Existing)</label>
+                    <select name="menu_id" id="selectMenuEdit" class="form-control">
+                        <option value="">-- Pilih Menu --</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>Atau Ketik Menu Baru</label>
+                    <input type="text" name="nama_menu" id="inputNamaMenuEdit" class="form-control" placeholder="Isi jika menu belum ada di list">
+                </div>
+            </div>
+        </div>
+
+        {{-- BARIS 3: Porsi --}}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>PM Besar</label>
+                    <input type="number" name="porsi_besar" id="edit-porsi-besar" class="form-control" min="0" value="0">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>PM Kecil</label>
+                    <input type="number" name="porsi_kecil" id="edit-porsi-kecil" class="form-control" min="0" value="0">
+                </div>
+            </div>
+        </div>
+
+        <hr>
+
+        {{-- BARIS 4: INPUT ITEM MANUAL (DINAMIS) --}}
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <label class="font-weight-bold">Rincian Bahan Baku (Input Manual)</label>
+        </div>
+
+        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+            <table class="table table-bordered table-sm" id="tableManualItemsEdit">
+                <thead class="bg-light sticky-top">
+                    <tr>
+                        <th width="20%">Bahan Baku</th>
+                        <th width="10%">Qty</th>
+                        <th width="10%">Satuan</th>
+                        <th width="15%">Harga Dapur</th>
+                        <th width="15%">Harga Mitra</th>
+                        <th width="15%">Subtotal Dapur</th>
+                        <th width="15%">Subtotal Mitra</th>
+                        <th width="5%"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{-- Row akan diinject via JS --}}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="8" class="text-right text-end"> 
+                            <button type="button" class="btn btn-sm btn-success" id="btnAddRowEdit">
                                 <i class="fas fa-plus"></i> Tambah Item
                             </button>
                         </td>
@@ -268,11 +398,11 @@
                         <td>: <span id="det-menu">-</span></td>
                     </tr>
                     <tr>
-                        <th>Porsi Besar</th>
+                        <th>PM Besar</th>
                         <td>: <span id="det-porsi-besar" class="font-weight-bold">-</span></td>
                     </tr>
                     <tr>
-                        <th>Porsi Kecil</th>
+                        <th>PM Kecil</th>
                         <td>: <span id="det-porsi-kecil" class="font-weight-bold">-</span></td>
                     </tr>
                 </table>
@@ -462,6 +592,25 @@
                 }
             });
 
+            // Fungsi Hitung Otomatis
+        $(document).on('input', '.input-qty, .input-harga-dapur, .input-harga-mitra', function() {
+            // Cari baris (tr) terdekat dari input yang sedang diketik
+            let row = $(this).closest('tr');
+            
+            // Ambil nilai-nilainya
+            let qty = parseFloat(row.find('.input-qty').val()) || 0;
+            let hargaDapur = parseFloat(row.find('.input-harga-dapur').val()) || 0;
+            let hargaMitra = parseFloat(row.find('.input-harga-mitra').val()) || 0;
+            
+            // Hitung
+            let subtotalDapur = qty * hargaDapur;
+            let subtotalMitra = qty * hargaMitra;
+            
+            // Tampilkan di kolom readonly (Formatted dengan formatRupiah jika ingin, atau angka biasa)
+            row.find('.total-dapur').val(subtotalDapur.toLocaleString('id-ID'));
+            row.find('.total-mitra').val(subtotalMitra.toLocaleString('id-ID'));
+        });
+
             // ==========================================
             // 5. DYNAMIC ROW (MANUAL ITEM INPUT)
             // ==========================================
@@ -473,7 +622,7 @@
                     optionsBahan += `<option value="${b.id}">${b.nama}</option>`;
                 });
 
-                let optionsUnit = '<option value="">-- Satuan --</option>';
+                let optionsUnit = '<option value="">Satuan</option>';
                 masterUnit.forEach(u => {
                     optionsUnit += `<option value="${u.id}">${u.satuan}</option>`;
                 });
@@ -486,7 +635,7 @@
                                 </select>
                             </td>
                             <td>
-                                <input type="number" step="any" name="items[${rowIdx}][qty]" class="form-control form-control-sm text-center" placeholder="0" required>
+                                <input type="number" step="any" name="items[${rowIdx}][qty]" class="form-control form-control-sm text-center input-qty" placeholder="0" required>
                             </td>
                             <td>
                                 <select name="items[${rowIdx}][satuan_id]" class="form-control form-control-sm" required>
@@ -495,19 +644,20 @@
                             </td>
                             <td>
                                 <div class="input-group input-group-sm">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text">Rp</span>
-                                    </div>
-                                    <input type="number" name="items[${rowIdx}][harga_dapur]" class="form-control" placeholder="Total">
+                                    <input type="number" name="items[${rowIdx}][harga_dapur]" class="form-control input-harga-dapur" placeholder="Harga">
+                                </div>
+                            </td>
+                            
+                            <td>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" name="items[${rowIdx}][harga_mitra]" class="form-control input-harga-mitra" placeholder="Harga">
                                 </div>
                             </td>
                             <td>
-                                <div class="input-group input-group-sm">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text">Rp</span>
-                                    </div>
-                                    <input type="number" name="items[${rowIdx}][harga_mitra]" class="form-control" placeholder="Total (Opsional)">
-                                </div>
+                                <input type="text" class="form-control form-control-sm total-dapur" readonly placeholder="0">
+                            </td>
+                            <td>
+                                <input type="text" class="form-control form-control-sm total-mitra" readonly placeholder="0">
                             </td>
                             <td class="text-center">
                                 <button type="button" class="btn btn-danger btn-xs btn-remove-row" data-id="${rowIdx}" title="Hapus Baris">
@@ -788,6 +938,266 @@
                         alert('Gagal mengambil data detail: ' + errorMsg);
                     }
                 });
+            });
+
+            // ==========================================
+            // 7. EDIT MODAL LOGIC
+            // ==========================================
+            let currentBahanListEdit = [];
+            let rowEditIdx = 0;
+
+            function addRowEdit(data = {}) {
+                let optionsBahan = '<option value="">-- Pilih Bahan --</option>';
+                (currentBahanListEdit.length ? currentBahanListEdit : []).forEach(b => {
+                    optionsBahan += `<option value="${b.id}">${b.nama}</option>`;
+                });
+
+                let optionsUnit = '<option value="">Satuan</option>';
+                masterUnit.forEach(u => {
+                    optionsUnit += `<option value="${u.id}">${u.satuan}</option>`;
+                });
+
+                const idx = rowEditIdx;
+
+                let initialSubDapur = data.subtotal_dapur ? parseFloat(data.subtotal_dapur).toLocaleString('id-ID') : '0';
+                let initialSubMitra = data.subtotal_mitra ? parseFloat(data.subtotal_mitra).toLocaleString('id-ID') : '0';
+
+                let tr = `
+                    <tr id="row-edit-${idx}">
+                        <td>
+                            <select name="items[${idx}][bahan_baku_id]" class="form-control form-control-sm">
+                                ${optionsBahan}
+                            </select>
+                        </td>
+                        <td>
+                            <input type="number" step="any" name="items[${idx}][qty]" class="form-control form-control-sm text-center input-qty" placeholder="0">
+                        </td>
+                        <td>
+                            <select name="items[${idx}][satuan_id]" class="form-control form-control-sm">
+                                ${optionsUnit}
+                            </select>
+                        </td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <input type="number" name="items[${idx}][harga_dapur]" class="form-control input-harga-dapur" placeholder="Harga Dapur">
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <input type="number" name="items[${idx}][harga_mitra]" class="form-control input-harga-mitra" placeholder="Harga Mitra">
+                            </div>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm total-dapur bg-light" readonly value="${initialSubDapur}">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm total-mitra bg-light" readonly value="${initialSubMitra}">
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-danger btn-xs btn-remove-row" data-id="${idx}" title="Hapus Baris">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+
+                $('#tableManualItemsEdit tbody').append(tr);
+
+                // set values if provided
+                if (data.bahan_baku_id) {
+                    $(`#row-edit-${idx} select[name$='[bahan_baku_id]']`).val(data.bahan_baku_id);
+                }
+                if (data.qty !== undefined) {
+                    $(`#row-edit-${idx} input[name$='[qty]']`).val(data.qty);
+                }
+                if (data.satuan_id) {
+                    $(`#row-edit-${idx} select[name$='[satuan_id]']`).val(data.satuan_id);
+                }
+                if (data.harga_dapur !== undefined) {
+                    $(`#row-edit-${idx} input[name$='[harga_dapur]']`).val(data.harga_dapur);
+                }
+                if (data.harga_mitra !== undefined) {
+                    $(`#row-edit-${idx} input[name$='[harga_mitra]']`).val(data.harga_mitra);
+                }
+
+                rowEditIdx++;
+            }
+
+            function refreshAllBahanDropdownEdit() {
+                let options = `<option value="">-- Pilih Bahan --</option>`;
+                if (currentBahanListEdit.length > 0) {
+                    currentBahanListEdit.forEach(b => {
+                        options += `<option value="${b.id}">${b.nama}</option>`;
+                    });
+                } else {
+                    options += `<option value="">(Tidak ada bahan baku)</option>`;
+                }
+
+                $('#tableManualItemsEdit tbody select[name*="[bahan_baku_id]"]').each(function () {
+                    let selected = $(this).val();
+                    $(this).html(options);
+                    $(this).val(selected);
+                });
+            }
+
+            $('#btnAddRowEdit').on('click', function () {
+                addRowEdit();
+            });
+
+            $('#tableManualItemsEdit').on('click', '.btn-remove-row', function () {
+                let id = $(this).data('id');
+                $('#row-edit-' + id).remove();
+            });
+
+            // Open edit modal and populate
+            $('.btn-edit').on('click', function () {
+                let id = $(this).data('id');
+                let urlTemplate = "{{ route('transaction.submission.update', ['submission' => 'FAKE_ID']) }}";
+                let formAction = urlTemplate.replace('FAKE_ID', id);
+
+                console.log("Target Update URL:", formAction)
+                
+                let $form = $('#formEditSubmission');
+
+                // // --- PENGECEKAN PENTING ---
+                // if ($form.length === 0) {
+                //     alert("CRITICAL ERROR: Form dengan ID #formEditSubmission tidak ditemukan! Cek file component x-modal-form Anda.");
+                //     return; 
+                // }
+                
+                $form.attr('action', formAction);
+                
+                // clear
+                $('#tableManualItemsEdit tbody').empty();
+                rowEditIdx = 0;
+                
+                let dataUrl = "{{ route('transaction.submission.data', ['submission' => 'FAKE_ID']) }}".replace('FAKE_ID', id);
+                $.ajax({
+                    url: dataUrl,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (data) {
+                        console.log('Data Edit:', data); // DEBUG 1: Cek apakah kitchen_id ada di sini
+                        
+                        // 1. SET TANGGAL (Gunakan key _raw yang formatnya YYYY-MM-DD)
+                        if (data.tanggal_raw) {
+                            $('#edit-tanggal').val(data.tanggal_raw);
+                        }
+
+                        if (data.tanggal_digunakan_raw) {
+                            $('#edit-tanggal-digunakan').val(data.tanggal_digunakan_raw);
+                        }
+
+                        $('#edit-kode').val(data.kode || '');
+
+                        // FIX DAPUR: Pastikan ID-nya sesuai (Cek apakah di HTML id-nya benar 'selectKitchenEdit')
+                        if (data.kitchen_id) {
+                        // Cek apakah elemen select ditemukan
+                        if ($('#selectKitchenEdit').length === 0) {
+                            console.error('ID #selectKitchenEdit tidak ditemukan di HTML!');
+                        }
+                        
+                        // Set value dan trigger change (opsional, tapi aman)
+                        $('#selectKitchenEdit').val(data.kitchen_id).trigger('change'); 
+
+                        // 3. LOAD MENU BERDASARKAN DAPUR
+                        let menuUrl = "{{ route('transaction.submission.menu-by-kitchen', ['kitchenId' => 'FAKE_ID']) }}".replace('FAKE_ID', data.kitchen_id);
+                        
+                        $.ajax({
+                            url: menuUrl,
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function (menus) {
+                                let $sel = $('#selectMenuEdit');
+                                $sel.empty();
+                                if (Array.isArray(menus) && menus.length > 0) {
+                                    $sel.append('<option value="">-- Pilih Menu Existing --</option>');
+                                    menus.forEach(m => $sel.append(`<option value="${m.id}">${m.nama}</option>`));
+                                } else {
+                                    $sel.append('<option value="">(Tidak ada menu)</option>');
+                                }
+
+                                // Set Menu Terpilih
+                                if (data.menu_id) {
+                                    $sel.val(data.menu_id);
+                                    $('#inputNamaMenuEdit').val('').prop('disabled', true);
+                                } else {
+                                    $sel.val('');
+                                    $('#inputNamaMenuEdit').val(data.menu || '').prop('disabled', false);
+                                }
+                            }
+                        });
+
+                        // 4. LOAD BAHAN BAKU BERDASARKAN DAPUR (KUNCI PERBAIKAN)
+                        let bahanUrl = "{{ route('transaction.submission.bahan-by-kitchen', ['kitchenId' => 'FAKE_ID']) }}".replace('FAKE_ID', data.kitchen_id);
+                        
+                        $.ajax({
+                            url: bahanUrl,
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function (bahan) {
+                                // Simpan ke variable global khusus Edit
+                                currentBahanListEdit = bahan || []; 
+
+                                // Setelah master bahan termuat, baru render baris itemnya
+                                if (data.details && data.details.length > 0) {
+                                    data.details.forEach(d => {
+                                        addRowEdit({
+                                            bahan_baku_id: d.bahan_baku_id,
+                                            qty: d.qty || d.qty_digunakan, // Sesuaikan dengan nama kolom di JSON
+                                            satuan_id: d.satuan_id,
+                                            harga_dapur: d.harga_dapur,
+                                            harga_mitra: d.harga_mitra,
+                                            subtotal_dapur: d.subtotal_dapur,
+                                            subtotal_mitra: d.subtotal_mitra
+                                        });
+                                    });
+                                } else {
+                                    addRowEdit(); // Tambah baris kosong jika tidak ada detail
+                                }
+                                
+                                // Hitung ulang/trigger input agar total muncul
+                                $('.input-qty').trigger('input');
+                                
+                                // Update dropdown bahan baku di semua baris yang baru dibuat
+                                refreshAllBahanDropdownEdit();
+                            },
+                            error: function(xhr) {
+                                console.error('Gagal ambil bahan:', xhr);
+                                currentBahanListEdit = [];
+                                addRowEdit();
+                            }
+                        });
+
+                    } else {
+                        alert('Data Kitchen ID tidak ditemukan dari server. Cek Controller.');
+                    }
+
+                        // porsi
+                        $('#edit-porsi-besar').val(data.porsi_besar || 0);
+                        $('#edit-porsi-kecil').val(data.porsi_kecil || 0);
+                    },
+                    error: function (xhr) {
+                        alert('Gagal memuat data pengajuan: ' + (xhr.responseJSON?.message || 'Server Error'));
+                    }
+                });
+            });
+
+            // Menu select / input toggles for edit modal
+            $('#selectMenuEdit').on('change', function () {
+                if ($(this).val()) {
+                    $('#inputNamaMenuEdit').val('').prop('disabled', true);
+                } else {
+                    $('#inputNamaMenuEdit').prop('disabled', false);
+                }
+            });
+
+            $('#inputNamaMenuEdit').on('input', function () {
+                if ($(this).val().length > 0) {
+                    $('#selectMenuEdit').val('').prop('disabled', true);
+                } else {
+                    $('#selectMenuEdit').prop('disabled', false);
+                }
             });
 
         });

@@ -372,6 +372,7 @@ return [
                     'text' => 'Akun Bank',
                     'icon' => 'fas fa-money-bill-wave',
                     'route' => 'master.bank.view',
+                    'can' => 'master.bank.view'
                     // 'can' => 'master.bank-account.view',
                 ],
 
@@ -417,12 +418,12 @@ return [
                     'can' => 'setup.role.view',
                 ],
 
-                // [
-                //     'text' => 'Racik Menu',
-                //     'icon' => 'fas fa-fw fa-blender',
-                //     'route' => 'recipe.index',
-                //     'can' => 'recipe.view',
-                // ],
+                [
+                    'text' => 'Racik Menu',
+                    'icon' => 'fas fa-fw fa-blender',
+                    'route' => 'recipe.index',
+                    'can' => 'recipe.view',
+                ],
 
             ],
         ],
@@ -527,13 +528,6 @@ return [
                     'icon' => 'fas fa-file-signature',
                     'route' => 'report.profit',
                     'can'   => 'report.profit.view',
-                ],
-
-                [
-                    'text' => 'Total Penjualan & Selisih',
-                    'icon' => 'fas fa-file-signature',
-                    'route' => 'report.sales-summary',
-                    'can'   => 'report.sales-summary.view',
                 ],
             ],
         ],

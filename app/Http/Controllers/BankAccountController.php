@@ -24,7 +24,7 @@ class BankAccountController extends Controller
     private function canManage()
     {
         $user = auth()->user();
-        return $user->hasAnyRole(['superadmin', 'operatorkoperasi']);
+        return $user->hasAnyRole(['superadmin', 'operatorkoperasi','superadminDapur']);
     }
 
     public function index()
