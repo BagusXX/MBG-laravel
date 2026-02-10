@@ -37,7 +37,7 @@
                         <th style="width: 25%">Aksi</th>
                     </tr>
                 </thead>
-
+`
                 <tbody>
                     @php 
                         $no = ($menus->currentPage() - 1) * $menus->perPage() + 1; 

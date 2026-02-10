@@ -18,6 +18,14 @@
         input[type=number] {
             -moz-appearance: textfield; /* Untuk Firefox */
         }
+        .pagination {
+            margin-bottom: 0;
+        }
+        /* Memperkecil ukuran pagination jika dirasa terlalu besar */
+        .pagination-sm .page-link {
+            padding: .25rem .5rem;
+            font-size: .875rem;
+        }
     </style>
 @endsection
 
@@ -63,7 +71,8 @@
 
 {{-- TABLE DATA --}}
 <div class="card">
-    <div class="card-body">
+    <div class="card-body p-0">
+        <div class="table-responsive"></div>
         <table class="table table-bordered table-striped" id="tableApproval">
             <thead>
                 <tr>
@@ -136,7 +145,12 @@
                 @endforeach
             </tbody>
         </table>
-        {{ $submissions->links() }}
+    </div>
+    </div>
+    <div class="card-footer clearfix">
+        <div class="float-right">
+            {{ $submissions->links() }}
+        </div>
     </div>
 </div>
 

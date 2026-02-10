@@ -312,7 +312,7 @@
                 <th>Nama Barang</th>
                 <th width="10%" class="text-center">Jumlah</th>
                 <th width="10%" class="text-center">Satuan</th>
-                <!-- <th width="18%" class="text-right">Harga Satuan</th> -->
+                <th width="18%" class="text-right">Harga Satuan</th>
                 <th width="18%" class="text-right">Subtotal</th>
             </tr>
         </thead>
@@ -327,7 +327,7 @@
                     </td>
                     <td class="text-center">{{ number_format($item->cetak_qty, 2, ',', '.') }}</td>
                     <td class="text-center">{{ ucfirst($item->cetak_unit) }}</td>
-                    <!-- <td class="text-right">Rp {{ number_format($item->harga_dapur ?? $item->harga_mitra, 0, ',', '.') }} -->
+                    <td class="text-right">Rp {{ number_format($item->harga_dapur ?? "-", 0, ',', '.') }}
                     </td>
                     <td class="text-right">Rp {{ number_format($item->subtotal_dapur, 0, ',', '.') }}</td>
                 </tr>
