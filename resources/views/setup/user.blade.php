@@ -22,18 +22,10 @@
 @endsection
 
 @section('content')
-    {{-- Notifikasi Error Validasi
-    @if ($errors->any())
-        <div class="alert alert-danger">
-            <ul class="mb-0">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif --}}
 
-    <x-button-add idTarget="#modalAddUser" text="Tambah User" />
+    @can('setup.user.create')
+        <x-button-add idTarget="#modalAddUser" text="Tambah User" />
+    @endcan
 
     <x-notification-pop-up />
 
@@ -49,13 +41,15 @@
                         <th>Region</th>
                         <th>Role</th>
                         <th>Status</th> {{-- KOLOM BARU --}}
-                        <th width="15%">Aksi</th>
+                        @canany(['setup.user.update', 'setup.user.delete', 'setup.user.approve'])
+                            <th width="15%">Aksi</th>
+                        @endcanany
                     </tr>
                 </thead>
 
                 <tbody>
-                    @php 
-                        $no = ($users->currentPage() - 1) * $users->perPage() + 1; 
+                    @php
+                        $no = ($users->currentPage() - 1) * $users->perPage() + 1;
                     @endphp
                     @foreach ($users as $user)
                         <tr>
@@ -65,8 +59,8 @@
 
                             {{-- MENAMPILKAN KITCHEN --}}
                             <td>
-                                @if($user->kitchens->isNotEmpty())
-                                    @foreach($user->kitchens as $k)
+                                @if ($user->kitchens->isNotEmpty())
+                                    @foreach ($user->kitchens as $k)
                                         <span class="badge badge-info">{{ $k->nama }}</span>
                                     @endforeach
                                 @else
@@ -76,8 +70,8 @@
 
                             {{-- REGION --}}
                             <td>
-                                @if($user->kitchens->isNotEmpty())
-                                    @foreach($user->kitchens->pluck('region.nama_region')->unique() as $region)
+                                @if ($user->kitchens->isNotEmpty())
+                                    @foreach ($user->kitchens->pluck('region.nama_region')->unique() as $region)
                                         <span class="badge badge-success">{{ $region }}</span>
                                     @endforeach
                                 @else
@@ -87,8 +81,8 @@
 
                             {{-- MENAMPILKAN ROLE --}}
                             <td>
-                                @if(!empty($user->getRoleNames()))
-                                    @foreach($user->getRoleNames() as $roleName)
+                                @if (!empty($user->getRoleNames()))
+                                    @foreach ($user->getRoleNames() as $roleName)
                                         <span class="badge badge-primary">{{ $roleName }}</span>
                                     @endforeach
                                 @endif
@@ -96,7 +90,7 @@
 
                             {{-- MENAMPILKAN STATUS --}}
                             <td>
-                                @if($user->status === 'disetujui')
+                                @if ($user->status === 'disetujui')
                                     <span class="badge badge-success">Disetujui</span>
                                 @elseif($user->status === 'ditolak')
                                     <span class="badge badge-danger">Ditolak</span>
@@ -105,58 +99,63 @@
                                 @endif
                             </td>
 
-                            <td>
-                                <div class="d-flex flex-wrap align-items-center">
-                                    
-                                    {{-- HANYA MUNCUL JIKA STATUS MENUNGGU --}}
-                                    @if($user->status === 'menunggu')
-                                        
-                                        {{-- 1. TOMBOL APPROVE --}}
-                                        <form action="{{ route('setup.user.approve', $user->id) }}" method="POST" class="mr-1">
-                                            @csrf
-                                            @method('PATCH')
-                                            <button type="submit" class="btn btn-success btn-sm mb-2" 
-                                                title="Setujui User"
-                                                onclick="return confirm('Apakah Anda yakin ingin menyetujui user ini?')">
-                                                Setujui
+                            @canany(['setup.user.update', 'setup.user.delete', 'setup.user.approve'])
+                                <td>
+                                    <div class="d-flex flex-wrap align-items-center">
+
+                                        @can('setup.user.approve')
+                                            {{-- HANYA MUNCUL JIKA STATUS MENUNGGU --}}
+                                            @if ($user->status === 'menunggu')
+                                                {{-- 1. TOMBOL APPROVE --}}
+                                                <form action="{{ route('setup.user.approve', $user->id) }}" method="POST"
+                                                    class="mr-1">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit" class="btn btn-success btn-sm mb-2" title="Setujui User"
+                                                        onclick="return confirm('Apakah Anda yakin ingin menyetujui user ini?')">
+                                                        Setujui
+                                                    </button>
+                                                </form>
+
+                                                {{-- 2. TOMBOL REJECT --}}
+                                                <form action="{{ route('setup.user.reject', $user->id) }}" method="POST"
+                                                    class="mr-1">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit" class="btn btn-danger btn-sm mb-2" title="Tolak User"
+                                                        onclick="return confirm('Apakah Anda yakin ingin MENOLAK user ini?')">
+                                                        Tolak
+                                                    </button>
+                                                </form>
+                                            @endif
+                                            {{-- END IF MENUNGGU --}}
+                                        @endcan
+
+                                        {{-- 3. TOMBOL EDIT (Selalu muncul) --}}
+                                        @can('setup.user.update')
+                                            <button class="btn btn-warning btn-sm mr-1" data-toggle="modal"
+                                                data-target="#modalEditUser{{ $user->id }}" title="Edit">
+                                                Edit
                                             </button>
-                                        </form>
+                                        @endcan
 
-                                        {{-- 2. TOMBOL REJECT --}}
-                                        <form action="{{ route('setup.user.reject', $user->id) }}" method="POST" class="mr-1">
-                                            @csrf
-                                            @method('PATCH')
-                                            <button type="submit" class="btn btn-danger btn-sm mb-2" 
-                                                title="Tolak User"
-                                                onclick="return confirm('Apakah Anda yakin ingin MENOLAK user ini?')">
-                                                Tolak
-                                            </button>
-                                        </form>
-
-                                    @endif
-                                    {{-- END IF MENUNGGU --}}
-
-                                    {{-- 3. TOMBOL EDIT (Selalu muncul) --}}
-                                    <button class="btn btn-warning btn-sm mr-1" data-toggle="modal"
-                                        data-target="#modalEditUser{{ $user->id }}" title="Edit">
-                                        Edit
-                                    </button>
-
-                                    {{-- 4. TOMBOL HAPUS (Selalu muncul kecuali superadmin) --}}
-                                    @if(!$user->hasRole('superadmin'))
-                                        <x-button-delete idTarget="#modalDeleteUser{{ $user->id }}"
-                                            formId="formDeleteUser{{ $user->id }}"
-                                            action="{{ route('setup.user.destroy', $user->id) }}"
-                                            text="Hapus" />
-                                    @endif
-                                </div>
-                            </td>
+                                        @can('setup.user.delete')
+                                            {{-- 4. TOMBOL HAPUS (Selalu muncul kecuali superadmin) --}}
+                                            @if (!$user->hasRole('superadmin'))
+                                                <x-button-delete idTarget="#modalDeleteUser{{ $user->id }}"
+                                                    formId="formDeleteUser{{ $user->id }}"
+                                                    action="{{ route('setup.user.destroy', $user->id) }}" text="Hapus" />
+                                            @endif
+                                        @endcan
+                                    </div>
+                                </td>
+                            @endcanany
                         </tr>
                     @endforeach
                 </tbody>
             </table>
             <div class="mt-3 d-flex justify-content-end">
-             {{ $users->links('pagination::bootstrap-4') }}
+                {{ $users->links('pagination::bootstrap-4') }}
             </div>
         </div>
     </div>
@@ -187,13 +186,11 @@
             <label>Pilih Dapur</label>
             <div class="checkbox-group-container">
                 <div class="row">
-                    @foreach($kitchens as $kitchen)
-                        <div class="col-md-6"> 
+                    @foreach ($kitchens as $kitchen)
+                        <div class="col-md-6">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" 
-                                    name="kitchen_kode[]" 
-                                    value="{{ $kitchen->kode }}" 
-                                    id="add_kitchen_{{ $kitchen->kode }}">
+                                <input class="form-check-input" type="checkbox" name="kitchen_kode[]"
+                                    value="{{ $kitchen->kode }}" id="add_kitchen_{{ $kitchen->kode }}">
                                 <label class="form-check-label" for="add_kitchen_{{ $kitchen->kode }}">
                                     {{ $kitchen->nama }}
                                 </label>
@@ -209,7 +206,7 @@
             <label>Role</label>
             <select class="form-control" name="role" required>
                 <option value="" disabled selected>Pilih Role</option>
-                @foreach($roles as $role)
+                @foreach ($roles as $role)
                     <option value="{{ $role->name }}">{{ $role->name }}</option>
                 @endforeach
             </select>
@@ -222,10 +219,9 @@
        LOOPING MODAL EDIT & DELETE
     =========================== --}}
     @foreach ($users as $user)
-
         {{-- MODAL EDIT --}}
-        <x-modal-form id="modalEditUser{{ $user->id }}" title="Edit User" action="{{ route('setup.user.update', $user->id) }}"
-            submiText="Update">
+        <x-modal-form id="modalEditUser{{ $user->id }}" title="Edit User"
+            action="{{ route('setup.user.update', $user->id) }}" submiText="Update">
             @csrf
             @method('PUT')
 
@@ -249,17 +245,17 @@
                 <label>Pilih Dapur</label>
                 <div class="checkbox-group-container">
                     <div class="row">
-                        @foreach($kitchens as $kitchen)
+                        @foreach ($kitchens as $kitchen)
                             <div class="col-md-6">
                                 <div class="form-check">
                                     {{-- Cek apakah user memiliki dapur ini (pivot), jika ya maka checked --}}
-                                    <input class="form-check-input" type="checkbox" 
-                                        name="kitchen_kode[]" 
-                                        value="{{ $kitchen->kode }}" 
+                                    <input class="form-check-input" type="checkbox" name="kitchen_kode[]"
+                                        value="{{ $kitchen->kode }}"
                                         id="edit_kitchen_{{ $user->id }}_{{ $kitchen->kode }}"
                                         {{ $user->kitchens->contains('kode', $kitchen->kode) ? 'checked' : '' }}>
-                                    
-                                    <label class="form-check-label" for="edit_kitchen_{{ $user->id }}_{{ $kitchen->kode }}">
+
+                                    <label class="form-check-label"
+                                        for="edit_kitchen_{{ $user->id }}_{{ $kitchen->kode }}">
                                         {{ $kitchen->nama }}
                                     </label>
                                 </div>
@@ -273,7 +269,7 @@
                 <label>Role</label>
                 <select class="form-control" name="role" required>
                     <option value="" disabled selected>Pilih Role</option>
-                    @foreach($roles as $role)
+                    @foreach ($roles as $role)
                         <option value="{{ $role->name }}" {{ $user->hasRole($role->name) ? 'selected' : '' }}>
                             {{ $role->name }}
                         </option>
@@ -283,17 +279,11 @@
         </x-modal-form>
 
         {{-- MODAL DELETE --}}
-        @if(!$user->hasRole('superadmin'))
-            <x-modal-delete
-                id="modalDeleteUser{{ $user->id }}"
-                formId="formDeleteUser{{ $user->id }}"
-                title="Konfirmasi Hapus"
-                message="Apakah Anda yakin ingin menghapus user {{ $user->name }}?"
-                confirmText="Hapus"
-            />
-            
+        @if (!$user->hasRole('superadmin'))
+            <x-modal-delete id="modalDeleteUser{{ $user->id }}" formId="formDeleteUser{{ $user->id }}"
+                title="Konfirmasi Hapus" message="Apakah Anda yakin ingin menghapus user {{ $user->name }}?"
+                confirmText="Hapus" />
         @endif
-
     @endforeach
 
 @endsection
@@ -305,17 +295,17 @@
         // ==========================================
         function generateEmail(name) {
             let email = name.toLowerCase()
-                .replace(/[^a-z0-9 ]/g, '')  // hapus karakter aneh
-                .replace(/\s+/g, '.');       // spasi jadi titik
+                .replace(/[^a-z0-9 ]/g, '') // hapus karakter aneh
+                .replace(/\s+/g, '.'); // spasi jadi titik
             return email + '@gmail.com';
         }
 
-        document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function() {
             const namaInput = document.getElementById("namaInput");
             const emailInput = document.getElementById("autoEmail");
 
             if (namaInput && emailInput) {
-                namaInput.addEventListener("input", function () {
+                namaInput.addEventListener("input", function() {
                     emailInput.value = generateEmail(this.value);
                 });
             }
