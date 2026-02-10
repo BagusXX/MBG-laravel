@@ -130,8 +130,8 @@
                     @endforelse
                 </tbody>
             </table>
-            <div class="mt-3">
-                {{ $submissions->links() }}
+            <div class="mt-3 d-flex justify-content-end">
+                {{ $submissions->links('pagination::bootstrap-4') }}
             </div>
         </div>
     </div>

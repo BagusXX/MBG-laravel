@@ -120,7 +120,7 @@ class SubmissionController extends Controller
             ->pengajuan()
             ->whereHas('kitchen', fn($q) => $q->whereIn('kode', $kitchenCodes))
             ->latest()
-            ->paginate(10);
+            ->paginate(perPage: 10);
 
         return view('transaction.submission', [
             'submissions' => $submissions,
