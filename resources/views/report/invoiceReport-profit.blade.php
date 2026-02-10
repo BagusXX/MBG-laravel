@@ -198,8 +198,8 @@
                 <th>Tanggal</th>
                 <th>Dapur</th>
                 <th>Supplier</th>
-                <th>Harga Dapur</th>
-                <th>Harga Mitra</th>
+                <th>Subtotal Dapur</th>
+                <th>Subtotal Mitra</th>
                 <th>Selisih</th>
             </tr>
         </thead>
@@ -210,13 +210,6 @@
 
 
             @foreach ($reports as $index => $item)
-                @php
-                    $porsi = $item->submission->porsi ?? 1;
-
-                    $hargaDapurTotal = ($item->harga_dapur ?? 0) * $porsi;
-                    $hargaMitraTotal = ($item->harga_mitra ?? 0) * $porsi;
-                    $selisihTotal = $hargaDapurTotal - $hargaMitraTotal;
-                @endphp
                 <tr>
                     <td>{{ \Carbon\Carbon::parse($item->submission->tanggal)->locale('id')->isoFormat('DD MMM YYYY') }}</td>
                     <td>{{ $item->submission->kitchen->nama}}</td>
@@ -227,9 +220,9 @@
 
                         @endif
                     </td>
-                    <td>Rp {{ number_format($hargaDapurTotal, 0, ',', '.') }}</td>
-                    <td>Rp {{ number_format($hargaMitraTotal, 0, ',', '.') }}</td>
-                    <td>Rp {{ number_format($selisihTotal, 0, ',', '.') }}</td>
+                    <td>Rp {{ number_format($item->subtotal_dapur ?? 0, 0, ',', '.') }}</td>
+                    <td>Rp {{ number_format($item->subtotal_mitra ?? 0, 0, ',', '.') }}</td>
+                    <td>Rp {{ number_format($item->selisih ?? 0, 0, ',', '.') }}</td>
                 </tr>
             @endforeach
         </tbody>

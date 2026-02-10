@@ -69,4 +69,9 @@ class SubmissionDetails extends Model
             }
         });
     }
+
+    public function getSelisihAttribute()
+    {
+        return (float) $this->subtotal_dapur - (float) $this->subtotal_mitra;
+    }
 }

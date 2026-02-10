@@ -88,6 +88,7 @@
                         <th width="50">Satuan</th>
                         <th>PM (besar)</th>
                         <th>PM (kecil)</th>
+                        <th>Harga Satuan</th>
                         <th>Subtotal</th>
                     </tr>
                 </thead>
@@ -117,6 +118,7 @@
                         <td>{{ $report->submission->porsi_besar }}</td>
                         <td>{{ $report->submission->porsi_kecil }}</td>
 
+                        <td>Rp{{ number_format($report->harga_mitra, 0, ',', '.') }}</td>
                         <td>Rp{{ number_format($report->subtotal_mitra, 0, ',', '.') }}</td>
                     </tr>
                     @empty
