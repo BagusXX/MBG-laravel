@@ -485,7 +485,7 @@ class SubmissionApprovalController extends Controller
 
         $pdf = Pdf::loadView('transaction.invoice-submission', compact('submission'))
             ->setPaper('a4', 'portrait');
-        return $pdf->download($submission->kode . '.pdf');
+        return $pdf->stream($submission->kode . '.pdf');
     }
 
 

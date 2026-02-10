@@ -280,6 +280,7 @@
                     <th class="text-center" style="text-align: center;">Satuan</th>
                     <th class="text-center" style="text-align: center;">PM (besar)</th>
                     <th class="text-center" style="text-align: center;">PM (kecil)</th>
+                    <th class="text-center" style="text-align: center;">Harga Dapur</th>
                     <th class="text-center" style="text-align: center;">Subtotal</th>
                 </tr>
             </thead>
@@ -292,6 +293,7 @@
                         <td class="text-center">{{ $detail->unit?->satuan ?? '-' }}</td>
                         <td class="text-center">{{ $detail->submission->porsi_besar }}</td>
                         <td class="text-center">{{ $detail->submission->porsi_kecil }}</td>
+                        <td class="text-center">Rp{{ number_format($detail->harga_dapur, 0, ',', '.') }}</td>
                         <td class="text-center">Rp{{ number_format($detail->subtotal_dapur, 0, ',', '.') }}</td>
                     </tr>
                 @empty

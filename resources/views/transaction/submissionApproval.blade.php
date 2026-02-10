@@ -22,6 +22,14 @@
             -moz-appearance: textfield;
             /* Untuk Firefox */
         }
+        .pagination {
+            margin-bottom: 0;
+        }
+        /* Memperkecil ukuran pagination jika dirasa terlalu besar */
+        .pagination-sm .page-link {
+            padding: .25rem .5rem;
+            font-size: .875rem;
+        }
     </style>
 @endsection
 

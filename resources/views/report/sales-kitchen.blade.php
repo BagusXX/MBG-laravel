@@ -86,9 +86,9 @@
                         <th>Bahan Baku</th>
                         <th>Qty</th>
                         <th width="50">Satuan</th>
-                        <th>Porsi Besar</th>
-                        <th>Porsi Kecil</th>
-                        <th>Harga</th>
+                        <th>PM (besar)</th>
+                        <th>PM (kecil)</th>
+                        <th>Harga Satuan</th>
                         <th>Subtotal</th>
                     </tr>
                 </thead>
@@ -118,7 +118,7 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="9" class="text-right"><strong>Total :</strong></td>
+                        <td colspan="10" class="text-right"><strong>Total :</strong></td>
                         <td class="text-left"><strong>Rp{{ number_format($totalPageSubtotal, 0, ',', '.') }}</strong></td>
                     </tr>
                 </tfoot>
