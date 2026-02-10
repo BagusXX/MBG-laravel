@@ -96,6 +96,13 @@
                                             data-target="#modalDetail">
                                             Detail
                                         </button>
+                                        
+                                        {{-- Tombol Edit (hanya jika diajukan) --}}
+                                        @if($item->status === 'diajukan')
+                                            <button class="btn btn-warning btn-sm btn-edit" data-id="{{ $item->id }}" data-toggle="modal" data-target="#modalEditSubmission">
+                                                Edit
+                                            </button>
+                                        @endif
 
                                         {{-- Tombol Hapus (Hanya jika status diajukan) --}}
                                         @if($item->status === 'diajukan' || $item->status === 'ditolak')
@@ -222,6 +229,116 @@
                     <tr>
                         <td colspan="6" class="text-right text-end"> 
                             <button type="button" class="btn btn-sm btn-success" id="btnAddRow">
+                                <i class="fas fa-plus"></i> Tambah Item
+                            </button>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </x-modal-form>
+
+    {{-- =========================
+    MODAL EDIT
+    ========================= --}}
+    <x-modal-form id="modalEditSubmission" size="modal-xl" title="Edit Pengajuan Bahan Baku"
+        action="#" submitText="Perbarui Pengajuan" formId="formEditSubmission">
+        @csrf
+        <input type="hidden" name="_method" value="PATCH">
+
+        {{-- BARIS 1: Info Dasar --}}
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>Kode Pengajuan</label>
+                    <input type="text" id="edit-kode" class="form-control" value="-" readonly>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>Tanggal Pengajuan</label>
+                    <input type="date" id="edit-tanggal" class="form-control" readonly>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>Tanggal Digunakan</label>
+                    <input type="date" name="tanggal_digunakan" id="edit-tanggal-digunakan" class="form-control">
+                </div>
+            </div>
+        </div>
+
+        {{-- BARIS 2: Dapur & Menu --}}
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>Dapur</label>
+                    <select id="selectKitchenEdit" class="form-control" disabled>
+                        @foreach($kitchens as $k)
+                            <option value="{{ $k->id }}">{{ $k->nama }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>Pilih Menu (Existing)</label>
+                    <select name="menu_id" id="selectMenuEdit" class="form-control">
+                        <option value="">-- Pilih Menu --</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label>Atau Ketik Menu Baru</label>
+                    <input type="text" name="nama_menu" id="inputNamaMenuEdit" class="form-control" placeholder="Isi jika menu belum ada di list">
+                </div>
+            </div>
+        </div>
+
+        {{-- BARIS 3: Porsi --}}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>Porsi Besar</label>
+                    <input type="number" name="porsi_besar" id="edit-porsi-besar" class="form-control" min="0" value="0">
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>Porsi Kecil</label>
+                    <input type="number" name="porsi_kecil" id="edit-porsi-kecil" class="form-control" min="0" value="0">
+                </div>
+            </div>
+        </div>
+
+        <hr>
+
+        {{-- BARIS 4: INPUT ITEM MANUAL (DINAMIS) --}}
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <label class="font-weight-bold">Rincian Bahan Baku (Input Manual)</label>
+        </div>
+
+        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+            <table class="table table-bordered table-sm" id="tableManualItemsEdit">
+                <thead class="bg-light sticky-top">
+                    <tr>
+                        <th width="35%">Bahan Baku</th>
+                        <th width="15%">Qty</th>
+                        <th width="15%">Satuan</th>
+                        <th width="20%">Harga Dapur</th>
+                        <th width="20%">Harga Mitra</th>
+                        <th width="5%"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{-- Row akan diinject via JS --}}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="6" class="text-right text-end"> 
+                            <button type="button" class="btn btn-sm btn-success" id="btnAddRowEdit">
                                 <i class="fas fa-plus"></i> Tambah Item
                             </button>
                         </td>
@@ -788,6 +905,219 @@
                         alert('Gagal mengambil data detail: ' + errorMsg);
                     }
                 });
+            });
+
+            // ==========================================
+            // 7. EDIT MODAL LOGIC
+            // ==========================================
+            let currentBahanListEdit = [];
+            let rowEditIdx = 0;
+
+            function addRowEdit(data = {}) {
+                let optionsBahan = '<option value="">-- Pilih Bahan --</option>';
+                (currentBahanListEdit.length ? currentBahanListEdit : []).forEach(b => {
+                    optionsBahan += `<option value="${b.id}">${b.nama}</option>`;
+                });
+
+                let optionsUnit = '<option value="">-- Satuan --</option>';
+                masterUnit.forEach(u => {
+                    optionsUnit += `<option value="${u.id}">${u.satuan}</option>`;
+                });
+
+                const idx = rowEditIdx;
+                let tr = `
+                    <tr id="row-edit-${idx}">
+                        <td>
+                            <select name="items[${idx}][bahan_baku_id]" class="form-control form-control-sm">
+                                ${optionsBahan}
+                            </select>
+                        </td>
+                        <td>
+                            <input type="number" step="any" name="items[${idx}][qty]" class="form-control form-control-sm text-center" placeholder="0">
+                        </td>
+                        <td>
+                            <select name="items[${idx}][satuan_id]" class="form-control form-control-sm">
+                                ${optionsUnit}
+                            </select>
+                        </td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">Rp</span>
+                                </div>
+                                <input type="number" name="items[${idx}][harga_dapur]" class="form-control" placeholder="Total">
+                            </div>
+                        </td>
+                        <td>
+                            <div class="input-group input-group-sm">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">Rp</span>
+                                </div>
+                                <input type="number" name="items[${idx}][harga_mitra]" class="form-control" placeholder="Total (Opsional)">
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-danger btn-xs btn-remove-row" data-id="${idx}" title="Hapus Baris">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+
+                $('#tableManualItemsEdit tbody').append(tr);
+
+                // set values if provided
+                if (data.bahan_baku_id) {
+                    $(`#row-edit-${idx} select[name$='[bahan_baku_id]']`).val(data.bahan_baku_id);
+                }
+                if (data.qty !== undefined) {
+                    $(`#row-edit-${idx} input[name$='[qty]']`).val(data.qty);
+                }
+                if (data.satuan_id) {
+                    $(`#row-edit-${idx} select[name$='[satuan_id]']`).val(data.satuan_id);
+                }
+                if (data.harga_dapur !== undefined) {
+                    $(`#row-edit-${idx} input[name$='[harga_dapur]']`).val(data.harga_dapur);
+                }
+                if (data.harga_mitra !== undefined) {
+                    $(`#row-edit-${idx} input[name$='[harga_mitra]']`).val(data.harga_mitra);
+                }
+
+                rowEditIdx++;
+            }
+
+            function refreshAllBahanDropdownEdit() {
+                let options = `<option value="">-- Pilih Bahan --</option>`;
+                if (currentBahanListEdit.length > 0) {
+                    currentBahanListEdit.forEach(b => {
+                        options += `<option value="${b.id}">${b.nama}</option>`;
+                    });
+                } else {
+                    options += `<option value="">(Tidak ada bahan baku)</option>`;
+                }
+
+                $('#tableManualItemsEdit tbody select[name*="[bahan_baku_id]"]').each(function () {
+                    let selected = $(this).val();
+                    $(this).html(options);
+                    $(this).val(selected);
+                });
+            }
+
+            $('#btnAddRowEdit').on('click', function () {
+                addRowEdit();
+            });
+
+            $('#tableManualItemsEdit').on('click', '.btn-remove-row', function () {
+                let id = $(this).data('id');
+                $('#row-edit-' + id).remove();
+            });
+
+            // Open edit modal and populate
+            $('.btn-edit').on('click', function () {
+                let id = $(this).data('id');
+                let dataUrl = "{{ route('transaction.submission.data', ['submission' => 'FAKE_ID']) }}".replace('FAKE_ID', id);
+                let formAction = "{{ route('transaction.submission.update', ['submission' => 'FAKE_ID']) }}".replace('FAKE_ID', id);
+
+                let $form = $('#formEditSubmission');
+                $form.attr('action', formAction);
+
+                // clear
+                $('#tableManualItemsEdit tbody').empty();
+                rowEditIdx = 0;
+
+                $.ajax({
+                    url: dataUrl,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (data) {
+                        $('#edit-kode').val(data.kode || '');
+                        $('#edit-tanggal').val(data.tanggal || '');
+                        $('#edit-tanggal-digunakan').val(data.tanggal_digunakan || '');
+                        $('#selectKitchenEdit').val(data.kitchen_id || '');
+
+                        // populate menu select for kitchen
+                        let menuUrl = "{{ route('transaction.submission.menu-by-kitchen', ['kitchenId' => 'FAKE_ID']) }}".replace('FAKE_ID', data.kitchen_id);
+                        $.ajax({
+                            url: menuUrl,
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function (menus) {
+                                let $sel = $('#selectMenuEdit');
+                                $sel.empty();
+                                if (Array.isArray(menus) && menus.length > 0) {
+                                    $sel.append('<option value="">-- Pilih Menu Existing --</option>');
+                                    menus.forEach(m => $sel.append(`<option value="${m.id}">${m.nama}</option>`));
+                                } else {
+                                    $sel.append('<option value="">(Tidak ada menu)</option>');
+                                }
+
+                                if (data.menu_id) {
+                                    $sel.val(data.menu_id);
+                                    $('#inputNamaMenuEdit').val('').prop('disabled', true);
+                                } else {
+                                    $sel.val('');
+                                    $('#inputNamaMenuEdit').val(data.menu || '').prop('disabled', false);
+                                }
+                            }
+                        });
+
+                        // load bahan list for kitchen then populate rows
+                        let bahanUrl = "{{ route('transaction.submission.bahan-by-kitchen', ['kitchenId' => 'FAKE_ID']) }}".replace('FAKE_ID', data.kitchen_id);
+                        $.ajax({
+                            url: bahanUrl,
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function (bahan) {
+                                currentBahanListEdit = bahan || [];
+
+                                // add rows from details
+                                if (data.details && data.details.length > 0) {
+                                    data.details.forEach(d => {
+                                        addRowEdit({
+                                            bahan_baku_id: d.bahan_baku_id || d.bahan_id || null,
+                                            qty: d.qty || d.jumlah || 0,
+                                            satuan_id: d.satuan_id || d.unit_id || null,
+                                            harga_dapur: d.harga_dapur || d.harga || null,
+                                            harga_mitra: d.harga_mitra || null
+                                        });
+                                    });
+                                } else {
+                                    addRowEdit();
+                                }
+
+                                refreshAllBahanDropdownEdit();
+                            },
+                            error: function () {
+                                currentBahanListEdit = [];
+                                addRowEdit();
+                            }
+                        });
+
+                        // porsi
+                        $('#edit-porsi-besar').val(data.porsi_besar || 0);
+                        $('#edit-porsi-kecil').val(data.porsi_kecil || 0);
+                    },
+                    error: function (xhr) {
+                        alert('Gagal memuat data pengajuan: ' + (xhr.responseJSON?.message || 'Server Error'));
+                    }
+                });
+            });
+
+            // Menu select / input toggles for edit modal
+            $('#selectMenuEdit').on('change', function () {
+                if ($(this).val()) {
+                    $('#inputNamaMenuEdit').val('').prop('disabled', true);
+                } else {
+                    $('#inputNamaMenuEdit').prop('disabled', false);
+                }
+            });
+
+            $('#inputNamaMenuEdit').on('input', function () {
+                if ($(this).val().length > 0) {
+                    $('#selectMenuEdit').val('').prop('disabled', true);
+                } else {
+                    $('#selectMenuEdit').prop('disabled', false);
+                }
             });
 
         });

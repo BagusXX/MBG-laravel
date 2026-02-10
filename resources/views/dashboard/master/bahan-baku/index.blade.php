@@ -15,9 +15,9 @@
 
     <div class="row mb-3">
         <div class="col-md-6">
-            @if($canManage)
+            @can('master.bahan-baku.create')
                 <x-button-add idTarget="#modalAddMaterials" text="Tambah Bahan Baku" />  
-            @endif
+            @endcan
         </div>
         <div class="col-md-6">
             <form action="{{ route('dashboard.master.bahan-baku.index') }}" method="GET">
@@ -53,9 +53,9 @@
                         <!-- <th>Satuan</th> -->
                         {{-- <th>Harga Satuan</th> --}}
                         <th>Dapur</th>
-                        @if($canManage)
-                            <th>Aksi</th>
-                        @endif
+                        @canAny('master.bahan-baku.update') 
+                        <th>Aksi</th>
+                        @endcanany
                     </tr>
                 </thead>
                 <tbody>
@@ -65,7 +65,7 @@
                             <td>{{ $item->kode }}</td>
                             <td>{{ $item->nama }}</td>
                             <td>{{ $item->kitchen->nama ?? '-' }}</td>
-                            @if($canManage)
+                            @can( 'master.bahan-baku.update')
                             <td>
                                 {{-- BUTTON EDIT --}}
                                 <button type="button" class="btn btn-warning btn-sm btnEditMaterials"
@@ -76,12 +76,8 @@
                                     data-toggle="modal" data-target="#modalEditMaterials">
                                     Edit
                                 </button>
-
-                                {{-- <x-button-delete idTarget="#modalDeleteMaterials" formId="formDeleteMaterials"
-                                    action="{{ route('dashboard.master.bahan-baku.destroy', $item->id) }}"
-                                    text="Hapus" /> --}}
                             </td>
-                            @endif
+                            @endcan
                         </tr>
                     @empty
                         <tr>

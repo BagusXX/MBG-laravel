@@ -12,9 +12,9 @@
 
 @section('content')
     {{-- BUTTON ADD --}}
-    @if(isset($canManage) && $canManage)
+    @can('master.bank.create')
         <x-button-add idTarget="#modalAddBank" text="Tambah Akun Bank" />
-    @endif
+    @endcan
 
     <x-notification-pop-up />
 
@@ -29,9 +29,10 @@
                         <th>Nama Bank</th>
                         <th>Nasabah (Holder)</th>
                         <th>No. Rekening</th>
-                        @if(isset($canManage) && $canManage)
+                        @canany(['master.supplier.update',
+                                            'master.supplier.delete'])
                             <th>Aksi</th>
-                        @endif
+                        @endcanany
                     </tr>
                 </thead>
                 <tbody>
@@ -49,7 +50,7 @@
                             <td>{{ $bank->account_holder_name }}</td>
                             <td>{{ $bank->account_number }}</td>
 
-                            @if(isset($canManage) && $canManage)
+                            @can('master.bank.update')
                                 <td>
                                     <button type="button" class="btn btn-warning btn-sm btnEditBank" data-id="{{ $bank->id }}"
                                         data-suppliers_id="{{ $bank->suppliers_id }}" data-bank_name="{{ $bank->bank_name }}"
@@ -63,7 +64,7 @@
                                     <x-button-delete idTarget="#modalDeleteBank" formId="formDeleteBank"
                                         action="{{ route('master.bank.destroy', $bank->id) }}" text="Hapus" />
                                 </td>
-                            @endif
+                            @endcan
                         </tr>
                     @empty
                         <tr>
