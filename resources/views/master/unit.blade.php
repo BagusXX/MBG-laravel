@@ -12,12 +12,11 @@
 
 @section('content')
     {{-- BUTTON ADD --}}
-    @if($canManage)
-    <x-button-add 
-        idTarget="#modalAddUnit" 
-        text="Tambah Satuan" 
-    />
-    @endif
+
+    @can('master.unit.create')
+        <x-button-add idTarget="#modalAddUnit" text="Tambah Satuan" />
+    @endcan
+
 
     <x-notification-pop-up />
 
@@ -30,9 +29,11 @@
                         <th width="50px">No</th>
                         <th>Satuan</th>
                         <th>Keterangan</th>
-                        @if($canManage)
-                        <th>Aksi</th>
-                        @endif
+
+                        @canany(['master.unit.update', 'master.unit.delete'])
+                            <th>Aksi</th>
+                        @endcanany
+
                     </tr>
                 </thead>
                 <tbody>
@@ -41,27 +42,24 @@
                             <td>{{ $units->firstItem() + $index }}</td>
                             <td>{{ $unit->satuan }}</td>
                             <td>{{ $unit->keterangan ?? '-' }}</td>
-                            @if($canManage)
-                            <td>
-                                <button 
-                                    type="button"
-                                    class="btn btn-warning btn-sm btnEditUnit"
-                                    data-id="{{ $unit->id }}"
-                                    data-satuan="{{ $unit->satuan }}"
-                                    data-keterangan="{{ $unit->keterangan }}"
-                                    data-toggle="modal"
-                                    data-target="#modalEditUnit"
-                                >
-                                    Edit
-                                </button>
-                                <x-button-delete 
-                                    idTarget="#modalDeleteUnit"
-                                    formId="formDeleteUnit"
-                                    action="{{ route('master.unit.destroy', $unit->id) }}"
-                                    text="Hapus" 
-                                />
-                            </td>
-                            @endif
+
+                            @canany(['master.unit.update', 'master.unit.delete'])
+                                <td>
+                                    @can('master.unit.update')
+                                        <button type="button" class="btn btn-warning btn-sm btnEditUnit"
+                                            data-id="{{ $unit->id }}" data-satuan="{{ $unit->satuan }}"
+                                            data-keterangan="{{ $unit->keterangan }}" data-toggle="modal"
+                                            data-target="#modalEditUnit">
+                                            Edit
+                                        </button>
+                                    @endcan
+                                    @can('master.unit.delete')
+                                        <x-button-delete idTarget="#modalDeleteUnit" formId="formDeleteUnit"
+                                            action="{{ route('master.unit.destroy', $unit->id) }}" text="Hapus" />
+                                    @endcan
+                                </td>
+                            @endcanany
+
                         </tr>
                     @empty
                         <tr>
@@ -77,77 +75,63 @@
     </div>
 
     {{-- MODAL ADD SATUAN --}}
-    @if($canManage)
-    <x-modal-form
-        id="modalAddUnit"
-        title="Tambah Satuan"
-        action="{{ route('master.unit.store') }}"
-        submitText="Simpan"
-    >
-        <div class="form-group">
-            <label>Satuan</label>
-            <input type="text" placeholder="kg" class="form-control" name="satuan" required />
-        </div>
-        
-        <div class="form-group mt-2">
-            <label>Keterangan (Opsional)</label>
-            <input type="text" placeholder="Kilogram" class="form-control" name="keterangan" />
-        </div>
-    </x-modal-form>
+    @if ($canManage)
+        <x-modal-form id="modalAddUnit" title="Tambah Satuan" action="{{ route('master.unit.store') }}"
+            submitText="Simpan">
+            <div class="form-group">
+                <label>Satuan</label>
+                <input type="text" placeholder="kg" class="form-control" name="satuan" required />
+            </div>
 
-    {{-- MODAL EDIT --}}
-    <x-modal-form
-        id="modalEditUnit"
-        title="Edit Satuan"
-        action=""
-        submitText="Update"
-    >
-        @method('PUT')
-        
-        <div class="form-group">
-            <label>Satuan</label>
-            <input id="editSatuan" type="text" placeholder="kg" class="form-control" name="satuan" required />
-        </div>
-        
-        <div class="form-group mt-2">
-            <label>Keterangan (Opsional)</label>
-            <input id="editKeterangan" type="text" placeholder="Kilogram" class="form-control" name="keterangan" />
-        </div>
-    </x-modal-form>
+            <div class="form-group mt-2">
+                <label>Keterangan (Opsional)</label>
+                <input type="text" placeholder="Kilogram" class="form-control" name="keterangan" />
+            </div>
+        </x-modal-form>
 
-    {{-- MODAL DELETE --}}
-    <x-modal-delete 
-        id="modalDeleteUnit" 
-        formId="formDeleteUnit" 
-        title="Konfirmasi Hapus" 
-        message="Apakah Anda yakin ingin menghapus data ini?" 
-        confirmText="Hapus" 
-    />
+        {{-- MODAL EDIT --}}
+        <x-modal-form id="modalEditUnit" title="Edit Satuan" action="" submitText="Update">
+            @method('PUT')
+
+            <div class="form-group">
+                <label>Satuan</label>
+                <input id="editSatuan" type="text" placeholder="kg" class="form-control" name="satuan" required />
+            </div>
+
+            <div class="form-group mt-2">
+                <label>Keterangan (Opsional)</label>
+                <input id="editKeterangan" type="text" placeholder="Kilogram" class="form-control" name="keterangan" />
+            </div>
+        </x-modal-form>
+
+        {{-- MODAL DELETE --}}
+        <x-modal-delete id="modalDeleteUnit" formId="formDeleteUnit" title="Konfirmasi Hapus"
+            message="Apakah Anda yakin ingin menghapus data ini?" confirmText="Hapus" />
     @endif
 
 @endsection
 
 @section('js')
-    @if($canManage)
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
+    @if ($canManage)
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
 
-            document.querySelectorAll('.btnEditUnit').forEach(btn => {
-                btn.addEventListener('click', function () {
+                document.querySelectorAll('.btnEditUnit').forEach(btn => {
+                    btn.addEventListener('click', function() {
 
-                    const id = this.dataset.id;
+                        const id = this.dataset.id;
 
-                    // Isi field modal edit
-                    document.getElementById('editSatuan').value = this.dataset.satuan;
-                    document.getElementById('editKeterangan').value = this.dataset.keterangan;
+                        // Isi field modal edit
+                        document.getElementById('editSatuan').value = this.dataset.satuan;
+                        document.getElementById('editKeterangan').value = this.dataset.keterangan;
 
-                    // Set action form update
-                    document.querySelector('#modalEditUnit form').action =
-                        "{{ url('/dashboard/master/satuan') }}/" + id;
+                        // Set action form update
+                        document.querySelector('#modalEditUnit form').action =
+                            "{{ url('/dashboard/master/satuan') }}/" + id;
+                    });
                 });
-            });
 
-        });
-    </script>
+            });
+        </script>
     @endif
 @endsection

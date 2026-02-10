@@ -67,7 +67,6 @@ class RoleController extends Controller
         $role->syncPermissions($request->permissions ?? []);
 
         return back()->with('success', 'Role berhasil diperbarui');
-
     }
 
     /**
@@ -76,7 +75,11 @@ class RoleController extends Controller
     public function destroy(string $id)
     {
         //
-        Role::findOrFail($id)->delete();
+        $role =Role::findOrFail($id)->delete();
+
+        if (strtolower($role->name) === 'superadmin') {
+            return redirect()->back()->with('error', 'Role Superadmin tidak dapat dihapus!');
+        }
         return back()->with('success', 'Role berhasil dihapus');
     }
 }
