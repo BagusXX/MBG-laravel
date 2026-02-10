@@ -68,7 +68,6 @@
     {{-- TABLE DATA --}}
     <div class="card">
         <div class="card-body">
-            <div class="table-responsive"></div>
             <table class="table table-bordered table-striped" id="tableApproval">
                 <thead>
                     <tr>
@@ -111,7 +110,7 @@
                                         <span class="badge badge-{{
                         $item->status === 'selesai' ? 'success' :
                         ($item->status === 'diproses' ? 'info' : 'warning')
-                                        }}">
+                                                                                        }}">
                                             {{ strtoupper($item->status) }}
                                         </span>
                                     </td>
@@ -136,12 +135,10 @@
                     @endforeach
                 </tbody>
             </table>
+            <div class="mt-3 d-flex justify-content-end">
+                {{ $submissions->links('pagination::bootstrap-4') }}
+            </div>
         </div>
-         <div class="mt-3 d-flex justify-content-end">
-        {{ $submissions->links('pagination::bootstrap-4') }}
-    </div>
-    </div>
-   
     </div>
 
     {{-- =========================
@@ -275,9 +272,10 @@
                                         <th width="90" class="text-center">Qty</th>
                                         <th width="80" class="text-center">Satuan</th>
                                         {{-- DUA KOLOM HARGA DITAMPILKAN --}}
-                                        <th width="140" class="text-right">Hrg Dapur</th>
-                                        <th width="140" class="text-right">Hrg Mitra</th>
-                                        {{-- <th width="150" class="text-right">Subtotal</th> --}}
+                                        <th width="130" class="text-right">Harga Dapur</th>
+                                        <th width="130" class="text-right">Harga Mitra</th>
+                                        <th width="140" class="text-right">Subtotal Dapur</th>
+                                        <th width="140" class="text-right">Subtotal Mitra</th>
                                         <th width="50" class="action-only"></th>
                                     </tr>
                                 </thead>
@@ -323,6 +321,16 @@
             <label>Pilih Bahan Baku</label>
             <select id="selectBahanManual" class="form-control" style="width: 100%"></select>
         </div>
+        {{-- INPUT FIELD SATUAN BARU --}}
+        <div class="form-group">
+            <label>Satuan</label>
+            <select id="satuanBahanManualId" class="form-control select2" style="width: 100%">
+                <option value="">- Pilih Satuan -</option>
+                @foreach($units as $u)
+                    <option value="{{ $u->id }}">{{ $u->satuan }}</option>
+                @endforeach
+            </select>
+        </div>
         <div class="form-group">
             <label>Jumlah (Qty)</label>
             <input type="number" id="qtyBahanManual" class="form-control" step="0.0001" min="0.0001">
@@ -360,6 +368,7 @@
         $(document).ready(function () {
 
             $('#selectBahanManual').select2({ dropdownParent: $('#modalAddBahanManual') });
+            $('#satuanBahanManualId').select2({ dropdownParent: $('#modalAddBahanManual') });
 
             // Prevent scroll number input
             $('form').on('wheel', 'input[type=number]', function (e) {
@@ -446,45 +455,45 @@
                             h.items.forEach(item => {
                                 // Sesuaikan key dengan controller (qty, satuan, harga)
                                 itemsHtml += `
-                                    <li>
-                                        ${item.nama}
-                                        <span class="text-muted small">(${formatQty(item.qty)} ${item.unit} x ${formatRupiah(item.harga_dapur)})</span>
-                                    </li>
-                                `;
+                                                <li>
+                                                    ${item.nama}
+                                                    <span class="text-muted small">(${formatQty(item.qty)} ${item.unit} x ${formatRupiah(item.harga_dapur)})</span>
+                                                </li>
+                                            `;
                             });
                         } else {
                             itemsHtml = `<li class="text-muted font-italic small">Tidak ada item</li>`;
                         }
 
                         historyHtml += `
-                            <div class="card mb-2 border">
-                                <div class="card-body p-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <div>
-                                            <strong class="text-dark">${h.kode}</strong> 
-                                            <span class="text-muted mx-2">|</span> 
-                                            <i class="fas fa-truck mr-1 text-secondary"></i> ${h.supplier_nama}
-                                        </div>
-                                        <div class="d-flex align-items-center">
-                                            <span class="badge badge-success mr-3 px-2 py-1">DISETUJUI</span>
-                                            <strong class="mr-3 text-dark">${formatRupiah(h.total)}</strong>
+                                        <div class="card mb-2 border">
+                                            <div class="card-body p-3">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <div>
+                                                        <strong class="text-dark">${h.kode}</strong> 
+                                                        <span class="text-muted mx-2">|</span> 
+                                                        <i class="fas fa-truck mr-1 text-secondary"></i> ${h.supplier_nama}
+                                                    </div>
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="badge badge-success mr-3 px-2 py-1">DISETUJUI</span>
+                                                        <strong class="mr-3 text-dark">${formatRupiah(h.total)}</strong>
 
-                                            <button class="btn btn-sm btn-outline-danger btn-delete-child action-only" 
-                                                    data-id="${h.id}" title="Hapus Split Order">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <ul class="mb-0 pl-3" style="font-size: 0.9em; list-style-type: disc;">
-                                        ${itemsHtml}
-                                    </ul>
-                                    <div class="text-right mt-2 border-top pt-2">
-                                        <a href="${invoiceUrl}" class="btn btn-sm btn-outline-secondary" target="_blank">
-                                            <i class="fas fa-print mr-1"></i> Cetak Invoice
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>`;
+                                                        <button class="btn btn-sm btn-outline-danger btn-delete-child action-only" 
+                                                                data-id="${h.id}" title="Hapus Split Order">
+                                                            <i class="fas fa-trash-alt"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <ul class="mb-0 pl-3" style="font-size: 0.9em; list-style-type: disc;">
+                                                    ${itemsHtml}
+                                                </ul>
+                                                <div class="text-right mt-2 border-top pt-2">
+                                                    <a href="${invoiceUrl}" class="btn btn-sm btn-outline-secondary" target="_blank">
+                                                        <i class="fas fa-print mr-1"></i> Cetak Invoice
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>`;
                     });
                 } else {
                     historyHtml = '<div class="text-muted font-italic text-center py-2 border bg-light rounded">Belum ada riwayat split order.</div>';
@@ -495,62 +504,75 @@
             // --- FUNGSI RENDER TABEL DETAIL (Menggantikan loadDetails) ---
             function renderDetailsTable(detailsData) {
                 let html = '';
-                let grandTotal = 0;
+                // let grandTotal = 0;
 
                 if (detailsData && detailsData.length > 0) {
                     detailsData.forEach(item => {
-                        // Kalkulasi Total untuk Tampilan Saja
-                        // (Logika harga: Subtotal Dapur jika Mitra 0/null)
-                        let hargaTampil = parseFloat(item.harga_dapur) || 0;
-                        // Jika ingin menampilkan total semu: hargaTampil = parseFloat(item.qty_digunakan) * (harga_satuan);
-                        // Tapi di controller Anda mengirim 'harga_dapur' SEBAGAI SUBTOTAL. Jadi langsung pakai.
-                        grandTotal += hargaTampil;
+                        // Pastikan nilai angka aman
+                        let qty = parseFloat(item.qty_digunakan) || 0;
+                        let hrgDapur = parseFloat(item.harga_dapur) || 0;
+                        let hrgMitra = parseFloat(item.harga_mitra) || 0;
 
-                        // Manual Label (Opsional, jika controller kirim null di recipe id)
-                        // let manualLabel = item.recipe_bahan_baku_id === null ? '<small class="text-info d-block font-italic">(Manual)</small>' : '';
-                        let manualLabel = '';
+                        // Subtotal dari server (atau hitung ulang via JS juga boleh)
+                        let subDapur = parseFloat(item.subtotal_dapur) || (qty * hrgDapur);
+                        let subMitra = parseFloat(item.subtotal_mitra) || (qty * hrgMitra);
+
+                        // Manual Label Logic
+                        let manualLabel = ''; // Sesuaikan jika ada logic manual
 
                         html += `
-                            <tr>
-                                <td class="text-center align-middle action-only">
-                                    <input type="checkbox" class="check-item" value="${item.id}">
-                                </td>
-                                <td class="align-middle">
-                                    <span class="text-dark font-weight-bold">${item.nama_bahan}</span>
-                                    ${manualLabel}
-                                    <input type="hidden" name="details[${item.id}][id]" value="${item.id}">
-                                    {{-- Hidden Input Satuan ID agar ikut terkirim saat save --}}
-                                    <input type="hidden" name="details[${item.id}][satuan_id]" value="${item.satuan_id}">
-                                </td>
-                                <td class="align-middle px-1">
-                                    <input type="number" step="0.0001" class="form-control form-control-sm text-center bg-light" 
-                                        name="details[${item.id}][qty_digunakan]" value="${item.qty_digunakan}">
-                                </td>
-                                <td class="text-center align-middle">
-                                    <span class="badge badge-light border">${item.nama_satuan}</span>
-                                </td>
+                                    <tr>
+                                        <td class="text-center align-middle action-only">
+                                            <input type="checkbox" class="check-item" value="${item.id}">
+                                        </td>
+                                        <td class="align-middle">
+                                            <span class="text-dark font-weight-bold">${item.bahan_baku_nama || item.nama_bahan}</span>
+                                            ${manualLabel}
+                                            <input type="hidden" name="details[${item.id}][id]" value="${item.id}">
+                                            <input type="hidden" name="details[${item.id}][satuan_id]" value="${item.satuan_id}">
+                                        </td>
 
-                                {{-- KOLOM HARGA DAPUR --}}
-                                <td class="align-middle px-1">
-                                    <input type="number" class="form-control form-control-sm text-right" 
-                                        name="details[${item.id}][harga_dapur]" 
-                                        value="${item.harga_dapur}" placeholder="0">
-                                </td>
+                                        {{-- QTY --}}
+                                        <td class="align-middle px-1">
+                                            <input type="number" step="0.0001" class="form-control form-control-sm text-center bg-light input-hitung input-qty" 
+                                                name="details[${item.id}][qty_digunakan]" value="${item.qty_digunakan}">
+                                        </td>
 
-                                {{-- KOLOM HARGA MITRA --}}
-                                <td class="align-middle px-1">
-                                    <input type="number" class="form-control form-control-sm text-right border-info" 
-                                        name="details[${item.id}][harga_mitra]" 
-                                        value="${item.harga_mitra}" placeholder="0">
-                                </td>
+                                        {{-- SATUAN --}}
+                                        <td class="text-center align-middle">
+                                            <span class="badge badge-light border">${item.nama_satuan}</span>
+                                        </td>
 
-                                <td class="text-center align-middle action-only">
-                                    <button type="button" class="btn btn-link text-danger btn-delete-detail" data-id="${item.id}">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        `;
+                                        {{-- HARGA DAPUR (SATUAN) --}}
+                                        <td class="align-middle px-1">
+                                            <input type="number" step="0.01" class="form-control form-control-sm text-right input-hitung input-harga-dapur" 
+                                                name="details[${item.id}][harga_dapur]" 
+                                                value="${hrgDapur}" placeholder="0"> 
+                                        </td>
+
+                                        {{-- HARGA MITRA (SATUAN) --}}
+                                        <td class="align-middle px-1">
+                                            <input type="number" step="0.01" class="form-control form-control-sm text-right border-info input-hitung input-harga-mitra" 
+                                                name="details[${item.id}][harga_mitra]" 
+                                                value="${hrgMitra}" placeholder="0"> </td>
+
+                                        {{-- SUBTOTAL DAPUR (READONLY) --}}
+                                        <td class="align-middle px-1">
+                                            <input type="text" class="form-control form-control-sm text-right bg-light text-bold subtotal-dapur" 
+                                                readonly value="${formatRupiahInput(subDapur)}"> </td>
+
+                                        {{-- SUBTOTAL MITRA (READONLY) --}}
+                                        <td class="align-middle px-1">
+                                            <input type="text" class="form-control form-control-sm text-right bg-light text-bold subtotal-mitra" 
+                                                readonly value="${formatRupiahInput(subMitra)}"> </td>
+
+                                        <td class="text-center align-middle action-only">
+                                            <button type="button" class="btn btn-link text-danger btn-delete-detail" data-id="${item.id}">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `;
                     });
                 } else {
                     html = '<tr><td colspan="7" class="text-center py-3 text-muted">Tidak ada item bahan baku.</td></tr>';
@@ -563,6 +585,28 @@
                     setReadonlyMode(true);
                 }
             }
+
+            const formatRupiahInput = (num) => {
+                return parseFloat(num).toLocaleString('id-ID', { minimumFractionDigits: 0 });
+            };
+
+            // --- 3. LOGIKA HITUNG OTOMATIS (LIVE CALCULATION) ---
+            $(document).on('input', '.input-hitung', function () {
+                let row = $(this).closest('tr');
+
+                // Ambil nilai
+                let qty = parseFloat(row.find('.input-qty').val()) || 0;
+                let hargaDapur = parseFloat(row.find('.input-harga-dapur').val()) || 0;
+                let hargaMitra = parseFloat(row.find('.input-harga-mitra').val()) || 0;
+
+                // Hitung
+                let subDapur = qty * hargaDapur;
+                let subMitra = qty * hargaMitra;
+
+                // Tampilkan (Formatted)
+                row.find('.subtotal-dapur').val(formatRupiahInput(subDapur));
+                row.find('.subtotal-mitra').val(formatRupiahInput(subMitra));
+            });
 
             // --- HAPUS SPLIT ORDER ---
             $(document).on('click', '.btn-delete-child', function () {
@@ -696,40 +740,90 @@
 
                 $.get(url, function (data) {
                     let opts = '<option value="">Pilih Bahan</option>';
-                    data.forEach(b => opts += `<option value="${b.id}">${b.nama} (${b.unit?.satuan})</option>`);
+                    data.forEach(b => {
+                        // Kita simpan nama satuan di 'data-unit-nama' agar bisa diambil saat change
+                        let unitNama = b.unit?.satuan || '-';
+                        opts += `<option value="${b.id}" data-satuan="${b.satuan_id}" data-unit-nama="${unitNama}">${b.nama}</option>`;
+                    });
                     $('#selectBahanManual').html(opts);
                     $('#modalAddBahanManual').modal('show');
                 });
             });
 
-            $('#modalAddBahanManual form').submit(function (e) {
+            // Tambahkan listener ketika pilihan bahan berubah
+            $('#selectBahanManual').on('change', function () {
+                let selected = $(this).find(':selected');
+                let satuanId = selected.data('satuan');
+                let unitNama = selected.data('unit-nama'); // Kita akan tambahkan atribut ini nanti
+
+                if (satuanId) {
+                    $('#satuanBahanManualId').val(satuanId).trigger('change');
+                    $('#satuanBahanManualNama').val(unitNama);
+                } else {
+                    $('#satuanBahanManualId').val('').trigger('change');
+                    $('#satuanBahanManualNama').val('-');
+                }
+            });
+
+            // Cari form di dalam modal dan handle submitnya
+            // Gunakan pendekatan delegasi atau find agar lebih akurat
+            // Gunakan selektor ini agar pasti menangkap form di dalam modal
+            $(document).on('submit', '#modalAddBahanManual form', function (e) {
                 e.preventDefault();
-                // Ambil text option terpilih untuk mencari ID Satuan (jika tidak ada di value)
-                // Namun sebaiknya endpoint helper di atas juga mengembalikan ID satuan.
-                // Asumsi: Backend handle satuan via relasi bahan baku, atau Anda perlu mengirim satuan_id.
 
-                // NOTE: Di controller `addManualBahan`, Anda memvalidasi `satuan_id`. 
-                // Pastikan Anda mengirim `satuan_id`. Jika UI select2 belum punya data satuan_id, 
-                // Anda perlu mengambilnya saat select berubah atau simpan di data-attribute option.
+                let form = $(this);
+                let btnSubmit = form.find('button[type="submit"]');
+                let originalText = btnSubmit.html();
 
-                // Untuk SEMENTARA, saya asumsikan controller bisa mencari satuan default jika tidak dikirim, 
-                // ATAU kita perlu ambil satuan_id dari data json helper tadi.
+                // Pastikan currentSubmissionId tidak null
+                if (!currentSubmissionId) {
+                    toastr.error('ID Pengajuan tidak ditemukan. Silakan refresh halaman.');
+                    return;
+                }
 
-                // SOLUSI CEPAT: Ubah value option menjadi "bahanID|satuanID" atau simpan data satuan di variable global temp.
-                // Tapi karena JS ini panjang, pastikan Controller `addManualBahan` Anda bisa menerima bahan_baku_id saja lalu cari satuan defaultnya, 
-                // ATAU tambahkan input hidden satuan_id di modal manual.
+                // Ambil data dari input
+                let selectedOption = $('#selectBahanManual').find(':selected');
+                let bahanId = $('#selectBahanManual').val();
+                let qty = $('#qtyBahanManual').val();
+                let satuanId = $('#satuanBahanManualId').val(); // AMBIL DARI INPUT HIDDEN BARU
 
-                // Biarkan request ini jalan dulu, cek error di network tab jika satuan required.
-                $.post("{{ url('dashboard/transaksi/approval-menu') }}/" + currentSubmissionId + "/add-manual", {
-                    _token: '{{ csrf_token() }}',
-                    bahan_baku_id: $('#selectBahanManual').val(),
-                    qty_digunakan: $('#qtyBahanManual').val(),
-                    // satuan_id: ??? (Perlu ditambah logic pengambilan satuan ID)
-                    // Untuk sementara hardcode '1' atau ubah controller agar auto-detect satuan dari bahan baku
-                    satuan_id: 1 // TODO: PERBAIKI LOGIC INI AGAR DINAMIS
-                }, function () {
-                    $('#modalAddBahanManual').modal('hide');
-                    loadAllData(); // REFRESH DATA
+                if (!bahanId || !qty || !satuanId) {
+                    toastr.warning('Bahan, Satuan, dan Qty wajib tersedia');
+                    return;
+                }
+
+                // Beri efek loading agar user tidak klik berkali-kali
+                btnSubmit.html('<i class="fas fa-spinner fa-spin"></i> Menambahkan...').prop('disabled', true);
+
+                $.ajax({
+                    url: "{{ url('dashboard/transaksi/approval-menu') }}/" + currentSubmissionId + "/add-manual",
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        bahan_baku_id: bahanId,
+                        qty_digunakan: qty,
+                        satuan_id: satuanId,
+                        harga_total: 0 // Inisialisasi harga awal
+                    },
+                    success: function (res) {
+                        $('#modalAddBahanManual').modal('hide');
+                        form[0].reset();
+                        // Reset tambahan untuk field manual
+                        $('#satuanBahanManualId').val('').trigger('change');
+                        $('#satuanBahanManualNama').val('-');
+                        $('#selectBahanManual').val('').trigger('change');
+
+                        loadAllData();
+                        toastr.success('Item berhasil ditambahkan');
+                    },
+                    error: function (xhr) {
+                        let errorMsg = xhr.responseJSON?.message || 'Gagal menambah item';
+                        toastr.error(errorMsg);
+                    },
+                    complete: function () {
+                        // Kembalikan tombol ke keadaan semula
+                        btnSubmit.html(originalText).prop('disabled', false);
+                    }
                 });
             });
 
@@ -776,17 +870,22 @@
             }
 
             function toNumber(val) {
-                if (val === null || val === undefined) return 0;
+                if (val === null || val === undefined || val === '') return 0;
                 val = val.toString().trim();
 
-                // hapus Rp, spasi
+                // Hapus "Rp" dan spasi
                 val = val.replace(/rp/gi, '').replace(/\s/g, '');
 
-                // hapus pemisah ribuan titik
-                val = val.replace(/\./g, '');
-
-                // ubah koma desimal ke titik
-                val = val.replace(/,/g, '.');
+                // Deteksi format:
+                // Jika ada koma, asumsikan format Indonesia (ribuan titik, desimal koma)
+                // Contoh: 1.500,50 -> jadi 1500.50
+                if (val.indexOf(',') !== -1) {
+                    val = val.replace(/\./g, ''); // Hapus ribuan (titik)
+                    val = val.replace(/,/g, '.'); // Ubah desimal (koma) jadi titik
+                } else {
+                    // Jika tidak ada koma, tapi ada titik, asumsikan itu desimal biasa (jika input type="number" step="any")
+                    // Biarkan saja, atau handle ribuan jika input text
+                }
 
                 let num = parseFloat(val);
                 return isNaN(num) ? 0 : num;
