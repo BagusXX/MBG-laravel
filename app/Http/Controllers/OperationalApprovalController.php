@@ -14,16 +14,30 @@ class OperationalApprovalController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    protected function userKitchenCodes()
+    {
+        return auth()->user()->kitchens()->pluck('kode');
+    }
+
     public function index()
     {
         $user = Auth::user();
-        $kitchens = $user->kitchens()->orderBy('nama')->get();
-        $kitchenCodes = $kitchens->pluck('kode'); // A
+
+        $kitchens = $user->kitchens()
+            ->orderBy('nama')
+            ->get();
+
+        $kitchenCodes = $this->userKitchenCodes();
 
         $submissions = submissionOperational::onlyParent()
             ->pengajuan()
+            ->whereHas('kitchen', function ($q) use ($kitchenCodes) {
+                $q->whereIn('kode', $kitchenCodes);
+            })
             ->with(['details.operational', 'kitchen', 'supplier'])
-            ->orderBy('created_at', 'desc')
+            // ->orderBy('created_at', 'desc')
+            ->latest()
             ->get()
             ->paginate(perPage: 10);
 
