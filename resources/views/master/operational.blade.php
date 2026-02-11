@@ -13,7 +13,7 @@
 @section('content')
 
     {{-- BUTTON ADD --}}
-    @if ($canManage)
+    
         <div class="row mb-3">
             <div class="col-md-6">
 
@@ -41,7 +41,7 @@
                 </form>
             </div>
         </div>
-    @endif
+    
 
     <x-notification-pop-up />
 
