@@ -137,6 +137,28 @@ class SubmissionController extends Controller
     {
         $kitchenCodes = $this->userKitchenCodes();
 
+        if ($request->has('items')) {
+            $items = $request->items;
+            foreach ($items as $key => $val) {
+                // List kolom yang butuh desimal
+                $fields = ['qty', 'harga_dapur', 'harga_mitra'];
+                
+                foreach ($fields as $field) {
+                    if (isset($val[$field])) {
+                        //    Tapi untuk format Indonesia (Ribuan=Titik, Desimal=Koma), ini WAJIB ada.
+                        $clean = str_replace('.', '', $val[$field]);
+                        
+                        // 2. Ganti koma jadi titik (agar terbaca sebagai desimal oleh PHP/MySQL)
+                        $clean = str_replace(',', '.', $clean);
+
+                        $items[$key][$field] = $clean;
+                    }
+                }
+            }
+            // Masukkan kembali data yang sudah bersih ke request
+            $request->merge(['items' => $items]);
+        }
+
         $request->validate([
             'tanggal' => 'required|date',
             'tanggal_digunakan' => 'required|date',
@@ -196,6 +218,22 @@ class SubmissionController extends Controller
 
         $kitchenCodes = $this->userKitchenCodes();
         abort_if(!in_array($submission->kitchen->kode, $kitchenCodes->toArray()), 403);
+
+        // --- TAMBAHAN: SANITASI INPUT ANGKA (Sama seperti Store) ---
+        if ($request->has('items')) {
+            $items = $request->items;
+            foreach ($items as $key => $val) {
+                $fields = ['qty', 'harga_dapur', 'harga_mitra'];
+                foreach ($fields as $field) {
+                    if (isset($val[$field])) {
+                        $clean = str_replace('.', '', $val[$field]); // Hapus ribuan
+                        $clean = str_replace(',', '.', $clean);      // Ubah desimal
+                        $items[$key][$field] = $clean;
+                    }
+                }
+            }
+            $request->merge(['items' => $items]);
+        }
 
         $request->validate([
             'tanggal_digunakan' => 'nullable|date',

@@ -596,6 +596,14 @@
         $(document).on('input', '.input-qty, .input-harga-dapur, .input-harga-mitra', function() {
             // Cari baris (tr) terdekat dari input yang sedang diketik
             let row = $(this).closest('tr');
+
+            // Fungsi helper untuk menangani koma atau titik
+            const parseLocaleNumber = (val) => {
+                if(!val) return 0;
+                // Ganti koma menjadi titik agar bisa di-parse oleh parseFloat
+                let cleanVal = val.toString().replace(/,/g, '.');
+                return parseFloat(cleanVal) || 0;
+            };
             
             // Ambil nilai-nilainya
             let qty = parseFloat(row.find('.input-qty').val()) || 0;
@@ -635,7 +643,7 @@
                                 </select>
                             </td>
                             <td>
-                                <input type="number" step="any" name="items[${rowIdx}][qty]" class="form-control form-control-sm text-center input-qty" placeholder="0" required>
+                                <input type="text" step="any" name="items[${rowIdx}][qty]" class="form-control form-control-sm text-center input-qty" placeholder="0" required>
                             </td>
                             <td>
                                 <select name="items[${rowIdx}][satuan_id]" class="form-control form-control-sm" required>
@@ -644,13 +652,13 @@
                             </td>
                             <td>
                                 <div class="input-group input-group-sm">
-                                    <input type="number" name="items[${rowIdx}][harga_dapur]" class="form-control input-harga-dapur" placeholder="Harga">
+                                    <input type="text" name="items[${rowIdx}][harga_dapur]" class="form-control input-harga-dapur" placeholder="Harga">
                                 </div>
                             </td>
                             
                             <td>
                                 <div class="input-group input-group-sm">
-                                    <input type="number" name="items[${rowIdx}][harga_mitra]" class="form-control input-harga-mitra" placeholder="Harga">
+                                    <input type="text" name="items[${rowIdx}][harga_mitra]" class="form-control input-harga-mitra" placeholder="Harga">
                                 </div>
                             </td>
                             <td>
@@ -970,7 +978,7 @@
                             </select>
                         </td>
                         <td>
-                            <input type="number" step="any" name="items[${idx}][qty]" class="form-control form-control-sm text-center input-qty" placeholder="0">
+                            <input type="text" step="any" name="items[${idx}][qty]" class="form-control form-control-sm text-center input-qty" placeholder="0">
                         </td>
                         <td>
                             <select name="items[${idx}][satuan_id]" class="form-control form-control-sm">
@@ -979,12 +987,12 @@
                         </td>
                         <td>
                             <div class="input-group input-group-sm">
-                                <input type="number" name="items[${idx}][harga_dapur]" class="form-control input-harga-dapur" placeholder="Harga Dapur">
+                                <input type="text" step="any" name="items[${idx}][harga_dapur]" class="form-control input-harga-dapur" placeholder="Harga Dapur">
                             </div>
                         </td>
                         <td>
                             <div class="input-group input-group-sm">
-                                <input type="number" name="items[${idx}][harga_mitra]" class="form-control input-harga-mitra" placeholder="Harga Mitra">
+                                <input type="text" step="any" name="items[${idx}][harga_mitra]" class="form-control input-harga-mitra" placeholder="Harga Mitra">
                             </div>
                         </td>
                         <td>
