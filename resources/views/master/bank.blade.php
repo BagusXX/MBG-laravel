@@ -29,8 +29,7 @@
                         <th>Nama Bank</th>
                         <th>Nasabah (Holder)</th>
                         <th>No. Rekening</th>
-                        @canany(['master.supplier.update',
-                                            'master.supplier.delete'])
+                        @canany(['master.bank.update', 'master.bank.delete'])
                             <th>Aksi</th>
                         @endcanany
                     </tr>
@@ -50,26 +49,37 @@
                             <td>{{ $bank->account_holder_name }}</td>
                             <td>{{ $bank->account_number }}</td>
 
-                            @can('master.bank.update')
+                            {{-- Ganti bagian aksi di dalam tbody --}}
+                            @canany(['master.bank.update', 'master.bank.delete'])
                                 <td>
-                                    <button type="button" class="btn btn-warning btn-sm btnEditBank" data-id="{{ $bank->id }}"
-                                        data-suppliers_id="{{ $bank->suppliers_id }}" data-bank_name="{{ $bank->bank_name }}"
-                                        data-account_holder_name="{{ $bank->account_holder_name }}"
-                                        data-account_number="{{ $bank->account_number }}" data-toggle="modal"
-                                        data-target="#modalEditBank">
-                                        Edit
-                                    </button>
+                                    @can('master.bank.update')
+                                        <button type="button" class="btn btn-warning btn-sm btnEditBank" data-id="{{ $bank->id }}"
+                                            data-suppliers_id="{{ $bank->suppliers_id }}" data-bank_name="{{ $bank->bank_name }}"
+                                            data-account_holder_name="{{ $bank->account_holder_name }}"
+                                            data-account_number="{{ $bank->account_number }}" data-toggle="modal"
+                                            data-target="#modalEditBank">
+                                            Edit
+                                        </button>
+                                    @endcan
 
-                                    {{-- PERUBAHAN DISINI: route('master.bank.delete') menjadi route('master.bank.destroy') --}}
-                                    <x-button-delete idTarget="#modalDeleteBank" formId="formDeleteBank"
-                                        action="{{ route('master.bank.destroy', $bank->id) }}" text="Hapus" />
+                                    @can('master.bank.delete')
+                                        <x-button-delete idTarget="#modalDeleteBank" formId="formDeleteBank"
+                                            action="{{ route('master.bank.destroy', $bank->id) }}" text="Hapus" />
+                                    @endcan
                                 </td>
-                            @endcan
+                            @endcanany
                         </tr>
+                        {{-- Ganti bagian @empty --}}
                     @empty
                         <tr>
-                            <td colspan="{{ (isset($canManage) && $canManage) ? '6' : '5' }}" class="text-center">Belum ada data
-                                akun bank</td>
+                            @php
+                                // Hitung kolom: 5 kolom utama + 1 kolom aksi jika punya izin
+                                $canSeeAksi = auth()->user()->can('master.bank.update') || auth()->user()->can('master.bank.delete');
+                                $colspan = $canSeeAksi ? 6 : 5;
+                            @endphp
+                            <td colspan="{{ $colspan }}" class="text-center">
+                                Belum ada data akun bank
+                            </td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -80,7 +90,7 @@
         </div>
     </div>
 
-    @if(isset($canManage) && $canManage)
+    
         {{-- MODAL ADD AKUN BANK --}}
         {{-- Route store tetap sama: master.bank.store --}}
         <x-modal-form id="modalAddBank" title="Tambah Akun Bank" action="{{ route('master.bank.store') }}" submitText="Simpan">
@@ -142,11 +152,8 @@
 
             <div class="form-group mt-2">
                 <label>No. Rekening</label>
-                <input id="editAccountNumber" type="text" 
-                    class="form-control @error('account_number') is-invalid @enderror" 
-                    name="account_number" 
-                    value="{{ old('account_number') }}"
-                    required />
+                <input id="editAccountNumber" type="text" class="form-control @error('account_number') is-invalid @enderror"
+                    name="account_number" value="{{ old('account_number') }}" required />
                 @error('account_number')
                     <span class="invalid-feedback">{{ $message }}</span>
                 @enderror
@@ -155,7 +162,7 @@
 
         <x-modal-delete id="modalDeleteBank" formId="formDeleteBank" title="Konfirmasi Hapus"
             message="Apakah Anda yakin ingin menghapus data ini?" confirmText="Hapus" />
-    @endif
+    
 
 @endsection
 
@@ -163,40 +170,40 @@
 @section('js')
     @if(isset($canManage) && $canManage)
         <script>
-            
+
             document.addEventListener('DOMContentLoaded', function () {
                 console.log("JS Loaded"); // Cek ini di Console F12
 
                 // Fungsi Pengecekan
-            async function isAccountDuplicate(accountNumber, currentId = null) {
-                if (!accountNumber) return false;
-                
-                // Tambahkan URL param agar lebih jelas
-                const url = `{{ route('master.bank.check') }}?account_number=${accountNumber}${currentId ? '&id=' + currentId : ''}`;
-                
-                try {
-                    const response = await fetch(url, {
-                        method: 'GET',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Content-Type': 'application/json'
-                        }
-                    });
+                async function isAccountDuplicate(accountNumber, currentId = null) {
+                    if (!accountNumber) return false;
 
-                    if (!response.ok) {
-                        // Jika masih error 500, kita bisa baca pesan errornya di console
-                        const errData = await response.json();
-                        console.error("Server Error Detail:", errData);
+                    // Tambahkan URL param agar lebih jelas
+                    const url = `{{ route('master.bank.check') }}?account_number=${accountNumber}${currentId ? '&id=' + currentId : ''}`;
+
+                    try {
+                        const response = await fetch(url, {
+                            method: 'GET',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Content-Type': 'application/json'
+                            }
+                        });
+
+                        if (!response.ok) {
+                            // Jika masih error 500, kita bisa baca pesan errornya di console
+                            const errData = await response.json();
+                            console.error("Server Error Detail:", errData);
+                            return false;
+                        }
+
+                        const data = await response.json();
+                        return data.exists;
+                    } catch (e) {
+                        console.error("Fetch error", e);
                         return false;
                     }
-
-                    const data = await response.json();
-                    return data.exists;
-                } catch (e) {
-                    console.error("Fetch error", e);
-                    return false;
                 }
-            }
 
                 // 1. PENANGANAN MODAL ADD
                 const modalAdd = document.getElementById('modalAddBank');
@@ -238,7 +245,7 @@
                             document.getElementById('editBankName').value = this.dataset.bank_name;
                             document.getElementById('editHolderName').value = this.dataset.account_holder_name;
                             inputEdit.value = this.dataset.account_number;
-                            
+
                             formEdit.action = "{{ url('/dashboard/master/bank') }}/" + currentEditId;
                         });
                     });

@@ -18,7 +18,7 @@ class SubmissionApprovalController extends Controller
 
     protected function ensureEditable(Submission $submission)
     {
-        abort_if(!$submission->isParent(), 403, 'Hanya parent submission');
+        //abort_if(!$submission->isParent(), 403, 'Hanya parent submission');
         abort_if($submission->status === 'selesai', 403, 'Submission terkunci');
     }
 
@@ -127,9 +127,9 @@ class SubmissionApprovalController extends Controller
                 'satuan_id' => $detail->satuan_id,
                 // Prioritas nama satuan: dari tabel details -> dari master bahan
                 'nama_satuan' => $detail->unit->satuan ?? ($detail->bahan_baku->unit->satuan ?? '-'),
-                
+
                 // PERBAIKAN: Kirim Harga Satuan murni untuk Input
-                'harga_dapur' => (float) $detail->harga_dapur, 
+                'harga_dapur' => (float) $detail->harga_dapur,
                 'harga_mitra' => (float) $detail->harga_mitra,
 
                 // PERBAIKAN: Kirim Subtotal untuk Tampilan Readonly
@@ -256,15 +256,38 @@ class SubmissionApprovalController extends Controller
 
     public function deleteDetail(Submission $submission, SubmissionDetails $detail)
     {
-        $this->ensureEditable($submission);
-        abort_if($detail->submission_id !== $submission->id, 403);
+        try {
+            // 1. Cek apakah status masih boleh diedit
+            $this->ensureEditable($submission);
 
-        DB::transaction(function () use ($detail, $submission) {
-            $detail->delete();
-            $this->recalculateTotal($submission);
-        });
+            // --- PERBAIKAN DI SINI (Gunakan casting (int) agar aman) ---
+            if ((int) $detail->submission_id != (int) $submission->id) {
+                return response()->json([
+                    'success' => false,
+                    // Saya tambahkan info ID di pesan error agar Anda bisa cek jika masih salah
+                    'message' => 'ID Mismatch. Detail milik ID: ' . $detail->submission_id . ', Header ID: ' . $submission->id
+                ], 403);
+            }
 
-        return response()->json(['success' => true]);
+            DB::transaction(function () use ($detail, $submission) {
+                // 2. Hapus data detail
+                $detail->delete();
+
+                // 3. Hitung ulang total_harga di tabel submissions (Header)
+                $this->recalculateTotal($submission);
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Item berhasil dihapus dan total diperbarui.'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function getSubmissionData(Submission $submission)
@@ -413,6 +436,7 @@ class SubmissionApprovalController extends Controller
 
     public function destroyChild(Submission $submission)
     {
+
         abort_if(!$submission->isChild(), 403, 'Hanya split order (child) yang bisa dihapus.');
 
         $parent = $submission->parentSubmission;
