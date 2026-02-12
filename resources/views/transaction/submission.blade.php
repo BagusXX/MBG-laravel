@@ -599,24 +599,37 @@
 
             // Fungsi helper untuk menangani koma atau titik
             const parseLocaleNumber = (val) => {
-                if(!val) return 0;
-                // Ganti koma menjadi titik agar bisa di-parse oleh parseFloat
-                let cleanVal = val.toString().replace(/,/g, '.');
-                return parseFloat(cleanVal) || 0;
+                if (!val) return 0;
+                let str = val.toString();
+
+                // // Langkah 1: Buang semua titik (.) (karena ini cuma pemisah ribuan)
+                // str = str.replace(/\./g, '');
+
+                // Langkah 2: Ubah koma (,) jadi titik (.) (agar komputer mengerti ini desimal)
+                str = str.replace(/,/g, '.');
+
+                return parseFloat(str) || 0;
             };
             
             // Ambil nilai-nilainya
-            let qty = parseFloat(row.find('.input-qty').val()) || 0;
-            let hargaDapur = parseFloat(row.find('.input-harga-dapur').val()) || 0;
-            let hargaMitra = parseFloat(row.find('.input-harga-mitra').val()) || 0;
+            let qty = parseLocaleNumber(row.find('.input-qty').val()) || 0;
+            let hargaDapur = parseLocaleNumber(row.find('.input-harga-dapur').val()) || 0;
+            let hargaMitra = parseLocaleNumber(row.find('.input-harga-mitra').val()) || 0;
             
             // Hitung
             let subtotalDapur = qty * hargaDapur;
             let subtotalMitra = qty * hargaMitra;
             
             // Tampilkan di kolom readonly (Formatted dengan formatRupiah jika ingin, atau angka biasa)
-            row.find('.total-dapur').val(subtotalDapur.toLocaleString('id-ID'));
-            row.find('.total-mitra').val(subtotalMitra.toLocaleString('id-ID'));
+            row.find('.total-dapur').val(subtotalDapur.toLocaleString('id-ID', {
+                    minimumFractionDigits: 0, 
+                    maximumFractionDigits: 2 
+                }));
+
+                row.find('.total-mitra').val(subtotalMitra.toLocaleString('id-ID', {
+                    minimumFractionDigits: 0, 
+                    maximumFractionDigits: 2 
+                }));
         });
 
             // ==========================================
@@ -754,8 +767,8 @@
                                     $.each(details, function (index, item) {
                                         rows += `
                                                 <tr>
-                                                    <td>${item.nama_bahan || '-'}</td>
-                                                    <td class="text-center">${formatQty(item.qty)}</td>
+                                                    <td>${item.bahan_baku_nama || '-'}</td>
+                                                    <td class="text-center">${formatQty(item.qty_digunakan)}</td>
                                                     <td class="text-center">${item.nama_satuan || '-'}</td>
                                                 </tr>
                                             `;

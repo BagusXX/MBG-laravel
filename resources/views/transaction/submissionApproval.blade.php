@@ -383,6 +383,13 @@
                 $(this).blur();
             });
 
+            $(document).on('hidden.bs.modal', '.modal', function () {
+                // Cek apakah masih ada modal lain yang terbuka
+                if ($('.modal:visible').length) {
+                    $('body').addClass('modal-open'); 
+                }
+            });
+
             // --- BUKA MODAL ---
             $('.btn-proses').on('click', function () {
                 currentSubmissionId = $(this).data('id');

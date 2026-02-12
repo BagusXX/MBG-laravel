@@ -529,6 +529,13 @@ return [
                     'route' => 'report.profit',
                     'can'   => 'report.profit.view',
                 ],
+                
+                [
+                    'text' => 'Total Penjualan & Selisih',
+                    'icon' => 'fas fa-file-signature',
+                    'route' => 'report.sales-summary',
+                    'can'   => 'report.sales-summary.view',
+                ],
             ],
         ],
     ],
