@@ -1,13 +1,13 @@
 @extends('adminlte::page')
 
-@section('title', 'Penjualan Bahan Baku')
+@section('title', 'Laporan Invoice Dapur')
 
 @section('css')
     <link rel="stylesheet" href="{{ asset('css/notification-pop-up.css') }}">
 @endsection
 
 @section('content_header')
-    <h1>Penjualan Bahan Baku</h1>
+    <h1>Laporan Invoice Dapur</h1>
 @endsection
 
 @section('content')

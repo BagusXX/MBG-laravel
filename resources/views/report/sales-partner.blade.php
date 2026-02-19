@@ -3,7 +3,7 @@
 @section('title', 'Laporan Penjualan Dapur')
 
 @section('content_header')
-    <h1>Laporan Penjualan Mitra</h1>
+    <h1>Laporan Invoice Bahan Baku Mitra</h1>
 @endsection
 
 @section('content')

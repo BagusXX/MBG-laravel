@@ -245,8 +245,8 @@
                         <th width="20%">Bahan Baku</th>
                         <th width="10%">Qty</th>
                         <th width="10%">Satuan</th>
-                        <th width="15%">Harga Dapur</th>
-                        <th width="15%">Harga Mitra</th>
+                        <th width="15%">Harga Satuan Dapur</th>
+                        <th width="15%">Harga Satuan Mitra</th>
                         <th width="15%">Subtotal Dapur</th>
                         <th width="15%">Subtotal Mitra</th>
                         <th width="5%"></th>
@@ -358,8 +358,8 @@
                         <th width="20%">Bahan Baku</th>
                         <th width="10%">Qty</th>
                         <th width="10%">Satuan</th>
-                        <th width="15%">Harga Dapur</th>
-                        <th width="15%">Harga Mitra</th>
+                        <th width="15%">Harga Satuan Dapur</th>
+                        <th width="15%">Harga Satuan Mitra</th>
                         <th width="15%">Subtotal Dapur</th>
                         <th width="15%">Subtotal Mitra</th>
                         <th width="5%"></th>
@@ -434,7 +434,7 @@
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>Bahan Baku</th>
+                        <th>Bahan Baku/Bahan Masak</th>
                         <th class="text-center">Jumlah</th>
                         <th class="text-center">Satuan</th>
                     </tr>

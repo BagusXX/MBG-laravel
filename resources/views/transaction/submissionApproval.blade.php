@@ -283,12 +283,12 @@
                                         <th width="40" class="text-center action-only">
                                             <input type="checkbox" id="checkAll">
                                         </th>
-                                        <th>Bahan Baku</th>
+                                        <th>Bahan Baku/Bahan Masak</th>
                                         <th width="90" class="text-center">Qty</th>
                                         <th width="80" class="text-center">Satuan</th>
                                         {{-- DUA KOLOM HARGA DITAMPILKAN --}}
-                                        <th width="130" class="text-right">Harga Dapur</th>
-                                        <th width="130" class="text-right">Harga Mitra</th>
+                                        <th width="130" class="text-center">Harga Satuan Dapur</th>
+                                        <th width="130" class="text-center">Harga Satuan Mitra</th>
                                         <th width="140" class="text-right">Subtotal Dapur</th>
                                         <th width="140" class="text-right">Subtotal Mitra</th>
                                         @can('transaction.submission-approval.delete-detail')
@@ -494,6 +494,7 @@
                         }
 
                         historyHtml += `
+<<<<<<< HEAD
                                                                             <div class="card mb-2 border">
                                                                                 <div class="card-body p-3">
                                                                                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -524,12 +525,57 @@
                                                                                     </div>
                                                                                 </div>
                                                                             </div>`;
+=======
+                                        <div class="card mb-2 border">
+                                            <div class="card-body p-3">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <div>
+                                                        <strong class="text-dark">${h.kode}</strong> 
+                                                        <span class="text-muted mx-2">|</span> 
+                                                        <i class="fas fa-truck mr-1 text-secondary"></i> ${h.supplier_nama}
+                                                    </div>
+                                                    <div class="d-flex align-items-center justify-content-end">
+                                                        <span class="badge badge-success mr-3 px-2 py-1">DISETUJUI</span>
+                                                        <strong class="mr-3 text-dark">${formatRupiah(h.total)}</strong>
+
+                                                        <button class="btn btn-sm btn-outline-danger btn-delete-child action-only" 
+                                                                data-id="${h.id}" title="Hapus Split Order">
+                                                            <i class="fas fa-trash-alt"></i>
+                                                        </button>
+                                                    </div>
+                                                    
+
+                                                </div>
+                                                <ul class="mb-0 pl-3" style="font-size: 0.9em; list-style-type: disc;">
+                                                    ${itemsHtml}
+                                                </ul>
+                                                <div  class="d-flex justify-content-between align-items-center mt-2 mb-1 border-top pt-2"">
+                                                    <span class="text-muted medium">
+                                                        Dicetak Pada : 
+                                                        ${h.created_at}
+                                                    </span>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary btn-print-invoice" data-id="${h.id}">
+                                                        <i class="fas fa-print mr-1"></i> Cetak Invoice 
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>`;
+>>>>>>> 45d8550823db7f63074c1724ab0a682352130162
                     });
                 } else {
                     historyHtml = '<div class="text-muted font-italic text-center py-2 border bg-light rounded">Belum ada riwayat split order.</div>';
                 }
                 $('#wrapperRiwayat').html(historyHtml);
             }
+
+            $(document).on('click', '.btn-print-invoice', function () {
+                let id = $(this).data('id');
+                window.open(
+                    "{{ url('dashboard/transaksi/approval-menu') }}/" + id + "/invoice",
+                    "_blank"
+                );
+            });
+
 
             // --- FUNGSI RENDER TABEL DETAIL (Menggantikan loadDetails) ---
             function renderDetailsTable(detailsData) {

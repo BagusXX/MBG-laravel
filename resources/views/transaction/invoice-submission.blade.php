@@ -270,8 +270,8 @@
 
             <td style="width: 35%; text-align: right; vertical-align: top;">
                 <div style="margin-bottom: 10px;">
-                    <p style="margin: 0; font-weight: bold; text-transform: uppercase;">TANGGAL :</p> 
-                    <p style="margin: 0; font-size: 14px;">{{ \Carbon\Carbon::parse($submission->tanggal)->locale('id')->isoFormat('dddd, D MMMM YYYY') }}</p>
+                    <p style="margin: 0; font-weight: bold; text-transform: uppercase;">TANGGAL CETAK :</p> 
+                    <p style="margin: 0; font-size: 14px;">{{ \Carbon\Carbon::parse($submission->created_at)->locale('id')->isoFormat('dddd, D MMMM YYYY') }}</p>
                 </div>
                 @php
                     $romans = ['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
@@ -309,7 +309,7 @@
         <thead>
             <tr>
                 <th width="5%" class="text-center">No</th>
-                <th>Nama Barang</th>
+                <th>Bahan Baku/Bahan Masak</th>
                 <th width="10%" class="text-center">Jumlah</th>
                 <th width="10%" class="text-center">Satuan</th>
                 <th width="18%" class="text-right">Harga Satuan</th>

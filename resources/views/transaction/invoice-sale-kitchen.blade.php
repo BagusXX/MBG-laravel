@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice Penjualan Bahan Baku Dapur - {{ $submission->kode }}</title>
+    <title>Laporan Invoice Dapur - {{ $submission->kode }}</title>
     <style>
         /* --- STYLE DARI REFERENSI (SERAGAM) --- */
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -278,7 +278,7 @@
                     <th width="30%">Bahan Baku</th>
                     <th class="text-center" style="text-align: center;">Qty</th>
                     <th class="text-center" style="text-align: center;">Satuan</th>
-                    <th class="text-center" style="text-align: center;">Harga Dapur</th>
+                    <th class="text-center" style="text-align: center;">Harga Satuan</th>
                     <th class="text-center" style="text-align: center;">Subtotal</th>
                 </tr>
             </thead>
