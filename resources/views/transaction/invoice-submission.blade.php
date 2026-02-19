@@ -309,7 +309,7 @@
         <thead>
             <tr>
                 <th width="5%" class="text-center">No</th>
-                <th>Nama Barang</th>
+                <th>Bahan Baku/Bahan Masak</th>
                 <th width="10%" class="text-center">Jumlah</th>
                 <th width="10%" class="text-center">Satuan</th>
                 <th width="18%" class="text-right">Harga Satuan</th>
