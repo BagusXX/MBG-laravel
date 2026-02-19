@@ -11,15 +11,25 @@ use Illuminate\Support\Facades\Auth;
 class KitchenController extends Controller
 {
     // Tampilkan halaman dapur
-    public function index()
+    public function index(Request $request)
     {
         $canCreateDelete = Auth::user()->hasRole('superadmin');
 
         $user = auth()->user();
 
+        $search = $request->input('search');
+
         $kitchens = Kitchen::with('region')
             ->whereHas('users', function ($q) use ($user) {
                 $q->where('users.id', $user->id);
+            })
+
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('nama', 'LIKE', "%{$search}%")
+                    ->orWhere('kode', 'LIKE', "%{$search}%")
+                    ->orWhere('kota', 'LIKE', "%{$search}%");
+                });
             })
             ->orderBy('kitchens.id')
             ->paginate(10);

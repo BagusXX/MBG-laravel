@@ -24,7 +24,7 @@ class SupplierController extends Controller
         return $user->hasAnyRole(['superadmin', 'operatorkoperasi','superadminDapur']);
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
 
@@ -34,11 +34,20 @@ class SupplierController extends Controller
         // 2. Definisikan siapa yang boleh HAPUS data (Hanya Superadmin)
         $canDelete = $user->hasRole('superadmin');
 
+        $search = $request->input('search');
+
         $userKitchenKode = $user->kitchens()->pluck('kode');
         
         $suppliers = Supplier::with('kitchens')
             ->whereHas('kitchens', function ($q) use ($userKitchenKode) {
                 $q->whereIn('kitchens.kode', $userKitchenKode);
+            })
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('nama', 'LIKE', "%{$search}%")
+                    ->orWhere('kode', 'LIKE', "%{$search}%")
+                    ->orWhere('alamat', 'LIKE', "%{$search}%");
+                });
             })
             ->orderBy('suppliers.id')
             ->paginate(10);
@@ -66,11 +75,13 @@ class SupplierController extends Controller
             'kontak' => 'required|string|max:255',
             'nomor' => 'required|string|max:20',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'ttd' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'kitchens' => ['required', 'array'],
             'kitchens.*' => [Rule::in($userKitchenKode)],
         ]);
 
         $pathGambar = null;
+        $pathTtd = null;
 
         $supplier = Supplier::create([
             'kode' => self::generateKode(),
@@ -79,6 +90,7 @@ class SupplierController extends Controller
             'kontak' => $request->kontak,
             'nomor' => $request->nomor,
             'gambar' => $pathGambar,
+            'ttd' => $pathTtd,
         ]);
 
         if ($request->hasFile('gambar')) {
@@ -92,6 +104,19 @@ class SupplierController extends Controller
                 ->store('uploads/suppliers', 'public');
 
             $supplier->update(['gambar' => $pathGambar]);
+        }
+
+        if ($request->hasFile('ttd')) {
+
+            // hapus gambar lama
+            if ($supplier->ttd && Storage::disk('public')->exists($supplier->ttd)) {
+                Storage::disk('public')->delete($supplier->ttd);
+            }
+
+            $pathTtd = $request->file('ttd')
+                ->store('uploads/suppliers', 'public');
+
+            $supplier->update(['ttd' => $pathTtd]);
         }
 
         $supplier->save();
@@ -151,6 +176,7 @@ class SupplierController extends Controller
             'kontak' => 'required|string|max:255',
             'nomor' => 'required|string|max:20',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'ttd' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'kitchens' => ['required', 'array'],
             'kitchens.*' => [Rule::in($userKitchenKode)],
         ]);
@@ -171,6 +197,17 @@ class SupplierController extends Controller
             // Upload gambar baru
             $pathGambar = $request->file('gambar')->store('uploads/suppliers', 'public');
             $supplier->update(['gambar' => $pathGambar]);
+        }
+
+        if ($request->hasFile('ttd')) {
+            // Hapus ttd lama jika ada
+            if ($supplier->ttd && Storage::disk('public')->exists($supplier->ttd)) {
+                Storage::disk('public')->delete($supplier->ttd);
+            }
+
+            // Upload ttd baru
+            $pathTtd = $request->file('ttd')->store('uploads/suppliers/ttd', 'public');
+            $supplier->update(['ttd' => $pathTtd]);
         }
 
         // sync hanya kitchen milik user
@@ -197,6 +234,10 @@ class SupplierController extends Controller
 
         if ($supplier->gambar && Storage::disk('public')->exists($supplier->gambar)) {
             Storage::disk('public')->delete($supplier->gambar);
+        }
+
+        if ($supplier->ttd && Storage::disk('public')->exists($supplier->ttd)) {
+            Storage::disk('public')->delete($supplier->ttd);
         }
 
         $supplier->kitchens()->detach();

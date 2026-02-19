@@ -13,6 +13,7 @@ return new class extends Migration {
         //
         Schema::table('suppliers', function (Blueprint $table) {
             $table->string('gambar')->nullable()->after('nomor');
+            $table->string('ttd')->nullable()->after('gambar');
         });
 
         Schema::table('users', function (Blueprint $table) {

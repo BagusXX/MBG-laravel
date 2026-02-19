@@ -11,12 +11,32 @@
 @endsection
 
 @section('content')
-
-
-    @can('master.supplier.create')
+<div class="row mb-3">
+    <div class="col-md-6">
+        @can('master.supplier.create')
         <x-button-add idTarget="#modalAddSupplier" text="Tambah Supplier" />
-    @endcan
-
+        @endcan
+    </div>
+    <div class="col-md-6">
+            <form action="{{ route('master.supplier.index') }}" method="GET">
+                <div class="input-group">
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Cari nama supplier atau kode..." 
+                           value="{{ request('search') }}">
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fa fa-search"></i>
+                        </button>
+                        @if(request('search'))
+                            <a href="{{ route('master.supplier.index') }}" class="btn btn-danger">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            </form>
+        </div>
+</div>
 
     <x-notification-pop-up />
 
@@ -33,13 +53,11 @@
                         <th width="150px">Dapur</th>
                         <th>Kontak Person</th>
                         <th>Nomor</th>
-                        <th>Akun Bank</th>
+                        <th>Scan TTD</th>
                         <th>Logo Supplier</th>
                         @canany(['master.supplier.update', 'master.supplier.delete'])
                             <th>Aksi</th>
                         @endcanany
-
-
                     </tr>
                 </thead>
                 <tbody>
@@ -56,19 +74,26 @@
                             </td>
                             <td>{{ $supplier->kontak }}</td>
                             <td>{{ $supplier->nomor }}</td>
-                            <td>{{ $supplier->bank }}</td>
                             <td class="text-center">
-                                @if ($supplier->gambar)
-                                    <img src="{{ asset('galeri/' . $supplier->gambar) }}"
-                                        class="img-thumbnail supplier-image"
-                                        style="width: 60px; height: 60px; object-fit: contain; object-position: center; cursor: pointer;"
-                                        style="cursor:pointer" data-toggle="modal" data-target="#modalPreviewImage"
-                                        data-src="{{ asset('galeri/' . $supplier->gambar) }}">
+                                @if ($supplier->ttd)
+                                    <img src="{{ asset('galeri/' . $supplier->ttd) }}" class="img-thumbnail supplier-image"
+                                        style="width: 60px; height: 60px; object-fit: contain; cursor: pointer;"
+                                        data-toggle="modal" data-target="#modalPreviewImage"
+                                        data-src="{{ asset('galeri/' . $supplier->ttd) }}" data-title="Scan TTD">
                                 @else
                                     <span class="text-muted">-</span>
                                 @endif
                             </td>
-
+                            <td class="text-center">
+                                @if ($supplier->gambar)
+                                    <img src="{{ asset('galeri/' . $supplier->gambar) }}" class="img-thumbnail supplier-image"
+                                        style="width: 60px; height: 60px; object-fit: contain; cursor: pointer;"
+                                        data-toggle="modal" data-target="#modalPreviewImage"
+                                        data-src="{{ asset('galeri/' . $supplier->gambar) }}" data-title="Logo Supplier">
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </td>
 
                             @canany(['master.supplier.update', 'master.supplier.delete'])
                                 <td>
@@ -79,24 +104,21 @@
                                             data-alamat="{{ $supplier->alamat }}"
                                             data-kitchens="{{ json_encode($supplier->kitchens->pluck('kode')) }}"
                                             data-kontak="{{ $supplier->kontak }}" data-nomor="{{ $supplier->nomor }}"
-                                            data-gambar="{{ $supplier->gambar }}">
+                                            data-ttd="{{ $supplier->ttd }}" data-gambar="{{ $supplier->gambar }}">
                                             Edit
                                         </button>
                                     @endcan
 
                                     @can('master.supplier.delete')
-                                        {{-- Tombol Hapus --}}
                                         <x-button-delete idTarget="#modalDeleteSupplier" formId="formDeleteSupplier"
                                             action="{{ route('master.supplier.destroy', $supplier->id) }}" text="Hapus" />
                                     @endcan
-
-
                                 </td>
                             @endcanany
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ $canManage ? '8' : '7' }}" class="text-center">Belum ada supplier</td>
+                            <td colspan="10" class="text-center">Belum ada supplier</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -107,270 +129,208 @@
         </div>
     </div>
 
-    {{-- MODAL ADD SUPPLIER --}}
-    @if ($canManage)
-        <x-modal-form id="modalAddSupplier" title="Tambah Supplier" action="{{ route('master.supplier.store') }}"
-            submitText="Simpan">
-            <div class="form-group">
-                <label>Kode</label>
-                <input type="text" name="kode" class="form-control" value="{{ $kodeBaru }}" readonly required />
-            </div>
-
-            <div class="form-group mt-2">
-                <label for="nama_supplier">Nama</label>
-                <input id="nama_supplier" type="text" name="nama" class="form-control" required />
-            </div>
-
-            <div class="form-group mt-2">
-                <label for="alamat_supplier">Alamat</label>
-                <input id="alamat_supplier" type="text" name="alamat" class="form-control" required />
-            </div>
-            <div class="form-group mt-2">
-                <label>Pilih Dapur (Kitchen)</label>
-                <div class="row"
-                    style="max-height: 150px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
-                    @foreach ($kitchens as $kitchen)
-                        <div class="col-md-6">
-                            <div class="form-check">
-                                {{-- Value menggunakan KODE sesuai validasi controller --}}
-                                <input class="form-check-input" type="checkbox" name="kitchens[]"
-                                    value="{{ $kitchen->kode }}" id="add_kitchen_{{ $kitchen->kode }}">
-                                <label class="form-check-label" for="add_kitchen_{{ $kitchen->kode }}">
-                                    {{ $kitchen->nama }}
-                                </label>
-                            </div>
+    {{-- MODAL ADD --}}
+    <x-modal-form id="modalAddSupplier" title="Tambah Supplier" action="{{ route('master.supplier.store') }}"
+        submitText="Simpan" enctype="multipart/form-data">
+        <div class="form-group">
+            <label>Kode</label>
+            <input type="text" name="kode" class="form-control" value="{{ $kodeBaru }}" readonly required />
+        </div>
+        <div class="form-group mt-2">
+            <label for="nama_supplier">Nama</label>
+            <input id="nama_supplier" type="text" name="nama" class="form-control" required />
+        </div>
+        <div class="form-group mt-2">
+            <label for="alamat_supplier">Alamat</label>
+            <input id="alamat_supplier" type="text" name="alamat" class="form-control" required />
+        </div>
+        <div class="form-group mt-2">
+            <label>Pilih Dapur (Kitchen)</label>
+            <div class="row" style="max-height: 150px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
+                @foreach ($kitchens as $kitchen)
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="kitchens[]" value="{{ $kitchen->kode }}" id="add_kitchen_{{ $kitchen->kode }}">
+                            <label class="form-check-label" for="add_kitchen_{{ $kitchen->kode }}">{{ $kitchen->nama }}</label>
                         </div>
-                    @endforeach
-                </div>
+                    </div>
+                @endforeach
             </div>
+        </div>
+        <div class="form-group mt-2">
+            <label>Kontak Person</label>
+            <input type="text" name="kontak" class="form-control" required />
+        </div>
+        <div class="form-group mt-2">
+            <label>Nomor</label>
+            <input type="text" name="nomor" class="form-control" required />
+        </div>
+        <div class="form-group mt-2">
+            <label>Logo Supplier</label>
+            <input type="file" name="gambar" class="form-control" accept="image/*" />
+        </div>
+        <div class="form-group mt-2">
+            <label>Scan TTD</label>
+            <input type="file" name="ttd" class="form-control" accept="image/*" />
+        </div>
+    </x-modal-form>
 
-
-            <div class="form-group mt-2">
-                <label for="kontak_supplier">Kontak Person</label>
-                <input id="kontak_supplier" type="text" name="kontak" class="form-control" required />
-            </div>
-
-            <div class="form-group mt-2">
-                <label for="nomor_supplier">Nomor</label>
-                <input id="nomor_supplier" type="text" name="nomor" class="form-control" required />
-            </div>
-
-            <div class="form-group mt-2">
-                <label>Logo Supplier</label>
-                <input type="file" name="gambar" class="form-control" accept="image/*" />
-                <small class="text-muted">
-                    Format JPG / PNG, maksimal 2MB
-                </small>
-            </div>
-
-        </x-modal-form>
-
-
-        {{-- MODAL EDIT SUPPLIER --}}
-        <x-modal-form id="modalEditSupplier" title="Edit Supplier" action="" submitText="Update"
-            enctype="multipart/form-data">
-
-            <div class="form-group">
-                <label>Kode</label>
-                <input type="text" name="kode" id="edit_kode" class="form-control" readonly required />
-            </div>
-
-            <div class="form-group">
-                <label>Nama</label>
-                <input type="text" id="edit_nama" name="nama" class="form-control" required />
-            </div>
-
-            <div class="form-group">
-                <label>Alamat</label>
-                <input type="text" id="edit_alamat" name="alamat" class="form-control" required />
-            </div>
-            <div class="form-group mt-2">
-                <label>Pilih Dapur (Kitchen)</label>
-                <div class="row"
-                    style="max-height: 150px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
-                    @foreach ($kitchens as $kitchen)
-                        <div class="col-md-6">
-                            <div class="form-check">
-                                <input class="form-check-input edit-kitchen-checkbox" type="checkbox" name="kitchens[]"
-                                    value="{{ $kitchen->kode }}" id="edit_kitchen_{{ $kitchen->kode }}">
-                                <label class="form-check-label" for="edit_kitchen_{{ $kitchen->kode }}">
-                                    {{ $kitchen->nama }}
-                                </label>
-                            </div>
+    {{-- MODAL EDIT --}}
+    <x-modal-form id="modalEditSupplier" title="Edit Supplier" action="" submitText="Update" enctype="multipart/form-data">
+        <div class="form-group">
+            <label>Kode</label>
+            <input type="text" name="kode" id="edit_kode" class="form-control" readonly required />
+        </div>
+        <div class="form-group">
+            <label>Nama</label>
+            <input type="text" id="edit_nama" name="nama" class="form-control" required />
+        </div>
+        <div class="form-group">
+            <label>Alamat</label>
+            <input type="text" id="edit_alamat" name="alamat" class="form-control" required />
+        </div>
+        <div class="form-group mt-2">
+            <label>Pilih Dapur (Kitchen)</label>
+            <div class="row" style="max-height: 150px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
+                @foreach ($kitchens as $kitchen)
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input class="form-check-input edit-kitchen-checkbox" type="checkbox" name="kitchens[]" value="{{ $kitchen->kode }}" id="edit_kitchen_{{ $kitchen->kode }}">
+                            <label class="form-check-label" for="edit_kitchen_{{ $kitchen->kode }}">{{ $kitchen->nama }}</label>
                         </div>
-                    @endforeach
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>Kontak Person</label>
-                <input type="text" id="edit_kontak" name="kontak" class="form-control" required />
-            </div>
-
-            <div class="form-group">
-                <label>Nomor</label>
-                <input type="text" id="edit_nomor" name="nomor" class="form-control" required />
-            </div>
-            <div class="form-group">
-                <label>Logo Supplier</label>
-
-                {{-- preview foto lama --}}
-                <div class="mb-2">
-                    <img id="edit_preview_gambar" src="" alt="Preview" class="img-thumbnail"
-                        style="width: 150px; height: 150px; object-fit: contain; object-position: center; display: none;">
-                </div>
-
-                <input type="file" name="gambar" class="form-control" accept="image/*" />
-
-                <small class="text-muted">
-                    Kosongkan jika tidak ingin mengganti Logo
-                </small>
-            </div>
-
-        </x-modal-form>
-
-        {{-- MODAL DELETE --}}
-        <x-modal-delete id="modalDeleteSupplier" formId="formDeleteSupplier" title="Konfirmasi Hapus"
-            message="Apakah Anda yakin ingin menghapus data ini?" confirmText="Hapus" />
-
-        <div class="modal fade" id="modalPreviewImage" tabindex="-1">
-            <div class="modal-dialog modal-dialog-centered modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Logo Supplier</h5>
-                        <button type="button" class="close" data-dismiss="modal">
-                            <span>&times;</span>
-                        </button>
                     </div>
-                    <div class="modal-body text-center">
-                        <img id="previewImageModal" src="" class="img-fluid rounded"
-                            style="width: 400px; height: 400px; object-fit: contain; object-position: center;">
-                    </div>
+                @endforeach
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Kontak Person</label>
+            <input type="text" id="edit_kontak" name="kontak" class="form-control" required />
+        </div>
+        <div class="form-group">
+            <label>Nomor</label>
+            <input type="text" id="edit_nomor" name="nomor" class="form-control" required />
+        </div>
+        <div class="form-group">
+            <label>Logo Supplier</label>
+            <div class="mb-2">
+                <img id="edit_preview_gambar" src="" class="img-thumbnail" style="width: 120px; height: 120px; object-fit: contain; display: none;">
+            </div>
+            <input type="file" name="gambar" class="form-control" accept="image/*" />
+        </div>
+        <div class="form-group">
+            <label>Scan TTD</label>
+            <div class="mb-2">
+                <img id="edit_preview_ttd" src="" class="img-thumbnail" style="width: 120px; height: 120px; object-fit: contain; display: none;">
+            </div>
+            <input type="file" name="ttd" class="form-control" accept="image/*" />
+        </div>
+    </x-modal-form>
+
+    {{-- MODAL DELETE --}}
+    <x-modal-delete id="modalDeleteSupplier" formId="formDeleteSupplier" title="Konfirmasi Hapus"
+        message="Apakah Anda yakin ingin menghapus data ini?" confirmText="Hapus" />
+
+    {{-- MODAL PREVIEW IMAGE (SATU UNTUK SEMUA) --}}
+    <div class="modal fade" id="modalPreviewImage" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalPreviewTitle">Preview</h5>
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="previewImageModal" src="" class="img-fluid rounded" style="max-height: 400px; object-fit: contain;">
                 </div>
             </div>
         </div>
-        {{-- MODAL ERROR FILE SIZE (Tambahan Baru) --}}
-        <div class="modal fade" id="modalErrorFile" tabindex="-1" role="dialog" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title text-danger font-weight-bold">
-                            <i class="fas fa-exclamation-triangle mr-2 text-danger font-weight-bold"></i> Peringatan
-                        </h5>
-                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body text-center py-4">
-                        <h5 class="text-danger font-weight-bold mb-3">Ukuran File Terlalu Besar!</h5>
-                        <p class="mb-0">Maksimal ukuran foto adalah <strong>2MB</strong>.</p>
-                        <p class="text-muted"><small>Silakan pilih foto lain dengan ukuran lebih kecil.</small></p>
-                    </div>
-                    <div class="modal-footer justify-content-center">
-                        <button type="button" class="btn btn-secondary px-4" data-dismiss="modal">Kembali</button>
-                    </div>
+    </div>
+
+    {{-- MODAL ERROR FILE SIZE --}}
+    <div class="modal fade" id="modalErrorFile" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-danger font-weight-bold">Peringatan</h5>
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <h5 class="text-danger font-weight-bold mb-3">Ukuran File Terlalu Besar!</h5>
+                    <p class="mb-0">Maksimal ukuran foto adalah <strong>2MB</strong>.</p>
                 </div>
             </div>
         </div>
-
-    @endif
+    </div>
 
 @endsection
 
 @push('js')
-    @if ($canManage)
-        <script>
-            document.querySelectorAll('.btnEditSupplier').forEach(button => {
-                button.addEventListener('click', function() {
+<script>
+    // 1. Logika Tombol Edit
+    document.querySelectorAll('.btnEditSupplier').forEach(button => {
+        button.addEventListener('click', function () {
+            const id = this.dataset.id;
+            document.getElementById('edit_kode').value = this.dataset.kode;
+            document.getElementById('edit_nama').value = this.dataset.nama;
+            document.getElementById('edit_alamat').value = this.dataset.alamat;
+            document.getElementById('edit_kontak').value = this.dataset.kontak;
+            document.getElementById('edit_nomor').value = this.dataset.nomor;
 
-                    const id = this.dataset.id;
+            // Preview Logo (Existing)
+            const gambar = this.dataset.gambar;
+            const previewGbr = document.getElementById('edit_preview_gambar');
+            if (gambar) { previewGbr.src = `/galeri/${gambar}`; previewGbr.style.display = 'block'; } 
+            else { previewGbr.style.display = 'none'; }
 
-                    document.getElementById('edit_kode').value = this.dataset.kode;
-                    document.getElementById('edit_nama').value = this.dataset.nama;
-                    document.getElementById('edit_alamat').value = this.dataset.alamat;
-                    document.getElementById('edit_kontak').value = this.dataset.kontak;
-                    document.getElementById('edit_nomor').value = this.dataset.nomor;
+            // Preview TTD (Existing)
+            const ttd = this.dataset.ttd;
+            const previewTtd = document.getElementById('edit_preview_ttd');
+            if (ttd) { previewTtd.src = `/galeri/${ttd}`; previewTtd.style.display = 'block'; } 
+            else { previewTtd.style.display = 'none'; }
 
-                    const gambar = this.dataset.gambar;
-                    const preview = document.getElementById('edit_preview_gambar');
+            // Checkbox Kitchens
+            document.querySelectorAll('.edit-kitchen-checkbox').forEach(box => box.checked = false);
+            const connectedKitchens = JSON.parse(this.dataset.kitchens || '[]');
+            connectedKitchens.forEach(kode => {
+                const cb = document.querySelector(`.edit-kitchen-checkbox[value="${kode}"]`);
+                if (cb) cb.checked = true;
+            });
 
-                    if (gambar) {
-                        preview.src = `/galeri/${gambar}`;
-                        preview.style.display = 'block';
-                    } else {
-                        preview.style.display = 'none';
+            document.querySelector('#modalEditSupplier form').action = `/dashboard/master/supplier/update/${id}`;
+        });
+    });
+
+    // 2. Logika Preview Gambar Tabel
+    document.querySelectorAll('.supplier-image').forEach(img => {
+        img.addEventListener('click', function () {
+            document.getElementById('previewImageModal').src = this.dataset.src;
+            document.getElementById('modalPreviewTitle').innerText = this.dataset.title;
+        });
+    });
+
+    // 3. Validasi Ukuran File & Live Preview
+    function setupFileValidation(inputName, previewId) {
+        document.querySelectorAll(`input[name="${inputName}"]`).forEach(input => {
+            input.addEventListener('change', function () {
+                if (this.files && this.files[0]) {
+                    const file = this.files[0];
+                    if (file.size > 2 * 1024 * 1024) {
+                        $('#modalErrorFile').modal('show');
+                        this.value = '';
+                        return;
                     }
-
-                    // 1. Reset semua checkbox di modal edit menjadi tidak tercentang
-                    document.querySelectorAll('.edit-kitchen-checkbox').forEach(box => box.checked = false);
-
-                    // 2. Ambil data kitchens dari atribut tombol (format JSON array)
-                    // Contoh data: ["K001", "K002"]
-                    const connectedKitchens = JSON.parse(this.dataset.kitchens || '[]');
-
-                    // 3. Loop kitchen yang terhubung, lalu centang checkbox yang sesuai valuenya
-                    connectedKitchens.forEach(kodeKitchen => {
-                        // Cari checkbox dengan value = kodeKitchen
-                        const checkbox = document.querySelector(
-                            `.edit-kitchen-checkbox[value="${kodeKitchen}"]`);
-                        if (checkbox) {
-                            checkbox.checked = true;
-                        }
-                    });
-
-                    // set action form
-                    const form = document.querySelector('#modalEditSupplier form');
-                    form.action = `/dashboard/master/supplier/update/${id}`;
-                });
+                    // Jika di modal edit, tampilkan preview baru
+                    const preview = document.getElementById(previewId);
+                    if (this.closest('#modalEditSupplier') && preview) {
+                        const reader = new FileReader();
+                        reader.onload = e => { preview.src = e.target.result; preview.style.display = 'block'; };
+                        reader.readAsDataURL(file);
+                    }
+                }
             });
+        });
+    }
 
-            document.querySelectorAll('.supplier-image').forEach(img => {
-                img.addEventListener('click', function() {
-                    document.getElementById('previewImageModal').src = this.dataset.src;
-                });
-
-                // Tambahkan listener untuk input file
-                document.querySelectorAll('input[name="gambar"]').forEach(input => {
-                    input.addEventListener('change', function(e) {
-
-                        // Cek apakah ada file yang dipilih
-                        if (this.files && this.files[0]) {
-                            const file = this.files[0];
-                            const maxSize = 2 * 1024 * 1024; // 2MB dalam bytes (2 juta bytes)
-
-                            // --- VALIDASI UKURAN ---
-                            if (file.size > maxSize) {
-
-                                // [PERUBAHAN DI SINI] - Panggil Modal Bootstrap
-                                $('#modalErrorFile').modal('show');
-
-                                // Reset Input & Preview
-                                this.value = '';
-                                const preview = document.getElementById('edit_preview_gambar');
-                                if (this.closest('#modalEditSupplier')) {
-                                    preview.style.display = 'none';
-                                    preview.src = '';
-                                }
-
-                                return; // Stop proses
-                            }
-
-                            // --- LIVE PREVIEW (Jika lolos validasi) ---
-                            // Hanya jalankan preview jika ini adalah input di Modal Edit
-                            // (Karna Modal Add biasanya tidak butuh preview kecuali Anda buat img tag nya)
-                            if (this.closest('#modalEditSupplier')) {
-                                const reader = new FileReader();
-                                reader.onload = function(e) {
-                                    const preview = document.getElementById('edit_preview_gambar');
-                                    preview.src = e.target.result;
-                                    preview.style.display = 'block';
-                                }
-                                reader.readAsDataURL(file);
-                            }
-                        }
-                    });
-                });
-            });
-        </script>
-    @endif
+    setupFileValidation('gambar', 'edit_preview_gambar');
+    setupFileValidation('ttd', 'edit_preview_ttd');
+</script>
 @endpush
