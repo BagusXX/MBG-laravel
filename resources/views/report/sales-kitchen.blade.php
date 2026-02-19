@@ -3,7 +3,7 @@
 @section('title', 'Laporan Penjualan Dapur')
 
 @section('content_header')
-    <h1>Laporan Penjualan Dapur</h1>
+    <h1>Laporan Invoice Bahan Baku Dapur</h1>
 @endsection
 
 @section('content')
@@ -67,9 +67,9 @@
                                 <a href="{{ route('report.sales-kitchen') }}" class="btn btn-danger">
                                     <i class="fa fa-undo"></i> Reset
                                 </a>
-                                <a href="{{ route('report.sales-kitchen.invoice', request()->all()) }}" class="btn btn-warning ml-2" target="_blank">
+                                {{-- <a href="{{ route('report.sales-kitchen.invoice', request()->all()) }}" class="btn btn-warning ml-2" target="_blank">
                                     <i class="fa fa-print"></i> Print
-                                </a>
+                                </a> --}}
                             </div>
                         </div>
                     </form>
