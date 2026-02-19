@@ -11,10 +11,32 @@
 @endsection
 
 @section('content')
-
-    @can('master.supplier.create')
+<div class="row mb-3">
+    <div class="col-md-6">
+        @can('master.supplier.create')
         <x-button-add idTarget="#modalAddSupplier" text="Tambah Supplier" />
-    @endcan
+        @endcan
+    </div>
+    <div class="col-md-6">
+            <form action="{{ route('master.supplier.index') }}" method="GET">
+                <div class="input-group">
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Cari nama supplier atau kode..." 
+                           value="{{ request('search') }}">
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fa fa-search"></i>
+                        </button>
+                        @if(request('search'))
+                            <a href="{{ route('master.supplier.index') }}" class="btn btn-danger">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            </form>
+        </div>
+</div>
 
     <x-notification-pop-up />
 

@@ -24,7 +24,7 @@ class SupplierController extends Controller
         return $user->hasAnyRole(['superadmin', 'operatorkoperasi','superadminDapur']);
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
 
@@ -34,11 +34,20 @@ class SupplierController extends Controller
         // 2. Definisikan siapa yang boleh HAPUS data (Hanya Superadmin)
         $canDelete = $user->hasRole('superadmin');
 
+        $search = $request->input('search');
+
         $userKitchenKode = $user->kitchens()->pluck('kode');
         
         $suppliers = Supplier::with('kitchens')
             ->whereHas('kitchens', function ($q) use ($userKitchenKode) {
                 $q->whereIn('kitchens.kode', $userKitchenKode);
+            })
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('nama', 'LIKE', "%{$search}%")
+                    ->orWhere('kode', 'LIKE', "%{$search}%")
+                    ->orWhere('alamat', 'LIKE', "%{$search}%");
+                });
             })
             ->orderBy('suppliers.id')
             ->paginate(10);
