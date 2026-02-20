@@ -121,7 +121,7 @@
                                             class="badge badge-{{
                         $item->status === 'selesai' ? 'success' :
                         ($item->status === 'diproses' ? 'info' : 'warning')
-                                                                                                                                                                                                                                        }}">
+                                                                                                                                                                                                                                                        }}">
                                             {{ strtoupper($item->status) }}
                                         </span>
                                     </td>
@@ -483,84 +483,53 @@
                             h.items.forEach(item => {
                                 // Sesuaikan key dengan controller (qty, satuan, harga)
                                 itemsHtml += `
-                                                                                    <li>
-                                                                                        ${item.nama}
-                                                                                        <span class="text-muted small">(${formatQty(item.qty)} ${item.unit} x ${formatRupiah(item.harga_dapur)})</span>
-                                                                                    </li>
-                                                                                `;
+                                                                                        <li>
+                                                                                            ${item.nama}
+                                                                                            <span class="text-muted small">(${formatQty(item.qty)} ${item.unit} x ${formatRupiah(item.harga_dapur)})</span>
+                                                                                        </li>
+                                                                                    `;
                             });
                         } else {
                             itemsHtml = `<li class="text-muted font-italic small">Tidak ada item</li>`;
                         }
 
                         historyHtml += `
-<<<<<<< HEAD
-                                                                            <div class="card mb-2 border">
-                                                                                <div class="card-body p-3">
-                                                                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                                                                        <div>
-                                                                                            <strong class="text-dark">${h.kode}</strong> 
-                                                                                            <span class="text-muted mx-2">|</span> 
-                                                                                            <i class="fas fa-truck mr-1 text-secondary"></i> ${h.supplier_nama}
-                                                                                        </div>
-                                                                                        <div class="d-flex align-items-center">
-                                                                                            <span class="badge badge-success mr-3 px-2 py-1">DISETUJUI</span>
-                                                                                            <strong class="mr-3 text-dark">${formatRupiah(h.total)}</strong>
+                                            <div class="card mb-2 border">
+                                                <div class="card-body p-3">
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                        <div>
+                                                            <strong class="text-dark">${h.kode}</strong> 
+                                                            <span class="text-muted mx-2">|</span> 
+                                                            <i class="fas fa-truck mr-1 text-secondary"></i> ${h.supplier_nama}
+                                                        </div>
+                                                        <div class="d-flex align-items-center justify-content-end">
+                                                            <span class="badge badge-success mr-3 px-2 py-1">DISETUJUI</span>
+                                                            <strong class="mr-3 text-dark">${formatRupiah(h.total)}</strong>
 
-                                                                                            @can('transaction.submission-approval.delete-detail')
-                                                                                                <button class="btn btn-sm btn-outline-danger btn-delete-child action-only" 
-                                                                                                        data-id="${h.id}" title="Hapus Split Order">
-                                                                                                    <i class="fas fa-trash-alt"></i>
-                                                                                                </button>
-                                                                                            @endcan
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <ul class="mb-0 pl-3" style="font-size: 0.9em; list-style-type: disc;">
-                                                                                        ${itemsHtml}
-                                                                                    </ul>
-                                                                                    <div class="text-right mt-2 border-top pt-2">
-                                                                                        <a href="${invoiceUrl}" class="btn btn-sm btn-outline-secondary" target="_blank">
-                                                                                            <i class="fas fa-print mr-1"></i> Cetak Invoice
-                                                                                        </a>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>`;
-=======
-                                        <div class="card mb-2 border">
-                                            <div class="card-body p-3">
-                                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                                    <div>
-                                                        <strong class="text-dark">${h.kode}</strong> 
-                                                        <span class="text-muted mx-2">|</span> 
-                                                        <i class="fas fa-truck mr-1 text-secondary"></i> ${h.supplier_nama}
+                                                            @can('transaction.submission-approval.delete-detail')
+                                                                <button class="btn btn-sm btn-outline-danger btn-delete-child action-only" 
+                                                                        data-id="${h.id}" title="Hapus Split Order">
+                                                                    <i class="fas fa-trash-alt"></i>
+                                                                </button>
+                                                            @endcan
+                                                        </div>
+
+
                                                     </div>
-                                                    <div class="d-flex align-items-center justify-content-end">
-                                                        <span class="badge badge-success mr-3 px-2 py-1">DISETUJUI</span>
-                                                        <strong class="mr-3 text-dark">${formatRupiah(h.total)}</strong>
-
-                                                        <button class="btn btn-sm btn-outline-danger btn-delete-child action-only" 
-                                                                data-id="${h.id}" title="Hapus Split Order">
-                                                            <i class="fas fa-trash-alt"></i>
+                                                    <ul class="mb-0 pl-3" style="font-size: 0.9em; list-style-type: disc;">
+                                                        ${itemsHtml}
+                                                    </ul>
+                                                    <div  class="d-flex justify-content-between align-items-center mt-2 mb-1 border-top pt-2"">
+                                                        <span class="text-muted medium">
+                                                            Dicetak Pada : 
+                                                            ${h.created_at}
+                                                        </span>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary btn-print-invoice" data-id="${h.id}">
+                                                            <i class="fas fa-print mr-1"></i> Cetak Invoice 
                                                         </button>
                                                     </div>
-                                                    
-
                                                 </div>
-                                                <ul class="mb-0 pl-3" style="font-size: 0.9em; list-style-type: disc;">
-                                                    ${itemsHtml}
-                                                </ul>
-                                                <div  class="d-flex justify-content-between align-items-center mt-2 mb-1 border-top pt-2"">
-                                                    <span class="text-muted medium">
-                                                        Dicetak Pada : 
-                                                        ${h.created_at}
-                                                    </span>
-                                                    <button type="button" class="btn btn-sm btn-outline-secondary btn-print-invoice" data-id="${h.id}">
-                                                        <i class="fas fa-print mr-1"></i> Cetak Invoice 
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>`;
->>>>>>> 45d8550823db7f63074c1724ab0a682352130162
+                                            </div>`;
                     });
                 } else {
                     historyHtml = '<div class="text-muted font-italic text-center py-2 border bg-light rounded">Belum ada riwayat split order.</div>';
@@ -597,60 +566,60 @@
                         let manualLabel = ''; // Sesuaikan jika ada logic manual
 
                         html += `
-                                                                        <tr>
-                                                                            <td class="text-center align-middle action-only">
-                                                                                <input type="checkbox" class="check-item" value="${item.id}">
-                                                                            </td>
-                                                                            <td class="align-middle">
-                                                                                <span class="text-dark font-weight-bold">${item.bahan_baku_nama || item.nama_bahan}</span>
-                                                                                ${manualLabel}
-                                                                                <input type="hidden" name="details[${item.id}][id]" value="${item.id}">
-                                                                                <input type="hidden" name="details[${item.id}][satuan_id]" value="${item.satuan_id}">
-                                                                            </td>
+                                                                            <tr>
+                                                                                <td class="text-center align-middle action-only">
+                                                                                    <input type="checkbox" class="check-item" value="${item.id}">
+                                                                                </td>
+                                                                                <td class="align-middle">
+                                                                                    <span class="text-dark font-weight-bold">${item.bahan_baku_nama || item.nama_bahan}</span>
+                                                                                    ${manualLabel}
+                                                                                    <input type="hidden" name="details[${item.id}][id]" value="${item.id}">
+                                                                                    <input type="hidden" name="details[${item.id}][satuan_id]" value="${item.satuan_id}">
+                                                                                </td>
 
-                                                                            {{-- QTY --}}
-                                                                            <td class="align-middle px-1">
-                                                                                <input type="number" step="0.0001" class="form-control form-control-sm text-center bg-light input-hitung input-qty" 
-                                                                                    name="details[${item.id}][qty_digunakan]" value="${item.qty_digunakan}">
-                                                                            </td>
+                                                                                {{-- QTY --}}
+                                                                                <td class="align-middle px-1">
+                                                                                    <input type="number" step="0.0001" class="form-control form-control-sm text-center bg-light input-hitung input-qty" 
+                                                                                        name="details[${item.id}][qty_digunakan]" value="${item.qty_digunakan}">
+                                                                                </td>
 
-                                                                            {{-- SATUAN --}}
-                                                                            <td class="text-center align-middle">
-                                                                                <span class="badge badge-light border">${item.nama_satuan}</span>
-                                                                            </td>
+                                                                                {{-- SATUAN --}}
+                                                                                <td class="text-center align-middle">
+                                                                                    <span class="badge badge-light border">${item.nama_satuan}</span>
+                                                                                </td>
 
-                                                                            {{-- HARGA DAPUR (SATUAN) --}}
-                                                                            <td class="align-middle px-1">
-                                                                                <input type="number" step="0.01" class="form-control form-control-sm text-right input-hitung input-harga-dapur" 
-                                                                                    name="details[${item.id}][harga_dapur]" 
-                                                                                    value="${hrgDapur}" placeholder="0"> 
-                                                                            </td>
+                                                                                {{-- HARGA DAPUR (SATUAN) --}}
+                                                                                <td class="align-middle px-1">
+                                                                                    <input type="number" step="0.01" class="form-control form-control-sm text-right input-hitung input-harga-dapur" 
+                                                                                        name="details[${item.id}][harga_dapur]" 
+                                                                                        value="${hrgDapur}" placeholder="0"> 
+                                                                                </td>
 
-                                                                            {{-- HARGA MITRA (SATUAN) --}}
-                                                                            <td class="align-middle px-1">
-                                                                                <input type="number" step="0.01" class="form-control form-control-sm text-right border-info input-hitung input-harga-mitra" 
-                                                                                    name="details[${item.id}][harga_mitra]" 
-                                                                                    value="${hrgMitra}" placeholder="0"> </td>
+                                                                                {{-- HARGA MITRA (SATUAN) --}}
+                                                                                <td class="align-middle px-1">
+                                                                                    <input type="number" step="0.01" class="form-control form-control-sm text-right border-info input-hitung input-harga-mitra" 
+                                                                                        name="details[${item.id}][harga_mitra]" 
+                                                                                        value="${hrgMitra}" placeholder="0"> </td>
 
-                                                                            {{-- SUBTOTAL DAPUR (READONLY) --}}
-                                                                            <td class="align-middle px-1">
-                                                                                <input type="text" class="form-control form-control-sm text-right bg-light text-bold subtotal-dapur" 
-                                                                                    readonly value="${formatRupiahInput(subDapur)}"> </td>
+                                                                                {{-- SUBTOTAL DAPUR (READONLY) --}}
+                                                                                <td class="align-middle px-1">
+                                                                                    <input type="text" class="form-control form-control-sm text-right bg-light text-bold subtotal-dapur" 
+                                                                                        readonly value="${formatRupiahInput(subDapur)}"> </td>
 
-                                                                            {{-- SUBTOTAL MITRA (READONLY) --}}
-                                                                            <td class="align-middle px-1">
-                                                                                <input type="text" class="form-control form-control-sm text-right bg-light text-bold subtotal-mitra" 
-                                                                                    readonly value="${formatRupiahInput(subMitra)}"> </td>
+                                                                                {{-- SUBTOTAL MITRA (READONLY) --}}
+                                                                                <td class="align-middle px-1">
+                                                                                    <input type="text" class="form-control form-control-sm text-right bg-light text-bold subtotal-mitra" 
+                                                                                        readonly value="${formatRupiahInput(subMitra)}"> </td>
 
-                                                                                    @can('transaction.submission-approval.delete-detail')
-                                                                                        <td class="text-center align-middle action-only">
-                                                                                                <button type="button" class="btn btn-link text-danger btn-delete-detail" data-id="${item.id}">
-                                                                                                    <i class="fas fa-trash-alt"></i>
-                                                                                                </button>
-                                                                                                </td>
-                                                                                    @endcan
-                                                                        </tr>
-                                                                    `;
+                                                                                        @can('transaction.submission-approval.delete-detail')
+                                                                                            <td class="text-center align-middle action-only">
+                                                                                                    <button type="button" class="btn btn-link text-danger btn-delete-detail" data-id="${item.id}">
+                                                                                                        <i class="fas fa-trash-alt"></i>
+                                                                                                    </button>
+                                                                                                    </td>
+                                                                                        @endcan
+                                                                            </tr>
+                                                                        `;
                     });
                 } else {
                     html = '<tr><td colspan="7" class="text-center py-3 text-muted">Tidak ada item bahan baku.</td></tr>';
