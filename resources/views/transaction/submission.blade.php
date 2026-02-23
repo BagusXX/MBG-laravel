@@ -23,8 +23,10 @@
 
     <div id="notification-container"></div>
 
-    {{-- BUTTON ADD --}}
-    <x-button-add idTarget="#modalAddSubmission" text="Tambah Pengajuan Menu" />
+    @can('transaction.submission.store')
+        {{-- BUTTON ADD --}}
+        <x-button-add idTarget="#modalAddSubmission" text="Tambah Pengajuan Menu" />
+    @endcan
 
     {{-- FILTER SECTION --}}
     <div class="card mb-3">
@@ -73,7 +75,11 @@
                         <th class="text-center">PM Besar</th>
                         <th class="text-center">PM Kecil</th>
                         <th>Status</th>
+                        @canany(['transaction.submission.delete',
+                                            'transaction.submission.show',
+                                            'transaction.submission.update',])
                         <th width="150" class="text-center">Aksi</th>
+                        @endcanany
                     </tr>
                 </thead>
                 <tbody>
@@ -90,35 +96,48 @@
                                     <td class="text-center">{{ $item->porsi_kecil ?? 0 }}</td>
                                     <td>
                                         <span class="badge badge-{{
-                        $item->status === 'diterima' ? 'success' :
-                        ($item->status === 'selesai' ? 'success' :
-                            ($item->status === 'diproses' ? 'info' :
-                                ($item->status === 'diajukan' ? 'warning' :
-                                    ($item->status === 'ditolak' ? 'danger' : 'warning'))))
-                                                }}">
+                                            $item->status === 'diterima' ? 'success' :
+                                            ($item->status === 'selesai' ? 'success' :
+                                                ($item->status === 'diproses' ? 'info' :
+                                                    ($item->status === 'diajukan' ? 'warning' :
+                                                        ($item->status === 'ditolak' ? 'danger' : 'warning'))))
+                                                                }}">
                                             {{ strtoupper($item->status) }}
                                         </span>
                                     </td>
+                                    @canAny(['transaction.submission.delete',
+                                            'transaction.submission.show',
+                                            'transaction.submission.update',])
+                                    
                                     <td class="text-center">
+                                        @can('transaction.submission.show')
                                         {{-- Tombol Detail --}}
                                         <button class="btn btn-info btn-sm btn-detail" data-id="{{ $item->id }}" data-toggle="modal"
                                             data-target="#modalDetail">
                                             Detail
                                         </button>
-                                        
+                                        @endcan
+
+                                        @can('transaction.submission.update')
                                         {{-- Tombol Edit (hanya jika diajukan) --}}
                                         @if($item->status === 'diajukan')
-                                            <button class="btn btn-warning btn-sm btn-edit" data-id="{{ $item->id }}" data-toggle="modal" data-target="#modalEditSubmission">
+                                            <button class="btn btn-warning btn-sm btn-edit" data-id="{{ $item->id }}" data-toggle="modal"
+                                                data-target="#modalEditSubmission">
                                                 Edit
                                             </button>
                                         @endif
 
+                                        @endcan
+
+                                        @can('transaction.submission.delete')
                                         {{-- Tombol Hapus (Hanya jika status diajukan) --}}
                                         @if($item->status === 'diajukan' || $item->status === 'ditolak')
                                             <x-button-delete idTarget="#modalDeleteSubmission" formId="formDeleteSubmission"
                                                 action="{{ route('transaction.submission.destroy', $item->id) }}" text="Hapus" />
                                         @endif
+                                        @endcan
                                     </td>
+                                    @endcanAny
                                 </tr>
                     @empty
                         <tr>
@@ -216,7 +235,7 @@
         {{-- BARIS 4: INPUT ITEM MANUAL (DINAMIS) --}}
         <div class="d-flex justify-content-between align-items-center mb-2">
             <label class="font-weight-bold">Rincian Bahan Baku (Input Manual)</label>
-            
+
         </div>
 
         <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
@@ -226,8 +245,8 @@
                         <th width="20%">Bahan Baku</th>
                         <th width="10%">Qty</th>
                         <th width="10%">Satuan</th>
-                        <th width="15%">Harga Dapur</th>
-                        <th width="15%">Harga Mitra</th>
+                        <th width="15%">Harga Satuan Dapur</th>
+                        <th width="15%">Harga Satuan Mitra</th>
                         <th width="15%">Subtotal Dapur</th>
                         <th width="15%">Subtotal Mitra</th>
                         <th width="5%"></th>
@@ -238,7 +257,7 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="8" class="text-right text-end"> 
+                        <td colspan="8" class="text-right text-end">
                             <button type="button" class="btn btn-sm btn-success" id="btnAddRow">
                                 <i class="fas fa-plus"></i> Tambah Item
                             </button>
@@ -252,8 +271,8 @@
     {{-- =========================
     MODAL EDIT
     ========================= --}}
-    <x-modal-form id="modalEditSubmission" size="modal-xl" title="Edit Pengajuan Bahan Baku"
-        action="#" submitText="Perbarui Pengajuan" formId="formEditSubmission">
+    <x-modal-form id="modalEditSubmission" size="modal-xl" title="Edit Pengajuan Bahan Baku" action="#"
+        submitText="Perbarui Pengajuan" formId="formEditSubmission">
         @csrf
         <input type="hidden" name="_method" value="PATCH">
 
@@ -303,7 +322,8 @@
             <div class="col-md-4">
                 <div class="form-group">
                     <label>Atau Ketik Menu Baru</label>
-                    <input type="text" name="nama_menu" id="inputNamaMenuEdit" class="form-control" placeholder="Isi jika menu belum ada di list">
+                    <input type="text" name="nama_menu" id="inputNamaMenuEdit" class="form-control"
+                        placeholder="Isi jika menu belum ada di list">
                 </div>
             </div>
         </div>
@@ -338,8 +358,8 @@
                         <th width="20%">Bahan Baku</th>
                         <th width="10%">Qty</th>
                         <th width="10%">Satuan</th>
-                        <th width="15%">Harga Dapur</th>
-                        <th width="15%">Harga Mitra</th>
+                        <th width="15%">Harga Satuan Dapur</th>
+                        <th width="15%">Harga Satuan Mitra</th>
                         <th width="15%">Subtotal Dapur</th>
                         <th width="15%">Subtotal Mitra</th>
                         <th width="5%"></th>
@@ -350,7 +370,7 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="8" class="text-right text-end"> 
+                        <td colspan="8" class="text-right text-end">
                             <button type="button" class="btn btn-sm btn-success" id="btnAddRowEdit">
                                 <i class="fas fa-plus"></i> Tambah Item
                             </button>
@@ -414,7 +434,7 @@
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>Bahan Baku</th>
+                        <th>Bahan Baku/Bahan Masak</th>
                         <th class="text-center">Jumlah</th>
                         <th class="text-center">Satuan</th>
                     </tr>
@@ -457,7 +477,7 @@
             // Validasi: jika null, undefined, atau bukan angka, jadikan 0
             let value = parseFloat(num);
             if (isNaN(value)) value = 0;
-            
+
             return 'Rp ' + value.toLocaleString('id-ID', {
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 0
@@ -518,7 +538,7 @@
 
                 menuSelect.empty().prop('disabled', true).append('<option value="">Pilih Dapur Terlebih Dahulu</option>');
                 inputMenu.val('').prop('disabled', false);
-                
+
 
                 if (!kitchenId) return;
 
@@ -593,44 +613,44 @@
             });
 
             // Fungsi Hitung Otomatis
-        $(document).on('input', '.input-qty, .input-harga-dapur, .input-harga-mitra', function() {
-            // Cari baris (tr) terdekat dari input yang sedang diketik
-            let row = $(this).closest('tr');
+            $(document).on('input', '.input-qty, .input-harga-dapur, .input-harga-mitra', function () {
+                // Cari baris (tr) terdekat dari input yang sedang diketik
+                let row = $(this).closest('tr');
 
-            // Fungsi helper untuk menangani koma atau titik
-            const parseLocaleNumber = (val) => {
-                if (!val) return 0;
-                let str = val.toString();
+                // Fungsi helper untuk menangani koma atau titik
+                const parseLocaleNumber = (val) => {
+                    if (!val) return 0;
+                    let str = val.toString();
 
-                // // Langkah 1: Buang semua titik (.) (karena ini cuma pemisah ribuan)
-                // str = str.replace(/\./g, '');
+                    // // Langkah 1: Buang semua titik (.) (karena ini cuma pemisah ribuan)
+                    // str = str.replace(/\./g, '');
 
-                // Langkah 2: Ubah koma (,) jadi titik (.) (agar komputer mengerti ini desimal)
-                str = str.replace(/,/g, '.');
+                    // Langkah 2: Ubah koma (,) jadi titik (.) (agar komputer mengerti ini desimal)
+                    str = str.replace(/,/g, '.');
 
-                return parseFloat(str) || 0;
-            };
-            
-            // Ambil nilai-nilainya
-            let qty = parseLocaleNumber(row.find('.input-qty').val()) || 0;
-            let hargaDapur = parseLocaleNumber(row.find('.input-harga-dapur').val()) || 0;
-            let hargaMitra = parseLocaleNumber(row.find('.input-harga-mitra').val()) || 0;
-            
-            // Hitung
-            let subtotalDapur = qty * hargaDapur;
-            let subtotalMitra = qty * hargaMitra;
-            
-            // Tampilkan di kolom readonly (Formatted dengan formatRupiah jika ingin, atau angka biasa)
-            row.find('.total-dapur').val(subtotalDapur.toLocaleString('id-ID', {
-                    minimumFractionDigits: 0, 
-                    maximumFractionDigits: 2 
+                    return parseFloat(str) || 0;
+                };
+
+                // Ambil nilai-nilainya
+                let qty = parseLocaleNumber(row.find('.input-qty').val()) || 0;
+                let hargaDapur = parseLocaleNumber(row.find('.input-harga-dapur').val()) || 0;
+                let hargaMitra = parseLocaleNumber(row.find('.input-harga-mitra').val()) || 0;
+
+                // Hitung
+                let subtotalDapur = qty * hargaDapur;
+                let subtotalMitra = qty * hargaMitra;
+
+                // Tampilkan di kolom readonly (Formatted dengan formatRupiah jika ingin, atau angka biasa)
+                row.find('.total-dapur').val(subtotalDapur.toLocaleString('id-ID', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2
                 }));
 
                 row.find('.total-mitra').val(subtotalMitra.toLocaleString('id-ID', {
-                    minimumFractionDigits: 0, 
-                    maximumFractionDigits: 2 
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2
                 }));
-        });
+            });
 
             // ==========================================
             // 5. DYNAMIC ROW (MANUAL ITEM INPUT)
@@ -649,44 +669,44 @@
                 });
 
                 let tr = `
-                        <tr id="row-${rowIdx}">
-                            <td>
-                                <select name="items[${rowIdx}][bahan_baku_id]" class="form-control form-control-sm" required>
-                                    ${optionsBahan}
-                                </select>
-                            </td>
-                            <td>
-                                <input type="text" step="any" name="items[${rowIdx}][qty]" class="form-control form-control-sm text-center input-qty" placeholder="0" required>
-                            </td>
-                            <td>
-                                <select name="items[${rowIdx}][satuan_id]" class="form-control form-control-sm" required>
-                                    ${optionsUnit}
-                                </select>
-                            </td>
-                            <td>
-                                <div class="input-group input-group-sm">
-                                    <input type="text" name="items[${rowIdx}][harga_dapur]" class="form-control input-harga-dapur" placeholder="Harga">
-                                </div>
-                            </td>
-                            
-                            <td>
-                                <div class="input-group input-group-sm">
-                                    <input type="text" name="items[${rowIdx}][harga_mitra]" class="form-control input-harga-mitra" placeholder="Harga">
-                                </div>
-                            </td>
-                            <td>
-                                <input type="text" class="form-control form-control-sm total-dapur" readonly placeholder="0">
-                            </td>
-                            <td>
-                                <input type="text" class="form-control form-control-sm total-mitra" readonly placeholder="0">
-                            </td>
-                            <td class="text-center">
-                                <button type="button" class="btn btn-danger btn-xs btn-remove-row" data-id="${rowIdx}" title="Hapus Baris">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
+                            <tr id="row-${rowIdx}">
+                                <td>
+                                    <select name="items[${rowIdx}][bahan_baku_id]" class="form-control form-control-sm" required>
+                                        ${optionsBahan}
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="text" step="any" name="items[${rowIdx}][qty]" class="form-control form-control-sm text-center input-qty" placeholder="0" required>
+                                </td>
+                                <td>
+                                    <select name="items[${rowIdx}][satuan_id]" class="form-control form-control-sm" required>
+                                        ${optionsUnit}
+                                    </select>
+                                </td>
+                                <td>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" name="items[${rowIdx}][harga_dapur]" class="form-control input-harga-dapur" placeholder="Harga">
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="input-group input-group-sm">
+                                        <input type="text" name="items[${rowIdx}][harga_mitra]" class="form-control input-harga-mitra" placeholder="Harga">
+                                    </div>
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control form-control-sm total-dapur" readonly placeholder="0">
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control form-control-sm total-mitra" readonly placeholder="0">
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-danger btn-xs btn-remove-row" data-id="${rowIdx}" title="Hapus Baris">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
 
                 $('#tableManualItems tbody').append(tr);
                 rowIdx++;
@@ -766,12 +786,12 @@
                                 if (details && details.length > 0) {
                                     $.each(details, function (index, item) {
                                         rows += `
-                                                <tr>
-                                                    <td>${item.bahan_baku_nama || '-'}</td>
-                                                    <td class="text-center">${formatQty(item.qty_digunakan)}</td>
-                                                    <td class="text-center">${item.nama_satuan || '-'}</td>
-                                                </tr>
-                                            `;
+                                                    <tr>
+                                                        <td>${item.bahan_baku_nama || '-'}</td>
+                                                        <td class="text-center">${formatQty(item.qty_digunakan)}</td>
+                                                        <td class="text-center">${item.nama_satuan || '-'}</td>
+                                                    </tr>
+                                                `;
                                     });
                                 } else {
                                     rows = '<tr><td colspan="3" class="text-center text-muted">Tidak ada rincian bahan baku</td></tr>';
@@ -786,30 +806,30 @@
                                 let invoiceUrl = "{{ route('transaction.submission-approval.invoice', ['submission' => 'FAKE_ID']) }}".replace('FAKE_ID', h.id);
 
                                 historyHtml += `
-                                        <div class="card mb-2 border" style="background-color: #f8f9fa;">
-                                            <div class="card-body p-3">
-                                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                                    <div>
-                                                        <strong class="text-primary">${h.kode}</strong> 
-                                                        <span class="text-muted mx-2">|</span> 
-                                                        <i class="fas fa-truck mr-1 text-secondary"></i> ${h.supplier_nama}
+                                            <div class="card mb-2 border" style="background-color: #f8f9fa;">
+                                                <div class="card-body p-3">
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                        <div>
+                                                            <strong class="text-primary">${h.kode}</strong> 
+                                                            <span class="text-muted mx-2">|</span> 
+                                                            <i class="fas fa-truck mr-1 text-secondary"></i> ${h.supplier_nama}
+                                                        </div>
+                                                        <div>
+                                                            <span class="badge badge-${h.status === 'diproses' ? 'info' : 'success'} mr-2">${h.status.toUpperCase()}</span>
+                                                            <strong class="text-dark">${formatRupiah(h.total)}</strong>
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <span class="badge badge-${h.status === 'diproses' ? 'info' : 'success'} mr-2">${h.status.toUpperCase()}</span>
-                                                        <strong class="text-dark">${formatRupiah(h.total)}</strong>
+                                                    <div class="text-muted small mb-2">
+                                                        ${h.item_count} item bahan baku
                                                     </div>
-                                                </div>
-                                                <div class="text-muted small mb-2">
-                                                    ${h.item_count} item bahan baku
-                                                </div>
-                                                <div class="text-right border-top pt-2">
-                                                    <a href="${invoiceUrl}" target="_blank" class="btn btn-xs btn-outline-secondary">
-                                                        <i class="fas fa-print mr-1"></i> Cetak Invoice
-                                                    </a>
+                                                    <div class="text-right border-top pt-2">
+                                                        <a href="${invoiceUrl}" target="_blank" class="btn btn-xs btn-outline-secondary">
+                                                            <i class="fas fa-print mr-1"></i> Cetak Invoice
+                                                        </a>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    `;
+                                        `;
                             });
                         } else {
                             historyHtml = '<div class="text-muted font-italic text-center py-2 border rounded bg-light">Belum ada riwayat split order.</div>';
@@ -871,12 +891,12 @@
                                 console.log(`Detail ${index}:`, item);
 
                                 rows += `
-                            <tr>
-                                <td>${item.nama_bahan || '-'}</td>
-                                <td class="text-center">${formatQty(item.qty)}</td>
-                                <td class="text-center">${item.nama_satuan || '-'}</td>
-                            </tr>
-                        `;
+                                <tr>
+                                    <td>${item.nama_bahan || '-'}</td>
+                                    <td class="text-center">${formatQty(item.qty)}</td>
+                                    <td class="text-center">${item.nama_satuan || '-'}</td>
+                                </tr>
+                            `;
                             });
                         } else {
                             console.warn('No details array or empty');
@@ -895,13 +915,13 @@
                                 if (h.items && h.items.length > 0) {
                                     h.items.forEach(item => {
                                         itemsHtml += `
-                                            <li>
-                                                ${item.nama}
-                                                <span class="text-muted small">
-                                                    (${formatQty(item.qty)} ${item.unit} x ${formatRupiah(item.harga_tampil)}) 
-                                                </span>
-                                            </li>
-                                        `;
+                                                <li>
+                                                    ${item.nama}
+                                                    <span class="text-muted small">
+                                                        (${formatQty(item.qty)} ${item.unit} x ${formatRupiah(item.harga_tampil)}) 
+                                                    </span>
+                                                </li>
+                                            `;
                                     });
                                 } else {
                                     itemsHtml = `<li class="text-muted font-italic small">Tidak ada item</li>`;
@@ -909,33 +929,33 @@
 
                                 // 2. MASUKKAN KE DALAM CARD (Gunakan Border & Style yang sama)
                                 historyHtml += `
-                                    <div class="card mb-2 border shadow-sm">
-                                        <div class="card-body p-3">
-                                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                                <div>
-                                                    <strong class="text-dark">${h.kode}</strong> 
-                                                    <span class="text-muted mx-2">|</span> 
-                                                    <i class="fas fa-truck mr-1 text-secondary"></i> ${h.supplier_nama || h.supplier || '-'}
+                                        <div class="card mb-2 border shadow-sm">
+                                            <div class="card-body p-3">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <div>
+                                                        <strong class="text-dark">${h.kode}</strong> 
+                                                        <span class="text-muted mx-2">|</span> 
+                                                        <i class="fas fa-truck mr-1 text-secondary"></i> ${h.supplier_nama || h.supplier || '-'}
+                                                    </div>
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="badge badge-${h.status === 'disetujui' || h.status === 'selesai' ? 'success' : 'info'} mr-3 px-2 py-1">
+                                                            ${h.status.toUpperCase()}
+                                                        </span>
+                                                        <strong class="text-dark">${formatRupiah(h.total)}</strong>
+                                                    </div>
                                                 </div>
-                                                <div class="d-flex align-items-center">
-                                                    <span class="badge badge-${h.status === 'disetujui' || h.status === 'selesai' ? 'success' : 'info'} mr-3 px-2 py-1">
-                                                        ${h.status.toUpperCase()}
-                                                    </span>
-                                                    <strong class="text-dark">${formatRupiah(h.total)}</strong>
-                                                </div>
-                                            </div>
-                                            
-                                            <ul class="mb-0 pl-3" style="font-size: 0.9em; list-style-type: disc; color: #555;">
-                                                ${itemsHtml}
-                                            </ul>
 
-                                            <div class="text-right mt-2 border-top pt-2">
-                                                <a href="${invoiceUrl}" class="btn btn-sm btn-outline-secondary" target="_blank">
-                                                    <i class="fas fa-print mr-1"></i> Cetak Invoice
-                                                </a>
+                                                <ul class="mb-0 pl-3" style="font-size: 0.9em; list-style-type: disc; color: #555;">
+                                                    ${itemsHtml}
+                                                </ul>
+
+                                                <div class="text-right mt-2 border-top pt-2">
+                                                    <a href="${invoiceUrl}" class="btn btn-sm btn-outline-secondary" target="_blank">
+                                                        <i class="fas fa-print mr-1"></i> Cetak Invoice
+                                                    </a>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </div>`;
+                                        </div>`;
                             });
                         } else {
                             historyHtml = '<div class="text-muted font-italic text-center py-3 border bg-light rounded">Belum ada riwayat split order.</div>';
@@ -984,43 +1004,43 @@
                 let initialSubMitra = data.subtotal_mitra ? parseFloat(data.subtotal_mitra).toLocaleString('id-ID') : '0';
 
                 let tr = `
-                    <tr id="row-edit-${idx}">
-                        <td>
-                            <select name="items[${idx}][bahan_baku_id]" class="form-control form-control-sm">
-                                ${optionsBahan}
-                            </select>
-                        </td>
-                        <td>
-                            <input type="text" step="any" name="items[${idx}][qty]" class="form-control form-control-sm text-center input-qty" placeholder="0">
-                        </td>
-                        <td>
-                            <select name="items[${idx}][satuan_id]" class="form-control form-control-sm">
-                                ${optionsUnit}
-                            </select>
-                        </td>
-                        <td>
-                            <div class="input-group input-group-sm">
-                                <input type="text" step="any" name="items[${idx}][harga_dapur]" class="form-control input-harga-dapur" placeholder="Harga Dapur">
-                            </div>
-                        </td>
-                        <td>
-                            <div class="input-group input-group-sm">
-                                <input type="text" step="any" name="items[${idx}][harga_mitra]" class="form-control input-harga-mitra" placeholder="Harga Mitra">
-                            </div>
-                        </td>
-                        <td>
-                            <input type="text" class="form-control form-control-sm total-dapur bg-light" readonly value="${initialSubDapur}">
-                        </td>
-                        <td>
-                            <input type="text" class="form-control form-control-sm total-mitra bg-light" readonly value="${initialSubMitra}">
-                        </td>
-                        <td class="text-center">
-                            <button type="button" class="btn btn-danger btn-xs btn-remove-row" data-id="${idx}" title="Hapus Baris">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
+                        <tr id="row-edit-${idx}">
+                            <td>
+                                <select name="items[${idx}][bahan_baku_id]" class="form-control form-control-sm">
+                                    ${optionsBahan}
+                                </select>
+                            </td>
+                            <td>
+                                <input type="text" step="any" name="items[${idx}][qty]" class="form-control form-control-sm text-center input-qty" placeholder="0">
+                            </td>
+                            <td>
+                                <select name="items[${idx}][satuan_id]" class="form-control form-control-sm">
+                                    ${optionsUnit}
+                                </select>
+                            </td>
+                            <td>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" step="any" name="items[${idx}][harga_dapur]" class="form-control input-harga-dapur" placeholder="Harga Dapur">
+                                </div>
+                            </td>
+                            <td>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" step="any" name="items[${idx}][harga_mitra]" class="form-control input-harga-mitra" placeholder="Harga Mitra">
+                                </div>
+                            </td>
+                            <td>
+                                <input type="text" class="form-control form-control-sm total-dapur bg-light" readonly value="${initialSubDapur}">
+                            </td>
+                            <td>
+                                <input type="text" class="form-control form-control-sm total-mitra bg-light" readonly value="${initialSubMitra}">
+                            </td>
+                            <td class="text-center">
+                                <button type="button" class="btn btn-danger btn-xs btn-remove-row" data-id="${idx}" title="Hapus Baris">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
 
                 $('#tableManualItemsEdit tbody').append(tr);
 
@@ -1077,7 +1097,7 @@
                 let formAction = urlTemplate.replace('FAKE_ID', id);
 
                 console.log("Target Update URL:", formAction)
-                
+
                 let $form = $('#formEditSubmission');
 
                 // // --- PENGECEKAN PENTING ---
@@ -1085,13 +1105,13 @@
                 //     alert("CRITICAL ERROR: Form dengan ID #formEditSubmission tidak ditemukan! Cek file component x-modal-form Anda.");
                 //     return; 
                 // }
-                
+
                 $form.attr('action', formAction);
-                
+
                 // clear
                 $('#tableManualItemsEdit tbody').empty();
                 rowEditIdx = 0;
-                
+
                 let dataUrl = "{{ route('transaction.submission.data', ['submission' => 'FAKE_ID']) }}".replace('FAKE_ID', id);
                 $.ajax({
                     url: dataUrl,
@@ -1099,7 +1119,7 @@
                     dataType: 'json',
                     success: function (data) {
                         console.log('Data Edit:', data); // DEBUG 1: Cek apakah kitchen_id ada di sini
-                        
+
                         // 1. SET TANGGAL (Gunakan key _raw yang formatnya YYYY-MM-DD)
                         if (data.tanggal_raw) {
                             $('#edit-tanggal').val(data.tanggal_raw);
@@ -1113,86 +1133,86 @@
 
                         // FIX DAPUR: Pastikan ID-nya sesuai (Cek apakah di HTML id-nya benar 'selectKitchenEdit')
                         if (data.kitchen_id) {
-                        // Cek apakah elemen select ditemukan
-                        if ($('#selectKitchenEdit').length === 0) {
-                            console.error('ID #selectKitchenEdit tidak ditemukan di HTML!');
-                        }
-                        
-                        // Set value dan trigger change (opsional, tapi aman)
-                        $('#selectKitchenEdit').val(data.kitchen_id).trigger('change'); 
-
-                        // 3. LOAD MENU BERDASARKAN DAPUR
-                        let menuUrl = "{{ route('transaction.submission.menu-by-kitchen', ['kitchenId' => 'FAKE_ID']) }}".replace('FAKE_ID', data.kitchen_id);
-                        
-                        $.ajax({
-                            url: menuUrl,
-                            type: 'GET',
-                            dataType: 'json',
-                            success: function (menus) {
-                                let $sel = $('#selectMenuEdit');
-                                $sel.empty();
-                                if (Array.isArray(menus) && menus.length > 0) {
-                                    $sel.append('<option value="">-- Pilih Menu Existing --</option>');
-                                    menus.forEach(m => $sel.append(`<option value="${m.id}">${m.nama}</option>`));
-                                } else {
-                                    $sel.append('<option value="">(Tidak ada menu)</option>');
-                                }
-
-                                // Set Menu Terpilih
-                                if (data.menu_id) {
-                                    $sel.val(data.menu_id);
-                                    $('#inputNamaMenuEdit').val('').prop('disabled', true);
-                                } else {
-                                    $sel.val('');
-                                    $('#inputNamaMenuEdit').val(data.menu || '').prop('disabled', false);
-                                }
+                            // Cek apakah elemen select ditemukan
+                            if ($('#selectKitchenEdit').length === 0) {
+                                console.error('ID #selectKitchenEdit tidak ditemukan di HTML!');
                             }
-                        });
 
-                        // 4. LOAD BAHAN BAKU BERDASARKAN DAPUR (KUNCI PERBAIKAN)
-                        let bahanUrl = "{{ route('transaction.submission.bahan-by-kitchen', ['kitchenId' => 'FAKE_ID']) }}".replace('FAKE_ID', data.kitchen_id);
-                        
-                        $.ajax({
-                            url: bahanUrl,
-                            type: 'GET',
-                            dataType: 'json',
-                            success: function (bahan) {
-                                // Simpan ke variable global khusus Edit
-                                currentBahanListEdit = bahan || []; 
+                            // Set value dan trigger change (opsional, tapi aman)
+                            $('#selectKitchenEdit').val(data.kitchen_id).trigger('change');
 
-                                // Setelah master bahan termuat, baru render baris itemnya
-                                if (data.details && data.details.length > 0) {
-                                    data.details.forEach(d => {
-                                        addRowEdit({
-                                            bahan_baku_id: d.bahan_baku_id,
-                                            qty: d.qty || d.qty_digunakan, // Sesuaikan dengan nama kolom di JSON
-                                            satuan_id: d.satuan_id,
-                                            harga_dapur: d.harga_dapur,
-                                            harga_mitra: d.harga_mitra,
-                                            subtotal_dapur: d.subtotal_dapur,
-                                            subtotal_mitra: d.subtotal_mitra
+                            // 3. LOAD MENU BERDASARKAN DAPUR
+                            let menuUrl = "{{ route('transaction.submission.menu-by-kitchen', ['kitchenId' => 'FAKE_ID']) }}".replace('FAKE_ID', data.kitchen_id);
+
+                            $.ajax({
+                                url: menuUrl,
+                                type: 'GET',
+                                dataType: 'json',
+                                success: function (menus) {
+                                    let $sel = $('#selectMenuEdit');
+                                    $sel.empty();
+                                    if (Array.isArray(menus) && menus.length > 0) {
+                                        $sel.append('<option value="">-- Pilih Menu Existing --</option>');
+                                        menus.forEach(m => $sel.append(`<option value="${m.id}">${m.nama}</option>`));
+                                    } else {
+                                        $sel.append('<option value="">(Tidak ada menu)</option>');
+                                    }
+
+                                    // Set Menu Terpilih
+                                    if (data.menu_id) {
+                                        $sel.val(data.menu_id);
+                                        $('#inputNamaMenuEdit').val('').prop('disabled', true);
+                                    } else {
+                                        $sel.val('');
+                                        $('#inputNamaMenuEdit').val(data.menu || '').prop('disabled', false);
+                                    }
+                                }
+                            });
+
+                            // 4. LOAD BAHAN BAKU BERDASARKAN DAPUR (KUNCI PERBAIKAN)
+                            let bahanUrl = "{{ route('transaction.submission.bahan-by-kitchen', ['kitchenId' => 'FAKE_ID']) }}".replace('FAKE_ID', data.kitchen_id);
+
+                            $.ajax({
+                                url: bahanUrl,
+                                type: 'GET',
+                                dataType: 'json',
+                                success: function (bahan) {
+                                    // Simpan ke variable global khusus Edit
+                                    currentBahanListEdit = bahan || [];
+
+                                    // Setelah master bahan termuat, baru render baris itemnya
+                                    if (data.details && data.details.length > 0) {
+                                        data.details.forEach(d => {
+                                            addRowEdit({
+                                                bahan_baku_id: d.bahan_baku_id,
+                                                qty: d.qty || d.qty_digunakan, // Sesuaikan dengan nama kolom di JSON
+                                                satuan_id: d.satuan_id,
+                                                harga_dapur: d.harga_dapur,
+                                                harga_mitra: d.harga_mitra,
+                                                subtotal_dapur: d.subtotal_dapur,
+                                                subtotal_mitra: d.subtotal_mitra
+                                            });
                                         });
-                                    });
-                                } else {
-                                    addRowEdit(); // Tambah baris kosong jika tidak ada detail
-                                }
-                                
-                                // Hitung ulang/trigger input agar total muncul
-                                $('.input-qty').trigger('input');
-                                
-                                // Update dropdown bahan baku di semua baris yang baru dibuat
-                                refreshAllBahanDropdownEdit();
-                            },
-                            error: function(xhr) {
-                                console.error('Gagal ambil bahan:', xhr);
-                                currentBahanListEdit = [];
-                                addRowEdit();
-                            }
-                        });
+                                    } else {
+                                        addRowEdit(); // Tambah baris kosong jika tidak ada detail
+                                    }
 
-                    } else {
-                        alert('Data Kitchen ID tidak ditemukan dari server. Cek Controller.');
-                    }
+                                    // Hitung ulang/trigger input agar total muncul
+                                    $('.input-qty').trigger('input');
+
+                                    // Update dropdown bahan baku di semua baris yang baru dibuat
+                                    refreshAllBahanDropdownEdit();
+                                },
+                                error: function (xhr) {
+                                    console.error('Gagal ambil bahan:', xhr);
+                                    currentBahanListEdit = [];
+                                    addRowEdit();
+                                }
+                            });
+
+                        } else {
+                            alert('Data Kitchen ID tidak ditemukan dari server. Cek Controller.');
+                        }
 
                         // porsi
                         $('#edit-porsi-besar').val(data.porsi_besar || 0);

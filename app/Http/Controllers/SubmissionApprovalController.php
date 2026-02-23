@@ -302,6 +302,7 @@ class SubmissionApprovalController extends Controller
                 'supplier_nama' => $child->supplier->nama ?? 'Umum',
                 'status' => $child->status,
                 'total' => $child->total_harga,
+                'created_at' => $child->created_at ? \Carbon\Carbon::parse($child->created_at)->locale('id')->translatedFormat('d-m-Y') : '-',
                 'item_count' => $child->details->count(),
                 'items' => $child->details->map(function ($detail) {
                     return [
@@ -485,7 +486,7 @@ class SubmissionApprovalController extends Controller
 
         $pdf = Pdf::loadView('transaction.invoice-submission', compact('submission'))
             ->setPaper('a4', 'portrait');
-        return $pdf->stream($submission->kode . '.pdf');
+        return $pdf->download($submission->kode . '.pdf');
     }
 
 

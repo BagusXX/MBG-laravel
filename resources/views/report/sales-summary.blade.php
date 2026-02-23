@@ -57,9 +57,10 @@
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th width="13%">Kode</th>
-                        <th width="24%">Total Invoice Dapur</th>
-                        <th width="24%">Total Invoice Mitra</th>
+                        <th width="10%">Kode</th>
+                        <th>Tanggal Pengajuan</th>
+                        <th>Total Invoice Dapur</th>
+                        <th>Total Invoice Mitra</th>
                         <th>Selisih</th>
                         <th>85%</th>
                         <th>15%</th>
@@ -70,6 +71,7 @@
                     @forelse ($parents as $report )
                     <tr>
                         <td>{{ $report->kode }}</td>
+                        <td>{{ \Carbon\Carbon::parse($report->tanggal)->locale('id')->translatedFormat('d F Y') }}</td>
                         <td>Rp{{ number_format($report->total_dapur, 0, ',', '.') }}</td>
                         <td>Rp{{ number_format($report->total_mitra, 0, ',', '.') }}</td>
                         <td>Rp{{ number_format($report->selisih, 0, ',', '.') }}</td>
@@ -86,13 +88,13 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="text-center">Data tidak ditemukan untuk periode ini.</td>
+                        <td colspan="9" class="text-center">Data tidak ditemukan untuk periode ini.</td>
                     </tr>
                     @endforelse
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="3" class="text-right"><strong>Total :</strong></td>
+                        <td colspan="4" class="text-right"><strong>Total :</strong></td>
                         <td class="text-left"><strong>Rp{{ number_format($totalSelisih, 0, '.', '.') }}</strong></td>
                         <td class="text-left"><strong>Rp{{ number_format($totalPersen85, 0, '.', '.') }}</strong></td>
                         <td class="text-left"><strong>Rp{{ number_format($totalPersen15, 0, '.', '.') }}</strong></td>
@@ -134,6 +136,7 @@
                         <thead>
                             <tr>
                                 <th>Kode</th>
+                                <th>Tanggal Invoice</th>
                                 <th>Supplier</th>
                                 <th>Total Dapur</th>
                                 <th>Total Mitra</th>
@@ -148,6 +151,7 @@
                                 @endphp
                                 <tr>
                                     <td>{{ $child->kode }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($child->created_at)->locale('id')->translatedFormat('d F Y') }}</td>
                                     <td>{{ $child->supplier->nama }}</td>
                                     <td>Rp{{ number_format($dapur,0,',','.') }}</td>
                                     <td>Rp{{ number_format($mitra,0,',','.') }}</td>

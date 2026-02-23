@@ -195,7 +195,7 @@
     <table>
         <thead>
             <tr>
-                <th>Tanggal</th>
+                <th>Tanggal Pengajuan</th>
                 <th>Dapur</th>
                 <th>Supplier</th>
                 <th>Subtotal Dapur</th>
