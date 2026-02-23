@@ -31,7 +31,7 @@ class MenuController extends Controller
             });
         }
 
-        $items = $query->paginate(10)->withQueryString();
+        $items = $query->paginate($this->resolvePerPage($request))->withQueryString();
 
         $generatedCodes = [];
         foreach ($kitchens as $k) {
