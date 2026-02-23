@@ -4,8 +4,7 @@ namespace App\Listeners;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
-Use App\Events\UserActivityEvent;
-use App\Models\ActivityLog;
+Use App\Events\UserActivityEvent;;
 
 class SaveUserActivityListener
 {

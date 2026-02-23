@@ -7,10 +7,13 @@ use App\Models\Kitchen;
 use App\Models\Unit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB; // Tambahkan ini untuk query manual ke tabel pivot
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Concerns\HasPerPage;
+ // Tambahkan ini untuk query manual ke tabel pivot
 
 class BahanBakuController extends Controller
 {
+    use HasPerPage;
     // Tampilkan halaman bahan baku
     public function index(Request $request)
     {
@@ -55,7 +58,8 @@ class BahanBakuController extends Controller
             });
         }
 
-        $items = $query->paginate(10)->withQueryString();
+       $items = $query->paginate($this->resolvePerPage($request))
+               ->withQueryString();
 
 
         // Pre-generate kode untuk semua dapur milik user

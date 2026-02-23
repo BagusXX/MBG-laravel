@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Models\BankAccount;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
@@ -9,6 +10,7 @@ use Illuminate\Validation\Rule;
 
 class BankAccountController extends Controller
 {
+    use HasPerPage;
     private function checkAccess(Supplier $supplier)
     {
         $userKitchenKode = auth()->user()
@@ -24,10 +26,10 @@ class BankAccountController extends Controller
     private function canManage()
     {
         $user = auth()->user();
-        return $user->hasAnyRole(['superadmin', 'operatorkoperasi','superadminDapur']);
+        return $user->hasAnyRole(['superadmin', 'operatorkoperasi', 'superadminDapur']);
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
         $userKitchenKode = $user->kitchens()->pluck('kode');
@@ -37,7 +39,8 @@ class BankAccountController extends Controller
         })
             ->with('suppliers')
             ->latest()
-            ->paginate(10);
+            ->paginate($this->resolvePerPage($request))
+            ->withQueryString();
 
         $suppliers = Supplier::whereHas('kitchens', function ($q) use ($userKitchenKode) {
             $q->whereIn('kitchens.kode', $userKitchenKode);
