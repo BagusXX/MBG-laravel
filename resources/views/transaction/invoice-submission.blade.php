@@ -369,13 +369,31 @@
                         {{ \Carbon\Carbon::parse($submission->tanggal)->locale('id')->isoFormat('D MMMM YYYY') }}
                     </p>
                     
-                    {{-- Ruang Kosong untuk Tanda Tangan Manual --}}
-                    <div style="height: 70px;"></div>
+                    <div style="height: 100px; margin-bottom: 2px; text-align: center;">
+                        @if ($submission->supplier && $submission->supplier->ttd)
+                            @php
+                                // Mengikuti cara yang terbukti berhasil pada logo
+                                $ttdRelativePath = ltrim($submission->supplier->ttd, '/');
+                                $ttdPath = storage_path('app/public/' . $ttdRelativePath);
+                            @endphp
+
+                            @if(file_exists($ttdPath))
+                                <img src="{{ $ttdPath }}"
+                                     alt="TTD Supplier"
+                                     style="max-height: 100px; object-fit: contain;">
+                            @else
+                                {{-- Saya tambahkan path-nya di sini agar jika masih gagal, Anda bisa melihat letak error-nya --}}
+                                <span style="font-size: 10px; color: red;">Path dicari: {{ $ttdPath }}</span>
+                            @endif
+                        @else
+                            &nbsp;
+                        @endif
+                    </div>
 
                     {{-- Nama Terang dengan Garis Bawah --}}
-                    <p style="font-weight: bold; text-decoration: underline; margin: 0;">__________________
+                    <p style="font-weight: bold; margin: 0; text-transform: uppercase;">
+                        {{ $submission->supplier->kontak ?? 'NAMA SUPPLIER' }}
                     </p>
-                    <p style="font-size: 11px; margin-top: 5px;">Nama Jelas & Tanda Tangan</p>
                 </div>
             </td>
         </tr>
