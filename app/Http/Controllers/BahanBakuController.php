@@ -34,6 +34,19 @@ class BahanBakuController extends Controller
         // Ambil ID untuk filtering data bahan baku
         $kitchenIds = $kitchens->pluck('id');
 
+        if ($request->filled('kitchen_kode')) {
+        // Cari apakah kode dapur yang direquest ada di dalam daftar dapur milik user
+        $selectedKitchen = $kitchens->where('kode', $request->kitchen_kode)->first();
+
+            if ($selectedKitchen) {
+                // Jika valid, timpa array $kitchenIds menjadi satu ID saja
+                $kitchenIds = collect([$selectedKitchen->id]);
+            } else {
+                // Jika user iseng memasukkan kode dapur orang lain di URL, kosongkan ID
+                $kitchenIds = collect([]); 
+            }
+        }
+
         // -----------------------------------------------------------
         // 2. QUERY DATA BAHAN BAKU
         // -----------------------------------------------------------

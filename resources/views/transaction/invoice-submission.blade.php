@@ -270,8 +270,8 @@
 
             <td style="width: 35%; text-align: right; vertical-align: top;">
                 <div style="margin-bottom: 10px;">
-                    <p style="margin: 0; font-weight: bold; text-transform: uppercase;">TANGGAL :</p> 
-                    <p style="margin: 0; font-size: 14px;">{{ \Carbon\Carbon::parse($submission->tanggal)->locale('id')->isoFormat('dddd, D MMMM YYYY') }}</p>
+                    <p style="margin: 0; font-weight: bold; text-transform: uppercase;">TANGGAL CETAK :</p> 
+                    <p style="margin: 0; font-size: 14px;">{{ \Carbon\Carbon::parse($submission->created_at)->locale('id')->isoFormat('dddd, D MMMM YYYY') }}</p>
                 </div>
                 @php
                     $romans = ['','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
@@ -309,7 +309,7 @@
         <thead>
             <tr>
                 <th width="5%" class="text-center">No</th>
-                <th>Nama Barang</th>
+                <th>Bahan Baku/Bahan Masak</th>
                 <th width="10%" class="text-center">Jumlah</th>
                 <th width="10%" class="text-center">Satuan</th>
                 <th width="18%" class="text-right">Harga Satuan</th>
@@ -369,13 +369,33 @@
                         {{ \Carbon\Carbon::parse($submission->tanggal)->locale('id')->isoFormat('D MMMM YYYY') }}
                     </p>
                     
-                    {{-- Ruang Kosong untuk Tanda Tangan Manual --}}
-                    <div style="height: 70px;"></div>
+                    <div style="height: 100px; margin-bottom: 2px; text-align: center;">
+                        @if ($submission->supplier && $submission->supplier->ttd)
+                            @php
+                                // Mengikuti cara yang terbukti berhasil pada logo
+                                $ttdRelativePath = ltrim($submission->supplier->ttd, '/');
+                                $ttdPath = storage_path('app/public/' . $ttdRelativePath);
+                            @endphp
+
+                            @if(file_exists($ttdPath))
+                                <img src="{{ $ttdPath }}"
+                                     alt="TTD Supplier"
+                                     style="max-height: 100px; object-fit: contain;">
+                            @else
+                                {{-- Saya tambahkan path-nya di sini agar jika masih gagal, Anda bisa melihat letak error-nya --}}
+                                <span style="font-size: 10px; color: red;">Path dicari: {{ $ttdPath }}</span>
+                            @endif
+                        @else
+                            &nbsp;
+                        @endif
+                    </div>
 
                     {{-- Nama Terang dengan Garis Bawah --}}
                     <p style="font-weight: bold; text-decoration: underline; margin: 0;">__________________
                     </p>
-                    <p style="font-size: 11px; margin-top: 5px;">Nama Jelas & Tanda Tangan</p>
+                    <p style="font-weight: bold; margin: 0; text-transform: uppercase;">
+                        {{ $submission->supplier->kontak ?? 'NAMA SUPPLIER' }}
+                    </p>
                 </div>
             </td>
         </tr>

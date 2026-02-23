@@ -13,30 +13,51 @@
 @section('content')
     {{-- BUTTON ADD --}}
 
-    <div class="row mb-3">
-        @can('master.menu.create')
-            <div class="col-md-6">
+    <div class="row mb-3 align-items-center">
+        <div class="col-md-3 mb-3 mb-md-0">
+            @can('master.menu.create')
                 <x-button-add idTarget="#modalAddMenu" text="Tambah Nama Menu" />
-            </div>
-        @endcan
+            @endcan
+        </div>
+    
 
-        <div class="col-md-6">
-            <form action="{{ route('master.menu.index') }}" method="GET">
-                <div class="input-group">
-                    <input type="text" name="search" class="form-control" placeholder="Cari nama menu atau kode..."
-                        value="{{ request('search') }}">
-                    <div class="input-group-append">
-                        <button class="btn btn-primary" type="submit">
-                            <i class="fa fa-search"></i>
-                        </button>
-                        @if (request('search'))
-                            <a href="{{ route('master.menu.index') }}" class="btn btn-danger">
-                                <i class="fa fa-times"></i>
-                            </a>
-                        @endif
+        <div class="col-md-9">
+            <div class="d-flex flex-column flex-md-row justify-content-md-end align-items-md-center">
+                <form action="{{ route('master.menu.index') }}" method="GET" class="mr-3">
+                    <div class="input-group">
+                        <input type="text" name="search" class="form-control mb-2 mb-md-0 mr-md-1" placeholder="Cari nama menu atau kode..."
+                            value="{{ request('search') }}">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            @if (request('search'))
+                                <a href="{{ route('master.menu.index') }}" class="btn btn-danger">
+                                    <i class="fa fa-times"></i>
+                                </a>
+                            @endif
                     </div>
-                </div>
-            </form>
+                </form>
+
+                <form action="{{ route('master.menu.index') }}" method="GET" class="form-inline mb-2 mb-md-0 mr-md-3">
+                    <label class="mr-2 sr-only">Dapur</label>
+                    <select name="kitchen_kode" class="form-control mr-2 mb-2 mb-md-0">
+                        <option value="">Semua Dapur</option>
+                        @foreach ($kitchens as $kitchen)
+                            <option value="{{ $kitchen->kode }}" 
+                                {{ request('kitchen_kode') == $kitchen->kode ? 'selected' : '' }}>
+                                {{ $kitchen->nama }}
+                            </option>
+                        @endforeach
+                    </select>
+                    
+                    <button type="submit" class="btn btn-primary mr-2 mb-2 mb-md-0">
+                        <i class="fa fa-filter"></i> Filter
+                    </button>
+                    <a href="{{ route('dashboard.master.bahan-baku.index') }}" class="btn btn-danger mb-2 mb-md-0">
+                        <i class="fa fa-undo"></i> Reset
+                    </a>
+                </form>
+            </div>
         </div>
     </div>
 

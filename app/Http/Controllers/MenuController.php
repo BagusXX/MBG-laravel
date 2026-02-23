@@ -17,9 +17,24 @@ class MenuController extends Controller
 
         $kitchens = $user->kitchens()->get();
 
+        // Default: Ambil semua ID dapur milik user
+        $kitchenIds = $kitchens->pluck('id');
+
+        if ($request->filled('kitchen_kode')) {
+        $selectedKitchen = $kitchens->where('kode', $request->kitchen_kode)->first();
+        
+            if ($selectedKitchen) {
+                // Jika valid, filter hanya untuk ID dapur yang dipilih
+                $kitchenIds = collect([$selectedKitchen->id]);
+            } else {
+                // Jika tidak valid (misal dimanipulasi di URL), kosongkan ID
+                $kitchenIds = collect([]);
+            }
+        }
+
         $query = Menu::with('kitchen')
             ->withCount('recipes')
-            ->whereIn('kitchen_id', $kitchens->pluck('id'));
+            ->whereIn('kitchen_id', $kitchenIds);
 
         if ($request->filled('search')) {
             $search = $request->search;

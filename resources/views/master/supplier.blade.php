@@ -43,20 +43,22 @@
     {{-- TABLE --}}
     <div class="card mt-2">
         <div class="card-body">
+            <div class="table-responsive">
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>No</th>
-                        <th>Kode</th>
-                        <th>Supplier</th>
-                        <th>Alamat</th>
-                        <th width="150px">Dapur</th>
-                        <th>Kontak Person</th>
-                        <th>Nomor</th>
-                        <th>Scan TTD</th>
-                        <th>Logo Supplier</th>
+                        <th style="width: 5%;">No</th>
+                        <th style="width: 10%;">Kode</th>
+                        <th style="width: 15%;">Supplier</th>
+                        <th style="width: 25%;">Alamat</th>
+                        <th style="width: 15%;">Dapur</th>
+                        <th style="width: 10%;">Kontak Person</th>
+                        <th style="width: 10%;">Nomor</th>
+                        
+                        <th style="width: 80px; text-align: center;">Scan TTD</th>
+                        <th style="width: 80px; text-align: center;">Logo Supplier</th>
                         @canany(['master.supplier.update', 'master.supplier.delete'])
-                            <th>Aksi</th>
+                            <th style="width: 100px; text-align: center;">Aksi</th>
                         @endcanany
                     </tr>
                 </thead>
@@ -66,7 +68,7 @@
                             <td>{{ $suppliers->firstItem() + $index }}</td>
                             <td>{{ $supplier->kode }}</td>
                             <td>{{ $supplier->nama }}</td>
-                            <td>{{ $supplier->alamat }}</td>
+                            <td class="text-wrap text-break">{{ $supplier->alamat }}</td>
                             <td>
                                 @foreach ($supplier->kitchens as $kitchen)
                                     <span class="badge badge-info">{{ $kitchen->nama }}</span>
@@ -123,6 +125,7 @@
                     @endforelse
                 </tbody>
             </table>
+            </div>
             <div class="mt-3 d-flex justify-content-end">
                 {{ $suppliers->links('pagination::bootstrap-4') }}
             </div>
