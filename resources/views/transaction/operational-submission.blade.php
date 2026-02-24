@@ -360,7 +360,7 @@
                                 @if ($child->status === 'disetujui')
                                     <a href="{{ route('transaction.operational-submission.invoice', $child->id) }}"
                                         class="btn btn-xs btn-outline-secondary" target="_blank">
-                                        <i class="fas fa-print"></i> Cetak Invoice Supplier
+                                        <i class="fas fa-print"></i> Cetak Invoice
                                     </a>
                                 @endif
                             </div>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Models\Kitchen;
 use App\Models\region;
 use Illuminate\Http\Request;
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 
 class KitchenController extends Controller
 {
+    use HasPerPage;
     // Tampilkan halaman dapur
     public function index(Request $request)
     {
@@ -32,7 +34,8 @@ class KitchenController extends Controller
                 });
             })
             ->orderBy('kitchens.id')
-            ->paginate(10);
+            ->paginate($this->resolvePerPage($request))
+            ->withQueryString();
 
         $kodeBaru = $this->generateKode();
         $regions = region::all();

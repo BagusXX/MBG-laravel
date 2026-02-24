@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use Illuminate\Http\Request;
 use App\Models\Menu;
 use App\Models\Kitchen;
@@ -9,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 
 class MenuController extends Controller
 {
+    use HasPerPage;
     // Tampilkan daftar menu
     public function index(Request $request)
     {
@@ -44,7 +46,7 @@ class MenuController extends Controller
             });
         }
 
-        $items = $query->paginate(10)->withQueryString();
+        $items = $query->paginate($this->resolvePerPage($request))->withQueryString();
 
         $generatedCodes = [];
         foreach ($kitchens as $k) {

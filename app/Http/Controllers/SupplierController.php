@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Models\Kitchen;
 use App\Models\region;
 use App\Models\Supplier;
@@ -12,6 +13,7 @@ use Illuminate\Support\Facades\Storage;
 
 class SupplierController extends Controller
 {
+    use HasPerPage;
     /**
      * Helper untuk cek akses
      * Hanya 'superadmin' dan 'operator koperasi' yang boleh return true
@@ -50,7 +52,8 @@ class SupplierController extends Controller
                 });
             })
             ->orderBy('suppliers.id')
-            ->paginate(10);
+            ->paginate($this->resolvePerPage($request))
+            ->withQueryString();
 
         $kitchens = Kitchen::whereIn('kode', $userKitchenKode)->get();
         $kodeBaru = $this->generateKode();
