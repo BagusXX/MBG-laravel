@@ -12,9 +12,32 @@
 
 @section('content')
     {{-- BUTTON ADD --}}
-    @can('master.bank.create')
-        <x-button-add idTarget="#modalAddBank" text="Tambah Akun Bank" />
-    @endcan
+<div class="row mb-3">
+    <div class="col-md-6">
+        @can('master.bank.create')
+            <x-button-add idTarget="#modalAddBank" text="Tambah Akun Bank" />
+        @endcan
+    </div>
+    <div class="col-md-6">
+        <form action="{{ route('master.bank.view') }}" method="GET">
+            <div class="input-group">
+                <input type="text" name="search" class="form-control" 
+                        placeholder="Cari nama bank atau kode..." 
+                        value="{{ request('search') }}">
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fa fa-search"></i>
+                    </button>
+                    @if(request('search'))
+                        <a href="{{ route('master.bank.index') }}" class="btn btn-danger">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    @endif
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 
     <x-notification-pop-up />
 

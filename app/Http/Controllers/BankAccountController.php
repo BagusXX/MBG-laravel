@@ -30,18 +30,37 @@ class BankAccountController extends Controller
     }
 
     public function index(Request $request)
-    {
-        $user = auth()->user();
-        $userKitchenKode = $user->kitchens()->pluck('kode');
+{
+    $user = auth()->user();
+    $search = $request->input('search');
 
-        $bankAccounts = BankAccount::whereHas('suppliers.kitchens', function ($q) use ($userKitchenKode) {
+    // Ambil kode kitchen user
+    $userKitchenKode = $user->kitchens()->pluck('kode');
+
+    $bankAccounts = BankAccount::with('suppliers.kitchens')
+        ->whereHas('suppliers.kitchens', function ($q) use ($userKitchenKode) {
             $q->whereIn('kitchens.kode', $userKitchenKode);
         })
-            ->with('suppliers')
-            ->latest()
-            ->paginate($this->resolvePerPage($request))
-            ->withQueryString();
+        ->when($search, function ($query) use ($search) {
+            $query->where(function ($q) use ($search) {
+                // Kolom bank_accounts
+                $q->where('bank_name', 'LIKE', "%{$search}%")
+                  ->orWhere('account_holder_name', 'LIKE', "%{$search}%")
+                  ->orWhere('account_number', 'LIKE', "%{$search}%")
 
+                  // Relasi supplier
+                  ->orWhereHas('suppliers', function ($supplierQuery) use ($search) {
+                      $supplierQuery->where('nama', 'LIKE', "%{$search}%")
+                                    ->orWhere('kode', 'LIKE', "%{$search}%")
+                                    ->orWhere('alamat', 'LIKE', "%{$search}%");
+                  });
+            });
+        })
+        ->orderBy('bank_accounts.id')
+        ->paginate($this->resolvePerPage($request))
+        ->withQueryString();
+
+        // Supplier dropdown (tetap difilter kitchen)
         $suppliers = Supplier::whereHas('kitchens', function ($q) use ($userKitchenKode) {
             $q->whereIn('kitchens.kode', $userKitchenKode);
         })
@@ -50,7 +69,11 @@ class BankAccountController extends Controller
 
         $canManage = $this->canManage();
 
-        return view('master.bank', compact('bankAccounts', 'suppliers', 'canManage'));
+        return view('master.bank', compact(
+            'bankAccounts',
+            'suppliers',
+            'canManage'
+        ));
     }
 
     public function store(Request $request)

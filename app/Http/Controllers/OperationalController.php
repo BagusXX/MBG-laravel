@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use App\Models\operationals;
 use App\Models\Recipe;
 use App\Models\RecipeBahanBaku;
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 
 class OperationalController extends Controller
 {
+    use HasPerPage;
     public function index(Request $request)
     {
 
@@ -54,7 +56,8 @@ class OperationalController extends Controller
             });
         }
 
-        $items = $operationals->paginate(10)->withQueryString();
+        $items = $operationals->paginate($this->resolvePerPage($request))
+            ->withQueryString();
 
         return view('master.operational', compact('items', 'nextKode', 'kitchens', 'canManage'));
     }

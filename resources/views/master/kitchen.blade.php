@@ -97,8 +97,40 @@
                     @endforelse
                 </tbody>
             </table>
-            <div class="mt-3 d-flex justify-content-end">
-                {{ $kitchens->links('pagination::bootstrap-4') }}
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                {{-- Per Page (KIRI) --}}
+                <form method="GET" class="mb-0">
+                    <input type="hidden" name="search" value="{{ request('search') }}">
+            
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">
+                            Tampilkan
+                        </span>
+            
+                        <select
+                            name="per_page"
+                            class="form-select form-select-sm"
+                            onchange="this.form.submit()"
+                            style="max-width: 90px"
+                        >
+                            @foreach([10,25,50,100] as $size)
+                                <option
+                                    value="{{ $size }}"
+                                    {{ request('per_page',10) == $size ? 'selected' : '' }}
+                                >
+                                    {{ $size }}
+                                </option>
+                            @endforeach
+                        </select>
+            
+                        <span class="input-group-text">
+                            data
+                        </span>
+                    </div>
+                </form>
+                <div class="mt-3 d-flex justify-content-end">
+                    {{ $kitchens->links('pagination::bootstrap-4') }}
+                </div>
             </div>
         </div>
     </div>
