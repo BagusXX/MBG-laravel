@@ -43,20 +43,22 @@
     {{-- TABLE --}}
     <div class="card mt-2">
         <div class="card-body">
+            <div class="table-responsive">
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>No</th>
-                        <th>Kode</th>
-                        <th>Supplier</th>
-                        <th>Alamat</th>
-                        <th width="150px">Dapur</th>
-                        <th>Kontak Person</th>
-                        <th>Nomor</th>
-                        <th>Scan TTD</th>
-                        <th>Logo Supplier</th>
+                        <th style="width: 5%;">No</th>
+                        <th style="width: 10%;">Kode</th>
+                        <th style="width: 15%;">Supplier</th>
+                        <th style="width: 25%;">Alamat</th>
+                        <th style="width: 15%;">Dapur</th>
+                        <th style="width: 10%;">Kontak Person</th>
+                        <th style="width: 10%;">Nomor</th>
+                        
+                        <th style="width: 80px; text-align: center;">Scan TTD</th>
+                        <th style="width: 80px; text-align: center;">Logo Supplier</th>
                         @canany(['master.supplier.update', 'master.supplier.delete'])
-                            <th>Aksi</th>
+                            <th style="width: 100px; text-align: center;">Aksi</th>
                         @endcanany
                     </tr>
                 </thead>
@@ -66,7 +68,7 @@
                             <td>{{ $suppliers->firstItem() + $index }}</td>
                             <td>{{ $supplier->kode }}</td>
                             <td>{{ $supplier->nama }}</td>
-                            <td>{{ $supplier->alamat }}</td>
+                            <td class="text-wrap text-break">{{ $supplier->alamat }}</td>
                             <td>
                                 @foreach ($supplier->kitchens as $kitchen)
                                     <span class="badge badge-info">{{ $kitchen->nama }}</span>
@@ -76,22 +78,16 @@
                             <td>{{ $supplier->nomor }}</td>
                             <td class="text-center">
                                 @if ($supplier->ttd)
-                                    <img src="{{ asset('galeri/' . $supplier->ttd) }}" class="img-thumbnail supplier-image"
-                                        style="width: 60px; height: 60px; object-fit: contain; cursor: pointer;"
-                                        data-toggle="modal" data-target="#modalPreviewImage"
-                                        data-src="{{ asset('galeri/' . $supplier->ttd) }}" data-title="Scan TTD">
+                                    <span class="badge badge-success">Ada</span>
                                 @else
-                                    <span class="text-muted">-</span>
+                                    <span class="badge badge-secondary">Tidak Ada</span>
                                 @endif
                             </td>
                             <td class="text-center">
                                 @if ($supplier->gambar)
-                                    <img src="{{ asset('galeri/' . $supplier->gambar) }}" class="img-thumbnail supplier-image"
-                                        style="width: 60px; height: 60px; object-fit: contain; cursor: pointer;"
-                                        data-toggle="modal" data-target="#modalPreviewImage"
-                                        data-src="{{ asset('galeri/' . $supplier->gambar) }}" data-title="Logo Supplier">
+                                    <span class="badge badge-success">Ada</span>
                                 @else
-                                    <span class="text-muted">-</span>
+                                    <span class="badge badge-secondary">Tidak Ada</span>
                                 @endif
                             </td>
 
@@ -123,6 +119,7 @@
                     @endforelse
                 </tbody>
             </table>
+            </div>
             <div class="mt-3 d-flex justify-content-end">
                 {{ $suppliers->links('pagination::bootstrap-4') }}
             </div>
@@ -213,14 +210,16 @@
         <div class="form-group">
             <label>Logo Supplier</label>
             <div class="mb-2">
-                <img id="edit_preview_gambar" src="" class="img-thumbnail" style="width: 120px; height: 120px; object-fit: contain; display: none;">
+                <p id="edit_filename_gambar" class="text-muted small mb-1"></p>
+                <img id="edit_preview_gambar" src="" class="img-thumbnail" style="width: 100px; height: 100px; object-fit: contain; display: none;">
             </div>
             <input type="file" name="gambar" class="form-control" accept="image/*" />
         </div>
         <div class="form-group">
             <label>Scan TTD</label>
             <div class="mb-2">
-                <img id="edit_preview_ttd" src="" class="img-thumbnail" style="width: 120px; height: 120px; object-fit: contain; display: none;">
+                <p id="edit_filename_ttd" class="text-muted small mb-1"></p>
+                <img id="edit_preview_ttd" src="" class="img-thumbnail" style="width: 100px; height: 100px; object-fit: contain; display: none;">
             </div>
             <input type="file" name="ttd" class="form-control" accept="image/*" />
         </div>
@@ -275,17 +274,42 @@
             document.getElementById('edit_kontak').value = this.dataset.kontak;
             document.getElementById('edit_nomor').value = this.dataset.nomor;
 
-            // Preview Logo (Existing)
-            const gambar = this.dataset.gambar;
+            // Info File Logo
+            const gambarFull = this.dataset.gambar; // Mengambil string lengkap
+            const filenameGbr = document.getElementById('edit_filename_gambar');
             const previewGbr = document.getElementById('edit_preview_gambar');
-            if (gambar) { previewGbr.src = `/galeri/${gambar}`; previewGbr.style.display = 'block'; } 
-            else { previewGbr.style.display = 'none'; }
+            
+            if (gambarFull) {
+                // Mengambil hanya nama filenya saja (menghilangkan path folder)
+                const cleanGambar = gambarFull.split('/').pop();
+                filenameGbr.innerHTML = `<i class="fas fa-file-image"></i> File saat ini: <b>${cleanGambar}</b>`;
+                
+                // HAPUS atau COMMENT 2 baris di bawah ini jika ingin menghilangkan preview sama sekali:
+                // previewGbr.src = `/galeri/${gambarFull}`;
+                // previewGbr.style.display = 'block'; 
+                
+                // Tambahan: Pastikan preview tersembunyi jika storage bermasalah
+                previewGbr.style.display = 'none'; 
+            } else {
+                filenameGbr.innerText = "Belum ada file terupload";
+                previewGbr.style.display = 'none';
+            }
 
-            // Preview TTD (Existing)
-            const ttd = this.dataset.ttd;
+            // Info File TTD
+            const ttdFull = this.dataset.ttd;
+            const filenameTtd = document.getElementById('edit_filename_ttd');
             const previewTtd = document.getElementById('edit_preview_ttd');
-            if (ttd) { previewTtd.src = `/galeri/${ttd}`; previewTtd.style.display = 'block'; } 
-            else { previewTtd.style.display = 'none'; }
+            
+            if (ttdFull) {
+                const cleanTtd = ttdFull.split('/').pop();
+                filenameTtd.innerHTML = `<i class="fas fa-file-signature"></i> File saat ini: <b>${cleanTtd}</b>`;
+                
+                // Sembunyikan preview agar tidak muncul broken image
+                previewTtd.style.display = 'none'; 
+            } else {
+                filenameTtd.innerText = "Belum ada file terupload";
+                previewTtd.style.display = 'none';
+            }
 
             // Checkbox Kitchens
             document.querySelectorAll('.edit-kitchen-checkbox').forEach(box => box.checked = false);

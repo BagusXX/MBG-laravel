@@ -18,10 +18,21 @@ class OperationalController extends Controller
         $canManage = $this->canManage();
 
         // 1️⃣ Untuk dropdown (kode => nama)
-        $kitchens = $user->kitchens()->pluck('nama', 'kode');
-
+        $kitchens = $user->kitchens()->get();
         // 2️⃣ Ambil hanya KODENYA saja untuk filter
-        $kitchenKode = $kitchens->keys();
+        $kitchenKode = $kitchens->pluck('kode');
+
+        if ($request->filled('kitchen_kode')) {
+        $selectedKitchen = $kitchens->where('kode', $request->kitchen_kode)->first();
+        
+            if ($selectedKitchen) {
+                // Jika user memfilter dapur yang valid, timpa array dengan satu kode saja
+                $kitchenKode = collect([$selectedKitchen->kode]);
+            } else {
+                // Jika tidak valid, kosongkan
+                $kitchenKode = collect([]);
+            }
+        }
 
         $operationals = operationals::with('kitchen')
             ->whereIn('kitchen_kode', $kitchenKode);

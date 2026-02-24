@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\HasPerPage;
 use Illuminate\Http\Request;
 use App\Models\Menu;
 use App\Models\Kitchen;
@@ -9,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 
 class MenuController extends Controller
 {
+    use HasPerPage;
     // Tampilkan daftar menu
     public function index(Request $request)
     {
@@ -17,9 +19,24 @@ class MenuController extends Controller
 
         $kitchens = $user->kitchens()->get();
 
+        // Default: Ambil semua ID dapur milik user
+        $kitchenIds = $kitchens->pluck('id');
+
+        if ($request->filled('kitchen_kode')) {
+        $selectedKitchen = $kitchens->where('kode', $request->kitchen_kode)->first();
+        
+            if ($selectedKitchen) {
+                // Jika valid, filter hanya untuk ID dapur yang dipilih
+                $kitchenIds = collect([$selectedKitchen->id]);
+            } else {
+                // Jika tidak valid (misal dimanipulasi di URL), kosongkan ID
+                $kitchenIds = collect([]);
+            }
+        }
+
         $query = Menu::with('kitchen')
             ->withCount('recipes')
-            ->whereIn('kitchen_id', $kitchens->pluck('id'));
+            ->whereIn('kitchen_id', $kitchenIds);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -29,7 +46,7 @@ class MenuController extends Controller
             });
         }
 
-        $items = $query->paginate(10)->withQueryString();
+        $items = $query->paginate($this->resolvePerPage($request))->withQueryString();
 
         $generatedCodes = [];
         foreach ($kitchens as $k) {
