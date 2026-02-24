@@ -42,7 +42,7 @@ class OperationalSubmissionController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $suppliers = Supplier::orderBy('nama')->get()->paginate(perPage: 10);
+        $suppliers = Supplier::orderBy('nama')->paginate(perPage: 10);
 
 
         return view('transaction.operational-submission', compact('submissions', 'kitchens', 'masterBarang', 'suppliers'));
