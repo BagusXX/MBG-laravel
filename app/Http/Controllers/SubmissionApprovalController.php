@@ -378,11 +378,23 @@ class SubmissionApprovalController extends Controller
 
         DB::transaction(function () use ($submission, $request) {
 
-            $childSequence = Submission::withTrashed()
-                ->where('parent_id', $submission->id)->count() + 1;
-            $childKode = $submission->kode . '-' . $childSequence;
+            $parent = Submission::where('id', $submission->id)->lockForUpdate()->first();
 
-            // 2. BUAT CHILD SUBMISSION
+            $lastChild = Submission::withTrashed()
+                ->where('parent_id', $parent->id)
+                ->where('kode', 'like', $parent->kode . '-%')
+                ->orderByDesc('id')
+                ->first();
+
+            if ($lastChild) {
+                $lastNumber = (int) substr($lastChild->kode, strrpos($lastChild->kode, '-') + 1);
+                $childSequence = $lastNumber + 1;
+            } else {
+                $childSequence = 1;
+            }
+
+            $childKode = $parent->kode . '-' . $childSequence;
+            
             $child = Submission::create([
                 'kode' => $childKode,
                 'tanggal' => now(),

@@ -38,7 +38,6 @@ class OperationalApprovalController extends Controller
             ->with(['details.operational', 'kitchen', 'supplier'])
             // ->orderBy('created_at', 'desc')
             ->latest()
-            ->get()
             ->paginate(perPage: 10);
 
         $suppliers = Supplier::with('kitchens')->orderBy('nama')->get();
