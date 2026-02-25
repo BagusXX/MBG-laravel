@@ -22,14 +22,13 @@ class SaleMaterialsKitchenController extends Controller
     {
         $allowedCodes = auth()->user()->kitchens()->pluck('kode');
         return Kitchen::whereIn('kode', $allowedCodes)->pluck('id')->toArray();
-
     }
 
     public function index(Request $request)
     {
         $kitchensCodes = $this->userKitchenCodes();
 
-        $kitchens = Kitchen::whereIn('kode', $kitchensCodes)->orderBy('nama')->get();
+        $kitchens = Kitchen::whereIn('id', $kitchensCodes)->orderBy('nama')->get();
         $suppliers = Supplier::all();
         $bahanBakus = BahanBaku::selectRaw('MIN(id) as id, nama')
             ->groupBy('nama')
@@ -63,7 +62,6 @@ class SaleMaterialsKitchenController extends Controller
                     if ($request->filled('to_date')) {
                         $ps->whereDate('tanggal', '<=', $request->to_date);
                     }
-
                 });
 
                 if ($request->filled('kitchen_id')) {
