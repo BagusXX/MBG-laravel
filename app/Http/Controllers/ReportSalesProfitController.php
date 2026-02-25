@@ -27,13 +27,20 @@ class ReportSalesProfitController extends Controller
     public function index(Request $request)
     {
         $kitchensCodes = $this->userKitchenCodes();
+
+        // Data Dropdown
         $kitchens = Kitchen::whereIn('id', $kitchensCodes)->orderBy('nama')->get();
         $suppliers = Supplier::all();
-
-        // Mengambil nama unik dengan lebih aman untuk strict mode
         $bahanBakus = BahanBaku::select('nama')->distinct()->orderBy('nama')->get();
-        $menus = Menu::select('nama')->distinct()->orderBy('nama')->get();
+        $menuQuery = Menu::whereIn('kitchen_id', $kitchensCodes);
 
+        if ($request->filled('kitchen_id')) {
+            $menuQuery->where('kitchen_id', $request->kitchen_id);
+        }
+
+        $menus = $menuQuery->orderBy('nama')->get();
+
+        // 1. Query Dasar & Relasi
         $query = Submission::with([
             'parentSubmission',
             'kitchen',
@@ -43,37 +50,43 @@ class ReportSalesProfitController extends Controller
             'details.unit'
         ])
             ->whereNotNull('parent_id')
-            ->whereIn('kitchen_id', $kitchensCodes)
-            ->where(function ($q) use ($request) {
-                // Filter Status/Tipe
-                $q->where(function ($q2) {
-                    $q2->where('status', 'diproses')
-                        ->orWhere('tipe', 'disetujui');
-                });
+            ->whereIn('kitchen_id', $kitchensCodes);
 
-                // Filter Tanggal
-                if ($request->filled(['from_date', 'to_date'])) {
-                    $q->whereHas('parentSubmission', function ($ps) use ($request) {
-                        $ps->whereBetween('tanggal', [$request->from_date, $request->to_date]);
-                    });
+        // 2. Filter Status & Tipe (Wajib ada)
+        $query->where(function ($q) {
+            $q->where('status', 'diproses') // atau 'selesai' sesuai kebutuhan Anda
+                ->orWhere('tipe', 'disetujui');
+        });
+
+        // 3. Filter Tanggal (Dibuat fleksibel: bisa salah satu atau keduanya)
+        if ($request->filled('from_date') || $request->filled('to_date')) {
+            $query->whereHas('parentSubmission', function ($ps) use ($request) {
+                if ($request->filled('from_date')) {
+                    $ps->whereDate('tanggal', '>=', $request->from_date);
                 }
-
-                // Filter Dropdown
-                if ($request->filled('kitchen_id')) $q->where('kitchen_id', $request->kitchen_id);
-                if ($request->filled('supplier_id')) $q->where('supplier_id', $request->supplier_id);
-
-                if ($request->filled('menu_id')) {
-                    // Gunakan join atau whereHas yang lebih efisien jika data besar
-                    $q->whereHas('menu', function ($mq) use ($request) {
-                        $mq->where('id', $request->menu_id);
-                    });
+                if ($request->filled('to_date')) {
+                    $ps->whereDate('tanggal', '<=', $request->to_date);
                 }
-            })
-            ->latest('id');
+            });
+        }
 
-        $submissions = $query->paginate(10)->withQueryString();
+        // 4. Filter Dropdown (Langsung ke kolom di tabel submissions)
+        if ($request->filled('kitchen_id')) {
+            $query->where('kitchen_id', $request->kitchen_id);
+        }
 
-        // Pastikan attribute 'selisih' sudah didefinisikan di Model Submission (Accessor)
+        if ($request->filled('supplier_id')) {
+            $query->where('supplier_id', $request->supplier_id);
+        }
+
+        // 5. Filter Menu
+        if ($request->filled('menu_id')) {
+            $query->where('menu_id', $request->menu_id);
+        }
+
+        $submissions = $query->latest('id')->paginate(10)->withQueryString();
+
+        // Kalkulasi total
         $totalPageSubtotal = $submissions->sum('selisih');
 
         return view('report.sales-profit', compact('submissions', 'kitchens', 'suppliers', 'totalPageSubtotal', 'bahanBakus', 'menus'));
@@ -118,7 +131,7 @@ class ReportSalesProfitController extends Controller
                 $bahanBakuNama = $detail->bahan_baku?->nama ?? '-';
                 $satuan = $detail->satuan ?? '-';
                 $bahanBakuId = $detail->bahan_baku_id ?? null;
-                $qty  = $detail->qty ?? null;
+                $qty = $detail->qty ?? null;
 
 
                 // $satuanId = $detail->recipe?->bahan_baku?->satuan_id ?? $detail->bahanBaku?->satuan_id ?? null;

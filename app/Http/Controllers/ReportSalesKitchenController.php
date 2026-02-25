@@ -20,7 +20,6 @@ class ReportSalesKitchenController extends Controller
     {
         $allowedCodes = auth()->user()->kitchens()->pluck('kode');
         return Kitchen::whereIn('kode', $allowedCodes)->pluck('id')->toArray();
-
     }
     public function index(Request $request)
     {
@@ -39,16 +38,25 @@ class ReportSalesKitchenController extends Controller
             'submission.supplier',
             'bahan_baku',
             'unit'
-        ])
-            ->whereHas('submission', function ($sub) use ($kitchensCodes) {
-                // Filter status dan tipe harus di dalam sini
-                $sub->whereNotNull('parent_id')
-                    ->whereIn('kitchen_id', $kitchensCodes)
-                    ->where(function ($q) {
+        ]);
+
+        $query->whereHas('submission', function ($sub) use ($kitchensCodes, $request) {
+            // Filter status dan tipe harus di dalam sini
+            $sub->whereNotNull('parent_id')
+                ->whereIn('kitchen_id', $kitchensCodes)
+                ->where(function ($q) {
                     $q->where('status', 'selesai')
                         ->orWhere('tipe', 'disetujui');
                 });
-            });
+            // FILTER DINAMIS: Hanya jalan jika user memilih sesuatu di dropdown
+            if ($request->filled('kitchen_id')) {
+                $sub->where('kitchen_id', $request->kitchen_id);
+            }
+
+            if ($request->filled('supplier_id')) {
+                $sub->where('supplier_id', $request->supplier_id);
+            }
+        });
 
         // Filter Tanggal
         if ($request->filled('from_date') || $request->filled('to_date')) {
@@ -60,11 +68,6 @@ class ReportSalesKitchenController extends Controller
             });
         }
 
-        // Filter Dropdown
-        if ($request->filled('kitchen_id'))
-            $query->where('kitchen_id', $request->kitchen_id);
-        if ($request->filled('supplier_id'))
-            $query->where('supplier_id', $request->supplier_id);
 
         if ($request->filled('menu_id')) {
             $selectedMenu = Menu::find($request->menu_id);
@@ -73,6 +76,11 @@ class ReportSalesKitchenController extends Controller
                     $mq->where('nama', $selectedMenu->nama);
                 });
             }
+        }
+
+        // FILTER BAHAN BAKU (Kolom ini ada langsung di tabel detail, jadi tidak perlu whereHas)
+        if ($request->filled('bahan_baku_id')) {
+            $query->where('bahan_baku_id', $request->bahan_baku_id);
         }
 
         $submissions = $query->latest('id')->paginate(10)->withQueryString();
