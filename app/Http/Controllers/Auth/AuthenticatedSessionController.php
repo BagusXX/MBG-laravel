@@ -40,7 +40,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->route('dashboard.master.bahan-baku.index');
+        return redirect()->route('dashboard.index');
     }
 
     /**

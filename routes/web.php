@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BankAccountController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SubmissionApprovalController;
 use Illuminate\Support\Facades\Route;
@@ -40,6 +41,15 @@ Route::get('/menunggu-persetujuan', function () {
 
 
 Route::middleware(['auth', 'disetujui'])->group(function () {
+
+    Route::prefix('dashboard')
+        ->name('dashboard.')
+        ->controller(DashboardController::class)
+        ->group(function () {
+
+            Route::get('/', 'index')
+                ->name('index');
+        });
 
     /*
     |------------------------------------------------------------------
@@ -550,7 +560,7 @@ Route::middleware(['auth', 'disetujui'])->group(function () {
             Route::patch('/password', 'updatePassword')->name('password.update');
         });
 
-    Route::get('/dashboard', function () {
-        return redirect()->route('dashboard.master.bahan-baku.index');
-    })->middleware('auth')->name('dashboard');
+    // Route::get('/dashboard', function () {
+    //     return redirect()->route('dashboard.master.bahan-baku.index');
+    // })->middleware('auth')->name('dashboard');
 });

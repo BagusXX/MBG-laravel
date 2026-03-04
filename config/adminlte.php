@@ -337,6 +337,13 @@ return [
             'can' => 'manage-blog',
         ],
 
+        [
+            'text' => 'Dashboard',
+            'icon' => 'fas fa-chart-line',
+            'route' => 'dashboard.index',
+
+        ],
+
         // MASTER
         [
             'text' => 'Master',
@@ -418,12 +425,12 @@ return [
                     'can' => 'setup.role.view',
                 ],
 
-                [
-                    'text' => 'Racik Menu',
-                    'icon' => 'fas fa-fw fa-blender',
-                    'route' => 'recipe.index',
-                    'can' => 'recipe.view',
-                ],
+                // [
+                //     'text' => 'Racik Menu',
+                //     'icon' => 'fas fa-fw fa-blender',
+                //     'route' => 'recipe.index',
+                //     'can' => 'recipe.view',
+                // ],
 
             ],
         ],
@@ -529,7 +536,7 @@ return [
                     'route' => 'report.profit',
                     'can'   => 'report.profit.view',
                 ],
-                
+
                 [
                     'text' => 'Total Penjualan & Selisih',
                     'icon' => 'fas fa-file-signature',
