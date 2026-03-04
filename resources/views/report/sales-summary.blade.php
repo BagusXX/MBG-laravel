@@ -16,13 +16,13 @@
                             {{-- FILTER TANGGAL "DARI" --}}
                             <div class="col-md-4">
                                 <label>Dari</label>
-                                <input type="date" name="from_date" class="form-control ">
+                                <input type="date" name="from_date" class="form-control" value="{{ request('from_date') }}">
                             </div>
                             
                             {{-- FILTER MENU "SAMPAI"--}}
                             <div class="col-md-4">
                                 <label>Sampai</label>
-                                <input type="date" name="to_date" class="form-control ">
+                                <input type="date" name="to_date" class="form-control" value="{{ request('to_date') }}">
                             </div>
                             
                             {{-- FILTER DAPUR --}}
@@ -59,6 +59,7 @@
                     <tr>
                         <th width="10%">Kode</th>
                         <th>Tanggal Pengajuan</th>
+                        <th>Tanggal Digunakan</th>
                         <th>Total Invoice Dapur</th>
                         <th>Total Invoice Mitra</th>
                         <th>Selisih</th>
@@ -72,6 +73,7 @@
                     <tr>
                         <td>{{ $report->kode }}</td>
                         <td>{{ \Carbon\Carbon::parse($report->tanggal)->locale('id')->translatedFormat('d F Y') }}</td>
+                        <td>{{ \Carbon\Carbon::parse($report->tanggal_digunakan)->locale('id')->translatedFormat('d F Y') }}</td>
                         <td>Rp{{ number_format($report->total_dapur, 0, ',', '.') }}</td>
                         <td>Rp{{ number_format($report->total_mitra, 0, ',', '.') }}</td>
                         <td>Rp{{ number_format($report->selisih, 0, ',', '.') }}</td>
@@ -94,7 +96,7 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="4" class="text-right"><strong>Total :</strong></td>
+                        <td colspan="5" class="text-right"><strong>Total :</strong></td>
                         <td class="text-left"><strong>Rp{{ number_format($totalSelisih, 0, '.', '.') }}</strong></td>
                         <td class="text-left"><strong>Rp{{ number_format($totalPersen85, 0, '.', '.') }}</strong></td>
                         <td class="text-left"><strong>Rp{{ number_format($totalPersen15, 0, '.', '.') }}</strong></td>
@@ -119,12 +121,20 @@
                                 <td>: {{ $report->kode }}</td>
                             </tr>
                             <tr>
+                                <th>Dapur</th>
+                                <td>: {{ $report->kitchen->nama }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless table-sm">
+                            <tr>
                                 <th>Tanggal Pengajuan</th>
                                 <td>: {{ \Carbon\Carbon::parse($report->tanggal)->locale('id')->translatedFormat('d F Y') }}</td>
                             </tr>
                             <tr>
-                                <th>Dapur</th>
-                                <td>: {{ $report->kitchen->nama }}</td>
+                                <th>Tanggal Digunakan</th>
+                                <td>: {{ \Carbon\Carbon::parse($report->tanggal_digunakan)->locale('id')->translatedFormat('d F Y') }}</td>
                             </tr>
                         </table>
                     </div>
@@ -161,7 +171,7 @@
                         </tbody>
                         <tfoot>
                             <tr>
-                                <th colspan="2" class="text-right">TOTAL</th>
+                                <th colspan="3" class="text-right">TOTAL</th>
                                 <th>Rp{{ number_format($report->total_dapur,0,',','.') }}</th>
                                 <th>Rp{{ number_format($report->total_mitra,0,',','.') }}</th>
                                 <th>Rp{{ number_format($report->selisih,0,',','.') }}</th>
