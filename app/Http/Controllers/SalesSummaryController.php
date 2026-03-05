@@ -31,11 +31,17 @@ class SalesSummaryController extends Controller
             ]);
         
         if ($request->filled('from_date')) {
-            $query->whereDate('tanggal', '>=', $request->from_date);
+            $query->where(function ($q) use ($request) {
+                $q->whereDate('tanggal', '>=', $request->from_date)
+                  ->orWhereDate('tanggal_digunakan', '>=', $request->from_date);
+            });
         }
-
+        
         if ($request->filled('to_date')) {
-            $query->whereDate('tanggal', '<=', $request->to_date);
+            $query->where(function ($q) use ($request) {
+                $q->whereDate('tanggal', '<=', $request->to_date)
+                  ->orWhereDate('tanggal_digunakan', '<=', $request->to_date);
+            });
         }
 
 
