@@ -171,9 +171,9 @@
 </div>
 @endrole
 
-<div class="row">
+<!-- <div class="row"> -->
     {{-- ================= TOP BAHAN BAKU ================= --}}
-    <div class="col-md-9">
+    <div class="col-md-12">
         <div class="card shadow-sm border-0 h-100">
             <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
                 <h3 class="card-title font-weight-bold mb-0">📦 Top 10 Bahan Baku</h3>
@@ -207,76 +207,91 @@
     </div>
 
     @role('superadmin')
-    {{-- ================= ACTIVITY LOG ================= --}}
-    <div class="col-md-3">
-        <div class="card shadow-sm border-0 h-50">
+    {{-- ================= ACTIVITY LOG (FULL WIDTH - 2 COLUMNS) ================= --}}
+    <div class="col-md-12 mt-4" style="margin-bottom: 50px;">
+        <div class="card shadow-sm border-0">
             <div class="card-header bg-white">
                 <h3 class="card-title font-weight-bold">⚡ Aktivitas Terbaru</h3>
             </div>
             <div class="card-body p-0">
-                <div class="list-group list-group-flush">
-                    @forelse($recentActivity as $activity)
-                        <div class="list-group-item border-0 border-bottom">
-                            <div class="d-flex w-100 justify-content-between align-items-center">
-                                <h6 class="mb-1 font-weight-bold text-dark">
-                                    <i class="fas fa-user-circle text-muted mr-1"></i>
-                                    {{ $activity->causer->name ?? 'System' }}
-                                </h6>
-                                <small class="text-muted">
-                                    <i class="far fa-clock mr-1"></i>{{ $activity->created_at->diffForHumans() }}
-                                </small>
-                            </div>
+                @if($recentActivity->count() > 0)
+                    <div class="row no-gutters">
+                        {{-- Bagi data menjadi 2 kolom (misal: total 10 data, jadi 5 di kiri, 5 di kanan) --}}
+                        @foreach($recentActivity->chunk(ceil($recentActivity->count() / 2)) as $chunk)
+                            <div class="col-md-6 border-right" style="padding: 0 60px 0 60px">
+                                <div class="list-group list-group-flush">
+                                    @foreach($chunk as $activity)
+                                        <div class="list-group-item border-0 border-bottom py-3">
+                                            <div class="d-flex w-100 justify-content-between align-items-center mb-1">
+                                                <h6 class="mb-0 font-weight-bold text-dark">
+                                                    <i class="fas fa-user-circle text-primary mr-2"></i>
+                                                    {{ $activity->causer->name ?? 'System' }}
+                                                </h6>
+                                                <small class="text-muted bg-light px-2 py-1 rounded">
+                                                    <i class="far fa-clock mr-1"></i>{{ $activity->created_at->diffForHumans() }}
+                                                </small>
+                                            </div>
+                                            <p class="mb-0 text-muted">
+                                                {{ $activity->description }}
+                                            </p>
+                                            
+                                            <div class="mt-2">
+                                                @if($activity->properties && isset($activity->properties['attributes']))
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <span class="small font-weight-bold text-uppercase text-muted">Detail:</span>
+                                                        <button class="btn btn-xs btn-outline-primary" type="button" data-toggle="collapse"
+                                                            data-target="#details-{{ $activity->id }}" aria-expanded="false">
+                                                            <i class="fas fa-eye mr-1"></i> Lihat
+                                                        </button>
+                                                    </div>
 
-                            <div class="d-flex justify-content-between align-items-center">
-                                <p class="mb-0 text-muted small">
-                                    {{ $activity->description }}
-                                </p>
-
-                                {{-- Tombol Detail hanya muncul jika ada attributes --}}
-                                @if($activity->properties && isset($activity->properties['attributes']))
-                                    <button class="btn btn-xs btn-outline-primary mt-1" type="button" data-toggle="collapse"
-                                        data-target="#details-{{ $activity->id }}" aria-expanded="false">
-                                        <i class="fas fa-eye mr-1"></i> Detail
-                                    </button>
-                                @endif
-                            </div>
-
-                            {{-- Bagian Rincian yang Tersembunyi --}}
-                            @if($activity->properties && isset($activity->properties['attributes']))
-                                <div class="collapse mt-2" id="details-{{ $activity->id }}">
-                                    <div class="bg-light p-2 rounded border">
-                                        <ul class="mb-0 small text-dark list-unstyled">
-                                            @foreach($activity->properties['attributes'] as $key => $value)
-                                                <li class="mb-1">
-                                                    <strong class="text-capitalize">{{ str_replace('_', ' ', $key) }}</strong>:
-
-                                                    @if(isset($activity->properties['old'][$key]))
-                                                        <span class="badge badge-danger-light text-danger"
-                                                            style="text-decoration: line-through;">
-                                                            {{ $activity->properties['old'][$key] }}
-                                                        </span>
-                                                        <i class="fas fa-arrow-right mx-1 text-xs text-muted"></i>
-                                                    @endif
-
-                                                    <span class="text-success font-weight-bold">
-                                                        {{ $value }}
-                                                    </span>
-                                                </li>
-                                            @endforeach
-                                        </ul>
-                                    </div>
+                                                    <div class="collapse mt-2" id="details-{{ $activity->id }}">
+                                                        <div class="bg-light p-2 rounded border">
+                                                            <ul class="mb-0 small text-dark list-unstyled">
+                                                                @foreach($activity->properties['attributes'] as $key => $value)
+                                                                    <li class="mb-1 d-flex flex-wrap align-items-center">
+                                                                        <strong class="text-capitalize mr-1">{{ str_replace('_', ' ', $key) }}:</strong>
+                                                                        @if(isset($activity->properties['old'][$key]))
+                                                                            <span class="badge badge-danger-light text-danger mx-1" style="text-decoration: line-through;">
+                                                                                {{ $activity->properties['old'][$key] }}
+                                                                            </span>
+                                                                            <i class="fas fa-arrow-right mx-1 text-xs text-muted"></i>
+                                                                        @endif
+                                                                        <span class="text-success font-weight-bold ml-1">
+                                                                            {{ is_array($value) ? json_encode($value) : $value }}
+                                                                        </span>
+                                                                    </li>
+                                                                @endforeach
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                @else
+                                                    <span class="text-muted small italic">Tidak ada rincian.</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endforeach
                                 </div>
-                            @endif
-                        </div>
-                    @empty
-                        <div class="text-center py-5 text-muted small">Belum ada aktivitas tercatat.</div>
-                    @endforelse
-                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-center py-5 text-muted">
+                        <i class="fas fa-history fa-2x mb-3 opacity-50"></i>
+                        <p>Belum ada aktivitas tercatat.</p>
+                    </div>
+                @endif
             </div>
+            
+            <!-- @if($recentActivity->count() > 0)
+            <div class="card-footer bg-white text-center py-2">
+                <a href="#" class="text-sm font-weight-bold text-primary text-uppercase">Lihat Log Audit Lengkap</a>
+            </div>
+            @endif -->
         </div>
     </div>
     @endrole
-</div>
+<!-- </div> -->
 
 
 @stop
@@ -464,7 +479,7 @@
                     callbacks: {
                         label: function(context) {
                             const item = bahanData[context.dataIndex];
-                            return ` Total: ${context.parsed.y} unit (${item.total_penggunaan}x digunakan)`;
+                            return ` Qty: ${context.parsed.y} unit (${item.total_penggunaan}x digunakan)`;
                         }
                     }
                 }
