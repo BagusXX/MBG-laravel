@@ -27,6 +27,15 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
+        activity('auth')
+        ->causedBy(auth()->user())
+        ->withProperties([
+            'ip' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ])
+        ->log('User login');
+
+
         // if (auth()->user()->status !== 'disetujui') {
         //     Auth::logout();
 
@@ -48,6 +57,14 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+
+        activity('auth')
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ])
+            ->log('User logout');
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

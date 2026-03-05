@@ -13,12 +13,29 @@ use Illuminate\Validation\Rule; // Tambahkan ini untuk validasi update unique
 class UserController extends Controller
 {
     // 1. TAMPILKAN HALAMAN USER
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with(['kitchens.region', 'roles'])->paginate(10);
+        $query = User::with(['kitchens.region', 'roles']);
+    
+        // SEARCH BY NAME (case insensitive)
+        if ($request->filled('search')) {
+            $search = strtolower($request->search);
+    
+            $query->whereRaw('LOWER(name) LIKE ?', ["%{$search}%"]);
+        }
+    
+        // FILTER BY ROLE
+        if ($request->filled('role')) {
+            $query->whereHas('roles', function ($q) use ($request) {
+                $q->where('name', $request->role);
+            });
+        }
+    
+        $users = $query->paginate(10)->withQueryString();
+    
         $kitchens = Kitchen::with('region')->get();
         $roles = Role::all();
-
+    
         return view('setup.user', compact('users', 'kitchens', 'roles'));
     }
 

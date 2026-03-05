@@ -206,7 +206,7 @@
         </div>
     </div>
 
-    @role('superadmin')
+    @role(['superadmin', 'superadminDapur'])
     {{-- ================= ACTIVITY LOG ================= --}}
     <div class="col-md-3">
         <div class="card shadow-sm border-0 h-50">
