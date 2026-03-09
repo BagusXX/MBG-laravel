@@ -188,12 +188,21 @@
                         @endforeach
                     </select>
 
+                    @php
+                        $currentUser = auth()->user();
+                    @endphp
+
                     <select id="filterKitchenBahan" class="form-control form-control-sm" style="width: auto;">
-                        <option value="all">Semua Dapur</option>
+                        @if($currentUser->hasRole('superadmin'))
+                            <option value="all" {{ request('kitchen') == 'all' ? 'selected' : '' }}>Semua Dapur</option>
+                        @endif
+
                         @foreach($allKitchens as $k)
-                            <option value="{{ $k->id }}" {{ request('kitchen') == $k->id ? 'selected' : '' }}>
-                                {{ $k->nama }}
-                            </option>
+                            @if($currentUser->hasRole('superadmin') || in_array($k->id, $userKitchenIds))
+                                <option value="{{ $k->id }}" {{ request('kitchen') == $k->id ? 'selected' : '' }}>
+                                    {{ $k->nama }}
+                                </option>
+                            @endif
                         @endforeach
                     </select>
                 </div>
@@ -206,10 +215,10 @@
         </div>
     </div>
 
-    @role(['superadmin', 'superadminDapur'])
-    {{-- ================= ACTIVITY LOG ================= --}}
-    <div class="col-md-3">
-        <div class="card shadow-sm border-0 h-50">
+    @role('superadmin')
+    {{-- ================= ACTIVITY LOG (FULL WIDTH - 2 COLUMNS) ================= --}}
+    <div class="col-md-12 mt-4" style="margin-bottom: 50px;">
+        <div class="card shadow-sm border-0">
             <div class="card-header bg-white">
                 <h3 class="card-title font-weight-bold">⚡ Aktivitas Terbaru</h3>
             </div>
