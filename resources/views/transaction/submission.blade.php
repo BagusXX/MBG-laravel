@@ -612,6 +612,30 @@
                 }
             });
 
+            const form = document.querySelector('#modalAddSubmission form');
+            const selectMenu = document.getElementById('selectMenuStore');
+            const inputMenu = document.getElementById('inputNamaMenu');
+
+            function validateMenuField() {
+                if (!selectMenu.value && !inputMenu.value.trim()) {
+                    selectMenu.setCustomValidity('Silakan pilih menu existing atau ketik menu baru.');
+                } else {
+                    selectMenu.setCustomValidity('');
+                }
+            }
+
+            selectMenu.addEventListener('change', validateMenuField);
+            inputMenu.addEventListener('input', validateMenuField);
+
+            form.addEventListener('submit', function (e) {
+                validateMenuField();
+
+                if (!form.checkValidity()) {
+                    e.preventDefault();
+                    form.reportValidity();
+                }
+            });
+
             // Fungsi Hitung Otomatis
             $(document).on('input', '.input-qty, .input-harga-dapur, .input-harga-mitra', function () {
                 // Cari baris (tr) terdekat dari input yang sedang diketik

@@ -142,12 +142,12 @@ class SubmissionController extends Controller
             foreach ($items as $key => $val) {
                 // List kolom yang butuh desimal
                 $fields = ['qty', 'harga_dapur', 'harga_mitra'];
-                
+
                 foreach ($fields as $field) {
                     if (isset($val[$field])) {
                         //    Tapi untuk format Indonesia (Ribuan=Titik, Desimal=Koma), ini WAJIB ada.
                         $clean = str_replace('.', '', $val[$field]);
-                        
+
                         // 2. Ganti koma jadi titik (agar terbaca sebagai desimal oleh PHP/MySQL)
                         $clean = str_replace(',', '.', $clean);
 
@@ -168,8 +168,18 @@ class SubmissionController extends Controller
                     fn($q) => $q->whereIn('kode', $kitchenCodes)
                 ),
             ],
-            'nama_menu' => 'required_without:menu_id|string|nullable',
-            'menu_id' => 'required_without:nama_menu|nullable',
+            'nama_menu' => [
+                'nullable',
+                'string',
+                'max:255',
+                'required_without:menu_id',
+                'filled'
+            ],
+            'menu_id' => [
+                'nullable',
+                'exists:menus,id',
+                'required_without:nama_menu'
+            ],
 
             'porsi_besar' => 'nullable|integer|min:0',
             'porsi_kecil' => 'nullable|integer|min:0',
@@ -479,8 +489,8 @@ class SubmissionController extends Controller
             'tanggal_digunakan_raw' => $submission->tanggal_digunakan ? date('Y-m-d', strtotime($submission->tanggal_digunakan)) : null,
             'tanggal_digunakan' => $submission->tanggal_digunakan
                 ? \Carbon\Carbon::parse($submission->tanggal_digunakan)
-                    ->locale('id')
-                    ->translatedFormat('l, d-m-Y')
+                ->locale('id')
+                ->translatedFormat('l, d-m-Y')
                 : '-',
             'kitchen' => $submission->kitchen->nama,
             'menu_id' => $submission->menu_id,       // Pastikan menu_id dikirim
@@ -516,7 +526,4 @@ class SubmissionController extends Controller
                 ->get()
         );
     }
-
-
-
 }
