@@ -8,6 +8,7 @@ use App\Models\Unit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use App\Http\Controllers\Concerns\HasPerPage;
  // Tambahkan ini untuk query manual ke tabel pivot
 
@@ -121,7 +122,14 @@ class BahanBakuController extends Controller
         $user = Auth::user();
 
         $request->validate([
-            'nama' => 'required|string|max:255',
+            'nama' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('bahan_baku')->where(function ($q) use ($request) {
+                    return $q->where('kitchen_id', $request->kitchen_id);
+                }),
+            ],
             'harga' => 'nullable|numeric|min:0',
             'kitchen_id' => 'required|exists:kitchens,id',
         ]);
@@ -176,7 +184,14 @@ class BahanBakuController extends Controller
         }
 
         $request->validate([
-            'nama' => 'required|string|max:255',
+            'nama' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('bahan_baku')->where(function ($q) use ($request) {
+                    return $q->where('kitchen_id', $request->kitchen_id);
+                })->ignore($item->id),
+            ],
             'harga' => 'nullable|numeric|min:0',
             'kitchen_id' => 'required|exists:kitchens,id',
         ]);

@@ -188,12 +188,21 @@
                         @endforeach
                     </select>
 
+                    @php
+                        $currentUser = auth()->user();
+                    @endphp
+
                     <select id="filterKitchenBahan" class="form-control form-control-sm" style="width: auto;">
-                        <option value="all">Semua Dapur</option>
+                        @if($currentUser->hasRole('superadmin'))
+                            <option value="all" {{ request('kitchen') == 'all' ? 'selected' : '' }}>Semua Dapur</option>
+                        @endif
+
                         @foreach($allKitchens as $k)
-                            <option value="{{ $k->id }}" {{ request('kitchen') == $k->id ? 'selected' : '' }}>
-                                {{ $k->nama }}
-                            </option>
+                            @if($currentUser->hasRole('superadmin') || in_array($k->id, $userKitchenIds))
+                                <option value="{{ $k->id }}" {{ request('kitchen') == $k->id ? 'selected' : '' }}>
+                                    {{ $k->nama }}
+                                </option>
+                            @endif
                         @endforeach
                     </select>
                 </div>

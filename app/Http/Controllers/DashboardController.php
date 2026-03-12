@@ -54,6 +54,11 @@ class DashboardController extends Controller
         $topKitchen = $this->getTopKitchenByNominal($kitchenIds, $month);
         $topBahanBaku = $this->getTopBahanBaku($kitchenIds, $month, $selectedKitchen);
 
+        // array of kitchen ids the user can access (all if superadmin)
+        $userKitchenIds = $kitchenIds === null
+            ? Kitchen::pluck('id')->toArray()
+            : $kitchenIds;
+
         return view('dashboard', compact(
             'summary',
             'monthlyChart',
@@ -61,7 +66,8 @@ class DashboardController extends Controller
             'allKitchens',
             'recentActivity',
             'topKitchen',
-            'topBahanBaku'
+            'topBahanBaku',
+            'userKitchenIds'
         ));
     }
 
@@ -221,49 +227,77 @@ class DashboardController extends Controller
 
     protected function getTopBahanBaku($kitchenIds, $month = 'all', $selectedKitchen = 'all')
     {
-        $cacheKey = 'dashboard_top_bahan_' . auth()->id() . '_' . ($month ?? 'all') . '_' . ($selectedKitchen ?? 'all');
+        $user = auth()->user();
 
-        return Cache::remember(
-            $cacheKey,
-            60,
-            function () use ($kitchenIds, $month, $selectedKitchen) {
+        $cacheKey = 'dashboard_top_bahan_' . $user->id . '_' . ($month ?? 'all') . '_' . ($selectedKitchen ?? 'all');
 
-                $query = DB::table('submission_details as sd')
-                    ->join('submissions as s', 'sd.submission_id', '=', 's.id')
-                    ->join('submissions as parent', 's.parent_id', '=', 'parent.id')
-                    ->join('bahan_baku as b', 'sd.bahan_baku_id', '=', 'b.id')
-                    ->join('kitchens as k', 's.kitchen_id', '=', 'k.id')
-                    ->selectRaw('
-                    b.id,
+        return Cache::remember($cacheKey, 60, function () use ($kitchenIds, $month, $selectedKitchen, $user) {
+
+            // when superadmin requests "all" kitchens we want to merge bahan baku
+            // records with the same name regardless of id (there may be duplicates)
+            $aggregateByName = $user->hasRole('superadmin') && $selectedKitchen === 'all';
+
+            $baseSelect = $aggregateByName
+                ? "
                     b.nama as nama_bahan,
                     SUM(sd.qty_digunakan) as total_qty,
                     COUNT(sd.id) as total_penggunaan,
-                    GROUP_CONCAT(DISTINCT k.nama SEPARATOR ", ") as daftar_dapur
-                ')
-                    ->whereNotNull('s.parent_id')       // child
-                    ->where('parent.status', 'selesai') // parent selesai
-                    ->groupBy('b.id', 'b.nama')
-                    ->orderByDesc('total_qty')
-                    ->limit(10);
+                    GROUP_CONCAT(DISTINCT k.nama SEPARATOR ', ') as daftar_dapur
+                "
+                : "
+                    b.id,
+                    ANY_VALUE(b.nama) as nama_bahan,
+                    SUM(sd.qty_digunakan) as total_qty,
+                    COUNT(sd.id) as total_penggunaan,
+                    GROUP_CONCAT(DISTINCT k.nama SEPARATOR ', ') as daftar_dapur
+                ";
 
-                // ✅ Filter bulan (child)
-                if ($month && $month !== 'all') {
-                    $query->whereMonth('s.created_at', $month)
-                        ->whereYear('s.created_at', now()->year);
-                }
+            $query = DB::table('submission_details as sd')
+                ->join('submissions as s', 'sd.submission_id', '=', 's.id')
+                ->join('submissions as parent', 's.parent_id', '=', 'parent.id')
+                ->join('bahan_baku as b', 'sd.bahan_baku_id', '=', 'b.id')
+                ->join('kitchens as k', 's.kitchen_id', '=', 'k.id')
+                ->selectRaw($baseSelect)
+                ->whereNotNull('s.parent_id')
+                ->where('parent.status', 'selesai');
 
-                // ✅ Filter role kitchen (batas akses user)
-                if ($kitchenIds !== null) {
-                    $query->whereIn('s.kitchen_id', $kitchenIds);
-                }
+            // group depending on chosen aggregation
+            if ($aggregateByName) {
+                $query->groupBy('b.nama');
+            } else {
+                $query->groupBy('b.id');
+            }
 
-                // ✅ Filter dapur tertentu (opsional)
-                if ($selectedKitchen && $selectedKitchen !== 'all') {
+            $query->orderByDesc('total_qty')
+                  ->limit(10);
+
+            // ========================
+            // Filter bulan
+            // ========================
+            if ($month && $month !== 'all') {
+                $query->whereMonth('s.created_at', $month)
+                    ->whereYear('s.created_at', now()->year);
+            }
+
+            // ========================
+            // Filter dapur
+            // ========================
+            if ($user->hasRole('superadmin')) {
+                // superadmin may choose a specific kitchen or "all"
+                if ($selectedKitchen !== 'all') {
                     $query->where('s.kitchen_id', $selectedKitchen);
                 }
-
-                return $query->get();
+            } else {
+                // regular users should only see their own kitchens by default
+                // if they picked one of their kitchens explicitly, apply that too
+                if ($selectedKitchen !== 'all' && $kitchenIds !== null && in_array($selectedKitchen, $kitchenIds)) {
+                    $query->where('s.kitchen_id', $selectedKitchen);
+                } elseif ($kitchenIds !== null) {
+                    $query->whereIn('s.kitchen_id', $kitchenIds);
+                }
             }
-        );
+
+            return $query->get();
+        });
     }
 }
