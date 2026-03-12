@@ -30,6 +30,7 @@ use App\Http\Controllers\ReportSalesPartnerController;
 use App\Http\Controllers\ProfitController;
 use App\Http\Controllers\ReportSalesProfitController;
 use App\Http\Controllers\SalesSummaryController;
+use App\Http\Controllers\UserManualController;
 
 require __DIR__ . '/auth.php';
 
@@ -558,6 +559,22 @@ Route::middleware(['auth', 'disetujui'])->group(function () {
             Route::patch('/', 'update')->name('update');
             Route::delete('/', 'destroy')->name('destroy');
             Route::patch('/password', 'updatePassword')->name('password.update');
+        });
+
+    /*
+    |------------------------------------------------------------------
+    | USER MANUAL
+    |------------------------------------------------------------------
+    */
+
+    Route::prefix('dashboard/user-manual')
+        ->name('user-manual.')
+        ->controller(UserManualController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'store')->middleware('role:superadmin')->name('store');
+            Route::get('/{id}/download', 'download')->name('download');
+            Route::delete('/{id}', 'destroy')->middleware('role:superadmin')->name('destroy');
         });
 
     // Route::get('/dashboard', function () {

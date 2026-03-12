@@ -5,14 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Activitylog\LogOptions;
-use Spatie\Activitylog\Models\Activity;
+
 
 class Submission extends Model
 {
 
-    use HasFactory, SoftDeletes, LogsActivity;
+    use HasFactory, SoftDeletes;
     protected $table = 'submissions';
 
     protected $fillable = [
@@ -31,27 +29,6 @@ class Submission extends Model
         'supplier_id',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | ACTIVITY LOG CONFIG
-    |--------------------------------------------------------------------------
-    */
-
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->useLogName('submission')
-            ->logFillable()
-            ->logOnlyDirty()
-            ->dontSubmitEmptyLogs()
-            ->setDescriptionForEvent(fn(string $eventName) => "Submission {$eventName}");
-    }
-
-    
-    public function activities()
-    {
-        return $this->morphMany(Activity::class, 'subject');
-    }
 
     /*
     |--------------------------------------------------------------------------

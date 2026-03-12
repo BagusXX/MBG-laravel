@@ -207,87 +207,60 @@
     </div>
 
     @role(['superadmin', 'superadminDapur'])
-    {{-- ================= ACTIVITY LOG ================= --}}
-    <div class="col-md-3">
-        <div class="card shadow-sm border-0 h-50">
+    {{-- ================= PENGAJUAN TERBARU ================= --}}
+    <div class="col-md-12">
+        <div class="card shadow-sm border-0">
             <div class="card-header bg-white">
-                <h3 class="card-title font-weight-bold">⚡ Aktivitas Terbaru</h3>
+                <h3 class="card-title font-weight-bold">⚡ Pengajuan Terbaru</h3>
             </div>
             <div class="card-body p-0">
                 @if($recentActivity->count() > 0)
-                    <div class="row no-gutters">
-                        {{-- Bagi data menjadi 2 kolom (misal: total 10 data, jadi 5 di kiri, 5 di kanan) --}}
-                        @foreach($recentActivity->chunk(ceil($recentActivity->count() / 2)) as $chunk)
-                            <div class="col-md-6 border-right" style="padding: 0 60px 0 60px">
-                                <div class="list-group list-group-flush">
-                                    @foreach($chunk as $activity)
-                                        <div class="list-group-item border-0 border-bottom py-3">
-                                            <div class="d-flex w-100 justify-content-between align-items-center mb-1">
-                                                <h6 class="mb-0 font-weight-bold text-dark">
-                                                    <i class="fas fa-user-circle text-primary mr-2"></i>
-                                                    {{ $activity->causer->name ?? 'System' }}
-                                                </h6>
-                                                <small class="text-muted bg-light px-2 py-1 rounded">
-                                                    <i class="far fa-clock mr-1"></i>{{ $activity->created_at->diffForHumans() }}
-                                                </small>
-                                            </div>
-                                            <p class="mb-0 text-muted">
-                                                {{ $activity->description }}
-                                            </p>
-                                            
-                                            <div class="mt-2">
-                                                @if($activity->properties && isset($activity->properties['attributes']))
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <span class="small font-weight-bold text-uppercase text-muted">Detail:</span>
-                                                        <button class="btn btn-xs btn-outline-primary" type="button" data-toggle="collapse"
-                                                            data-target="#details-{{ $activity->id }}" aria-expanded="false">
-                                                            <i class="fas fa-eye mr-1"></i> Lihat
-                                                        </button>
-                                                    </div>
-
-                                                    <div class="collapse mt-2" id="details-{{ $activity->id }}">
-                                                        <div class="bg-light p-2 rounded border">
-                                                            <ul class="mb-0 small text-dark list-unstyled">
-                                                                @foreach($activity->properties['attributes'] as $key => $value)
-                                                                    <li class="mb-1 d-flex flex-wrap align-items-center">
-                                                                        <strong class="text-capitalize mr-1">{{ str_replace('_', ' ', $key) }}:</strong>
-                                                                        @if(isset($activity->properties['old'][$key]))
-                                                                            <span class="badge badge-danger-light text-danger mx-1" style="text-decoration: line-through;">
-                                                                                {{ $activity->properties['old'][$key] }}
-                                                                            </span>
-                                                                            <i class="fas fa-arrow-right mx-1 text-xs text-muted"></i>
-                                                                        @endif
-                                                                        <span class="text-success font-weight-bold ml-1">
-                                                                            {{ is_array($value) ? json_encode($value) : $value }}
-                                                                        </span>
-                                                                    </li>
-                                                                @endforeach
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-                                                @else
-                                                    <span class="text-muted small italic">Tidak ada rincian.</span>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endforeach
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="border-0">Kode</th>
+                                    <th class="border-0">Dapur</th>
+                                    <th class="border-0">Status</th>
+                                    <th class="border-0 text-right">Total Harga</th>
+                                    <th class="border-0">Waktu</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($recentActivity as $submission)
+                                    <tr>
+                                        <td class="font-weight-bold">{{ $submission->kode ?? '-' }}</td>
+                                        <td>{{ $submission->kitchen->nama ?? '-' }}</td>
+                                        <td>
+                                            @php
+                                                $badgeMap = [
+                                                    'diajukan' => 'warning',
+                                                    'diproses' => 'info',
+                                                    'selesai' => 'success',
+                                                    'ditolak' => 'danger',
+                                                ];
+                                                $badge = $badgeMap[$submission->status] ?? 'secondary';
+                                            @endphp
+                                            <span class="badge badge-{{ $badge }}">{{ ucfirst($submission->status) }}</span>
+                                        </td>
+                                        <td class="text-right">Rp {{ number_format($submission->total_harga ?? 0, 0, ',', '.') }}</td>
+                                        <td>
+                                            <small class="text-muted">
+                                                <i class="far fa-clock mr-1"></i>{{ $submission->created_at->diffForHumans() }}
+                                            </small>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
                 @else
                     <div class="text-center py-5 text-muted">
                         <i class="fas fa-history fa-2x mb-3 opacity-50"></i>
-                        <p>Belum ada aktivitas tercatat.</p>
+                        <p>Belum ada pengajuan tercatat.</p>
                     </div>
                 @endif
             </div>
-            
-            <!-- @if($recentActivity->count() > 0)
-            <div class="card-footer bg-white text-center py-2">
-                <a href="#" class="text-sm font-weight-bold text-primary text-uppercase">Lihat Log Audit Lengkap</a>
-            </div>
-            @endif -->
         </div>
     </div>
     @endrole

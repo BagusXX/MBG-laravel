@@ -545,6 +545,13 @@ return [
                 ],
             ],
         ],
+
+        // USER MANUAL
+        [
+            'text' => 'User Manual',
+            'icon' => 'fas fa-book',
+            'route' => 'user-manual.index',
+        ],
     ],
 
     /*
