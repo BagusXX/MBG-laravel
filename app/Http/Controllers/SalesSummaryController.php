@@ -74,6 +74,33 @@ class SalesSummaryController extends Controller
             return $parent;
         });
 
+        // CLONE QUERY UNTUK SUMMARY GLOBAL
+        $summaryQuery = clone $query;
+
+        // ambil semua data tanpa pagination
+        $allParents = $summaryQuery->get();
+
+        // HITUNG TOTAL GLOBAL
+        $totalSelisihGlobal = 0;
+        $totalPersen85Global = 0;
+        $totalPersen15Global = 0;
+
+        foreach ($allParents as $parent) {
+            $totalDapur = 0;
+            $totalMitra = 0;
+
+            foreach ($parent->children as $child) {
+                $totalDapur += $child->details->sum('subtotal_dapur');
+                $totalMitra += $child->details->sum('subtotal_mitra');
+            }
+
+            $selisih = $totalDapur - $totalMitra;
+
+            $totalSelisihGlobal += $selisih;
+            $totalPersen85Global += $selisih * 0.85;
+            $totalPersen15Global += $selisih * 0.15;
+        }
+
         // TOTAL FOOTER (HALAMAN AKTIF)
         $collection = $parents->getCollection();
 
@@ -81,12 +108,28 @@ class SalesSummaryController extends Controller
         $totalPersen85 = $collection->sum('persen_85');
         $totalPersen15 = $collection->sum('persen_15');
 
+        $filterFrom = $request->from_date;
+        $filterTo = $request->to_date;
+
+        // ambil nama dapur
+        $selectedKitchen = null;
+
+        if ($request->filled('kitchen_id')) {
+            $selectedKitchen = Kitchen::find($request->kitchen_id);
+        }
+
         return view('report.sales-summary', compact(
             'kitchens',
             'parents',
             'totalSelisih',
             'totalPersen85',
-            'totalPersen15'
+            'totalPersen15',
+            'totalSelisihGlobal',
+            'totalPersen85Global',
+            'totalPersen15Global',
+            'filterFrom',
+            'filterTo',
+            'selectedKitchen'
         ));
     }
 }

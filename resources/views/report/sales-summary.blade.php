@@ -38,6 +38,11 @@
                                 </select>
                             </div>
                             <div class="col-md d-flex justify-content-end mt-3">
+                                <button type="button" class="btn btn-success mr-2"
+                                    data-toggle="modal"
+                                    data-target="#modalSummary">
+                                    <i class="fa fa-chart-bar"></i> Summary
+                                </button>
                                 <button type="submit" class="btn btn-primary mr-2">
                                     <i class="fa fa-search"></i> Filter
                                 </button>   
@@ -182,5 +187,59 @@
             </x-modal-detail>
             {{-- END MODAL --}}
         @endforeach
+        <x-modal-detail id="modalSummary" size="modal-md" title="Summary Total Keseluruhan">
+
+        {{-- INFO FILTER --}}
+        <table class="table table-borderless table-sm mb-3">
+            <tr>
+                <th width="40%">Tanggal Dari</th>
+                <td>
+                    :
+                    {{ $filterFrom 
+                        ? \Carbon\Carbon::parse($filterFrom)->locale('id')->translatedFormat('d F Y') 
+                        : '-' 
+                    }}
+                </td>
+            </tr>
+            <tr>
+                <th>Tanggal Sampai</th>
+                <td>
+                    :
+                    {{ $filterTo 
+                        ? \Carbon\Carbon::parse($filterTo)->locale('id')->translatedFormat('d F Y') 
+                        : '-' 
+                    }}
+                </td>
+            </tr>
+            <tr>
+                <th>Dapur</th>
+                <td>
+                    :
+                    @if($selectedKitchen)
+                        {{ $selectedKitchen->nama }}
+                    @else
+                        Semua Dapur
+                    @endif
+                </td>
+            </tr>
+        </table>
+
+        {{-- SUMMARY --}}
+        <table class="table table-bordered">
+            <tr>
+                <th>Total Selisih</th>
+                <td>Rp{{ number_format($totalSelisihGlobal, 0, ',', '.') }}</td>
+            </tr>
+            <tr>
+                <th>Total 85%</th>
+                <td>Rp{{ number_format($totalPersen85Global, 0, ',', '.') }}</td>
+            </tr>
+            <tr>
+                <th>Total 15%</th>
+                <td>Rp{{ number_format($totalPersen15Global, 0, ',', '.') }}</td>
+            </tr>
+        </table>
+
+    </x-modal-detail>
     </div>
 @endsection
