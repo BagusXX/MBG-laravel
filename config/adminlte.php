@@ -538,6 +538,13 @@ return [
                 ],
 
                 [
+                    'text' => 'Total Penjualan',
+                    'icon' => 'fas fa-file-signature',
+                    'route' => 'report.sales-summary-new',
+                    'can'   => 'report.sales-summary-new.view',
+                ],
+
+                [
                     'text' => 'Total Penjualan & Selisih',
                     'icon' => 'fas fa-file-signature',
                     'route' => 'report.sales-summary',

@@ -1,6 +1,6 @@
 @extends('adminlte::page')
 
-@section('title', 'Total Penjualan & Selisih')
+@section('title', 'Total Penjualan')
 
 @section('content_header')
     <h1>Total Penjualan & Selisih</h1>
@@ -11,7 +11,7 @@
         <div class="card-body">
             <div class="card mb-3">
                 <div class="card-body">
-                    <form action="{{ route('report.sales-summary') }}" method="GET">
+                    <form action="{{ route('report.sales-summary-new') }}" method="GET">
                         <div class="row align-items-end">
                             {{-- FILTER TANGGAL "DARI" --}}
                             <div class="col-md-4">
@@ -61,10 +61,10 @@
                         <th>Tanggal Pengajuan</th>
                         <th>Tanggal Digunakan</th>
                         <th>Total Invoice Dapur</th>
-                        <th>Total Invoice Mitra</th>
-                        <th>Selisih</th>
-                        <th>85%</th>
-                        <th>15%</th>
+                        <!-- <th>Total Invoice Mitra</th>
+                        <th>Selisih</th> -->
+                        <th>98%</th>
+                        <th>2%</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -75,10 +75,10 @@
                         <td>{{ \Carbon\Carbon::parse($report->tanggal)->locale('id')->translatedFormat('d F Y') }}</td>
                         <td>{{ \Carbon\Carbon::parse($report->tanggal_digunakan)->locale('id')->translatedFormat('d F Y') }}</td>
                         <td>Rp{{ number_format($report->total_dapur, 0, ',', '.') }}</td>
-                        <td>Rp{{ number_format($report->total_mitra, 0, ',', '.') }}</td>
-                        <td>Rp{{ number_format($report->selisih, 0, ',', '.') }}</td>
-                        <td>Rp{{ number_format($report->persen_85, 0, ',', '.') }}</td>
-                        <td>Rp{{ number_format($report->persen_15, 0, ',', '.') }}</td>
+                        <!-- <td>Rp{{ number_format($report->total_mitra, 0, ',', '.') }}</td> -->
+                        <!-- <td>Rp{{ number_format($report->selisih, 0, ',', '.') }}</td> -->
+                        <td>Rp{{ number_format($report->persen_98, 0, ',', '.') }}</td>
+                        <td>Rp{{ number_format($report->persen_2, 0, ',', '.') }}</td>
                         <td>
                             {{-- TOMBOL TRIGGER --}}
                             <button class="btn btn-sm btn-info"
@@ -96,10 +96,9 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="5" class="text-right"><strong>Total :</strong></td>
-                        <td class="text-left"><strong>Rp{{ number_format($totalSelisih, 0, '.', '.') }}</strong></td>
-                        <td class="text-left"><strong>Rp{{ number_format($totalPersen85, 0, '.', '.') }}</strong></td>
-                        <td class="text-left"><strong>Rp{{ number_format($totalPersen15, 0, '.', '.') }}</strong></td>
+                        <td colspan="4" class="text-right"><strong>Total :</strong></td>
+                        <td class="text-left"><strong>Rp{{ number_format($totalPersen98, 0, '.', '.') }}</strong></td>
+                        <td class="text-left"><strong>Rp{{ number_format($totalPersen2, 0, '.', '.') }}</strong></td>
                     </tr>
                 </tfoot>
             </table>
@@ -173,8 +172,8 @@
                             <tr>
                                 <th colspan="3" class="text-right">TOTAL</th>
                                 <th>Rp{{ number_format($report->total_dapur,0,',','.') }}</th>
-                                <th>Rp{{ number_format($report->total_mitra,0,',','.') }}</th>
-                                <th>Rp{{ number_format($report->selisih,0,',','.') }}</th>
+                                <!-- <th>Rp{{ number_format($report->total_mitra,0,',','.') }}</th> -->
+                                <!-- <th>Rp{{ number_format($report->selisih,0,',','.') }}</th> -->
                             </tr>
                         </tfoot>
                     </table>

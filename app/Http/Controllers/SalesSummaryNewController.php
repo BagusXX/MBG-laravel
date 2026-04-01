@@ -8,7 +8,7 @@ use App\Models\Submission;
 use Illuminate\Support\Facades\DB;
 
 
-class SalesSummaryController extends Controller
+class SalesSummaryNewController extends Controller
 {
     protected function userKitchenCodes()
     {
@@ -19,12 +19,7 @@ class SalesSummaryController extends Controller
     public function index(Request $request)
     {
         $kitchensCodes = $this->userKitchenCodes();
-        $kitchens = Kitchen::whereIn('id', $kitchensCodes)
-        ->wherehas('submissions', function ($query) {
-            $query->whereDate('tanggal', '<', '2026-04-1');  
-        })
-        ->orderBy('nama')
-        ->get();
+        $kitchens = Kitchen::whereIn('id', $kitchensCodes)->orderBy('nama')->get();
         $query = Submission::query()
             ->whereNull('parent_id')
             ->has('children')
@@ -48,9 +43,9 @@ class SalesSummaryController extends Controller
         //           ->orWhereDate('tanggal_digunakan', '<=', $request->to_date);
         //     });
         // }
-        
-        $query->whereDate('tanggal', '<', '2026-04-01');
 
+        $query->whereDate('tanggal', '>=', '2026-04-01');
+        
         if ($request->filled('from_date')) {
             $query->whereDate('tanggal_digunakan', '>=', $request->from_date);
         }
@@ -73,18 +68,18 @@ class SalesSummaryController extends Controller
         $parents->getCollection()->transform(function ($parent) {
 
             $totalDapur = 0;
-            $totalMitra = 0;
+            // $totalMitra = 0;
 
             foreach ($parent->children as $child) {
                 $totalDapur += $child->details->sum('subtotal_dapur');
-                $totalMitra += $child->details->sum('subtotal_mitra');
+                // $totalMitra += $child->details->sum('subtotal_mitra');
             }
 
             $parent->total_dapur = $totalDapur;
-            $parent->total_mitra = $totalMitra;
-            $parent->selisih = $totalDapur - $totalMitra;
-            $parent->persen_85 = $parent->selisih * 0.85;
-            $parent->persen_15 = $parent->selisih * 0.15;
+            // $parent->total_mitra = $totalMitra;
+            // $parent->selisih = $totalDapur - $totalMitra;
+            $parent->persen_98 = $parent->total_dapur * 0.98;
+            $parent->persen_2 = $parent->total_dapur * 0.02;
 
             return $parent;
         });
@@ -92,16 +87,16 @@ class SalesSummaryController extends Controller
         // TOTAL FOOTER (HALAMAN AKTIF)
         $collection = $parents->getCollection();
 
-        $totalSelisih = $collection->sum('selisih');
-        $totalPersen85 = $collection->sum('persen_85');
-        $totalPersen15 = $collection->sum('persen_15');
+        // $totalSelisih = $collection->sum('selisih');
+        $totalPersen98 = $collection->sum('persen_98');
+        $totalPersen2 = $collection->sum('persen_2');
 
-        return view('report.sales-summary', compact(
+        return view('report.sales-summary-new', compact(
             'kitchens',
             'parents',
-            'totalSelisih',
-            'totalPersen85',
-            'totalPersen15'
+            // 'totalSelisih',
+            'totalPersen98',
+            'totalPersen2'
         ));
     }
 }

@@ -30,6 +30,7 @@ use App\Http\Controllers\ReportSalesPartnerController;
 use App\Http\Controllers\ProfitController;
 use App\Http\Controllers\ReportSalesProfitController;
 use App\Http\Controllers\SalesSummaryController;
+use App\Http\Controllers\SalesSummaryNewController;
 use App\Http\Controllers\UserManualController;
 
 require __DIR__ . '/auth.php';
@@ -549,6 +550,10 @@ Route::middleware(['auth', 'disetujui'])->group(function () {
             Route::get('/total-penjualan-dan-selisih', [SalesSummaryController::class, 'index'])
                 ->middleware('permission:report.sales-summary.view')
                 ->name('sales-summary');
+
+            Route::get('/total-penjualan', [SalesSummaryNewController::class, 'index'])
+                ->middleware('permission:report.sales-summary-new.view')
+                ->name('sales-summary-new');
         });
 
     Route::prefix('dashboard/profile')
