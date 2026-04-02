@@ -246,9 +246,9 @@
                         <th width="10%">Qty</th>
                         <th width="10%">Satuan</th>
                         <th width="15%">Harga Satuan Dapur</th>
-                        <th width="15%">Harga Satuan Mitra</th>
+                        <!-- <th width="15%">Harga Satuan Mitra</th> -->
                         <th width="15%">Subtotal Dapur</th>
-                        <th width="15%">Subtotal Mitra</th>
+                        <!-- <th width="15%">Subtotal Mitra</th> -->
                         <th width="5%"></th>
                     </tr>
                 </thead>
@@ -506,6 +506,11 @@
 
         $(document).ready(function () {
 
+            $('#modalAddSubmission, #modalEditSubmission').modal({
+                    backdrop: 'static',
+                    keyboard: false,
+                    show: false // Agar modal tidak langsung muncul saat halaman di-load
+                });
             // ==========================================
             // 3. FILTER TABLE LOGIC
             // ==========================================
@@ -713,17 +718,11 @@
                                     </div>
                                 </td>
 
-                                <td>
-                                    <div class="input-group input-group-sm">
-                                        <input type="text" name="items[${rowIdx}][harga_mitra]" class="form-control input-harga-mitra" placeholder="Harga">
-                                    </div>
-                                </td>
+                                
                                 <td>
                                     <input type="text" class="form-control form-control-sm total-dapur" readonly placeholder="0">
                                 </td>
-                                <td>
-                                    <input type="text" class="form-control form-control-sm total-mitra" readonly placeholder="0">
-                                </td>
+                               
                                 <td class="text-center">
                                     <button type="button" class="btn btn-danger btn-xs btn-remove-row" data-id="${rowIdx}" title="Hapus Baris">
                                         <i class="fas fa-trash"></i>
