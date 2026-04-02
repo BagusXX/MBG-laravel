@@ -19,7 +19,12 @@ class SalesSummaryController extends Controller
     public function index(Request $request)
     {
         $kitchensCodes = $this->userKitchenCodes();
-        $kitchens = Kitchen::whereIn('id', $kitchensCodes)->orderBy('nama')->get();
+        $kitchens = Kitchen::whereIn('id', $kitchensCodes)
+        ->wherehas('submissions', function ($query) {
+            $query->whereDate('tanggal', '<', '2026-04-1');  
+        })
+        ->orderBy('nama')
+        ->get();
         $query = Submission::query()
             ->whereNull('parent_id')
             ->has('children')
@@ -30,18 +35,28 @@ class SalesSummaryController extends Controller
                 'children.details'
             ]);
         
+        // if ($request->filled('from_date')) {
+        //     $query->where(function ($q) use ($request) {
+        //         $q->whereDate('tanggal', '>=', $request->from_date)
+        //           ->orWhereDate('tanggal_digunakan', '>=', $request->from_date);
+        //     });
+        // }
+        
+        // if ($request->filled('to_date')) {
+        //     $query->where(function ($q) use ($request) {
+        //         $q->whereDate('tanggal', '<=', $request->to_date)
+        //           ->orWhereDate('tanggal_digunakan', '<=', $request->to_date);
+        //     });
+        // }
+        
+        $query->whereDate('tanggal', '<', '2026-04-01');
+
         if ($request->filled('from_date')) {
-            $query->where(function ($q) use ($request) {
-                $q->whereDate('tanggal', '>=', $request->from_date)
-                  ->orWhereDate('tanggal_digunakan', '>=', $request->from_date);
-            });
+            $query->whereDate('tanggal_digunakan', '>=', $request->from_date);
         }
         
         if ($request->filled('to_date')) {
-            $query->where(function ($q) use ($request) {
-                $q->whereDate('tanggal', '<=', $request->to_date)
-                  ->orWhereDate('tanggal_digunakan', '<=', $request->to_date);
-            });
+            $query->whereDate('tanggal_digunakan', '<=', $request->to_date);
         }
 
 

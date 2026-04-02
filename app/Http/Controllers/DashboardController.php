@@ -7,7 +7,7 @@ use App\Models\Supplier;
 use App\Models\Submission;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
-use Spatie\Activitylog\Models\Activity;
+
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -184,19 +184,19 @@ class DashboardController extends Controller
 
     protected function getRecentActivity($user)
     {
-        $query = Activity::with(['causer', 'subject']) // Load causer (user) dan subject (model yg diubah)
+        $query = Submission::with(['kitchen'])
+            ->whereNull('parent_id')
             ->latest()
             ->limit(10);
 
-
-        if ($user->hasRole(['superadmin', 'superadminDapur'])) {
-            return Activity::with(['causer', 'subject'])
-                ->latest()
-                ->limit(10)
-                ->get();
+        if (!$user->hasRole(['superadmin','superadminDapur'])) {
+            $kitchenIds = $this->userKitchenCodes();
+            if ($kitchenIds) {
+                $query->whereIn('kitchen_id', $kitchenIds);
+            }
         }
-        return $query->where('causer_id', $user->id)
-            ->get();
+
+        return $query->get();
     }
 
     protected function getTopKitchenByNominal($kitchenIds, $month = null)

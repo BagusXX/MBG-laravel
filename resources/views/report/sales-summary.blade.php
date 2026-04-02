@@ -149,8 +149,8 @@
                                 <th>Tanggal Invoice</th>
                                 <th>Supplier</th>
                                 <th>Total Dapur</th>
-                                <th>Total Mitra</th>
-                                <th>Selisih</th>
+                                <!--<th>Total Mitra</th>-->
+                                <!--<th>Selisih</th>-->
                             </tr>
                         </thead>
                         <tbody>
