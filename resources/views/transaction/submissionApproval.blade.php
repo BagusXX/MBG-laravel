@@ -288,9 +288,9 @@
                                         <th width="80" class="text-center">Satuan</th>
                                         {{-- DUA KOLOM HARGA DITAMPILKAN --}}
                                         <th width="130" class="text-center">Harga Satuan Dapur</th>
-                                        <th width="130" class="text-center">Harga Satuan Mitra</th>
+                                        <!--<th width="130" class="text-center">Harga Satuan Mitra</th>-->
                                         <th width="140" class="text-right">Subtotal Dapur</th>
-                                        <th width="140" class="text-right">Subtotal Mitra</th>
+                                        <!--<th width="140" class="text-right">Subtotal Mitra</th>-->
                                         @can('transaction.submission-approval.delete-detail')
                                             <th width="50" class="action-only"></th>
                                         @endcan
@@ -595,21 +595,21 @@
                                                                                         value="${hrgDapur}" placeholder="0"> 
                                                                                 </td>
 
-                                                                                {{-- HARGA MITRA (SATUAN) --}}
+                                                                                {{-- HARGA MITRA (SATUAN) 
                                                                                 <td class="align-middle px-1">
                                                                                     <input type="number" step="0.01" class="form-control form-control-sm text-right border-info input-hitung input-harga-mitra" 
                                                                                         name="details[${item.id}][harga_mitra]" 
-                                                                                        value="${hrgMitra}" placeholder="0"> </td>
+                                                                                        value="${hrgMitra}" placeholder="0"> </td> --}}
 
                                                                                 {{-- SUBTOTAL DAPUR (READONLY) --}}
                                                                                 <td class="align-middle px-1">
                                                                                     <input type="text" class="form-control form-control-sm text-right bg-light text-bold subtotal-dapur" 
                                                                                         readonly value="${formatRupiahInput(subDapur)}"> </td>
 
-                                                                                {{-- SUBTOTAL MITRA (READONLY) --}}
+                                                                                {{-- SUBTOTAL MITRA (READONLY) 
                                                                                 <td class="align-middle px-1">
                                                                                     <input type="text" class="form-control form-control-sm text-right bg-light text-bold subtotal-mitra" 
-                                                                                        readonly value="${formatRupiahInput(subMitra)}"> </td>
+                                                                                        readonly value="${formatRupiahInput(subMitra)}"> </td> --}}
 
                                                                                         @can('transaction.submission-approval.delete-detail')
                                                                                             <td class="text-center align-middle action-only">

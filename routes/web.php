@@ -548,7 +548,7 @@ Route::middleware(['auth', 'disetujui'])->group(function () {
                 ->name('sales-profit.printInvoice');
 
             Route::get('/total-penjualan-dan-selisih', [SalesSummaryController::class, 'index'])
-                ->middleware('permission:report.sales-summary.view')
+                ->middleware('permission:report.sales-summary.legacy')
                 ->name('sales-summary');
 
             Route::get('/total-penjualan', [SalesSummaryNewController::class, 'index'])

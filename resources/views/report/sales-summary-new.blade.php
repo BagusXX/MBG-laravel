@@ -58,6 +58,9 @@
                 <thead>
                     <tr>
                         <th width="10%">Kode</th>
+                        @if(Auth::user()->hasAnyRole(['superadmin', 'operatorRegion']))
+                        <th>Dapur</th>
+                        @endif
                         <th>Tanggal Pengajuan</th>
                         <th>Tanggal Digunakan</th>
                         <th>Total Invoice Dapur</th>
@@ -72,6 +75,9 @@
                     @forelse ($parents as $report )
                     <tr>
                         <td>{{ $report->kode }}</td>
+                        @if(Auth::user()->hasAnyRole(['superadmin', 'operatorRegion']))
+                        <td>{{ $report->kitchen->nama }}</td>
+                        @endif
                         <td>{{ \Carbon\Carbon::parse($report->tanggal)->locale('id')->translatedFormat('d F Y') }}</td>
                         <td>{{ \Carbon\Carbon::parse($report->tanggal_digunakan)->locale('id')->translatedFormat('d F Y') }}</td>
                         <td>Rp{{ number_format($report->total_dapur, 0, ',', '.') }}</td>

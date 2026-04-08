@@ -548,7 +548,7 @@ return [
                     'text' => 'Total Penjualan & Selisih',
                     'icon' => 'fas fa-file-signature',
                     'route' => 'report.sales-summary',
-                    'can'   => 'report.sales-summary.view',
+                    'can'   => 'report.sales-summary.legacy',
                 ],
             ],
         ],
