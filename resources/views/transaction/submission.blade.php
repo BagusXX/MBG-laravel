@@ -506,6 +506,11 @@
 
         $(document).ready(function () {
 
+            $('#modalAddSubmission, #modalEditSubmission').modal({
+                    backdrop: 'static',
+                    keyboard: false,
+                    show: false // Agar modal tidak langsung muncul saat halaman di-load
+                });
             // ==========================================
             // 3. FILTER TABLE LOGIC
             // ==========================================

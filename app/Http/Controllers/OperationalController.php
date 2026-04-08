@@ -20,9 +20,10 @@ class OperationalController extends Controller
         $canManage = $this->canManage();
 
         // 1️⃣ Untuk dropdown (kode => nama)
-        $kitchens = $user->kitchens()->get();
+        $kitchens = $user->kitchens()->pluck('nama', 'kode');
+        
         // 2️⃣ Ambil hanya KODENYA saja untuk filter
-        $kitchenKode = $kitchens->pluck('kode');
+        $kitchenKode = $kitchens->keys();
 
         if ($request->filled('kitchen_kode')) {
         $selectedKitchen = $kitchens->where('kode', $request->kitchen_kode)->first();
@@ -95,7 +96,7 @@ class OperationalController extends Controller
             'kode' => $request->kode,
             'nama' => $request->nama,
             'kitchen_kode' => $request->kitchen_kode,
-            'harga_default' => $request->input('harga_defult', 0),
+            'harga_default' => $request->input('harga_default', 0),
         ]);
 
         return redirect()
