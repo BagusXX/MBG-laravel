@@ -6,6 +6,7 @@ use App\Http\Controllers\Concerns\HasPerPage;
 use App\Models\operationals;
 use App\Models\Recipe;
 use App\Models\RecipeBahanBaku;
+use App\Models\submissionOperationalDetails;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -21,13 +22,13 @@ class OperationalController extends Controller
 
         // 1️⃣ Untuk dropdown (kode => nama)
         $kitchens = $user->kitchens()->pluck('nama', 'kode');
-        
+
         // 2️⃣ Ambil hanya KODENYA saja untuk filter
         $kitchenKode = $kitchens->keys();
 
         if ($request->filled('kitchen_kode')) {
-        $selectedKitchen = $kitchens->where('kode', $request->kitchen_kode)->first();
-        
+            $selectedKitchen = $kitchens->where('kode', $request->kitchen_kode)->first();
+
             if ($selectedKitchen) {
                 // Jika user memfilter dapur yang valid, timpa array dengan satu kode saja
                 $kitchenKode = collect([$selectedKitchen->kode]);
@@ -115,7 +116,7 @@ class OperationalController extends Controller
             abort(403, 'Anda tidak memiliki akses untuk menambah data.');
         }
 
-        if (! $user->kitchens()->where('kode', $operational->kitchen_kode)->exists()) {
+        if (!$user->kitchens()->where('kode', $operational->kitchen_kode)->exists()) {
             abort(403);
         }
 
@@ -149,6 +150,14 @@ class OperationalController extends Controller
             abort(403, 'Anda tidak memiliki akses untuk menambah data.');
         }
 
+        $isUsed = submissionOperationalDetails::where('operational_id', $id)->exists();
+
+        if ($isUsed) {
+            return redirect()
+                ->route('master.operational.index')
+                ->with('error', 'Gagal: Biaya Operasional "' . $operational->nama . '" tidak bisa dihapus karena sudah memiliki data transaksi/pengajuan.');
+            # code...
+        }
         // baru hapus operational
         $operational->delete();
 
