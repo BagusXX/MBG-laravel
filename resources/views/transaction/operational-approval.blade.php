@@ -729,7 +729,7 @@
 
             /**
              * ======================================================
-             * SAAT MODAL DITUTUP → RESET FORM
+             * SAAT MODAL DITUTUP â†’ RESET FORM
              * ======================================================
              */
             $('#modalAddSubmission').on('hidden.bs.modal', function () {
@@ -777,7 +777,7 @@
             statusSelect.find('option').prop('disabled', false);
 
             // RULE:
-            // jika status = diproses → hanya boleh diterima
+            // jika status = diproses â†’ hanya boleh diterima
             if (status === 'diproses') {
                 statusSelect.find('option').prop('disabled', true);
                 statusSelect.find('option[value="diterima"]').prop('disabled', false);
@@ -814,7 +814,7 @@
         $('#approval_status').val(status);
         $('#approval_status_text').text(status.toUpperCase());
 
-        // 🔥 LANGSUNG buka modal konfirmasi
+        // ðŸ”¥ LANGSUNG buka modal konfirmasi
         approvalModal.modal({
             backdrop: 'static',
             keyboard: false
