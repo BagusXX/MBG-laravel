@@ -57,13 +57,13 @@ class SaleMaterialsPartnerController extends Controller
                 if ($request->filled('from_date') || $request->filled('to_date')) {
                     $q->whereHas('submission.parentSubmission', function ($ps) use ($request) {
 
-                    if ($request->filled('from_date')) {
-                        $ps->whereDate('tanggal', '>=', $request->from_date);
-                    }
+                        if ($request->filled('from_date')) {
+                            $ps->whereDate('tanggal', '>=', $request->from_date);
+                        }
 
-                    if ($request->filled('to_date')) {
-                        $ps->whereDate('tanggal', '<=', $request->to_date);
-                    }
+                        if ($request->filled('to_date')) {
+                            $ps->whereDate('tanggal', '<=', $request->to_date);
+                        }
 
                     });
                 }
@@ -85,7 +85,7 @@ class SaleMaterialsPartnerController extends Controller
             })
             ->latest('id');
 
-        $submissions = $query->paginate(10)->withQueryString();
+        $submissions = $query->paginate((int) $request->get('per_page', 10))->withQueryString();
 
         $totalPageSubtotal = $submissions->getCollection()->sum(function ($submission) {
             return $submission->details->sum('subtotal_mitra');
@@ -109,7 +109,7 @@ class SaleMaterialsPartnerController extends Controller
         return response()->json($bahanBaku);
     }
 
-    
+
 
     public function printInvoice($kode)
     {
@@ -136,7 +136,7 @@ class SaleMaterialsPartnerController extends Controller
         }
 
 
-        
+
 
         // Hitung total harga dari detail
         $totalHarga = $submission->details->sum('subtotal_mitra');
@@ -147,8 +147,8 @@ class SaleMaterialsPartnerController extends Controller
         );
 
         // return view('transaction.invoice-sale-partner', compact('submission', 'totalHarga'));
-        return $pdf->download('Invoice-' . $submission->kode . '_' . date('d-m-Y') . '.pdf');
+        return $pdf->stream('Invoice-' . $submission->kode . '_' . date('d-m-Y') . '.pdf');
     }
 
-    
+
 }

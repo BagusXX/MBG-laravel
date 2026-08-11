@@ -66,14 +66,14 @@
                         <button type="submit" class="btn btn-primary mr-2">
                             <i class="fa fa-search"></i> Filter
                         </button>
-                        <a href="{{ route('report.sales-profit') }}" class="btn btn-danger">
+                        <a href="{{ route('report.sales-profit') }}" class="btn btn-danger mr-2">
                             <i class="fa fa-undo"></i> Reset
                         </a>
-                        {{-- <a href="{{ route('report.sales-kitchen.invoice', request()->all()) }}"
-                            class="btn btn-warning ml-2" target="_blank">
-                            <i class="fa fa-print"></i> Print
-                        </a> --}}
+                        <button type="submit" formaction="{{ route('report.sales-profit.excel') }}" class="btn btn-success">
+                            <i class="fa fa-file-excel"></i> Excel Rekap
+                        </button>
                     </div>
+                    <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
                 </div>
             </form>
         </div>
@@ -81,6 +81,23 @@
     {{-- TABLE --}}
     <div class="card">
         <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div>
+                    <span class="text-muted">Menampilkan {{ $submissions->firstItem() ?? 0 }}–{{ $submissions->lastItem() ?? 0 }} dari {{ $submissions->total() }} data</span>
+                </div>
+                <form method="GET" action="{{ route('report.sales-profit') }}" class="form-inline">
+                    @foreach(request()->except('per_page', 'page') as $key => $val)
+                        <input type="hidden" name="{{ $key }}" value="{{ $val }}">
+                    @endforeach
+                    <label class="mr-2 mb-0">Tampilkan</label>
+                    <select name="per_page" class="form-control form-control-sm mr-2" onchange="this.form.submit()">
+                        @foreach([10, 25, 50, 100] as $pp)
+                            <option value="{{ $pp }}" {{ request('per_page', 10) == $pp ? 'selected' : '' }}>{{ $pp }}</option>
+                        @endforeach
+                    </select>
+                    <label class="mb-0">data</label>
+                </form>
+            </div>
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
@@ -116,6 +133,10 @@
                                 <button type="button" class="btn btn-warning btn-sm btn-print-invoice"
                                     data-kode="{{ $submission->kode }}" window="_blank">
                                     <i class="fas fa-print mr-1"></i>Cetak
+                                </button>
+                                <button type="button" class="btn btn-success btn-sm btn-excel-invoice ml-1"
+                                    data-kode="{{ $submission->kode }}">
+                                    <i class="fas fa-file-excel mr-1"></i>Excel
                                 </button>
                             </td>
                         </tr>
@@ -252,6 +273,55 @@
 
                 window.open(url, '_blank');
             });
+
+            // Handle tombol download Excel invoice
+            $(document).on('click', '.btn-excel-invoice', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                let kode = $(this).data('kode');
+                if (!kode) {
+                    return;
+                }
+
+                let url = "{{ route('report.sales-profit.printInvoiceExcel', ':kode') }}";
+                url = url.replace(':kode', kode);
+
+                window.open(url, '_blank');
+            });
         });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+    $(document).ready(function() {
+        $('form').on('submit', function(e) {
+            var $btn = $(document.activeElement);
+            if ($btn.attr('formaction') && $btn.attr('formaction').includes('excel')) {
+                Swal.fire({
+                    title: 'Sedang Memproses Excel...',
+                    text: 'Mohon tunggu sebentar, file sedang dibuat.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading()
+                    }
+                });
+
+                var downloadTimer = setInterval(function() {
+                    var token = getCookie("download_excel_completed");
+                    if (token !== undefined && token !== "") {
+                        clearInterval(downloadTimer);
+                        Swal.close();
+                        document.cookie = "download_excel_completed=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    }
+                }, 1000);
+            }
+        });
+
+        function getCookie(name) {
+            var value = "; " + document.cookie;
+            var parts = value.split("; " + name + "=");
+            if (parts.length === 2) return parts.pop().split(";").shift();
+        }
+    });
     </script>
 @endpush

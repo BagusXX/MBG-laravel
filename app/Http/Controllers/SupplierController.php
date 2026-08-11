@@ -23,7 +23,7 @@ class SupplierController extends Controller
         $user = auth()->user();
         // Sesuaikan 'role' dengan nama kolom di database user Anda
         // atau gunakan $user->hasRole(...) jika pakai Spatie
-        return $user->hasAnyRole(['superadmin', 'operatorkoperasi','superadminDapur']);
+        return $user->hasAnyRole(['superadmin', 'operatorkoperasi', 'superadminDapur']);
     }
 
     public function index(Request $request)
@@ -39,16 +39,21 @@ class SupplierController extends Controller
         $search = $request->input('search');
 
         $userKitchenKode = $user->kitchens()->pluck('kode');
-        
-        $suppliers = Supplier::with('kitchens')
+
+        $suppliers = Supplier::with([
+            'kitchens' => function ($q) use ($userKitchenKode) {
+                // Hanya load kitchens yang menjadi milik user agar badge tidak "tampil semua"
+                $q->whereIn('kitchens.kode', $userKitchenKode);
+            }
+        ])
             ->whereHas('kitchens', function ($q) use ($userKitchenKode) {
                 $q->whereIn('kitchens.kode', $userKitchenKode);
             })
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('nama', 'LIKE', "%{$search}%")
-                    ->orWhere('kode', 'LIKE', "%{$search}%")
-                    ->orWhere('alamat', 'LIKE', "%{$search}%");
+                        ->orWhere('kode', 'LIKE', "%{$search}%")
+                        ->orWhere('alamat', 'LIKE', "%{$search}%");
                 });
             })
             ->orderBy('suppliers.id')
@@ -60,7 +65,7 @@ class SupplierController extends Controller
 
         $canManage = $this->canManage();
 
-        return view('master.supplier', compact('suppliers', 'kitchens', 'kodeBaru', 'canManage','canCreate', 'canDelete'));
+        return view('master.supplier', compact('suppliers', 'kitchens', 'kodeBaru', 'canManage', 'canCreate', 'canDelete'));
     }
 
 

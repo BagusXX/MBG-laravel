@@ -305,6 +305,14 @@
                 <td style="width: 30%; text-align: center; vertical-align: top;">
                     <h1 style="font-size: 32px; font-style: italic; font-weight: bold; margin: 0; letter-spacing: 2px;">
                         INVOICE</h1>
+                    @php
+                        $romans = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+                        $monthIndex = (int) \Carbon\Carbon::parse($submission->tanggal)->format('m');
+                        $romanMonth = $romans[$monthIndex];
+                    @endphp
+                    <p style="margin: 5px 0 0 0; font-size: 13px;">
+                        {{ $submission->kode }}/INV/{{$romanMonth}}/{{ \Carbon\Carbon::parse($submission->tanggal)->format('Y') }}
+                    </p>
                 </td>
 
                 <td style="width: 35%; text-align: right; vertical-align: top;">
@@ -314,15 +322,10 @@
                             {{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMMM YYYY') }}
                         </p>
                     </div>
-                    @php
-                        $romans = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
-                        $monthIndex = (int) \Carbon\Carbon::parse($submission->tanggal)->format('m');
-                        $romanMonth = $romans[$monthIndex];
-                    @endphp
                     <div style="margin-bottom: 10px;">
-                        <p style="margin: 0; font-weight: bold; text-transform: uppercase;">NO. INVOICE :</p>
-                        <p style="margin: 0; font-size: 13px;">
-                            {{ $submission->kode }}/INV/{{$romanMonth}}/{{ \Carbon\Carbon::parse($submission->tanggal)->format('Y') }}
+                        <p style="margin: 0; font-weight: bold; text-transform: uppercase;">TANGGAL DIGUNAKAN :</p>
+                        <p style="margin: 0; font-size: 14px;">
+                            {{ \Carbon\Carbon::parse($submission->tanggal)->locale('id')->isoFormat('dddd, D MMMM YYYY') }}
                         </p>
                     </div>
                 </td>
@@ -387,7 +390,7 @@
                     <div style="display: inline-block; text-align: center; width: 200px;">
                         <p style="margin-bottom: 5px; font-size: 13px;">
                             {{ strtoupper($submission->kitchen->kota ?? '_____') }},
-                            {{ \Carbon\Carbon::parse($submission->tanggal)->locale('id')->isoFormat('D MMMM YYYY') }}
+                            {{ \Carbon\Carbon::now()->locale('id')->isoFormat('D MMMM YYYY') }}
                         </p>
 
                         <div style="height: 100px; margin-bottom: 2px; text-align: center;">
