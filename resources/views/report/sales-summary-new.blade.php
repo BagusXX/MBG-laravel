@@ -123,6 +123,7 @@
                 <tfoot>
                     <tr>
                         <td colspan="4" class="text-right"><strong>Total :</strong></td>
+                        <td class="text-left"><strong>Rp{{ number_format($totalInvoiceDapur, 0, ',', '.') }}</td>
                         <td class="text-left"><strong>Rp{{ number_format($totalPersen98, 0, '.', '.') }}</strong></td>
                         <td class="text-left"><strong>Rp{{ number_format($totalPersen2, 0, '.', '.') }}</strong></td>
                     </tr>

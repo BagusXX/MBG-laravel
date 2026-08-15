@@ -93,6 +93,8 @@ class SalesSummaryNewController extends Controller
         // TOTAL FOOTER (HALAMAN AKTIF)
         $collection = $parents->getCollection();
 
+        $totalInvoiceDapur = $collection->sum('total_dapur');
+
         // $totalSelisih = $collection->sum('selisih');
         $totalPersen98 = $collection->sum('persen_98');
         $totalPersen2 = $collection->sum('persen_2');
@@ -101,6 +103,7 @@ class SalesSummaryNewController extends Controller
             'kitchens',
             'parents',
             // 'totalSelisih',
+            'totalInvoiceDapur',
             'totalPersen98',
             'totalPersen2'
         ));
