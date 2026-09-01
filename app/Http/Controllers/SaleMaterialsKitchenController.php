@@ -82,7 +82,7 @@ class SaleMaterialsKitchenController extends Controller
             })
             ->latest('id');
 
-        $submissions = $query->paginate(10)->withQueryString();
+        $submissions = $query->paginate((int) $request->get('per_page', 10))->withQueryString();
 
         $totalPageSubtotal = $submissions->getCollection()->sum(function ($submission) {
             return $submission->details->sum('subtotal_dapur');
@@ -135,6 +135,7 @@ class SaleMaterialsKitchenController extends Controller
 
     public function printInvoice($kode)
     {
+        ini_set('memory_limit', '512M');
         $kitchensCodes = $this->userKitchenCodes();
         // Ambil submission berdasarkan kode
         $submission = Submission::with([
@@ -167,6 +168,159 @@ class SaleMaterialsKitchenController extends Controller
         );
 
         // return view('transaction.invoice-sale-kitchen', compact('submission', 'totalHarga'));
-        return $pdf->download('Invoice-' . $submission->kode . '.pdf');
+        return $pdf->stream('Invoice-' . $submission->kode . '.pdf');
+    }
+
+    public function excel(Request $request)
+    {
+        $kitchensCodes = $this->userKitchenCodes();
+        $query = Submission::with([
+            'parentSubmission',
+            'kitchen',
+            'menu',
+            'supplier',
+            'details.unit',
+            'details.bahan_baku'
+        ])
+            ->whereNotNull('parent_id')
+            ->whereIn('kitchen_id', $kitchensCodes)
+            ->where(function ($q) use ($request) {
+                $q->where(function ($q2) {
+                    $q2->where('status', 'diproses')
+                        ->orWhere('tipe', 'disetujui');
+                });
+
+                $q->whereHas('parentSubmission', function ($ps) use ($request) {
+                    if ($request->filled('from_date')) {
+                        $ps->whereDate('tanggal', '>=', $request->from_date);
+                    }
+                    if ($request->filled('to_date')) {
+                        $ps->whereDate('tanggal', '<=', $request->to_date);
+                    }
+                });
+
+                if ($request->filled('kitchen_id')) {
+                    $q->where('kitchen_id', $request->kitchen_id);
+                }
+                if ($request->filled('supplier_id')) {
+                    $q->where('supplier_id', $request->supplier_id);
+                }
+                if ($request->filled('menu_id')) {
+                    $selectedMenu = Menu::find($request->menu_id);
+                    if ($selectedMenu) {
+                        $q->whereHas('menu', function ($mq) use ($selectedMenu) {
+                            $mq->where('nama', $selectedMenu->nama);
+                        });
+                    }
+                }
+            })
+            ->latest('id');
+
+        $submissions = $query->get();
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Laporan Invoice Dapur');
+
+        // Header row
+        $headers = ['No', 'Kode', 'Tanggal Pengajuan', 'Dapur', 'Menu', 'PM (besar)', 'PM (kecil)', 'Supplier', 'Total Dapur'];
+        foreach ($headers as $i => $h) {
+            $col = chr(65 + $i);
+            $sheet->setCellValue("{$col}1", $h);
+        }
+        $sheet->getStyle('A1:I1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['argb' => 'FF17375E']],
+            'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
+            'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]],
+        ]);
+
+        // Data rows
+        foreach ($submissions as $idx => $s) {
+            $row = $idx + 2;
+            $sheet->setCellValue("A{$row}", $idx + 1);
+            $sheet->setCellValue("B{$row}", $s->kode);
+            $sheet->setCellValue("C{$row}", $s->parentSubmission ? \Carbon\Carbon::parse($s->parentSubmission->tanggal)->format('d/m/Y') : \Carbon\Carbon::parse($s->tanggal)->format('d/m/Y'));
+            $sheet->setCellValue("D{$row}", optional($s->kitchen)->nama);
+            $sheet->setCellValue("E{$row}", optional($s->menu)->nama);
+            $sheet->setCellValue("F{$row}", $s->porsi_besar);
+            $sheet->setCellValue("G{$row}", $s->porsi_kecil);
+            $sheet->setCellValue("H{$row}", optional($s->supplier)->nama);
+            $sheet->setCellValue("I{$row}", $s->details->sum('subtotal_dapur'));
+
+            $sheet->getStyle("I{$row}")->getNumberFormat()->setFormatCode('#,##0');
+            $sheet->getStyle("A{$row}:I{$row}")->applyFromArray([
+                'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]],
+            ]);
+        }
+
+        foreach (range('A', 'I') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $filename = 'laporan-invoice-dapur-' . now()->format('Ymd-His') . '.xlsx';
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        return response()->streamDownload(fn() => $writer->save('php://output'), $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
+    }
+
+    public function pdf(Request $request)
+    {
+        ini_set('memory_limit', '512M');
+        $kitchensCodes = $this->userKitchenCodes();
+        $query = Submission::with([
+            'parentSubmission',
+            'kitchen',
+            'menu',
+            'supplier',
+            'details.unit',
+            'details.bahan_baku'
+        ])
+            ->whereNotNull('parent_id')
+            ->whereIn('kitchen_id', $kitchensCodes)
+            ->where(function ($q) use ($request) {
+                $q->where(function ($q2) {
+                    $q2->where('status', 'diproses')
+                        ->orWhere('tipe', 'disetujui');
+                });
+
+                $q->whereHas('parentSubmission', function ($ps) use ($request) {
+                    if ($request->filled('from_date')) {
+                        $ps->whereDate('tanggal', '>=', $request->from_date);
+                    }
+                    if ($request->filled('to_date')) {
+                        $ps->whereDate('tanggal', '<=', $request->to_date);
+                    }
+                });
+
+                if ($request->filled('kitchen_id')) {
+                    $q->where('kitchen_id', $request->kitchen_id);
+                }
+                if ($request->filled('supplier_id')) {
+                    $q->where('supplier_id', $request->supplier_id);
+                }
+                if ($request->filled('menu_id')) {
+                    $selectedMenu = Menu::find($request->menu_id);
+                    if ($selectedMenu) {
+                        $q->whereHas('menu', function ($mq) use ($selectedMenu) {
+                            $mq->where('nama', $selectedMenu->nama);
+                        });
+                    }
+                }
+            })
+            ->latest('id');
+
+        $submissions = $query->get();
+        $totalPageSubtotal = $submissions->sum(function ($s) {
+            return $s->details->sum('subtotal_dapur');
+        });
+
+        $today = date('d-m-Y');
+
+        $pdf = Pdf::loadView('transaction.pdf-sale-materials-kitchen', compact('submissions', 'totalPageSubtotal'));
+        $pdf->setPaper('a4', 'landscape');
+
+        return $pdf->stream('laporan_invoice_dapur_' . $today . '.pdf');
     }
 }

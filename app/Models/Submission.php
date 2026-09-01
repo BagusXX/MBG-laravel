@@ -5,11 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
 
 class Submission extends Model
 {
 
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, LogsActivity;
     protected $table = 'submissions';
 
     protected $fillable = [
@@ -27,6 +30,34 @@ class Submission extends Model
         'parent_id',
         'supplier_id',
     ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | ACTIVITY LOG CONFIG
+    |--------------------------------------------------------------------------
+    */
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('submission')
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->setDescriptionForEvent(fn(string $eventName) => "Submission {$eventName}");
+    }
+
+    
+    public function activities()
+    {
+        return $this->morphMany(Activity::class, 'subject');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | RELATIONSHIP
+    |--------------------------------------------------------------------------
+    */
 
     public function kitchen()
     {
@@ -58,6 +89,11 @@ class Submission extends Model
         return $this->belongsTo(Supplier::class);
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | SCOPES
+    |--------------------------------------------------------------------------
+    */
     // Parent saja (pengajuan awal)
     public function scopeOnlyParent($query)
     {

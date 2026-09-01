@@ -93,6 +93,7 @@ class RolePermissionSeeder extends Seeder
                 'report.purchase-operational.invoice',
                 'report.profit.view',
                 'report.profit.invoice',
+                'report.total-operational.view',
 
                 'transaction.sales.view',
                 'transaction.purchase.view',

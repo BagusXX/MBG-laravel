@@ -108,19 +108,33 @@ class SubmissionController extends Controller
 
     /* ================= INDEX ================= */
 
-    public function index()
+    public function index(Request $request)
     {
         $kitchenCodes = $this->userKitchenCodes();
 
-        $submissions = Submission::with([
-            'kitchen',
-            'menu',
-        ])
+        $query = Submission::with(['kitchen', 'menu']) // Sesuaikan dengan controller aslinya!
             ->onlyParent()
             ->pengajuan()
-            ->whereHas('kitchen', fn($q) => $q->whereIn('kode', $kitchenCodes))
-            ->latest()
-            ->paginate(perPage: 10);
+            ->whereHas('kitchen', fn($q) => $q->whereIn('kode', $kitchenCodes));
+
+        if ($request->filled('kitchen_id')) { // Jika parameter blade memakai "kitchen_kode", ganti dengan kitchen_kode
+            $query->where('kitchen_id', $request->kitchen_id);
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('from_date')) {
+            $query->whereDate('tanggal', '>=', $request->from_date);
+        }
+        if ($request->filled('to_date')) {
+            $query->whereDate('tanggal', '<=', $request->to_date);
+        }
+        // Filter berdasarkan kode
+        if ($request->filled('kode')) {
+            $query->where('kode', 'like', '%' . $request->kode . '%');
+        }
+
+        $submissions = $query->latest()->paginate(10)->withQueryString();
 
         return view('transaction.submission', [
             'submissions' => $submissions,
@@ -168,8 +182,18 @@ class SubmissionController extends Controller
                     fn($q) => $q->whereIn('kode', $kitchenCodes)
                 ),
             ],
-            'nama_menu' => 'required_without:menu_id|string|nullable',
-            'menu_id' => 'required_without:nama_menu|nullable',
+            'nama_menu' => [
+                'nullable',
+                'string',
+                'max:255',
+                'required_without:menu_id',
+                'filled'
+            ],
+            'menu_id' => [
+                'nullable',
+                'exists:menus,id',
+                'required_without:nama_menu'
+            ],
 
             'porsi_besar' => 'nullable|integer|min:0',
             'porsi_kecil' => 'nullable|integer|min:0',

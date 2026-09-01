@@ -141,6 +141,8 @@ class PermissionSeeder extends Seeder
             'report.sales-profit.view',
             'report.sales-profit.invoice',
             'report.sales-summary.view',
+            'report.sales-summary-new.view',
+            'report.total-operational.view',
         ];
 
 

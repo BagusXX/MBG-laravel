@@ -73,6 +73,7 @@
                                 <i class="fa fa-print"></i> Print
                             </a> --}}
                         </div>
+                        <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
                     </div>
                 </form>
             </div>
@@ -81,6 +82,23 @@
     {{-- TABLE --}}
     <div class="card">
         <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div>
+                    <span class="text-muted">Menampilkan {{ $submissions->firstItem() ?? 0 }}–{{ $submissions->lastItem() ?? 0 }} dari {{ $submissions->total() }} data</span>
+                </div>
+                <form method="GET" action="{{ route('transaction.sale-materials-partner.index') }}" class="form-inline">
+                    @foreach(request()->except('per_page', 'page') as $key => $val)
+                        <input type="hidden" name="{{ $key }}" value="{{ $val }}">
+                    @endforeach
+                    <label class="mr-2 mb-0">Tampilkan</label>
+                    <select name="per_page" class="form-control form-control-sm mr-2" onchange="this.form.submit()">
+                        @foreach([10, 25, 50, 100] as $pp)
+                            <option value="{{ $pp }}" {{ request('per_page', 10) == $pp ? 'selected' : '' }}>{{ $pp }}</option>
+                        @endforeach
+                    </select>
+                    <label class="mb-0">data</label>
+                </form>
+            </div>
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>

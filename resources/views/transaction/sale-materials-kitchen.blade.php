@@ -66,14 +66,17 @@
                         <button type="submit" class="btn btn-primary mr-2">
                             <i class="fa fa-search"></i> Filter
                         </button>
-                        <a href="{{ route('transaction.sale-materials-kitchen.index') }}" class="btn btn-danger">
+                        <a href="{{ route('transaction.sale-materials-kitchen.index') }}" class="btn btn-danger mr-2">
                             <i class="fa fa-undo"></i> Reset
                         </a>
-                        {{-- <a href="{{ route('report.sales-kitchen.invoice', request()->all()) }}"
-                            class="btn btn-warning ml-2" target="_blank">
-                            <i class="fa fa-print"></i> Print
-                        </a> --}}
+                        <button type="submit" formaction="{{ route('transaction.sale-materials-kitchen.pdf') }}" formtarget="_blank" class="btn btn-warning mr-2">
+                            <i class="fa fa-print"></i> PDF
+                        </button>
+                        <button type="submit" formaction="{{ route('transaction.sale-materials-kitchen.excel') }}" class="btn btn-success">
+                            <i class="fa fa-file-excel"></i> Excel
+                        </button>
                     </div>
+                    <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
                 </div>
             </form>
         </div>
@@ -81,6 +84,23 @@
     {{-- TABLE --}}
     <div class="card">
         <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div>
+                    <span class="text-muted">Menampilkan {{ $submissions->firstItem() ?? 0 }}–{{ $submissions->lastItem() ?? 0 }} dari {{ $submissions->total() }} data</span>
+                </div>
+                <form method="GET" action="{{ route('transaction.sale-materials-kitchen.index') }}" class="form-inline">
+                    @foreach(request()->except('per_page', 'page') as $key => $val)
+                        <input type="hidden" name="{{ $key }}" value="{{ $val }}">
+                    @endforeach
+                    <label class="mr-2 mb-0">Tampilkan</label>
+                    <select name="per_page" class="form-control form-control-sm mr-2" onchange="this.form.submit()">
+                        @foreach([10, 25, 50, 100] as $pp)
+                            <option value="{{ $pp }}" {{ request('per_page', 10) == $pp ? 'selected' : '' }}>{{ $pp }}</option>
+                        @endforeach
+                    </select>
+                    <label class="mb-0">data</label>
+                </form>
+            </div>
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
@@ -98,7 +118,7 @@
                 <tbody>
                     @forelse($submissions as $index => $submission)
                         <tr>
-                            <td>{{ $index + 1 }}</td>
+                            <td>{{ $submissions->firstItem() + $loop->index }}</td>
                             <td>{{ $submission->kode ?? '-' }}</td>
                             <td>{{ \Carbon\Carbon::parse($submission->parentSubmission ? $submission->parentSubmission->tanggal : $submission->tanggal)->locale('id')->translatedFormat('d F Y') }}</td>
                             <td>{{ $submission->kitchen ? $submission->kitchen->nama : '-' }}</td>
@@ -125,6 +145,9 @@
                     @endforelse
                 </tbody>
             </table>
+            <div class="d-flex justify-content-end mt-3">
+                {{ $submissions->links('pagination::bootstrap-4') }}
+            </div>
         </div>
     </div>
 

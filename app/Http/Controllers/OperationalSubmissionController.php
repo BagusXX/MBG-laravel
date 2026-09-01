@@ -16,7 +16,7 @@ class OperationalSubmissionController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
 
@@ -29,7 +29,7 @@ class OperationalSubmissionController extends Controller
         $masterBarang = operationals::select('id', 'nama', 'kitchen_kode', 'harga_default')->get();
 
         // 3. Ambil Data Submission
-        $submissions = submissionOperational::onlyParent()
+        $query = submissionOperational::onlyParent()
             ->pengajuan()
             ->with([
                 'kitchen',
@@ -37,12 +37,28 @@ class OperationalSubmissionController extends Controller
                 'children.supplier',
                 'children.details.operational'
             ])
-            ->whereIn('kitchen_kode', $kitchenCodes)
-            ->orderBy('tanggal', 'desc')
-            ->orderBy('created_at', 'desc')
-            ->get();
+            ->whereIn('kitchen_kode', $kitchenCodes);
 
-        $suppliers = Supplier::orderBy('nama')->paginate(perPage: 10);
+        if ($request->filled('kitchen_kode')) {
+            $query->where('kitchen_kode', $request->kitchen_kode);
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('from_date')) {
+            $query->whereDate('tanggal', '>=', $request->from_date);
+        }
+        if ($request->filled('to_date')) {
+            $query->whereDate('tanggal', '<=', $request->to_date);
+        }
+        // Filter berdasarkan kode
+        if ($request->filled('kode')) {
+            $query->where('kode', 'like', '%' . $request->kode . '%');
+        }
+
+        $submissions = $query->orderBy('tanggal', 'desc')->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
+
+        $suppliers = Supplier::orderBy('nama')->get();
 
 
         return view('transaction.operational-submission', compact('submissions', 'kitchens', 'masterBarang', 'suppliers'));
@@ -67,6 +83,7 @@ class OperationalSubmissionController extends Controller
             'keterangan' => 'nullable|string',
             'items' => 'required|array',
             'items.*.barang_id' => 'required|exists:operationals,id',
+            'items.*.harga_satuan' => 'nullable|numeric|min:0',
             'items.*.qty' => 'required|numeric|min:1',
             'items.*.keterangan' => 'nullable|string'
         ]);
@@ -119,9 +136,10 @@ class OperationalSubmissionController extends Controller
             foreach ($request->items as $item) {
                 $barangId = $item['barang_id'];
                 $qty = $item['qty'];
+                
+                $barang = $masterItems[$barangId];
 
-
-                $hargaDapur =  0;
+                $hargaDapur = $item['harga_satuan'] ?? $barang->harga_default ?? 0;
                 $hargaMitra = 0;
 
                 // 3. HITUNG SUBTOTAL
@@ -194,6 +212,7 @@ class OperationalSubmissionController extends Controller
             'items' => 'required|array',
             'items.*.barang_id' => 'required|exists:operationals,id',
             'items.*.qty' => 'required|numeric|min:1',
+            'items.*.harga_satuan' => 'nullable|numeric|min:0',
             'items.*.keterangan' => 'nullable|string'
         ]);
 
@@ -223,9 +242,9 @@ class OperationalSubmissionController extends Controller
                 $barangId = $item['barang_id'];
                 $qty = $item['qty'];
 
+                $barang = $masterItems[$barangId];
 
-
-                $hargaDapur = 0; // Ambil dari master
+                $hargaDapur = $item['harga_satuan'] ?? $barang->harga_default ?? 0;
                 $hargaMitra = 0;  // Ambil dari master
 
                 $subtotalDapur = $qty * $hargaDapur;

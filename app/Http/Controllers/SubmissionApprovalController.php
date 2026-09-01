@@ -48,38 +48,40 @@ class SubmissionApprovalController extends Controller
 
     /* ================= INDEX ================= */
 
-    public function index()
+    public function index(Request $request)
     {
         $kitchenCodes = $this->userKitchenCodes();
-        $submissions = Submission::with([
-            'kitchen',
-            'menu',
-            'supplier',
-            'details.bahan_baku'
-        ])
+        $query = Submission::with(['kitchen', 'menu']) // Sesuaikan dengan controller aslinya!
             ->onlyParent()
             ->pengajuan()
-            ->whereHas('kitchen', fn($q) => $q->whereIn('kode', $kitchenCodes))
-            ->latest()
-            ->paginate(10);
+            ->whereHas('kitchen', fn($q) => $q->whereIn('kode', $kitchenCodes));
 
-        $filteredSuppliers = Supplier::whereHas('kitchens', function ($query) use ($kitchenCodes) {
-            $query->whereIn('kode', $kitchenCodes);
-        })
-            ->orderBy('nama')
-            ->get();
+        if ($request->filled('kitchen_id')) { // Jika parameter blade memakai "kitchen_kode", ganti dengan kitchen_kode
+            $query->where('kitchen_id', $request->kitchen_id);
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('from_date')) {
+            $query->whereDate('tanggal', '>=', $request->from_date);
+        }
+        if ($request->filled('to_date')) {
+            $query->whereDate('tanggal', '<=', $request->to_date);
+        }
+        // Filter berdasarkan kode
+        if ($request->filled('kode')) {
+            $query->where('kode', 'like', '%' . $request->kode . '%');
+        }
+        
 
-        $filteredKitchens = Kitchen::whereIn('kode', $kitchenCodes)
-            ->orderBy('nama')
-            ->get();
-
-        $filteredUnits = Unit::orderBy('satuan')->get();
+        $submissions = $query->latest()->paginate(10)->withQueryString();
 
         return view('transaction.submissionApproval', [
             'submissions' => $submissions,
-            'kitchens' => $filteredKitchens,
-            'suppliers' => $filteredSuppliers,
-            'units' => $filteredUnits,
+            'kitchens' => auth()->user()->kitchens,
+            'bahanBakus' => BahanBaku::select('id', 'nama')->orderBy('nama')->get(),
+            'suppliers' => Supplier::all(),
+            'units' => Unit::all(),
         ]);
     }
 

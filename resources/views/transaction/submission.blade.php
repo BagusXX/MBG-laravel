@@ -29,37 +29,55 @@
     @endcan
 
     {{-- FILTER SECTION --}}
-    <div class="card mb-3">
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-4">
-                    <label>Dapur</label>
-                    <select id="filterKitchen" class="form-control">
-                        <option value="">Semua Dapur</option>
-                        @foreach($kitchens as $k)
-                            <option value="{{ $k->id }}">{{ $k->nama }}</option>
-                        @endforeach
-                    </select>
+    <form method="GET" action="">
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-2">
+                        <label>Cari Kode</label>
+                        <input type="text" name="kode" value="{{ request('kode') }}" class="form-control" placeholder="Masukkan Kode">
+                    </div>
+                    <div class="col-md-3">
+                        <label>Dapur</label>
+                        <select name="kitchen_id" class="form-control">
+                            <option value="">Semua Dapur</option>
+                            @foreach($kitchens as $k)
+                                <!-- Pastikan valuenya adalah ID atau Kode sesuai dengan kebutuhan parameter Controller-nya -->
+                                <option value="{{ $k->id }}" {{ request('kitchen_id') == $k->id ? 'selected' : '' }}>
+                                    {{ $k->nama }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label>Status</label>
+                        <select name="status" class="form-control">
+                            <option value="">Semua Status</option>
+                            <option value="diajukan" {{ request('status') == 'diajukan' ? 'selected' : '' }}>Diajukan</option>
+                            <option value="diproses" {{ request('status') == 'diproses' ? 'selected' : '' }}>Diproses</option>
+                            <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
+                            <!-- <option value="ditolak" {{ request('status') == 'ditolak' ? 'selected' : '' }}>Ditolak</option> -->
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label>Dari Tanggal</label>
+                        <input type="date" name="from_date" value="{{ request('from_date') }}" class="form-control">
+                    </div>
+                    <div class="col-md-2">
+                        <label>Sampai Tanggal</label>
+                        <input type="date" name="to_date" value="{{ request('to_date') }}" class="form-control">
+                    </div>
                 </div>
-
-                <div class="col-md-4">
-                    <label>Status</label>
-                    <select id="filterStatus" class="form-control">
-                        <option value="">Semua Status</option>
-                        <option value="diajukan">Diajukan</option>
-                        <option value="diproses">Diproses</option>
-                        <option value="selesai">Selesai</option>
-                        <option value="ditolak">Ditolak</option>
-                    </select>
-                </div>
-
-                <div class="col-md-4">
-                    <label>Tanggal</label>
-                    <input type="date" id="filterDate" class="form-control">
+                <div class="row mt-3">
+                    <div class="col-md-12 text-right">
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Filter</button>
+                        <!-- Tombol reset form yang mengarahkan kembali ke route tanpa filter -->
+                        <a href="{{ url()->current() }}" class="btn btn-danger"><i class="fas fa-sync"></i> Reset</a>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </form>
 
     {{-- TABLE DATA --}}
     <div class="card">
@@ -246,9 +264,9 @@
                         <th width="10%">Qty</th>
                         <th width="10%">Satuan</th>
                         <th width="15%">Harga Satuan Dapur</th>
-                        <th width="15%">Harga Satuan Mitra</th>
+                        <!-- <th width="15%">Harga Satuan Mitra</th> -->
                         <th width="15%">Subtotal Dapur</th>
-                        <th width="15%">Subtotal Mitra</th>
+                        <!-- <th width="15%">Subtotal Mitra</th> -->
                         <th width="5%"></th>
                     </tr>
                 </thead>
@@ -359,9 +377,9 @@
                         <th width="10%">Qty</th>
                         <th width="10%">Satuan</th>
                         <th width="15%">Harga Satuan Dapur</th>
-                        <th width="15%">Harga Satuan Mitra</th>
+                        <!--<th width="15%">Harga Satuan Mitra</th>-->
                         <th width="15%">Subtotal Dapur</th>
-                        <th width="15%">Subtotal Mitra</th>
+                        <!--<th width="15%">Subtotal Mitra</th>-->
                         <th width="5%"></th>
                     </tr>
                 </thead>
@@ -506,6 +524,11 @@
 
         $(document).ready(function () {
 
+        $('#modalAddSubmission, #modalEditSubmission').modal({
+                backdrop: 'static',
+                keyboard: false,
+                show: false // Agar modal tidak langsung muncul saat halaman di-load
+            });
             // ==========================================
             // 3. FILTER TABLE LOGIC
             // ==========================================
@@ -612,6 +635,30 @@
                 }
             });
 
+            const form = document.querySelector('#modalAddSubmission form');
+            const selectMenu = document.getElementById('selectMenuStore');
+            const inputMenu = document.getElementById('inputNamaMenu');
+
+            function validateMenuField() {
+                if (!selectMenu.value && !inputMenu.value.trim()) {
+                    selectMenu.setCustomValidity('Silakan pilih menu existing atau ketik menu baru.');
+                } else {
+                    selectMenu.setCustomValidity('');
+                }
+            }
+
+            selectMenu.addEventListener('change', validateMenuField);
+            inputMenu.addEventListener('input', validateMenuField);
+
+            form.addEventListener('submit', function (e) {
+                validateMenuField();
+
+                if (!form.checkValidity()) {
+                    e.preventDefault();
+                    form.reportValidity();
+                }
+            });
+
             // Fungsi Hitung Otomatis
             $(document).on('input', '.input-qty, .input-harga-dapur, .input-harga-mitra', function () {
                 // Cari baris (tr) terdekat dari input yang sedang diketik
@@ -689,17 +736,11 @@
                                     </div>
                                 </td>
 
-                                <td>
-                                    <div class="input-group input-group-sm">
-                                        <input type="text" name="items[${rowIdx}][harga_mitra]" class="form-control input-harga-mitra" placeholder="Harga">
-                                    </div>
-                                </td>
+                                
                                 <td>
                                     <input type="text" class="form-control form-control-sm total-dapur" readonly placeholder="0">
                                 </td>
-                                <td>
-                                    <input type="text" class="form-control form-control-sm total-mitra" readonly placeholder="0">
-                                </td>
+                               
                                 <td class="text-center">
                                     <button type="button" class="btn btn-danger btn-xs btn-remove-row" data-id="${rowIdx}" title="Hapus Baris">
                                         <i class="fas fa-trash"></i>
@@ -1024,16 +1065,9 @@
                                 </div>
                             </td>
                             <td>
-                                <div class="input-group input-group-sm">
-                                    <input type="text" step="any" name="items[${idx}][harga_mitra]" class="form-control input-harga-mitra" placeholder="Harga Mitra">
-                                </div>
-                            </td>
-                            <td>
                                 <input type="text" class="form-control form-control-sm total-dapur bg-light" readonly value="${initialSubDapur}">
                             </td>
-                            <td>
-                                <input type="text" class="form-control form-control-sm total-mitra bg-light" readonly value="${initialSubMitra}">
-                            </td>
+                            
                             <td class="text-center">
                                 <button type="button" class="btn btn-danger btn-xs btn-remove-row" data-id="${idx}" title="Hapus Baris">
                                     <i class="fas fa-trash"></i>

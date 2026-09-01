@@ -9,12 +9,16 @@
     {{-- ===== STYLE SAMA DENGAN PURCHASE ===== --}}
     <style>
         /* --- STYLE DARI REFERENSI (SERAGAM) --- */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
             font-family: Arial, sans-serif;
             padding: 20px;
-            background: #ffffff
+            background: #ffffff;
             font-size: 14px;
         }
 
@@ -23,8 +27,9 @@
             margin: 0 auto;
             background: white;
             padding: 30px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            position: relative; /* Untuk positioning tombol print */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            /* Untuk positioning tombol print */
         }
 
         .header {
@@ -47,18 +52,24 @@
         }
 
         .layout-table {
-        width: 100%;
-        border-collapse: collapse;
+            width: 100%;
+            border-collapse: collapse;
         }
 
         .layout-table td {
             padding-bottom: 5px;
-            vertical-align: top; /* Pastikan teks mulai dari atas */
+            vertical-align: top;
+            /* Pastikan teks mulai dari atas */
         }
 
         /* Helper untuk lebar kolom */
-        .w-50 { width: 50%; }
-        .w-33 { width: 33.33%; }
+        .w-50 {
+            width: 50%;
+        }
+
+        .w-33 {
+            width: 33.33%;
+        }
 
         .info-box {
             flex: 1;
@@ -72,7 +83,8 @@
             padding-bottom: 5px;
         }
 
-        .info-box p, .info-box div {
+        .info-box p,
+        .info-box div {
             color: #666;
             font-size: 13px;
             margin: 3px 0;
@@ -108,11 +120,25 @@
             background: #f9f9f9;
         }
 
-        .text-center { text-align: center; }
-        .text-right { text-align: right; }
-        .text-left {text-align: left;}
-        .text-muted { color: #888; }
-        .font-italic { font-style: italic; }
+        .text-center {
+            text-align: center;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-left {
+            text-align: left;
+        }
+
+        .text-muted {
+            color: #888;
+        }
+
+        .font-italic {
+            font-style: italic;
+        }
 
         /* Total Section */
         .total-section {
@@ -123,7 +149,8 @@
 
         .total-row.grand-total {
             display: flex;
-            justify-content: flex-end; /* Align right */
+            justify-content: flex-end;
+            /* Align right */
             gap: 50px;
             font-size: 18px;
             font-weight: bold;
@@ -170,40 +197,60 @@
             border-radius: 4px;
             font-size: 12px;
         }
-        .btn-print:hover { background: #555; }
+
+        .btn-print:hover {
+            background: #555;
+        }
 
         /* CSS Print */
         @media print {
-            body { background: white; padding: 0; }
-            .invoice-container { box-shadow: none; padding: 0; margin: 0; max-width: 100%; }
-            .no-print { display: none !important; }
-            .btn-print { display: none; }
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .invoice-container {
+                box-shadow: none;
+                padding: 0;
+                margin: 0;
+                max-width: 100%;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .btn-print {
+                display: none;
+            }
         }
     </style>
 </head>
 <div class="invoice-container">
-        <table class="layout-table" style="border-bottom: 3px double #000; margin-bottom: 20px;">
-            <tr>
-                <td style="width: 20%; text-align: center; vertical-align: top; margin-bottom: 50px;">
-                    {{-- Ganti path logo_bgn_mbg.png sesuai lokasi file Anda --}}
-                    <img src="{{('icon_mbg.png') }}" alt="Logo BGN" style="height: 80px; width: 80px; object-fit: contain; margin-bottom: 20px;">
-                </td>
+    <table class="layout-table" style="border-bottom: 3px double #000; margin-bottom: 20px;">
+        <tr>
+            <td style="width: 20%; text-align: center; vertical-align: top; margin-bottom: 50px;">
+                {{-- Ganti path logo_bgn_mbg.png sesuai lokasi file Anda --}}
+                <img src="{{('icon_mbg.png') }}" alt="Logo BGN"
+                    style="height: 80px; width: 80px; object-fit: contain; margin-bottom: 20px;">
+            </td>
 
-                <td style="width: 60%; text-align: center; vertical-align: middle;">
-                    <h1 style="margin: 0; text-transform: uppercase;">Laporan Pembelian</h1>
-                    <h1 style="margin: 0; text-transform: uppercase;">Dapur</h1>
-                </td>
+            <td style="width: 60%; text-align: center; vertical-align: middle;">
+                <h1 style="margin: 0; text-transform: uppercase;">Laporan Pembelian</h1>
+                <h1 style="margin: 0; text-transform: uppercase;">Dapur</h1>
+            </td>
 
-                <td style="width: 20%; text-align: center; vertical-align: top;">
-                    @if($submission->supplier && $submission->supplier->gambar)
-                        <img src="{{ public_path('storage/' . $submission->supplier->gambar) }}" alt=" " style="height: 100px; width: 100px; object-fit: contain;">
-                    @else
-                        {{-- Placeholder jika tidak ada gambar --}}
-                        <div style="height: 80px; width: 80px; display: inline-block;"></div>
-                    @endif
-                </td>
-            </tr>
-        </table>
+            <td style="width: 20%; text-align: center; vertical-align: top;">
+                @if($submission->supplier && $submission->supplier->gambar)
+                    <img src="{{ public_path('storage/' . $submission->supplier->gambar) }}" alt=" "
+                        style="height: 100px; width: 100px; object-fit: contain;">
+                @else
+                    {{-- Placeholder jika tidak ada gambar --}}
+                    <div style="height: 80px; width: 80px; display: inline-block;"></div>
+                @endif
+            </td>
+        </tr>
+    </table>
     <div class="invoice-info">
         <div class="info-box" style="margin-bottom: 20px">
             <h3>Informasi Laporan</h3>
@@ -233,17 +280,18 @@
                     <td>{{ $item->submission->kitchen->nama}}</td>
                     <td>
                         @if ($item->submission->supplier_id)
-                                {{ optional($item->submission->supplier)->nama }}
-                            @else-
+                            {{ optional($item->submission->supplier)->nama }}
+                        @else-
 
-                            @endif
+                        @endif
                     </td>
                     <td>{{ $item->bahan_baku->nama ?? '-' }}</td>
                     <td class="text-center">{{ $item->formatted_qty }}</td>
                     <td class="text-center">{{ $item->display_unit }}</td>
                     <td class="text-center">{{ $item->submission->porsi }}</td>
                     <td class="text-center">Rp{{ number_format($item->harga_dapur, 0, ',', '.') }}</td>
-                    <td class="text-center">Rp{{ number_format(($item->display_qty ?? 0) * ($item->harga_dapur ?? 0), 0, ',', '.') }}</td>
+                    <td class="text-center">
+                        Rp{{ number_format(($item->display_qty ?? 0) * ($item->harga_dapur ?? 0), 0, ',', '.') }}</td>
                 </tr>
             @endforeach
         </tbody>
@@ -258,13 +306,13 @@
                 <div style="font-size: 18px; font-weight: bold; margin-bottom: 30px;">
                     TOTAL: Rp{{ number_format($totalPageSubtotal, 0, ',', '.') }}
                 </div>
-                
+
                 <div style="display: inline-block; text-align: center; width: 200px;">
                     <p style="margin-bottom: 5px; font-size: 13px;">
-                        {{ strtoupper($submission->kitchen->lokasi ?? '_____') }}, 
+                        {{ strtoupper($submission->kitchen->lokasi ?? '_____') }},
                         {{ \Carbon\Carbon::parse($submission->tanggal)->locale('id')->isoFormat('D MMMM YYYY') }}
                     </p>
-                    
+
                     {{-- Ruang Kosong untuk Tanda Tangan Manual --}}
                     <div style="height: 70px;"></div>
 
@@ -285,4 +333,5 @@
 
 </div>
 </body>
+
 </html>

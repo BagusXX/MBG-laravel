@@ -99,7 +99,7 @@ class KitchenController extends Controller
     // Update data dapur
     public function update(Request $request, $id)
     {
-        if (!Auth::user()->hasAnyRole(['superadmin', 'operatorkoperasi'])) {
+        if (!Auth::user()->hasAnyRole(['superadmin', 'operatorkoperasi', 'superadminDapur'])) {
             abort(403, 'Anda tidak memiliki akses untuk mengedit data.');
         }
 

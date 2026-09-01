@@ -15,7 +15,7 @@ class MenuController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $canManage = $this->canManage();
+        // $canManage = $this->canManage();
 
         $kitchens = $user->kitchens()->get();
 
@@ -53,7 +53,7 @@ class MenuController extends Controller
             $generatedCodes[$k->id] = $this->generateKode($k->kode);
         }
 
-        return view('master.menu', compact('kitchens', 'generatedCodes', 'items', 'canManage'));
+        return view('master.menu', compact('kitchens', 'generatedCodes', 'items'));
     }
 
 
@@ -115,9 +115,9 @@ class MenuController extends Controller
     {
         $user = auth()->user();
 
-        if (!$this->canManage()) {
-            abort(403, 'Anda tidak memiliki akses untuk menambah data.');
-        }
+        // if (!$this->canManage()) {
+        //     abort(403, 'Anda tidak memiliki akses untuk menambah data.');
+        // }
 
         $request->validate([
             'nama' => 'required|string|max:255',
@@ -149,9 +149,9 @@ class MenuController extends Controller
     {
         $user = auth()->user();
 
-        if (!$this->canManage()) {
-            abort(403, 'Anda tidak memiliki akses untuk menambah data.');
-        }
+        // if (!$this->canManage()) {
+        //     abort(403, 'Anda tidak memiliki akses untuk menambah data.');
+        // }
 
         if (!$user->kitchens()->where('kitchens.id', $request->kitchen_id)->exists()) {
             abort(403, 'Anda tidak memiliki akses ke dapur ini');
@@ -191,9 +191,9 @@ class MenuController extends Controller
     // Hapus menu
     public function destroy($id)
     {
-        if (!$this->canManage()) {
-            abort(403, 'Anda tidak memiliki akses untuk menambah data.');
-        }
+        // if (!$this->canManage()) {
+        //     abort(403, 'Anda tidak memiliki akses untuk menambah data.');
+        // }
 
         $menu = Menu::findOrFail($id);
 
@@ -210,10 +210,10 @@ class MenuController extends Controller
         return redirect()->route('master.menu.index')->with('success', 'Menu berhasil dihapus.');
     }
 
-    private function canManage()
-    {
-        $user = Auth::user();
-        // Pastikan user memiliki salah satu dari role ini
-        return $user->hasAnyRole(['superadmin', 'operatorDapur']);
-    }
+    // private function canManage()
+    // {
+    //     $user = Auth::user();
+    //     // Pastikan user memiliki salah satu dari role ini
+    //     return $user->hasAnyRole(['superadmin', 'operatorDapur']);
+    // }
 }

@@ -16,42 +16,54 @@
 
 <x-notification-pop-up />
 
-<div class="card mb-3">
-    <div class="card-body">
-        <div class="row">
-
-            <div class="col-md-4">
-                <label>Dapur</label>
-                <select id="filterKitchen" class="form-control">
-                    <option value="">Semua Dapur</option>
-                    @foreach ($kitchens as $k)
-                            <option value="{{ strtolower($k->nama) }}">
+<form method="GET" action="">
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-2">
+                    <label>Cari Kode</label>
+                    <input type="text" name="kode" value="{{ request('kode') }}" class="form-control" placeholder="Masukkan Kode">
+                </div>
+                <div class="col-md-3">
+                    <label>Dapur</label>
+                    <select name="kitchen_kode" class="form-control">
+                        <option value="">Semua Dapur</option>
+                        @foreach ($kitchens as $k)
+                            <option value="{{ $k->kode }}" {{ request('kitchen_kode') == $k->kode ? 'selected' : '' }}>
                                 {{ $k->nama }}
                             </option>
-                    @endforeach
-                </select>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label>Status</label>
+                    <select name="status" class="form-control">
+                        <option value="">Semua Status</option>
+                        <option value="diajukan" {{ request('status') == 'diajukan' ? 'selected' : '' }}>Diajukan</option>
+                        <option value="diproses" {{ request('status') == 'diproses' ? 'selected' : '' }}>Diproses</option>
+                        <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
+                        <!-- <option value="ditolak" {{ request('status') == 'ditolak' ? 'selected' : '' }}>Ditolak</option> -->
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label>Dari Tanggal</label>
+                    <input type="date" name="from_date" value="{{ request('from_date') }}" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <label>Sampai Tanggal</label>
+                    <input type="date" name="to_date" value="{{ request('to_date') }}" class="form-control">
+                </div>
             </div>
-
-            <div class="col-md-4">
-                <label>Status</label>
-                <select id="filterStatus" class="form-control">
-                    <option value="">Semua Status</option>
-                    <option value="diajukan">Diajukan</option>
-                    <option value="diproses">Diproses</option>
-                    <option value="selesai">Selesai</option>
-                    <option value="ditolak">Ditolak</option>
-                </select>
-
+            <div class="row mt-3">
+                <div class="col-md-12 text-right">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Filter</button>
+                    <!-- Tombol reset -->
+                    <a href="{{ url()->current() }}" class="btn btn-danger"><i class="fas fa-sync"></i> Reset</a>
+                </div>
             </div>
-
-            <div class="col-md-4">
-                <label>Tanggal</label>
-                <input type="date" id="filterDate" class="form-control">
-            </div>
-
         </div>
     </div>
-</div>
+</form>
 
 <div class="card">
     <div class="card-body">
@@ -62,13 +74,13 @@
                     <th>Kode</th>
                     <th>Tanggal</th>
                     <th>Dapur</th>
-                    {{-- <th>Total</th> --}}
+                    <th>Total</th>
                     <th>Status</th>
                     <th width="180" class="text-center">Aksi</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($submissions as $item)
+                @forelse($submissions as $item)
                 <tr
                     data-kitchen="{{ strtolower($item->kitchen->nama ?? '') }}"
                     data-status="{{ strtolower($item->status) }}"
@@ -78,7 +90,7 @@
                     <td>{{ $item->kode }}</td>
                     <td>{{ \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y') }}</td>
                     <td>{{ $item->kitchen->nama ?? '-' }}</td>
-                    {{-- <td>Rp {{ number_format($item->total_harga, 2, ',','.') }}</td> --}}
+                    <td>Rp {{ number_format($item->total_harga, 2, ',','.') }}</td>
                     <td>
                         <span class="badge badge-{{
                            $item->status === 'diterima' ? 'success' :
@@ -114,7 +126,14 @@
                         </div> --}}
                     </td>
                 </tr>
-                @endforeach
+                @empty
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">
+                                <i class="fas fa-inbox fa-3x mb-3"></i><br>
+                                Belum ada data pengajuan operasional.
+                            </td>
+                        </tr>
+                @endforelse
             </tbody>
         </table>
 
@@ -317,7 +336,7 @@
                         <th class="text-right">Harga</th>
                         {{-- <th class="text-right">Harga Mitra</th> --}}
                         <th>Keterangan</th>
-                        {{-- <th class="text-right">Subtotal</th> --}}
+                        <th class="text-right">Subtotal</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -389,14 +408,15 @@
                                         step="0.01"
                                     >
                                 </td> --}}
-                                {{-- Menampilkan Subtotal Realtime (Opsional)
+                                {{-- Menampilkan Subtotal Realtime (Opsional)  
                                 <small class="text-muted d-block text-right mt-1">
                                     Total: <span id="subtotal-display-{{ $detail->id }}">
                                         {{ number_format($detail->qty * $detail->harga_satuan, 0, ',', '.') }}
                                     </span>
-                                </small> --}}
+                                </small>--}}
                             </td>            
-                            <td>{{ $detail->keterangan ?? '-' }}</td>                {{-- <td class="text-right">Rp {{ number_format($detail->subtotal, 2, ',', '.') }}</td> --}}
+                            <td>{{ $detail->keterangan ?? '-' }}</td>                
+                            <td class="text-right">Rp {{ number_format($detail->qty * $detail->harga_satuan, 0, ',', '.') }}</td>
                         </tr>
                     @empty
                         <tr>
@@ -426,6 +446,7 @@
                     </button>
             </div>
         </div>
+        </div>
         
         @if(in_array($item->status, ['diajukan', 'diproses']) && $item->status !== 'selesai')
     </form> {{-- Tutup Form --}}
@@ -450,7 +471,7 @@
                             {{ strtoupper($child->status) }}
                         </span>
                         <span class="ml-2 font-weight-bold">
-                            Rp {{ number_format($child->total_harga, 2, ',', '.') }}
+                            Rp {{ number_format($child->total_harga ?? 0, 2, ',', '.') }}
                         </span>
                         {{-- =========================
                             BUTTON DELETE CHILD
@@ -475,7 +496,7 @@
                     @foreach($child->details as $cDetail)
                         <li>
                             {{ $cDetail->operational->nama ?? '-' }} 
-                            ({{ $cDetail->qty }} x {{ number_format($cDetail->harga_satuan) }})
+                            ({{ $cDetail->qty }} x {{ number_format($cDetail->harga_satuan ?? 0) }})
                         </li>
                     @endforeach
                 </ul>
@@ -494,6 +515,7 @@
     @endif
 
 </x-modal-detail>
+@endforeach
 
 <x-modal-form
     id="modalApprovalOperational"
@@ -522,7 +544,6 @@
     </p>
 </x-modal-form>
 
-@endforeach
 
 <x-modal-detail
     id="modalSupplierRequired"

@@ -23,10 +23,59 @@
 
 @section('content')
 
-    @can('setup.user.create')
-        <x-button-add idTarget="#modalAddUser" text="Tambah User" />
-    @endcan
-
+    <div class="row mb-3 align-items-center">
+        <div class="col-md-3 mb-3 mb-md-0">
+            @can('setup.user.create')
+                <x-button-add idTarget="#modalAddUser" text="Tambah User" />
+            @endcan
+        </div>
+    
+        <div class="col-md-9">
+            <div class="d-flex flex-column flex-md-row justify-content-md-end align-items-md-center">
+    
+                <form action="{{ route('setup.user.index') }}" method="GET" class="form-inline">
+    
+                    {{-- SEARCH --}}
+                    <div class="input-group mr-2 mb-2 mb-md-0">
+                        <input type="text"
+                            name="search"
+                            class="form-control"
+                            placeholder="Cari nama user..."
+                            value="{{ request('search') }}">
+    
+                        <div class="input-group-append">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fa fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+    
+                    {{-- FILTER ROLE --}}
+                    <select name="role" class="form-control mr-2 mb-2 mb-md-0">
+                        <option value="">Semua Role</option>
+                        @foreach ($roles as $role)
+                            <option value="{{ $role->name }}"
+                                {{ request('role') == $role->name ? 'selected' : '' }}>
+                                {{ $role->name }}
+                            </option>
+                        @endforeach
+                    </select>
+    
+                    {{-- FILTER BUTTON --}}
+                    <button type="submit" class="btn btn-primary mr-2 mb-2 mb-md-0">
+                        <i class="fa fa-filter"></i> Filter
+                    </button>
+    
+                    {{-- RESET --}}
+                    <a href="{{ route('setup.user.index') }}" class="btn btn-danger mb-2 mb-md-0">
+                        <i class="fa fa-undo"></i> Reset
+                    </a>
+    
+                </form>
+    
+            </div>
+        </div>
+    </div>
     <x-notification-pop-up />
 
     <div class="card mt-3">

@@ -536,14 +536,33 @@ return [
                     'route' => 'report.profit',
                     'can'   => 'report.profit.view',
                 ],
+                [
+                    'text' => 'Total Operasional',
+                    'url'  => 'dashboard/laporan/total-operasional',
+                    'icon' => 'fas fa-fw fa-file-invoice-dollar',
+                    'can'  => 'report.total-operational.view',    
+                ],
+                [
+                    'text' => 'Total Penjualan',
+                    'icon' => 'fas fa-file-signature',
+                    'route' => 'report.sales-summary-new',
+                    'can'   => 'report.sales-summary-new.view',
+                ],
 
                 [
                     'text' => 'Total Penjualan & Selisih',
                     'icon' => 'fas fa-file-signature',
                     'route' => 'report.sales-summary',
-                    'can'   => 'report.sales-summary.view',
+                    'can'   => 'report.sales-summary.legacy',
                 ],
             ],
+        ],
+
+        // USER MANUAL
+        [
+            'text' => 'User Manual',
+            'icon' => 'fas fa-book',
+            'route' => 'user-manual.index',
         ],
     ],
 

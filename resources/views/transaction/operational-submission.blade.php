@@ -22,38 +22,55 @@
 
 
     {{-- FILTER SECTION --}}
-    <div class="card mb-3">
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-4">
-                    <label>Dapur</label>
-                    <select id="filterKitchen" class="form-control">
-                        <option value="">Semua Dapur</option>
-                        @foreach ($kitchens as $k)
-                            {{-- Menggunakan nama untuk display di filter JS --}}
-                            <option value="{{ $k->nama }}">{{ $k->nama }}</option>
-                        @endforeach
-                    </select>
+    <form method="GET" action="">
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-2">
+                        <label>Cari Kode</label>
+                        <input type="text" name="kode" value="{{ request('kode') }}" class="form-control" placeholder="Masukkan Kode">
+                    </div>
+                    <div class="col-md-3">
+                        <label>Dapur</label>
+                        <select name="kitchen_kode" class="form-control">
+                            <option value="">Semua Dapur</option>
+                            @foreach($kitchens as $k)
+                                <!-- Pastikan valuenya adalah ID atau Kode sesuai dengan kebutuhan parameter Controller-nya -->
+                                <option value="{{ $k->kode }}" {{ request('kitchen_kode') == $k->kode ? 'selected' : '' }}>
+                                    {{ $k->nama }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label>Status</label>
+                        <select name="status" class="form-control">
+                            <option value="">Semua Status</option>
+                            <option value="diajukan" {{ request('status') == 'diajukan' ? 'selected' : '' }}>Diajukan</option>
+                            <option value="diproses" {{ request('status') == 'diproses' ? 'selected' : '' }}>Diproses</option>
+                            <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
+                            <!-- <option value="ditolak" {{ request('status') == 'ditolak' ? 'selected' : '' }}>Ditolak</option> -->
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label>Dari Tanggal</label>
+                        <input type="date" name="from_date" value="{{ request('from_date') }}" class="form-control">
+                    </div>
+                    <div class="col-md-2">
+                        <label>Sampai Tanggal</label>
+                        <input type="date" name="to_date" value="{{ request('to_date') }}" class="form-control">
+                    </div>
                 </div>
-
-                <div class="col-md-4">
-                    <label>Status</label>
-                    <select id="filterStatus" class="form-control">
-                        <option value="">Semua Status</option>
-                        <option value="diajukan">Diajukan</option>
-                        <option value="diproses">Diproses</option>
-                        <option value="selesai">Selesai</option>
-                        <option value="ditolak">Ditolak</option>
-                    </select>
-                </div>
-
-                <div class="col-md-4">
-                    <label>Tanggal</label>
-                    <input type="date" id="filterDate" class="form-control">
+                <div class="row mt-3">
+                    <div class="col-md-12 text-right">
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Filter</button>
+                        <!-- Tombol reset form yang mengarahkan kembali ke route tanpa filter -->
+                        <a href="{{ url()->current() }}" class="btn btn-danger"><i class="fas fa-sync"></i> Reset</a>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </form>
 
     {{-- TABLE DATA --}}
     <div class="card">
@@ -65,7 +82,7 @@
                         <th>Tanggal</th>
                         <th>Dapur</th>
                         <th>Jml Item</th>
-                        {{-- <th>Total Biaya</th> --}}
+                        <th>Total Biaya</th>
                         <th>Status</th>
                         <th width="180" class="text-center">Aksi</th>
                     </tr>
@@ -78,7 +95,7 @@
                             <td>{{ $item->created_at->format('d-m-Y') }}</td>
                             <td>{{ $item->kitchen->nama ?? '-' }}</td>
                             <td>{{ $item->details->count() }} Item</td>
-                            {{-- <td>Rp {{ number_format($item->total_harga, 2, ',', '.') }}</td> --}}
+                            <td>Rp {{ number_format($item->total_harga, 2, ',', '.') }}</td>
                             <td>
                                 <span
                                     class="badge badge-{{ $item->status === 'diterima'
@@ -177,9 +194,9 @@
             {{-- Tabel input barang --}}
             <div class="form-group">
                 <div class="form-row mb-2">
-                    <div class="col-md-3 font-weight-bold">Barang Operasional</div>
+                    <div class="col-md-3 font-weight-bold">Barang/Jasa Operasional</div>
                     <div class="col-md-1 font-weight-bold">Qty</div>
-                    {{-- <div class="col-md-2 font-weight-bold">Harga</div> --}}
+                    <div class="col-md-2 font-weight-bold">Harga</div>
                     <div class="col-md-5 font-weight-bold">Keterangan</div>
                     <div class="col-md-1"></div>
                 </div>
@@ -199,13 +216,13 @@
                         </div>
 
                         <div class="col-md-1">
-                            <input type="number" name="items[0][qty]" class="form-control qty-input" min="1"
+                            <input type="number" name="items[0][qty]" class="form-control qty-input" step="any" min="1"
                                 required />
                         </div>
 
-                        {{-- <div class="col-md-2">
+                    <div class="col-md-2">
                         <input type="number" step="0.01" name="items[0][harga_satuan]"class="form-control harga-input"required/>
-                    </div> --}}
+                    </div>
 
                         <div class="col-md-5">
                             <textarea name="items[0][keterangan]" class="form-control" rows="1"
@@ -577,6 +594,7 @@
 
                     row.find('select[name*="[barang_id]"]').val(item.operational_id);
                     row.find('input[name*="[qty]"]').val(item.qty);
+                    row.find('.harga-input').val(item.harga_satuan);
                     row.find('textarea[name*="[keterangan]"]').val(item.keterangan);
 
                     row.find('select, input, textarea').each(function() {
@@ -597,7 +615,7 @@
             });
 
 
-            $$('#modalAddOperational').on('hidden.bs.modal', function() {
+            $('#modalAddOperational').on('hidden.bs.modal', function() {
 
                 let form = $(this).find('form');
 

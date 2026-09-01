@@ -3,9 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Models\Activity;
 
 class submissionOperational extends Model
 {
+    use LogsActivity;
+    
     protected $table = 'submission_operationals';
 
     protected $fillable = [
@@ -26,6 +31,22 @@ class submissionOperational extends Model
     | RELATIONS
     |--------------------------------------------------------------------------
     */
+    
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('submission operational')
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->setDescriptionForEvent(fn(string $eventName) => "Submission Operational {$eventName}");
+    }
+
+    
+    public function activities()
+    {
+        return $this->morphMany(Activity::class, 'subject');
+    }
 
     // Parent Submission (Self Reference)
     public function parentSubmission()

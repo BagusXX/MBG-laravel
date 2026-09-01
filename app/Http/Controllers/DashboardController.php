@@ -183,7 +183,7 @@ class DashboardController extends Controller
             ->limit(10);
 
 
-        if ($user->hasRole('superadmin')) {
+        if ($user->hasRole(['superadmin','superadminDapur'])) {
             return Activity::with(['causer', 'subject'])
                 ->latest()
                 ->limit(10)

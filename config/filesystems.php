@@ -40,9 +40,8 @@ return [
 
         'public' => [
             'driver' => 'local',
-            // 'root' => storage_path('app/public'),
-            'root' => base_path('../public_html/galeri'),
-            'url' => env('APP_URL').'/galeri',
+            'root' => storage_path('app/public'), // 1. KEMBALIKAN KE SINI: Tempat file fisik benar-benar disimpan
+            'url' => env('APP_URL').'/galeri',    // 2. BIARKAN INI: URL publik yang akan digunakan (alias symlink-nya)
             'visibility' => 'public',
             'throw' => false,
             'report' => false,

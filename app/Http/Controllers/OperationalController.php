@@ -6,6 +6,7 @@ use App\Http\Controllers\Concerns\HasPerPage;
 use App\Models\operationals;
 use App\Models\Recipe;
 use App\Models\RecipeBahanBaku;
+use App\Models\submissionOperationalDetails;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -17,12 +18,13 @@ class OperationalController extends Controller
 
         $user = auth()->user();
 
-        $canManage = $this->canManage();
+        // $canManage = $this->canManage();
 
         // 1️⃣ Untuk dropdown (kode => nama)
-        $kitchens = $user->kitchens()->get();
+        $kitchens = $user->kitchens()->pluck('nama', 'kode');
+        
         // 2️⃣ Ambil hanya KODENYA saja untuk filter
-        $kitchenKode = $kitchens->pluck('kode');
+        $kitchenKode = $kitchens->keys();
 
         if ($request->filled('kitchen_kode')) {
         $selectedKitchen = $kitchens->where('kode', $request->kitchen_kode)->first();
@@ -59,16 +61,16 @@ class OperationalController extends Controller
         $items = $operationals->paginate($this->resolvePerPage($request))
             ->withQueryString();
 
-        return view('master.operational', compact('items', 'nextKode', 'kitchens', 'canManage'));
+        return view('master.operational', compact('items', 'nextKode', 'kitchens'));
     }
 
     public function store(Request $request)
     {
         $user = auth()->user();
 
-        if (!$this->canManage()) {
-            abort(403, 'Anda tidak memiliki akses untuk menambah data.');
-        }
+        // if (!$this->canManage()) {
+        //     abort(403, 'Anda tidak memiliki akses untuk menambah data.');
+        // }
 
         $request->validate([
             'nama' => 'required',
@@ -95,7 +97,7 @@ class OperationalController extends Controller
             'kode' => $request->kode,
             'nama' => $request->nama,
             'kitchen_kode' => $request->kitchen_kode,
-            'harga_default' => $request->input('harga_defult', 0),
+            'harga_default' => $request->input('harga_default', 0),
         ]);
 
         return redirect()
@@ -110,9 +112,9 @@ class OperationalController extends Controller
         $operational = operationals::findOrFail($id);
         $user = auth()->user();
 
-        if (!$this->canManage()) {
-            abort(403, 'Anda tidak memiliki akses untuk menambah data.');
-        }
+        // if (!$this->canManage()) {
+        //     abort(403, 'Anda tidak memiliki akses untuk menambah data.');
+        // }
 
         if (! $user->kitchens()->where('kode', $operational->kitchen_kode)->exists()) {
             abort(403);
@@ -144,11 +146,21 @@ class OperationalController extends Controller
             abort(403);
         }
 
-        if (!$this->canManage()) {
-            abort(403, 'Anda tidak memiliki akses untuk menambah data.');
-        }
+        // if (!$this->canManage()) {
+        //     abort(403, 'Anda tidak memiliki akses untuk menambah data.');
+        // }
 
         // baru hapus operational
+        
+        $isUsed = submissionOperationalDetails::where('operational_id', $id)->exists();
+
+        if ($isUsed) {
+            return redirect()
+                ->route('master.operational.index')
+                ->with('error', 'Gagal: Biaya Operasional "' . $operational->nama . '" tidak bisa dihapus karena sudah memiliki data transaksi/pengajuan.');
+            # code...
+        }
+        
         $operational->delete();
 
         return redirect()
@@ -156,10 +168,10 @@ class OperationalController extends Controller
             ->with('success', 'Biaya Operasional berhasil dihapus');
     }
 
-    private function canManage()
-    {
-        $user = Auth::user();
-        // Pastikan user memiliki salah satu dari role ini
-        return $user->hasAnyRole(['superadmin', 'operatorDapur']);
-    }
+    // private function canManage()
+    // {
+    //     $user = Auth::user();
+    //     // Pastikan user memiliki salah satu dari role ini
+    //     return $user->hasAnyRole(['superadmin', 'operatorDapur']);
+    // }
 }

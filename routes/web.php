@@ -30,6 +30,10 @@ use App\Http\Controllers\ReportSalesPartnerController;
 use App\Http\Controllers\ProfitController;
 use App\Http\Controllers\ReportSalesProfitController;
 use App\Http\Controllers\SalesSummaryController;
+use App\Http\Controllers\SalesSummaryNewController;
+use App\Http\Controllers\UserManualController;
+use App\Http\Controllers\ReportPurchaseOperationalNewController;
+
 
 require __DIR__ . '/auth.php';
 
@@ -350,6 +354,8 @@ Route::middleware(['auth', 'disetujui'])->group(function () {
         ->controller(SaleMaterialsKitchenController::class)
         ->group(function () {
             Route::get('/', 'index')->middleware('permission:transaction.sale-kitchen.view')->name('index');
+            Route::get('/excel', 'excel')->middleware('permission:transaction.sale-kitchen.view')->name('excel');
+            Route::get('/pdf', 'pdf')->middleware('permission:transaction.sale-kitchen.view')->name('pdf');
             Route::post('/', 'store')->middleware('permission:transaction.sale-kitchen.create')->name('store');
             Route::get('/invoice/{kode}', 'printInvoice')->middleware('permission:transaction.sale-kitchen.view')->name('invoice');
             // Route::get('/invoice/{kode}/download', 'downloadInvoice')->middleware('permission:transaction.sale-kitchen.view')->name('invoice.download');
@@ -512,42 +518,83 @@ Route::middleware(['auth', 'disetujui'])->group(function () {
             Route::get('/penjualan-dapur/invoice', [ReportSalesKitchenController::class, 'invoice'])
                 ->middleware('permission:report.sales-kitchen.invoice')
                 ->name('sales-kitchen.invoice');
+            Route::get('/penjualan-dapur/excel', [ReportSalesKitchenController::class, 'excel'])
+                ->middleware('permission:report.sales-kitchen.view')
+                ->name('sales-kitchen.excel');
 
             Route::get('/pembelian-operational', [ReportPurchaseOperationalController::class, 'index'])
                 ->middleware('permission:report.purchase-operational.view')
                 ->name('purchase-operational');
-
             Route::get('/pembelian-operational/invoice', [ReportPurchaseOperationalController::class, 'invoice'])
-                ->middleware('permission:report.purchase-operational.invoice')
+                ->middleware('permission:report.purchase-operational.view')
                 ->name('purchase-operational.invoice');
+            Route::get('/pembelian-operational/excel', [ReportPurchaseOperationalController::class, 'excel'])
+                ->middleware('permission:report.purchase-operational.view')
+                ->name('purchase-operational.excel');
 
             Route::get('/penjualan-mitra', [ReportSalesPartnerController::class, 'index'])
                 ->middleware('permission:report.sales-partner.view')
                 ->name('sales-partner');
-
             Route::get('/penjualan-mitra/invoice', [ReportSalesPartnerController::class, 'invoice'])
                 ->middleware('permission:report.sales-partner.invoice')
                 ->name('sales-partner.invoice');
+            Route::get('/penjualan-mitra/excel', [ReportSalesPartnerController::class, 'excel'])
+                ->middleware('permission:report.sales-partner.view')
+                ->name('sales-partner.excel');
 
             Route::get('/selisih', [ProfitController::class, 'index'])
                 ->middleware('permission:report.profit.view')
                 ->name('profit');
-
             Route::get('/selisih/invoice', [ProfitController::class, 'invoice'])
                 ->middleware('permission:report.profit.invoice')
                 ->name('profit.invoice');
+            Route::get('/selisih/excel', [ProfitController::class, 'excel'])
+                ->middleware('permission:report.profit.view')
+                ->name('profit.excel');
 
             Route::get('/profit', [ReportSalesProfitController::class, 'index'])
                 ->middleware('permission:report.sales-profit.view')
                 ->name('sales-profit');
-
             Route::get('/profit/invoice/{kode}', [ReportSalesProfitController::class, 'printInvoice'])
                 ->middleware('permission:report.sales-profit.invoice')
                 ->name('sales-profit.printInvoice');
+            Route::get('/profit/invoice/{kode}/excel', [ReportSalesProfitController::class, 'printInvoiceExcel'])
+                ->middleware('permission:report.sales-profit.invoice')
+                ->name('sales-profit.printInvoiceExcel');
+            Route::get('/profit/excel', [ReportSalesProfitController::class, 'excel'])
+                ->middleware('permission:report.sales-profit.view')
+                ->name('sales-profit.excel');
 
             Route::get('/total-penjualan-dan-selisih', [SalesSummaryController::class, 'index'])
-                ->middleware('permission:report.sales-summary.view')
+                ->middleware('permission:report.sales-summary.legacy')
                 ->name('sales-summary');
+            Route::get('/total-penjualan-dan-selisih/excel', [SalesSummaryController::class, 'excel'])
+                ->middleware('permission:report.sales-summary.legacy')
+                ->name('sales-summary.excel');
+            Route::get('/total-penjualan-dan-selisih/pdf', [SalesSummaryController::class, 'pdf'])
+                ->middleware('permission:report.sales-summary.legacy')
+                ->name('sales-summary.pdf');
+
+            Route::get('/total-penjualan', [SalesSummaryNewController::class, 'index'])
+                ->middleware('permission:report.sales-summary-new.view')
+                ->name('sales-summary-new');
+            Route::get('/total-penjualan/excel', [SalesSummaryNewController::class, 'excel'])
+                ->middleware('permission:report.sales-summary-new.view')
+                ->name('sales-summary-new.excel');
+            Route::get('/total-penjualan/pdf', [SalesSummaryNewController::class, 'pdf'])
+                ->middleware('permission:report.sales-summary-new.view')
+                ->name('sales-summary-new.pdf');
+
+            Route::get('/total-operasional', [ReportPurchaseOperationalNewController::class, 'index'])
+                ->middleware('permission:report.total-operational.view') // Menggunakan permission pembelian agar tidak perlu seeder ulang, namun ganti bila ada permission spesifik baru
+                ->name('total-operational');
+            Route::get('/total-operasional/excel', [ReportPurchaseOperationalNewController::class, 'excel'])
+                ->middleware('permission:report.total-operational.view')
+                ->name('total-operational.excel');
+            Route::get('/total-operasional/pdf', [ReportPurchaseOperationalNewController::class, 'pdf'])
+                ->middleware('permission:report.total-operational.view')
+                ->name('total-operational.pdf');
+
         });
 
     Route::prefix('dashboard/profile')
@@ -558,6 +605,22 @@ Route::middleware(['auth', 'disetujui'])->group(function () {
             Route::patch('/', 'update')->name('update');
             Route::delete('/', 'destroy')->name('destroy');
             Route::patch('/password', 'updatePassword')->name('password.update');
+        });
+
+    /*
+    |------------------------------------------------------------------
+    | USER MANUAL
+    |------------------------------------------------------------------
+    */
+
+    Route::prefix('dashboard/user-manual')
+        ->name('user-manual.')
+        ->controller(UserManualController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'store')->middleware('role:superadmin')->name('store');
+            Route::get('/{id}/download', 'download')->name('download');
+            Route::delete('/{id}', 'destroy')->middleware('role:superadmin')->name('destroy');
         });
 
     // Route::get('/dashboard', function () {

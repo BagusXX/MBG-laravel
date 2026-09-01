@@ -20,7 +20,7 @@ class OperationalApprovalController extends Controller
         return auth()->user()->kitchens()->pluck('kode');
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
 
@@ -29,16 +29,34 @@ class OperationalApprovalController extends Controller
             ->get();
 
         $kitchenCodes = $this->userKitchenCodes();
-
-        $submissions = submissionOperational::onlyParent()
+        
+        // --- 1. Deklarasi Query utama ---
+        $query = submissionOperational::onlyParent()
             ->pengajuan()
             ->whereHas('kitchen', function ($q) use ($kitchenCodes) {
                 $q->whereIn('kode', $kitchenCodes);
             })
-            ->with(['details.operational', 'kitchen', 'supplier'])
-            // ->orderBy('created_at', 'desc')
-            ->latest()
-            ->paginate(perPage: 10);
+            ->with(['details.operational', 'kitchen', 'supplier']);
+
+        // --- 2. Filter Request Tambahan ---
+        if ($request->filled('kitchen_kode')) {
+            $query->where('kitchen_kode', $request->kitchen_kode);
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('from_date')) {
+            $query->whereDate('tanggal', '>=', $request->from_date);
+        }
+        if ($request->filled('to_date')) {
+            $query->whereDate('tanggal', '<=', $request->to_date);
+        }
+        if ($request->filled('kode')) {
+            $query->where('kode', 'like', '%' . $request->kode . '%');
+        }
+
+        // --- 3. Tarik Hasil Datanya (Diresolving dgn paginate) ---
+        $submissions = $query->latest()->paginate(10)->withQueryString();
 
         $suppliers = Supplier::with('kitchens')->orderBy('nama')->get();
 

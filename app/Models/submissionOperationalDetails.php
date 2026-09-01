@@ -33,7 +33,7 @@ class submissionOperationalDetails extends Model
 
     public function operational()
     {
-        return $this->belongsTo(operationals::class, 'operational_id');
+        return $this->belongsTo(operationals::class, 'operational_id')->withTrashed();
     }
     public function supplier()
     {
