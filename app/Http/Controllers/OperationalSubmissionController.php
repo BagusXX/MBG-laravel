@@ -56,7 +56,7 @@ class OperationalSubmissionController extends Controller
             $query->where('kode', 'like', '%' . $request->kode . '%');
         }
 
-        $submissions = $query->orderBy('tanggal', 'desc')->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
+        $submissions = $query->orderBy('updated_at', 'desc')->paginate(10)->withQueryString();
 
         $suppliers = Supplier::orderBy('nama')->get();
 
@@ -77,18 +77,15 @@ class OperationalSubmissionController extends Controller
      */
     public function store(Request $request)
     {
-        // Konversi format angka Indonesia (12.500,35 → 12500.35) sebelum validasi
+        // Bersihkan format angka Indonesia HANYA untuk field harga (type=text, format: titik=ribuan, koma=desimal)
+        // qty TIDAK dibersihkan karena type=number sudah menggunakan titik sebagai desimal standar
         if ($request->has('items')) {
             $items = $request->items;
             foreach ($items as $key => $val) {
-                if (isset($val['harga_satuan'])) {
-                    $clean = str_replace('.', '', $val['harga_satuan']); // hapus titik ribuan
-                    $clean = str_replace(',', '.', $clean);              // ganti koma desimal → titik
+                if (isset($val['harga_satuan']) && $val['harga_satuan'] !== '') {
+                    $clean = str_replace('.', '', $val['harga_satuan']); // hapus pemisah ribuan
+                    $clean = str_replace(',', '.', $clean);              // ubah koma desimal → titik
                     $items[$key]['harga_satuan'] = $clean;
-                }
-                if (isset($val['qty'])) {
-                    $clean = str_replace(',', '.', $val['qty']);
-                    $items[$key]['qty'] = $clean;
                 }
             }
             $request->merge(['items' => $items]);
@@ -222,18 +219,14 @@ class OperationalSubmissionController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        // Konversi format angka Indonesia (12.500,35 → 12500.35) sebelum validasi
+        // Bersihkan format angka Indonesia HANYA untuk field harga sebelum validasi
         if ($request->has('items')) {
             $items = $request->items;
             foreach ($items as $key => $val) {
-                if (isset($val['harga_satuan'])) {
+                if (isset($val['harga_satuan']) && $val['harga_satuan'] !== '') {
                     $clean = str_replace('.', '', $val['harga_satuan']);
                     $clean = str_replace(',', '.', $clean);
                     $items[$key]['harga_satuan'] = $clean;
-                }
-                if (isset($val['qty'])) {
-                    $clean = str_replace(',', '.', $val['qty']);
-                    $items[$key]['qty'] = $clean;
                 }
             }
             $request->merge(['items' => $items]);

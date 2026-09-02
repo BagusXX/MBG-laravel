@@ -1,13 +1,13 @@
 @extends('adminlte::page')
 
-@section('title', 'Daftar Biaya Operasional')
+@section('title', 'Persetujuan Operasional')
 
 @section('css')
     <link rel="stylesheet" href="{{ asset('css/notification-pop-up.css') }}">
 @endsection
 
 @section('content_header')
-    <h1>Daftar Biaya Operasional</h1>
+    <h1>Persetujuan Operasional (Approval)</h1>
 @endsection
 
 @section('content')
@@ -16,18 +16,18 @@
 
     <x-notification-pop-up />
 
-    <form method="GET" action="">
+    <form method="GET" id="formFilter" action="{{ url()->current() }}">
         <div class="card mb-3">
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-2">
                         <label>Cari Kode</label>
-                        <input type="text" name="kode" value="{{ request('kode') }}" class="form-control"
+                        <input type="text" name="kode" id="filterKode" value="{{ request('kode') }}" class="form-control"
                             placeholder="Masukkan Kode">
                     </div>
                     <div class="col-md-3">
                         <label>Dapur</label>
-                        <select name="kitchen_kode" class="form-control">
+                        <select name="kitchen_kode" id="filterKitchen" class="form-control">
                             <option value="">Semua Dapur</option>
                             @foreach ($kitchens as $k)
                                 <option value="{{ $k->kode }}" {{ request('kitchen_kode') == $k->kode ? 'selected' : '' }}>
@@ -38,7 +38,7 @@
                     </div>
                     <div class="col-md-3">
                         <label>Status</label>
-                        <select name="status" class="form-control">
+                        <select name="status" id="filterStatus" class="form-control">
                             <option value="">Semua Status</option>
                             <option value="diajukan" {{ request('status') == 'diajukan' ? 'selected' : '' }}>Diajukan</option>
                             <option value="diproses" {{ request('status') == 'diproses' ? 'selected' : '' }}>Diproses</option>
@@ -48,11 +48,11 @@
                     </div>
                     <div class="col-md-2">
                         <label>Dari Tanggal</label>
-                        <input type="date" name="from_date" value="{{ request('from_date') }}" class="form-control">
+                        <input type="date" name="from_date" id="filterFromDate" value="{{ request('from_date') }}" class="form-control">
                     </div>
                     <div class="col-md-2">
                         <label>Sampai Tanggal</label>
-                        <input type="date" name="to_date" value="{{ request('to_date') }}" class="form-control">
+                        <input type="date" name="to_date" id="filterToDate" value="{{ request('to_date') }}" class="form-control">
                     </div>
                 </div>
                 <div class="row mt-3">
@@ -73,11 +73,11 @@
                 <thead>
                     <tr>
                         <th>Kode</th>
-                        <th>Tanggal</th>
+                        <th width="20%">Tanggal Pengajuan</th>
                         <th>Dapur</th>
                         <th>Total</th>
                         <th>Status</th>
-                        <th width="180" class="text-center">Aksi</th>
+                        <th width="150" class="text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -87,24 +87,25 @@
                                     data-date="{{ \Carbon\Carbon::parse($item->tanggal)->format('Y-m-d') }}">
 
                                     <td>{{ $item->kode }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y') }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($item->tanggal)->locale('id')->translatedFormat('l, d-m-Y') }}</td>
                                     <td>{{ $item->kitchen->nama ?? '-' }}</td>
                                     <td>Rp {{ number_format($item->total_harga, 2, ',', '.') }}</td>
                                     <td>
                                         <span class="badge badge-{{
-                        $item->status === 'diterima' ? 'success' :
-                        ($item->status === 'selesai' ? 'success' :
-                            ($item->status === 'diproses' ? 'info' :
-                                ($item->status === 'ditolak' ? 'danger' : 'warning')))
-                                                                                                        }}">
+                                            $item->status === 'diterima' ? 'success' :
+                                            ($item->status === 'selesai' ? 'success' :
+                                                ($item->status === 'diproses' ? 'info' :
+                                                    ($item->status === 'diajukan' ? 'warning' :
+                                                        ($item->status === 'ditolak' ? 'danger' : 'warning'))))
+                                        }}">
                                             {{ strtoupper($item->status) }}
                                         </span>
                                     </td>
                                     <td class="text-center">
-                                        <div class="btn-group-vertical btn-group-sm ">
+                                        <div class="btn-group btn-group-sm">
                                             {{-- DETAIL (TETAP ADA) --}}
                                             <button class="btn btn-primary btn-sm" data-toggle="modal"
-                                                data-target="#modalDetail{{ $item->id }}">
+                                                data-target="#modalDetail{{ $item->id }}" title="Detail / Review">
                                                 Detail
                                             </button>
                                         </div>
@@ -217,7 +218,7 @@
                 ($item->status === 'selesai' ? 'success' :
                     ($item->status === 'diproses' ? 'info' :
                         ($item->status === 'ditolak' ? 'danger' : 'warning')))
-                                                        }}">{{ strtoupper($item->status) }}</span>
+                                        }}">{{ strtoupper($item->status) }}</span>
                     </td>
                 </tr>
             </table>

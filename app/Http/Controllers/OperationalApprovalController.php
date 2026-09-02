@@ -29,7 +29,7 @@ class OperationalApprovalController extends Controller
             ->get();
 
         $kitchenCodes = $this->userKitchenCodes();
-        
+
         // --- 1. Deklarasi Query utama ---
         $query = submissionOperational::onlyParent()
             ->pengajuan()
@@ -56,7 +56,7 @@ class OperationalApprovalController extends Controller
         }
 
         // --- 3. Tarik Hasil Datanya (Diresolving dgn paginate) ---
-        $submissions = $query->latest()->paginate(10)->withQueryString();
+        $submissions = $query->orderBy('updated_at', 'desc')->paginate(10)->withQueryString();
 
         $suppliers = Supplier::with('kitchens')->orderBy('nama')->get();
 

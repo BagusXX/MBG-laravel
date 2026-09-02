@@ -96,7 +96,7 @@
                                     <td>{{ \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y') }}</td>
                                     <td>{{ $item->kitchen->nama ?? '-' }}</td>
                                     <td>{{ $item->details->count() }} Item</td>
-                                    <td>Rp {{ number_format($item->total_harga, 2, ',', '.') }}</td>
+                                    <td>Rp {{ number_format($item->total_harga, 2, '.', ',') }}</td>
                                     <td>
                                         <span class="badge badge-{{ $item->status === 'diterima'
                         ? 'success'
@@ -151,6 +151,11 @@
                     @endforelse
                 </tbody>
             </table>
+
+            <!-- Pagination Links -->
+            <div class="mt-3 d-flex justify-content-end">
+                {{ $submissions->links('pagination::bootstrap-4') }}
+            </div>
         </div>
     </div>
 
@@ -178,13 +183,14 @@
 
 
             <div class="form-group">
-                <label>Dapur</label>
+                <label>Dapur <span class="text-danger">*</span></label>
                 <select name="kitchen_kode" id="selectKitchen" class="form-control" required>
-                    <option disabled selected>Pilih Dapur</option>
+                    <option value="" disabled selected>-- Pilih Dapur --</option>
                     @foreach ($kitchens as $k)
                         <option value="{{ $k->kode }}">{{ $k->nama }}</option>
                     @endforeach
                 </select>
+                <div class="invalid-feedback">Dapur wajib dipilih.</div>
             </div>
 
 
@@ -218,8 +224,8 @@
                         </div>
 
                         <div class="col-md-2">
-                            <input type="text" step="0.01" name="items[0][harga_satuan]" class="form-control harga-input"
-                                placeholder="Contoh: 12.500,35" required />
+                            <input type="text" name="items[0][harga_satuan]" class="form-control harga-input format-rupiah"
+                                placeholder="0,00" required />
                         </div>
 
                         <div class="col-md-5">
@@ -296,16 +302,16 @@
                             @endif
                         </tr>
                         <!-- <tr>
-                                                        <th width="140" class="py-1">Supplier</th>
-                                                        <td class="py-1">
-                                                            : {{ $item->supplier->nama ?? '-' }}
-                                                        </td>
-                                                    </tr> -->
+                                                                                <th width="140" class="py-1">Supplier</th>
+                                                                                <td class="py-1">
+                                                                                    : {{ $item->supplier->nama ?? '-' }}
+                                                                                </td>
+                                                                            </tr> -->
 
                         <tr>
                             <th width="140" class="py-1">Total Biaya</th>
                             <td class="py-1">
-                                : Rp {{ number_format($item->total_harga, 2, ',', '.') }}
+                                : Rp {{ number_format($item->total_harga, 2, '.', ',') }}
                             </td>
                         </tr>
 
@@ -328,7 +334,7 @@
                         <tr>
                             <td>{{ $det->operational->nama ?? '-' }}</td>
                             <td class="text-center">{{ $det->qty }}</td>
-                            <td class="text-right">Rp {{ number_format($det->harga_satuan, 2, ',', '.') }}</td>
+                            <td class="text-right">Rp {{ number_format($det->harga_satuan, 2, '.', ',') }}</td>
                             <td>{{ $det->keterangan ?? '-' }}</td>
                             {{-- <td class="text-right">Rp {{ number_format($det->subtotal,2,'.',',') }}</td> --}}
                         </tr>
@@ -353,7 +359,7 @@
                                         {{ strtoupper($child->status) }}
                                     </span>
                                     <span class="ml-2 font-weight-bold">
-                                        Rp {{ number_format($child->total_harga, 2, ',', '.') }}
+                                        Rp {{ number_format($child->total_harga, 2, '.', ',') }}
                                     </span>
                                 </div>
                             </div>
@@ -507,13 +513,102 @@
                 row.find('.harga-input').val(harga);
             });
 
-            // Reset Form saat modal ditutup
+            // Simpan data form ke localStorage agar tidak hilang saat modal ditutup
+            function saveFormToStorage() {
+                // Hanya simpan jika mode tambah (bukan edit)
+                if ($('#modalAddOperational form input[name="_method"]').length > 0) return;
+
+                let formData = {
+                    tanggal: $('input[name="tanggal"]').val(),
+                    kitchen_kode: $('#selectKitchen').val(),
+                    items: []
+                };
+
+                $('#operasional-wrapper .operasional-group').each(function () {
+                    formData.items.push({
+                        barang_id: $(this).find('select[name*="[barang_id]"]').val(),
+                        qty: $(this).find('input[name*="[qty]"]').val(),
+                        harga_satuan: $(this).find('.harga-input').val(),
+                        keterangan: $(this).find('textarea').val()
+                    });
+                });
+
+                localStorage.setItem('operasional_draft', JSON.stringify(formData));
+            }
+
+            function loadFormFromStorage() {
+                let saved = localStorage.getItem('operasional_draft');
+                if (!saved) return;
+
+                try {
+                    let formData = JSON.parse(saved);
+
+                    if (formData.tanggal) $('input[name="tanggal"]').val(formData.tanggal);
+                    if (formData.kitchen_kode) {
+                        $('#selectKitchen').val(formData.kitchen_kode).trigger('change');
+                    }
+
+                    if (formData.items && formData.items.length > 0) {
+                        $('#operasional-wrapper').empty();
+                        itemIndex = 0;
+
+                        formData.items.forEach(function (item) {
+                            let row = emptyRowTemplate.clone();
+
+                            // Update name indices
+                            row.find('select, input, textarea').each(function () {
+                                let oldName = $(this).attr('name');
+                                if (oldName) {
+                                    $(this).attr('name', oldName.replace(/\[\d+\]/, '[' + itemIndex + ']'));
+                                }
+                            });
+
+                            if (item.barang_id) row.find('select[name*="[barang_id]"]').val(item.barang_id);
+                            if (item.qty) row.find('input[name*="[qty]"]').val(item.qty);
+                            if (item.harga_satuan) row.find('.harga-input').val(item.harga_satuan);
+                            if (item.keterangan) row.find('textarea').val(item.keterangan);
+
+                            if (itemIndex > 0) row.find('.remove-operasional').removeClass('d-none');
+
+                            $('#operasional-wrapper').append(row);
+                            itemIndex++;
+                        });
+                    }
+                } catch (e) {
+                    localStorage.removeItem('operasional_draft');
+                }
+            }
+
+            // Simpan data setiap ada perubahan di form
+            $('#modalAddOperational').on('input change', 'select, input, textarea', function () {
+                saveFormToStorage();
+            });
+
+            // Reset Form saat modal ditutup — HANYA hapus data jika mode EDIT
             $('#modalAddOperational').on('hidden.bs.modal', function () {
-                $('#add-operasional').prop('disabled', false);
-                $(this).find('form')[0].reset();
-                // Hapus baris tambahan, sisakan baris pertama saja
-                $('#operasional-wrapper .operasional-group:not(:first)').remove();
-                itemIndex = 1; // Reset index kembali ke 1
+                let isEditMode = $(this).find('form input[name="_method"]').length > 0;
+
+                if (isEditMode) {
+                    // Setelah edit selesai, reset form seperti biasa
+                    let form = $(this).find('form');
+                    form[0].reset();
+                    form.attr('action', "{{ route('transaction.operational-submission.store') }}");
+                    form.find('input[name="_method"]').remove();
+                    $(this).find('.modal-title').text('Tambah Pengajuan Operasional');
+                    $('#add-operasional').prop('disabled', false);
+                    $('#operasional-wrapper').empty();
+                    $('#operasional-wrapper').append(emptyRowTemplate.clone());
+                    itemIndex = 1;
+                }
+                // Jika mode Tambah: tidak reset, data tetap tersimpan di localStorage
+            });
+
+            // Muat draft saat modal Tambah dibuka (hanya mode tambah, bukan edit)
+            $('#modalAddOperational').on('show.bs.modal', function () {
+                let isEditMode = $(this).find('form input[name="_method"]').length > 0;
+                if (!isEditMode) {
+                    loadFormFromStorage();
+                }
             });
 
             // Helper Filter Tampilan Tabel Utama (Search)
@@ -590,7 +685,16 @@
 
                     row.find('select[name*="[barang_id]"]').val(item.operational_id);
                     row.find('input[name*="[qty]"]').val(item.qty);
-                    row.find('.harga-input').val(item.harga_satuan);
+
+                    // Konversi harga dari format DB (534.53) ke format Indonesia (534,53)
+                    // agar saat dikirim ulang ke controller, pembersihan format bekerja benar
+                    let hargaDB = parseFloat(item.harga_satuan) || 0;
+                    let hargaIDR = hargaDB.toLocaleString('id-ID', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                    row.find('.harga-input').val(hargaIDR);
+
                     row.find('textarea[name*="[keterangan]"]').val(item.keterangan);
 
                     row.find('select, input, textarea').each(function () {
@@ -613,28 +717,25 @@
 
             $('#modalAddOperational').on('hidden.bs.modal', function () {
 
-                let form = $(this).find('form');
+                let isEditMode = $(this).find('form input[name="_method"]').length > 0;
 
-                // Reset form
-                form[0].reset();
-
-                // Reset action & method
-                form.attr('action', "{{ route('transaction.operational-submission.store') }}");
-                form.find('input[name="_method"]').remove();
-
-                // Reset title
-                $(this).find('.modal-title').text('Tambah Pengajuan Operasional');
-
-                // Enable add kembali
-                $('#add-operasional').prop('disabled', false);
-
-                // Reset item
-                $('#operasional-wrapper').empty();
-                $('#operasional-wrapper').append(emptyRowTemplate.clone());
-
-                itemIndex = 1;
+                if (isEditMode) {
+                    let form = $(this).find('form');
+                    form[0].reset();
+                    form.attr('action', "{{ route('transaction.operational-submission.store') }}");
+                    form.find('input[name="_method"]').remove();
+                    $(this).find('.modal-title').text('Tambah Pengajuan Operasional');
+                    $('#add-operasional').prop('disabled', false);
+                    $('#operasional-wrapper').empty();
+                    $('#operasional-wrapper').append(emptyRowTemplate.clone());
+                    itemIndex = 1;
+                }
             });
 
+            // Hapus draft localStorage setelah form berhasil disubmit
+            $('#modalAddOperational form').on('submit', function () {
+                localStorage.removeItem('operasional_draft');
+            });
 
         });
     </script>

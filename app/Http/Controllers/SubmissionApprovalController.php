@@ -72,7 +72,7 @@ class SubmissionApprovalController extends Controller
         if ($request->filled('kode')) {
             $query->where('kode', 'like', '%' . $request->kode . '%');
         }
-        
+
 
         $submissions = $query->latest()->paginate(10)->withQueryString();
 
@@ -396,7 +396,7 @@ class SubmissionApprovalController extends Controller
             }
 
             $childKode = $parent->kode . '-' . $childSequence;
-            
+
             $child = Submission::create([
                 'kode' => $childKode,
                 'tanggal' => now(),
