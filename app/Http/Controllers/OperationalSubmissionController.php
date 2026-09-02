@@ -77,6 +77,23 @@ class OperationalSubmissionController extends Controller
      */
     public function store(Request $request)
     {
+        // Konversi format angka Indonesia (12.500,35 → 12500.35) sebelum validasi
+        if ($request->has('items')) {
+            $items = $request->items;
+            foreach ($items as $key => $val) {
+                if (isset($val['harga_satuan'])) {
+                    $clean = str_replace('.', '', $val['harga_satuan']); // hapus titik ribuan
+                    $clean = str_replace(',', '.', $clean);              // ganti koma desimal → titik
+                    $items[$key]['harga_satuan'] = $clean;
+                }
+                if (isset($val['qty'])) {
+                    $clean = str_replace(',', '.', $val['qty']);
+                    $items[$key]['qty'] = $clean;
+                }
+            }
+            $request->merge(['items' => $items]);
+        }
+
         $request->validate([
             'kitchen_kode' => 'required|exists:kitchens,kode',
             'tanggal' => 'required|date',
@@ -136,7 +153,7 @@ class OperationalSubmissionController extends Controller
             foreach ($request->items as $item) {
                 $barangId = $item['barang_id'];
                 $qty = $item['qty'];
-                
+
                 $barang = $masterItems[$barangId];
 
                 $hargaDapur = $item['harga_satuan'] ?? $barang->harga_default ?? 0;
@@ -152,7 +169,7 @@ class OperationalSubmissionController extends Controller
                     'qty' => $qty,
                     'harga_satuan' => $hargaDapur,
 
-                    
+
                     'harga_dapur' => $hargaDapur,
                     'harga_mitra' => $hargaMitra,
 
@@ -205,6 +222,23 @@ class OperationalSubmissionController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        // Konversi format angka Indonesia (12.500,35 → 12500.35) sebelum validasi
+        if ($request->has('items')) {
+            $items = $request->items;
+            foreach ($items as $key => $val) {
+                if (isset($val['harga_satuan'])) {
+                    $clean = str_replace('.', '', $val['harga_satuan']);
+                    $clean = str_replace(',', '.', $clean);
+                    $items[$key]['harga_satuan'] = $clean;
+                }
+                if (isset($val['qty'])) {
+                    $clean = str_replace(',', '.', $val['qty']);
+                    $items[$key]['qty'] = $clean;
+                }
+            }
+            $request->merge(['items' => $items]);
+        }
+
         // 1. Validasi: Hapus harga_satuan
         $request->validate([
             'tanggal' => 'required|date',

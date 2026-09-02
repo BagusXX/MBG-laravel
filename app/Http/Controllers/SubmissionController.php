@@ -156,15 +156,26 @@ class SubmissionController extends Controller
             foreach ($items as $key => $val) {
                 // List kolom yang butuh desimal
                 $fields = ['qty', 'harga_dapur', 'harga_mitra'];
-                
+
                 foreach ($fields as $field) {
                     if (isset($val[$field])) {
-                        //    Tapi untuk format Indonesia (Ribuan=Titik, Desimal=Koma), ini WAJIB ada.
-                        $clean = str_replace('.', '', $val[$field]);
-                        
-                        // 2. Ganti koma jadi titik (agar terbaca sebagai desimal oleh PHP/MySQL)
-                        $clean = str_replace(',', '.', $clean);
-
+                        $clean = $val[$field];
+                        if (strpos($clean, ',') !== false) {
+                            $clean = str_replace('.', '', $clean);
+                            $clean = str_replace(',', '.', $clean);
+                        } else {
+                            if (substr_count($clean, '.') > 1) {
+                                $clean = str_replace('.', '', $clean);
+                            } else {
+                                $lastDot = strrpos($clean, '.');
+                                if ($lastDot !== false) {
+                                    $decimals = strlen($clean) - $lastDot - 1;
+                                    if ($decimals === 3) {
+                                        $clean = str_replace('.', '', $clean);
+                                    }
+                                }
+                            }
+                        }
                         $items[$key][$field] = $clean;
                     }
                 }
@@ -250,8 +261,23 @@ class SubmissionController extends Controller
                 $fields = ['qty', 'harga_dapur', 'harga_mitra'];
                 foreach ($fields as $field) {
                     if (isset($val[$field])) {
-                        $clean = str_replace('.', '', $val[$field]); // Hapus ribuan
-                        $clean = str_replace(',', '.', $clean);      // Ubah desimal
+                        $clean = $val[$field];
+                        if (strpos($clean, ',') !== false) {
+                            $clean = str_replace('.', '', $clean);
+                            $clean = str_replace(',', '.', $clean);
+                        } else {
+                            if (substr_count($clean, '.') > 1) {
+                                $clean = str_replace('.', '', $clean);
+                            } else {
+                                $lastDot = strrpos($clean, '.');
+                                if ($lastDot !== false) {
+                                    $decimals = strlen($clean) - $lastDot - 1;
+                                    if ($decimals === 3) {
+                                        $clean = str_replace('.', '', $clean);
+                                    }
+                                }
+                            }
+                        }
                         $items[$key][$field] = $clean;
                     }
                 }

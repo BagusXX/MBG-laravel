@@ -28,7 +28,8 @@
                 <div class="row">
                     <div class="col-md-2">
                         <label>Cari Kode</label>
-                        <input type="text" name="kode" value="{{ request('kode') }}" class="form-control" placeholder="Masukkan Kode">
+                        <input type="text" name="kode" value="{{ request('kode') }}" class="form-control"
+                            placeholder="Masukkan Kode">
                     </div>
                     <div class="col-md-3">
                         <label>Dapur</label>
@@ -89,61 +90,57 @@
                 </thead>
                 <tbody>
                     @forelse($submissions as $item)
-                        <tr data-kitchen="{{ $item->kitchen->nama ?? '' }}" data-status="{{ $item->status }}"
-                            data-date="{{ $item->created_at->format('Y-m-d') }}">
-                            <td>{{ $item->kode }}</td>
-                            <td>{{ $item->created_at->format('d-m-Y') }}</td>
-                            <td>{{ $item->kitchen->nama ?? '-' }}</td>
-                            <td>{{ $item->details->count() }} Item</td>
-                            <td>Rp {{ number_format($item->total_harga, 2, ',', '.') }}</td>
-                            <td>
-                                <span
-                                    class="badge badge-{{ $item->status === 'diterima'
-                                        ? 'success'
-                                        : ($item->status === 'selesai'
-                                            ? 'success'
-                                            : ($item->status === 'diproses'
-                                                ? 'info'
-                                                : ($item->status === 'ditolak'
-                                                    ? 'danger'
-                                                    : 'warning'))) }}">
-                                    {{ strtoupper($item->status) }}
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                {{-- Tombol Detail --}}
-                                <button class="btn btn-info btn-sm" data-toggle="modal"
-                                    data-target="#modalDetail{{ $item->id }}">
-                                    Detail
-                                </button>
+                                <tr data-kitchen="{{ $item->kitchen->nama ?? '' }}" data-status="{{ $item->status }}"
+                                    data-date="{{ \Carbon\Carbon::parse($item->tanggal)->format('Y-m-d') }}">
+                                    <td>{{ $item->kode }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y') }}</td>
+                                    <td>{{ $item->kitchen->nama ?? '-' }}</td>
+                                    <td>{{ $item->details->count() }} Item</td>
+                                    <td>Rp {{ number_format($item->total_harga, 2, ',', '.') }}</td>
+                                    <td>
+                                        <span class="badge badge-{{ $item->status === 'diterima'
+                        ? 'success'
+                        : ($item->status === 'selesai'
+                            ? 'success'
+                            : ($item->status === 'diproses'
+                                ? 'info'
+                                : ($item->status === 'ditolak'
+                                    ? 'danger'
+                                    : 'warning'))) }}">
+                                            {{ strtoupper($item->status) }}
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        {{-- Tombol Detail --}}
+                                        <button class="btn btn-info btn-sm" data-toggle="modal"
+                                            data-target="#modalDetail{{ $item->id }}">
+                                            Detail
+                                        </button>
 
-                                @can('transaction.operational-submission.delete')
-                                    {{-- Tombol Hapus (Hanya jika belum diterima) --}}
-                                    @if ($item->status !== 'diproses' && $item->status !== 'diterima' && $item->children->count() === 0)
-                                        <x-button-delete idTarget="#modalDeleteOperational" formId="formDeleteOperational"
-                                            action="{{ route('transaction.operational-submission.destroy', $item->id) }}"
-                                            text="Hapus" />
-                                    @endif
-                                @endcan
-                                {{-- @if ($item->status === 'selesai')
-                            <a href="{{ route('transaction.operational-submission.invoice-parent', $item->id) }}"
-                            target="_blank"
-                            class="btn btn-warning btn-sm"
-                            title="Cetak Invoice Rekapitulasi">
-                                <i class="fas fa-print"></i> Cetak
-                            </a>
-                        @endif --}}
-                                @if ($item->status === 'diajukan')
-                                    <button class="btn btn-warning btn-sm btn-edit-operational mt-2"
-                                        data-id="{{ $item->id }}"
-                                        data-url="{{ route('transaction.operational-submission.update', $item->id) }}"
-                                        data-json='@json($item)'>
-                                        <i class="fas fa-edit"></i> Edit
-                                    </button>
-                                @endif
+                                        @can('transaction.operational-submission.delete')
+                                            {{-- Tombol Hapus (Hanya jika belum diterima) --}}
+                                            @if ($item->status !== 'diproses' && $item->status !== 'diterima' && $item->children->count() === 0)
+                                                <x-button-delete idTarget="#modalDeleteOperational" formId="formDeleteOperational"
+                                                    action="{{ route('transaction.operational-submission.destroy', $item->id) }}"
+                                                    text="Hapus" />
+                                            @endif
+                                        @endcan
+                                        {{-- @if ($item->status === 'selesai')
+                                        <a href="{{ route('transaction.operational-submission.invoice-parent', $item->id) }}"
+                                            target="_blank" class="btn btn-warning btn-sm" title="Cetak Invoice Rekapitulasi">
+                                            <i class="fas fa-print"></i> Cetak
+                                        </a>
+                                        @endif --}}
+                                        @if ($item->status === 'diajukan')
+                                            <button class="btn btn-warning btn-sm btn-edit-operational mt-2" data-id="{{ $item->id }}"
+                                                data-url="{{ route('transaction.operational-submission.update', $item->id) }}"
+                                                data-json='@json($item)'>
+                                                <i class="fas fa-edit"></i> Edit
+                                            </button>
+                                        @endif
 
-                            </td>
-                        </tr>
+                                    </td>
+                                </tr>
                     @empty
                         <tr>
                             <td colspan="7" class="text-center py-4 text-muted">
@@ -159,7 +156,7 @@
 
     {{-- =========================
     MODAL TAMBAH (DYNAMIC FORM)
-========================= --}}
+    ========================= --}}
 
 
     <x-modal-form id="modalAddOperational" size="modal-xl" title="Tambah Pengajuan Operasional"
@@ -175,8 +172,8 @@
 
             <div class="form-group">
                 <label>Tanggal</label>
-                <input type="date" name="tanggal" class="form-control"
-                    value="{{ old('tanggal', now()->format('Y-m-d')) }}" required>
+                <input type="date" name="tanggal" class="form-control" value="{{ old('tanggal', now()->format('Y-m-d')) }}"
+                    required>
             </div>
 
 
@@ -204,7 +201,7 @@
                 <div id="operasional-wrapper">
                     <div class="form-row mb-3 operasional-group">
                         <div class="col-md-3">
-                            <select name="items[0][barang_id]" class="form-control"required>
+                            <select name="items[0][barang_id]" class="form-control" required>
                                 <option value="" disabled selected>Pilih Barang</option>
                                 @foreach ($masterBarang as $barang)
                                     <option value="{{ $barang->id }}" data-kitchen="{{ $barang->kitchen_kode }}"
@@ -220,9 +217,10 @@
                                 required />
                         </div>
 
-                    <div class="col-md-2">
-                        <input type="number" step="0.01" name="items[0][harga_satuan]"class="form-control harga-input"required/>
-                    </div>
+                        <div class="col-md-2">
+                            <input type="text" step="0.01" name="items[0][harga_satuan]" class="form-control harga-input"
+                                placeholder="Contoh: 12.500,35" required />
+                        </div>
 
                         <div class="col-md-5">
                             <textarea name="items[0][keterangan]" class="form-control" rows="1"
@@ -247,7 +245,7 @@
 
     {{-- =========================
     MODAL DETAIL (LOOPING)
-========================= --}}
+    ========================= --}}
     @foreach ($submissions as $item)
         <x-modal-detail id="modalDetail{{ $item->id }}" size="modal-lg" title="Detail Pengajuan Operasional">
             <div class="row mb-3">
@@ -259,7 +257,7 @@
                         </tr>
                         <tr>
                             <th width="140" class="py-1">Tanggal</th>
-                            <td class="py-1">: {{ $item->created_at->format('d-m-Y') }}</td>
+                            <td class="py-1">: {{ \Carbon\Carbon::parse($item->tanggal)->format('d-m-Y') }}</td>
                         </tr>
                         <tr>
                             <th width="140" class="py-1">Dapur</th>
@@ -272,16 +270,15 @@
                         <tr>
                             <th width="140" class="py-1">Status</th>
                             <td class="py-1">
-                                <span
-                                    class="badge badge-{{ $item->status === 'diterima'
-                                        ? 'success'
-                                        : ($item->status === 'selesai'
-                                            ? 'success'
-                                            : ($item->status === 'diproses'
-                                                ? 'info'
-                                                : ($item->status === 'ditolak'
-                                                    ? 'danger'
-                                                    : 'warning'))) }}">
+                                <span class="badge badge-{{ $item->status === 'diterima'
+                ? 'success'
+                : ($item->status === 'selesai'
+                    ? 'success'
+                    : ($item->status === 'diproses'
+                        ? 'info'
+                        : ($item->status === 'ditolak'
+                            ? 'danger'
+                            : 'warning'))) }}">
                                     {{ strtoupper($item->status) }}
                                 </span>
                             </td>
@@ -299,11 +296,11 @@
                             @endif
                         </tr>
                         <!-- <tr>
-                                <th width="140" class="py-1">Supplier</th>
-                                <td class="py-1">
-                                    : {{ $item->supplier->nama ?? '-' }}
-                                </td>
-                            </tr> -->
+                                                        <th width="140" class="py-1">Supplier</th>
+                                                        <td class="py-1">
+                                                            : {{ $item->supplier->nama ?? '-' }}
+                                                        </td>
+                                                    </tr> -->
 
                         <tr>
                             <th width="140" class="py-1">Total Biaya</th>
@@ -333,7 +330,7 @@
                             <td class="text-center">{{ $det->qty }}</td>
                             <td class="text-right">Rp {{ number_format($det->harga_satuan, 2, ',', '.') }}</td>
                             <td>{{ $det->keterangan ?? '-' }}</td>
-                            {{-- <td class="text-right">Rp {{ number_format($det->subtotal,2,',','.') }}</td> --}}
+                            {{-- <td class="text-right">Rp {{ number_format($det->subtotal,2,'.',',') }}</td> --}}
                         </tr>
                     @endforeach
                 </tbody>
@@ -352,8 +349,7 @@
                                     <i class="fas fa-truck"></i> {{ $child->supplier->nama ?? 'Tanpa Supplier' }}
                                 </div>
                                 <div>
-                                    <span
-                                        class="badge badge-{{ $child->status == 'disetujui' ? 'success' : 'secondary' }}">
+                                    <span class="badge badge-{{ $child->status == 'disetujui' ? 'success' : 'secondary' }}">
                                         {{ strtoupper($child->status) }}
                                     </span>
                                     <span class="ml-2 font-weight-bold">
@@ -413,7 +409,7 @@
             }, 3000);
         }
 
-        $(document).ready(function() {
+        $(document).ready(function () {
 
             let emptyRowTemplate = $('#operasional-wrapper .operasional-group:first').clone();
 
@@ -423,7 +419,7 @@
             let itemIndex = 1;
 
             // --- LOGIC TAMBAH BARANG ---
-            $('#add-operasional').on('click', function() {
+            $('#add-operasional').on('click', function () {
                 // GUARD: jika tombol disabled, hentikan
                 if ($(this).prop('disabled')) {
                     return;
@@ -445,7 +441,7 @@
                 // BAGIAN PENTING: UPDATE ATRIBUT NAME
                 // Mengubah items[0][...] menjadi items[1][...], items[2][...], dst
                 // ============================================================
-                $newRow.find('select, input, textarea').each(function() {
+                $newRow.find('select, input, textarea').each(function () {
                     let oldName = $(this).attr('name');
                     if (oldName) {
                         // Regex ini mencari angka di dalam kurung siku [0] dan menggantinya dengan index baru
@@ -471,7 +467,7 @@
 
 
             // --- LOGIC HAPUS BARANG ---
-            $(document).on('click', '.remove-operasional', function() {
+            $(document).on('click', '.remove-operasional', function () {
                 $(this).closest('.operasional-group').remove();
             });
 
@@ -479,7 +475,7 @@
             // --- LOGIC FILTER DAPUR (HELPER) ---
             // Fungsi ini memfilter satu dropdown spesifik
             function filterSingleSelect($selectElement, kitchenKode) {
-                $selectElement.find('option').each(function() {
+                $selectElement.find('option').each(function () {
                     let optKitchen = $(this).data('kitchen');
                     // Tampilkan jika tidak ada data-kitchen (option default) atau cocok
                     if (!optKitchen || optKitchen == kitchenKode) {
@@ -492,27 +488,27 @@
 
             // Fungsi untuk memfilter SEMUA dropdown (dipakai saat ganti dapur utama)
             function filterAllBarangByKitchen(kitchenKode) {
-                $('#operasional-wrapper select[name*="[barang_id]"]').each(function() {
+                $('#operasional-wrapper select[name*="[barang_id]"]').each(function () {
                     filterSingleSelect($(this), kitchenKode);
                     $(this).val(''); // Reset pilihan saat ganti dapur
                 });
             }
 
             // Event saat Dapur dipilih (Header Form)
-            $('#selectKitchen').on('change', function() {
+            $('#selectKitchen').on('change', function () {
                 let kitchenKode = $(this).val();
                 filterAllBarangByKitchen(kitchenKode);
             });
 
             // Event saat Barang dipilih (Auto isi Harga)
-            $(document).on('change', 'select[name*="[barang_id]"]', function() {
+            $(document).on('change', 'select[name*="[barang_id]"]', function () {
                 let harga = $(this).find(':selected').data('harga') || 0;
                 let row = $(this).closest('.operasional-group');
                 row.find('.harga-input').val(harga);
             });
 
             // Reset Form saat modal ditutup
-            $('#modalAddOperational').on('hidden.bs.modal', function() {
+            $('#modalAddOperational').on('hidden.bs.modal', function () {
                 $('#add-operasional').prop('disabled', false);
                 $(this).find('form')[0].reset();
                 // Hapus baris tambahan, sisakan baris pertama saja
@@ -521,12 +517,12 @@
             });
 
             // Helper Filter Tampilan Tabel Utama (Search)
-            $('#filterKitchen, #filterStatus, #filterDate').on('change', function() {
+            $('#filterKitchen, #filterStatus, #filterDate').on('change', function () {
                 let kitchen = $('#filterKitchen').val()?.toLowerCase() || '';
                 let status = $('#filterStatus').val()?.toLowerCase() || '';
                 let date = $('#filterDate').val();
 
-                $('#tableSubmission tbody tr').each(function() {
+                $('#tableSubmission tbody tr').each(function () {
                     let rKitchen = $(this).data('kitchen')?.toLowerCase() || '';
                     let rStatus = $(this).data('status')?.toLowerCase() || '';
                     let rDate = $(this).data('date') || '';
@@ -541,7 +537,7 @@
 
             function calculateGrandTotal() {
                 let total = 0;
-                $('#inputContainer tr').each(function() {
+                $('#inputContainer tr').each(function () {
                     let price = parseFloat($(this).find('.price-input').val()) || 0;
                     let qty = parseFloat($(this).find('.qty-input').val()) || 0;
                     total += (price * qty);
@@ -552,14 +548,14 @@
             }
 
             // Reset Modal Form saat ditutup (Opsional, agar bersih saat dibuka lagi)
-            $('#modalAddOperational').on('hidden.bs.modal', function() {
+            $('#modalAddOperational').on('hidden.bs.modal', function () {
                 // Uncomment baris di bawah jika ingin mereset form setiap kali tutup modal
                 // $(this).find('form')[0].reset();
                 // $('#inputContainer').find('tr:not(:first)').remove(); // Hapus baris tambahan
                 // calculateGrandTotal();
             });
 
-            $(document).on('click', '.btn-edit-operational', function() {
+            $(document).on('click', '.btn-edit-operational', function () {
 
                 let data = $(this).data('json');
                 let url = $(this).data('url');
@@ -597,7 +593,7 @@
                     row.find('.harga-input').val(item.harga_satuan);
                     row.find('textarea[name*="[keterangan]"]').val(item.keterangan);
 
-                    row.find('select, input, textarea').each(function() {
+                    row.find('select, input, textarea').each(function () {
                         let old = $(this).attr('name');
                         if (old) {
                             $(this).attr('name', old.replace(/\[\d+\]/, '[' + itemIndex +
@@ -615,7 +611,7 @@
             });
 
 
-            $('#modalAddOperational').on('hidden.bs.modal', function() {
+            $('#modalAddOperational').on('hidden.bs.modal', function () {
 
                 let form = $(this).find('form');
 
